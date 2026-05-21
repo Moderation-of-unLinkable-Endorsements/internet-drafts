@@ -247,6 +247,7 @@ uses the resulting Moderator credential when sending requests to an Origin.
 
 TODO: should tghis be three diagarms so we can detail things better? Should it be
 like reverse flow privacy pass and then map roles (anchor, moderator) onto flows?
+What about state, which is a key distinction with PP
 
 ~~~ aasvg
 +--------+             +--------+             +-----------+             +--------+
@@ -272,7 +273,10 @@ CredentialFinalization     |                        |                       |
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture"}
 
-## Protocols
+## Flows
+
+TODO: for each flow, provide a succint description
+Similar to {{RFC9576}}, this section does not dive into context creation
 
 ### Endorsement
 
