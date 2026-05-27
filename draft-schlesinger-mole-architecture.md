@@ -373,7 +373,8 @@ MoLE constructions provide three privacy properties.
 3. *Anchor-endorsement post-issuance unlinkability.* A Moderator cannot link an
    Anchor-endorsement presentation to its issuance transcript. Constructions are
    expected to preserve this property against adversaries that record issuance
-   traffic and later gain access to quantum computation.
+   traffic and later gain access to a cryptographically relevant quantum
+   computation.
 
 A successful presentation tells the Site that the Client holds a Moderator
 credential satisfying the Site's policy. It does not reveal the Client's
