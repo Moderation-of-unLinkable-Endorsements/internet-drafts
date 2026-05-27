@@ -44,10 +44,10 @@ TODO Abstract
 
 # Introduction
 
-We target browser first. We'll need some HTTP transport. We need to iterate over privacy pass to have
+We target browser first. We'll need some HTTP transport. We need to iterate to have
 
-1. issuer discovery. Given both the Anchor and the Moderator both attest and issue, exposing material can be done easily
-2. trasmission of the anchor set (format+serialisation)
+1. discovery. Given both the Anchor and the Moderator both attest and issue, exposing material can be done easily
+2. transmission of the anchor set (format+serialisation)
 3. errors?
 4. credential issuance+presentation flow. Ideally we define a header here that supports CredentialRequest and CredentialResponse. Either we provice one header with a parameter (think step=client-request, step=anchor-response), or distinct headers all together. This is similar to waht is done in {{REVERSE-FLOW}}
 

@@ -317,9 +317,10 @@ CredentialFinalization         |                        |
 {: #fig-mole-architecture-issuance title="MoLE Issuance"}
 
 When an Endorsement is presented to a Moderator, the Moderator learns
-whether or not the Endorsement is part of a set of Anchor it trusts. The
-presentation must not be linkable to a specific Anchor or other presentations of
-that same Endorsement.
+whether or not the Endorsement originates from the set of Anchors it trusts. The
+presentation must not be reveal the Anchor the Client has been endorsed by,
+and must not be linkable to other presentations of made using that same
+Endorsement.
 
 ### Credential Presentation and updates
 
@@ -341,7 +342,7 @@ CredentialFinalization         |                       |
 
 When a Moderator credential is presented to a Site, the Site learns
 whether or not it satisfies a Site specific policy. The presentation
-must not be linkable to past updates.
+must not be linkable to past updates, or to the credential issuance.
 
 Credential updates must demonstrate that they are applied to the same
 credential as was initially presented. This prevents attacks where an
