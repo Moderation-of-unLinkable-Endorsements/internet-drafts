@@ -250,26 +250,26 @@ like reverse flow privacy pass and then map roles (anchor, moderator) onto flows
 What about state, which is a key distinction with PP
 
 ~~~ aasvg
-+--------+             +--------+             +-----------+             +--------+
-| Client |             | Anchor |             | Moderator |             | Origin |
-+---+----+             +---+----+             +-----+-----+             +---+----+
-    |                      |                        |                       |
-    +-- CredentialRequest->|                        |                       |
-    |<-CredentialResponse--+                        |                       |
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
-CredentialPresentation     |                        |                       |
-    +----------- CredentialPresentation ----------->|                       |
-    |<----------- CredentialResponse ---------------+                       |
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
-CredentialPresentation     |                        |                       |
-    +----------------- Request+CredentialPresentation --------------------->|
-    |                      |                        |<-- ValidateRequest ---+
-    |                      |                        +-- ValidationResult -->|
-    |<---------------- Response+CredentialResponse -------------------------+
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
++--------+                 +--------+             +-----------+             +------+
+| Client |                 | Anchor |             | Moderator |             | Site |
++---+----+                 +---+----+             +-----+-----+             +---+--+
+    |                          |                        |                       |
+    +--- EndorsementRequest -->|                        |                       |
+    |<-- EndorsementResponse --+                        |                       |
+EndorsementFinalization        |                        |                       |
+    |                          |                        |                       |
+EndorsementPresentation        |                        |                       |
+    +------- EndorsementToken+CredentialRequest ------->|                       |
+    |<--------------- CredentialResponse ---------------+                       |
+CredentialFinalization         |                        |                       |
+    |                          |                        |                       |
+CredentialPresentation         |                        |                       |
+    +------------------------ Request+CredentialToken ------------------------->|
+    |                          |                        |<-- ValidateRequest ---+
+    |                          |                        +-- ValidationResult -->|
+    |<---------------------- Response+CredentialResponse -----------------------+
+CredentialFinalization         |                        |                       |
+    |                          |                        |                       |
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture"}
 
@@ -280,9 +280,51 @@ Similar to {{RFC9576}}, this section does not dive into context creation
 
 ### Endorsement
 
+~~~ aasvg
++--------+                 +--------+
+| Client |                 | Anchor |
++---+----+                 +---+----+
+    |                          |
+    +--- EndorsementRequest -->|
+    |<-- EndorsementResponse --+
+EndorsementFinalization        |
+    |                          |
+~~~
+{: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
+
 ### Credential Issuance
 
+~~~ aasvg
++--------+                 +--------+             +-----------+
+| Client |                 | Anchor |             | Moderator |
++---+----+                 +---+----+             +-----+-----+
+    |<===== Endorsement ======>|                        |
+    |                          |                        |
+EndorsementPresentation        |                        |
+    +------- EndorsementToken+CredentialRequest ------->|
+    |<--------------- CredentialResponse ---------------+
+CredentialFinalization         |                        |
+    |                          |                        |
+~~~
+{: #fig-mole-architecture-issuance title="MoLE Issuance"}
+
 ### Credential Presentation
+
+~~~ aasvg
++--------+               +-----------+             +------+
+| Client |               | Moderator |             | Site |
++---+----+               +-----+-----+             +---+--+
+    |<====== Endorsement =====>|                       |
+    |                          |                       |
+CredentialPresentation         |                       |
+    +------------- Request+CredentialToken ----------->|
+    |                          |<-- ValidateRequest ---+
+    |                          +-- ValidationResult -->|
+    |<----------- Response+CredentialResponse ---------+
+CredentialFinalization         |                       |
+    |                          |                       |
+~~~
+{: #fig-mole-architecture-presentation title="MoLE Presentation"}
 
 When a Moderator credential is presented to a Origin, the Origin learns
 whether or not it satisfies an Origin specific policy. The presentation
