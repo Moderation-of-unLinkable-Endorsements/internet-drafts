@@ -280,6 +280,21 @@ CredentialFinalization     |                        |                       |
 
 ### Credential Presentation
 
+When a Moderator credential is presented to a Origin, the Origin learns
+whether or not it satisfies an Origin specific policy. The presentation
+must not be linkable to past updates.
+
+### Credential Updates
+
+Credential updates must demonstrate that they are applied to the same
+credential as was initially presented. This prevents attacks where an
+attacker with two credentials shows one, and applies updates only
+to the other.
+
+Credential updates have to be applied before access to resources that
+an origin may gate or rate limit, so that Clients do not simply ignore
+the update request after getting them.
+
 # Privacy Properties {#privacy-properties}
 
 This section states the privacy goals for MoLE constructions. The wire protocol
@@ -298,9 +313,11 @@ MoLE constructions provide three privacy properties.
    Anchor issued the Anchor credential.
 
 3. *Anchor-credential post-issuance unlinkability.* A Moderator cannot link an
-   Anchor-credential presentation to its issuance transcript. Constructions are
-   expected to preserve this property against adversaries that record issuance
-   traffic and later gain access to quantum computation.
+   Anchor-credential presentation to its issuance transcript.
+
+Constructions are expected to preserve these properties against
+adversaries that record issuance traffic and later gain access to
+quantum computation.
 
 A successful presentation tells the Origin that the Client holds a Moderator
 credential satisfying the Origin's policy. It does not reveal the Client's
