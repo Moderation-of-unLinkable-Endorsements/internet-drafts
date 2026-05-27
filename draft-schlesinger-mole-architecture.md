@@ -60,7 +60,7 @@ Moderation of unLinkable Endorsements (MoLE) is an architecture in which
 Sites make authorization decisions from unlinkable, issuer-hiding credential
 presentations derived from scarce signals.
 
-Users often encounter friction when an Site has little prior context about
+Users often encounter friction when a Site has little prior context about
 them: for example, when they arrive with no cookies, use a VPN, enable
 privacy-preserving browser settings, or delegate browsing to a software agent.
 In those cases, the Site may present a CAPTCHA, use fingerprinting, reject the
@@ -131,7 +131,7 @@ most strongly load-bearing for the second.
 
 ## Reduced-Friction Challenges {#uc-friction}
 
-A user visits an Site for the first time, with no cookies, possibly through a
+A user visits a Site for the first time, with no cookies, possibly through a
 VPN or shared NAT that obscures the network-layer identifier. The Site has no
 per-user history and limited reputational signal from the network path. The
 user is the party who bears the cost of whatever the Site then chooses ---
@@ -153,7 +153,7 @@ admit user agents partially or wholly automated on behalf of the user; see
 
 ## User Agents Acting Under Delegation {#uc-agents}
 
-A user delegates some of their interaction with an Site to an automated agent
+A user delegates some of their interaction with a Site to an automated agent
 running in, or alongside, their browser. Such an agent is a user agent: it acts
 under delegation from a user who could otherwise have driven the browser
 themselves. Sites that lack a richer signal commonly treat the appearance of
@@ -192,7 +192,7 @@ agents is therefore drawn by Anchors and Moderators.
 
 ## Private Access Control {#uc-access}
 
-A user visits an Site repeatedly, without persistent cookies, expecting that
+A user visits a Site repeatedly, without persistent cookies, expecting that
 successive visits are not linkable to one another. The Site gates some
 functionality on a non-public criterion such as a paid subscription, group
 membership, or a per-period quota of allowed operations.
@@ -220,7 +220,7 @@ architecture document but may be included in companion documents.
 The following terms are used throughout this document:
 
 **Client:**
-: An entity that seeks access to resources held by an Site.
+: An entity that seeks access to resources held by a Site.
 
 **Site:**
 : An entity that consumes presentations from Clients and uses them to make
@@ -251,11 +251,11 @@ The following terms are used throughout this document:
 ## Overview
 
 The Client obtains a credential from an Anchor, presents it to a Moderator, and
-uses the resulting Moderator credential when sending requests to an Site.
+uses the resulting Moderator credential when sending requests to a Site.
 
-TODO: should tghis be three diagarms so we can detail things better? Should it be
-like reverse flow privacy pass and then map roles (anchor, moderator) onto flows?
-What about state, which is a key distinction with PP
+TODO:
+1. What about state?
+2. What about a client going to the moderator directly (with one RTT) rather than passing by the site
 
 ~~~ aasvg
 +--------+                 +--------+             +-----------+             +------+
@@ -283,8 +283,7 @@ CredentialFinalization         |                        |                       
 
 ## Flows
 
-TODO: for each flow, provide a succint description
-Similar to {{RFC9576}}, this section does not dive into context creation
+Taking {{fig-mole-architecture}}, we can distinguish three flows.
 
 ### Endorsement
 
@@ -293,12 +292,17 @@ Similar to {{RFC9576}}, this section does not dive into context creation
 | Client |                 | Anchor |
 +---+----+                 +---+----+
     |                          |
+    |<===== Attestation ======>|
     +--- EndorsementRequest -->|
     |<-- EndorsementResponse --+
 EndorsementFinalization        |
     |                          |
 ~~~
 {: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
+
+Upon passing an attestation, a Client may request an Endorsement from an Anchor.
+This is a cryptographic blob that the Client can later present to Moderator that
+proves the Client has been endorsed by the Anchor.
 
 ### Credential Issuance
 
@@ -316,7 +320,12 @@ CredentialFinalization         |                        |
 ~~~
 {: #fig-mole-architecture-issuance title="MoLE Issuance"}
 
-### Credential Presentation
+When an Endorsement is presented to a Moderator, the Moderator learns
+whether or not the Endorsement is part of a set of Anchor it trusts. The
+presentation must not be linkable to a specific Anchor or other presentations of
+that same Endorsement.
+
+### Credential Presentation and updates
 
 ~~~ aasvg
 +--------+               +-----------+             +------+
@@ -334,11 +343,9 @@ CredentialFinalization         |                       |
 ~~~
 {: #fig-mole-architecture-presentation title="MoLE Presentation"}
 
-When a Moderator credential is presented to a Origin, the Origin learns
-whether or not it satisfies an Origin specific policy. The presentation
+When a Moderator credential is presented to a Site, the Site learns
+whether or not it satisfies a Site specific policy. The presentation
 must not be linkable to past updates.
-
-### Credential Updates
 
 Credential updates must demonstrate that they are applied to the same
 credential as was initially presented. This prevents attacks where an
@@ -381,7 +388,7 @@ The properties above are cryptographic properties of the protocol transcript.
 They do not hide information available outside the transcript, such as network
 metadata, request contents, timing, or user-agent fingerprinting.
 
-Collusion changes the privacy properties. For example, an Site and Moderator
+Collusion changes the privacy properties. For example, a Site and Moderator
 that share request timing, network metadata, and validation logs may be able to
 link presentations even when the credential presentation itself is unlinkable.
 Deployment sections describe which entities need to be separated for a given
@@ -401,7 +408,7 @@ that partition Clients into small sets.
 ## State
 
 Moderator credentials can carry policy state, such as quota or revocation state.
-State updates must not give an Site or Moderator a stable handle that links
+State updates must not give a Site or Moderator a stable handle that links
 future presentations by the same Client.
 
 The details are construction-specific. Companion documents need to specify what
