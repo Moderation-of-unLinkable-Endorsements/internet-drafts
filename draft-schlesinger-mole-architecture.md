@@ -253,10 +253,6 @@ The following terms are used throughout this document:
 The Client obtains a credential from an Anchor, presents it to a Moderator, and
 uses the resulting Moderator credential when sending requests to a Site.
 
-TODO:
-1. What about state?
-2. What about a client going to the moderator directly (with one RTT) rather than passing by the site
-
 ~~~ aasvg
 +--------+                 +--------+             +-----------+             +------+
 | Client |                 | Anchor |             | Moderator |             | Site |
@@ -301,8 +297,8 @@ EndorsementFinalization        |
 {: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
 
 Upon passing an attestation, a Client may request an Endorsement from an Anchor.
-This is a cryptographic blob that the Client can later present to Moderator that
-proves the Client has been endorsed by the Anchor.
+An Endorsement is a cryptographic object that the client can later present to
+a Moderator that proves the Client has been attested by the Anchor.
 
 ### Credential Issuance
 

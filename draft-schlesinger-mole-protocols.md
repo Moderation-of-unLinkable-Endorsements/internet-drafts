@@ -29,11 +29,11 @@ author:
     email: sgschlesinger@gmail.com
 
 normative:
-  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
-  RFC9576:
   TLS13: RFC8446
 
 informative:
+  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
+  RFC9576:
 
 ...
 
@@ -52,7 +52,7 @@ I suspect this is likely to lead to another registry, but maybe not needed.
 We will NOT use the vocabulary from {{RFC9576}} but rather use {{REVERSE-FLOW}} vocabulary
 We indeed need to use credentialRequest/response and distinguish finalisation from presentation.
 
-These are not specific to MoLE, but MoLE must constraint them.
+These are not specific to MoLE, but MoLE must constrain them.
 
 # Conventions and Definitions
 

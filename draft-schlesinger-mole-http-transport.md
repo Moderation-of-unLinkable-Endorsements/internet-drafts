@@ -29,10 +29,9 @@ author:
     email: ot-ietf@thibault.uk
 
 normative:
-  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
-  RFC9577:
 
 informative:
+  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
 
 ...
 
@@ -50,8 +49,7 @@ We target browser first. We'll need some HTTP transport. We need to iterate over
 1. issuer discovery. Given both the Anchor and the Moderator both attest and issue, exposing material can be done easily
 2. trasmission of the anchor set (format+serialisation)
 3. errors?
-4. reverse flow. Ideally we define a header here that supports CredentialRequest and CredentialResponse. Either we provice one header with a parameter (think step=client-request, step=anchor-response), or distinct headers all together.
-5. header name. we probably won't use reserse flow directly
+4. credential issuance+presentation flow. Ideally we define a header here that supports CredentialRequest and CredentialResponse. Either we provice one header with a parameter (think step=client-request, step=anchor-response), or distinct headers all together. This is similar to waht is done in {{REVERSE-FLOW}}
 
 # Overview
 
@@ -65,12 +63,13 @@ We target browser first. We'll need some HTTP transport. We need to iterate over
 (Run issuance and presentation protocol)           |
     |                                              |
     +--- Authorization: token                  --->|
-    |    PrivacyPass-Reverse: CredentialRequest    |
+    |    Mole-Issuance: CredentialRequest          |
     |                                              |
-    |<-- PrivacyPass-Reverse: CredentialResponse --+
+    |<-------- Mole-Issuance: CredentialResponse --+
     |                                              |
 ~~~
 
+Mole-Issuance is a placeholder header. We might want Mole-Presentation as well.
 
 # IANA Considerations
 
