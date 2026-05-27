@@ -24,9 +24,9 @@ venue:
 
 author:
  -
-    fullname: Samuel Schlesinger
-    organization: Google LLC
-    email: sgschlesinger@gmail.com
+    fullname: Thibault Meunier
+    organization: Cloudflare
+    email: ot-ietf@thibault.uk
 
 normative:
   REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
