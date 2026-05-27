@@ -51,13 +51,14 @@ We target browser first. We'll need some HTTP transport. We need to iterate over
 2. trasmission of the anchor set (format+serialisation)
 3. errors?
 4. reverse flow. Ideally we define a header here that supports CredentialRequest and CredentialResponse. Either we provice one header with a parameter (think step=client-request, step=anchor-response), or distinct headers all together.
+5. header name. we probably won't use reserse flow directly
 
 # Overview
 
 ~~~ aasvg
-+--------+                                     +--------+
-| Client |                                     | Origin |
-+---+----+                                     +---+----+
++--------+                                     +------+
+| Client |                                     | Site |
++---+----+                                     +---+--+
     |                                              |
     |<--- WWW-Authenticate: CredentialChallenge ---+
     |                                              |
