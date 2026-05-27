@@ -4,8 +4,8 @@
 
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
-Intended status: Informational                               12 May 2026
-Expires: 13 November 2026
+Intended status: Informational                               27 May 2026
+Expires: 28 November 2026
 
 
                            MoLE Architecture
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 November 2026.
+   This Internet-Draft will expire on 28 November 2026.
 
 Copyright Notice
 
@@ -74,6 +74,7 @@ Table of Contents
        4.2.1.  Endorsement
        4.2.2.  Credential Issuance
        4.2.3.  Credential Presentation
+       4.2.4.  Credential Updates
    5.  Privacy Properties
      5.1.  Goals
      5.2.  Threat Model
@@ -341,6 +342,21 @@ CredentialFinalization     |                        |                       |
 
 4.2.3.  Credential Presentation
 
+   When a Moderator credential is presented to a Origin, the Origin
+   learns whether or not it satisfies an Origin specific policy.  The
+   presentation must not be linkable to past updates.
+
+4.2.4.  Credential Updates
+
+   Credential updates must demonstrate that they are applied to the same
+   credential as was initially presented.  This prevents attacks where
+   an attacker with two credentials shows one, and applies updates only
+   to the other.
+
+   Credential updates have to be applied before access to resources that
+   an origin may gate or rate limit, so that Clients do not simply
+   ignore the update request after getting them.
+
 5.  Privacy Properties
 
    This section states the privacy goals for MoLE constructions.  The
@@ -361,9 +377,11 @@ CredentialFinalization     |                        |                       |
 
    3.  _Anchor-credential post-issuance unlinkability._ A Moderator
        cannot link an Anchor-credential presentation to its issuance
-       transcript.  Constructions are expected to preserve this property
-       against adversaries that record issuance traffic and later gain
-       access to quantum computation.
+       transcript.
+
+   Constructions are expected to preserve these properties against
+   adversaries that record issuance traffic and later gain access to
+   quantum computation.
 
    A successful presentation tells the Origin that the Client holds a
    Moderator credential satisfying the Origin's policy.  It does not
