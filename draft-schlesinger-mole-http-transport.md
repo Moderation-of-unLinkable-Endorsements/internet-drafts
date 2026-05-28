@@ -1,6 +1,6 @@
 ---
-title: "MoLE Architecture"
-abbrev: "MoLE Architecture"
+title: "MoLE HTTP Transport"
+abbrev: "MoLE HTTP Transport"
 category: info
 
 docname: draft-schlesinger-mole-http-transport-latest
@@ -19,8 +19,8 @@ venue:
 #  type: "Community Group"
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
-  github: "Moderation-of-unLinkable-Endorsements/architecture-draft"
-  latest: "https://Moderation-of-unLinkable-Endorsements.github.io/architecture-draft/draft-schlesinger-mole-http-transport.html"
+  github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-http-transport.html"
 
 author:
  -
