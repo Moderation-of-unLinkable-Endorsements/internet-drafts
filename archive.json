@@ -1,7 +1,7 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-17T03:47:02.152534+00:00",
-  "repo": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+  "timestamp": "2026-05-28T03:56:25.274206+00:00",
+  "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
       "name": "bug",
@@ -54,16 +54,16 @@
       "number": 2,
       "id": "I_kwDOSX6krs8AAAABBz55Yw",
       "title": "One `base-drafts` repository",
-      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/issues/2",
-      "state": "OPEN",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/2",
+      "state": "CLOSED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "The template the ID draft are using support having multiple drafts within them. I feel this would make it simpler than multiple repositories to read between them.\n\nVery much a nit to simplify writting across multiple drafts, as they're likely to be iterated upon fast",
       "createdAt": "2026-05-10T18:48:04Z",
-      "updatedAt": "2026-05-14T13:44:22Z",
-      "closedAt": null,
+      "updatedAt": "2026-05-27T14:28:07Z",
+      "closedAt": "2026-05-27T14:28:06Z",
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -113,8 +113,92 @@
           "body": "Right, that might be confusing, that makes sense. We can leave my name if its helpful to volunteer as \"person to bother\" about this, maybe it is helpful to have a full name in the name for that reason.",
           "createdAt": "2026-05-14T13:44:22Z",
           "updatedAt": "2026-05-14T13:44:22Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "NONE",
+          "body": "Given how closely-related the architecture and protocol components are, I suspect that you will find that a single repository is going to be a good idea in the long term.  When we did QUIC, we had to move text between documents on a few occasions and that saved a bunch of effort.\n\nPeople who are only casually following along won't care about the repository, only the drafts and the issue tracker.  For them too, having a single issue tracker is likely the best.  Then they don't need to worry about targeting their feedback to a single draft.",
+          "createdAt": "2026-05-26T05:50:33Z",
+          "updatedAt": "2026-05-26T05:50:33Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yeah, let's do this. We can move the other (currently empty) drafts into here and rename it \"drafts\" so all the folks who have been sent links to this one will still keep their links working.",
+          "createdAt": "2026-05-26T11:15:49Z",
+          "updatedAt": "2026-05-26T11:15:49Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Fixed now, we have `internet-drafts` and `web-drafts` for the IETF and W3C specs respectively.",
+          "createdAt": "2026-05-27T14:28:06Z",
+          "updatedAt": "2026-05-27T14:28:06Z"
         }
       ]
+    },
+    {
+      "number": 6,
+      "id": "I_kwDOSX6krs8AAAABDYUmWA",
+      "title": "Use \"site\", not Origin",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/6",
+      "state": "OPEN",
+      "author": "martinthomson",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Privacy Pass made a serious error in using \"origin\" to describe the thing the tokens grant access to.  In practice, the privacy unit on the web is a [site](https://html.spec.whatwg.org/#site).  That is, the set of web origins that share a registrable domain.\n\nBecause the website is something of a bystander in MoLE processing[^1], it's not a load-bearing notion, but I think that using \"site\" as the name of the primary beneficiary of the protocol is right.\n\n[^1]: In practice the moderator is the one involved in the protocol interactions on behalf of each site.  The site really only has a few interactions: first, to identify a moderator; second, to receive the moderator's verdict about the client; and, third, to provide the moderator with feedback about interactions with the client.",
+      "createdAt": "2026-05-26T06:03:45Z",
+      "updatedAt": "2026-05-27T15:28:58Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yes, we agree with this.",
+          "createdAt": "2026-05-27T14:25:13Z",
+          "updatedAt": "2026-05-27T14:25:13Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/8 is going to implement this.",
+          "createdAt": "2026-05-27T15:28:58Z",
+          "updatedAt": "2026-05-27T15:28:58Z"
+        }
+      ]
+    },
+    {
+      "number": 9,
+      "id": "I_kwDOSX6krs8AAAABDjlMHQ",
+      "title": "State management in the architecture",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/9",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Mole relies on 3 flows, each require the client to maintain and update state. It is out of the architecture at the moment, but seems important to fully evaluate security and privacy.\n\nWe should have a section to discuss it",
+      "createdAt": "2026-05-27T15:32:18Z",
+      "updatedAt": "2026-05-27T15:32:18Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 10,
+      "id": "I_kwDOSX6krs8AAAABDjmKew",
+      "title": "Ensure the architecture accounts for the possibility that credential presentation might not flow through the site",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/10",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "At then moment, the arrow suggest credential presentation is forwarded by the site to the moderator. There might be a situation where the client goes to the moderator and obtains a response that the site would trust.\n\nIdeally this is not a distinct diagram, but has to be acknowledgted",
+      "createdAt": "2026-05-27T15:34:25Z",
+      "updatedAt": "2026-05-27T15:34:25Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -122,7 +206,7 @@
       "number": 1,
       "id": "PR_kwDOSX6krs7aBxwh",
       "title": "First stab at intro, use-cases, and some privacy properties",
-      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/pull/1",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/1",
       "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
@@ -131,10 +215,10 @@
       "body": "Was trying to just do intro and use cases, but ended up feeling incomplete without some of the privacy properties.",
       "createdAt": "2026-05-10T18:03:03Z",
       "updatedAt": "2026-05-12T12:45:32Z",
-      "baseRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "41e7bdf5d7c7b40dbe4ca08f0a7a349ea28849ac",
-      "headRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samschles/intro-use-cases-and-some-privacy-properties",
       "headRefOid": "b662b9a7a45557b08535f04b5a8ed1db7752abb5",
       "closedAt": "2026-05-11T16:22:52Z",
@@ -172,7 +256,7 @@
       "number": 3,
       "id": "PR_kwDOSX6krs7aS2A7",
       "title": "tighten the first PR",
-      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/pull/3",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/3",
       "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
@@ -185,7 +269,7 @@
       "body": "1. make a shorter and too the point introducion\r\n2. add a terminology section (inspired by privacy pass)\r\n3. have a first pass at an arch diagram\r\n4. rework privacy section\r\n\r\ni did not touch the use case which, while long, do the job. still no abstract\r\ni'd also like to start workiong on multiple diagramsx, especially the joint-deployment which are key to alleviate the performance concerns imo\r\n\r\ni've also add aasvg to create diagrams",
       "createdAt": "2026-05-11T14:41:00Z",
       "updatedAt": "2026-05-11T14:51:44Z",
-      "baseRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "samschles/intro-use-cases-and-some-privacy-properties",
       "baseRefOid": "1380d71b92b7679b91ef9268e656a8b81988a19e",
       "headRepository": "thibmeu/architecture-draft",
@@ -204,7 +288,7 @@
       "number": 4,
       "id": "PR_kwDOSX6krs7amzfI",
       "title": "Adjust Intro and add Endorsement as a term",
-      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/pull/4",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/4",
       "state": "MERGED",
       "author": "dennisjackson",
       "authorAssociation": "NONE",
@@ -213,10 +297,10 @@
       "body": "I've made a pass on the intro. Mostly to make the information flows a bit more explicit and the distinction with Privacy Pass a bit sharper. \r\n\r\nGiven we're using Endorsements in the name, something in the architecture should be called 'Endorsement'. I think it makes sense for Anchors to issue Endorsements and Moderators to issue Credentials. \r\n\r\n",
       "createdAt": "2026-05-12T09:23:54Z",
       "updatedAt": "2026-05-12T12:45:31Z",
-      "baseRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "0585d287479f8d00da7aa8ca76e7c2dff9376c1d",
-      "headRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "intro-tweak",
       "headRefOid": "592bf217056d18fa43aead854bb48a98dda5a5ec",
       "closedAt": "2026-05-12T10:51:00Z",
@@ -367,7 +451,7 @@
       "number": 5,
       "id": "PR_kwDOSX6krs7am84S",
       "title": "Section Headings",
-      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/pull/5",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/5",
       "state": "MERGED",
       "author": "dennisjackson",
       "authorAssociation": "NONE",
@@ -376,10 +460,10 @@
       "body": "",
       "createdAt": "2026-05-12T09:31:03Z",
       "updatedAt": "2026-05-12T12:45:12Z",
-      "baseRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "intro-tweak",
       "baseRefOid": "90a987378e574a5a8df1eed4e0333dd6db88dae7",
-      "headRepository": "Moderation-of-unLinkable-Endorsements/architecture-draft",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "outline-headings",
       "headRefOid": "2c06cfb6e7b75804509c4c15166a594e1ef93065",
       "closedAt": "2026-05-12T10:50:35Z",
@@ -442,6 +526,489 @@
               "updatedAt": "2026-05-12T10:46:28Z"
             }
           ]
+        }
+      ]
+    },
+    {
+      "number": 7,
+      "id": "PR_kwDOSX6krs7fqNM6",
+      "title": "Clarify scope of unlinkability and that all properties PQ",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/7",
+      "state": "MERGED",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-05-27T03:13:51Z",
+      "updatedAt": "2026-05-27T09:10:42Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "906f7940a7d9cdfd00b0ac05b850ebeeb510e909",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/clarify-linkability-and-ops",
+      "headRefOid": "bd69ee6819386831a351ce62b0755ab16ee3f70a",
+      "closedAt": "2026-05-27T09:10:41Z",
+      "mergedAt": "2026-05-27T09:10:41Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "bb8ae0385c3b1093d8522562f97e2d74a6042601"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBIiYfQ",
+          "commit": {
+            "abbreviatedOid": "bd69ee6"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-05-27T09:10:26Z",
+          "updatedAt": "2026-05-27T09:10:26Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 8,
+      "id": "PR_kwDOSX6krs7f2wEn",
+      "title": "Architecture and placeholders for multiple drafts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/8",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "This PR aggregates MoLE drafts (architecture, crypto, and HTTP transport) into one repository as discussed in #2.\r\n\r\nIt also updates the architecture draft to use \"Site\" terminology, adds co-authors, and describes the three main flows: Endorsement, Credential Issuance, and Credential Presentation/Updates. It also adds early placeholder drafts for protocol token types (as a placeholder crypto API for issuer-hiding) and HTTP transport (placeholder as well).\r\n\r\nThis is intended to make the document structure and open design questions easier to review and to work on.",
+      "createdAt": "2026-05-27T14:13:33Z",
+      "updatedAt": "2026-05-27T19:13:38Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "bb8ae0385c3b1093d8522562f97e2d74a6042601",
+      "headRepository": "thibmeu/architecture-draft",
+      "headRefName": "main",
+      "headRefOid": "c7ecb32f4500edb1c7495a4432ffe05d3c6684b0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLARkw",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "DISMISSED",
+          "body": "",
+          "createdAt": "2026-05-27T15:19:20Z",
+          "updatedAt": "2026-05-27T16:00:28Z",
+          "comments": [
+            {
+              "originalPosition": 190,
+              "body": "I think making the type signatures and the state management clear somewhere is important, but potentially this can be left out here.",
+              "createdAt": "2026-05-27T15:19:20Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 191,
+              "body": "I think, per our discussion today, we can leave this out for now.",
+              "createdAt": "2026-05-27T15:19:40Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 259,
+              "body": "Instead of saying \"this is a cryptographic blob\", perhaps we can instead say \"An Endorsement is a piece of data that the client can later present to the Moderator that proves the Client has been approved of by the Anchor\". Re-using endorse here isn't ideal, I feel.",
+              "createdAt": "2026-05-27T15:22:03Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 279,
+              "body": "*the set of Anchors it trusts",
+              "createdAt": "2026-05-27T15:22:22Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 281,
+              "body": "linkable here isn't the right word for issuer blindness, I don't think? I feel like we want to say: The presentation must not provide information about which Anchor and must not be linkable to other presentations of that same endorsement.",
+              "createdAt": "2026-05-27T15:23:13Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 307,
+              "body": "the Site learns whether or not it satisfies a Site specific policy _by validating it with the moderator_.",
+              "createdAt": "2026-05-27T15:24:10Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 307,
+              "body": "*The presentation must not be linkable to past updates or to an original issuance",
+              "createdAt": "2026-05-27T15:24:28Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 333,
+              "body": "Maybe repetitive with the above \"The presentation must not be linkable to past updates.\"\n\nPerhaps delete the above and keep this.",
+              "createdAt": "2026-05-27T15:25:04Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "I don't love this phrasing, though perhaps this is more in the spirit of placeholding than real draft text?",
+              "createdAt": "2026-05-27T15:25:37Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "typo",
+              "createdAt": "2026-05-27T15:25:44Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 54,
+              "body": "reserse => reverse",
+              "createdAt": "2026-05-27T15:26:23Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 53,
+              "body": "Lets not use \"reverse flow\", lets keep the naming separate.",
+              "createdAt": "2026-05-27T15:26:40Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "Not PrivacyPass",
+              "createdAt": "2026-05-27T15:26:59Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 53,
+              "body": "We should avoid using the normative privacypass reference here.",
+              "createdAt": "2026-05-27T15:28:01Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "constrain*",
+              "createdAt": "2026-05-27T15:28:09Z",
+              "updatedAt": "2026-05-27T15:28:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLF4fA",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:31:14Z",
+          "updatedAt": "2026-05-27T15:31:15Z",
+          "comments": [
+            {
+              "originalPosition": 190,
+              "body": "I'll move the todos into issues",
+              "createdAt": "2026-05-27T15:31:15Z",
+              "updatedAt": "2026-05-27T15:31:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLGlXw",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:32:47Z",
+          "updatedAt": "2026-05-27T15:32:47Z",
+          "comments": [
+            {
+              "originalPosition": 190,
+              "body": "moved to #9 ",
+              "createdAt": "2026-05-27T15:32:47Z",
+              "updatedAt": "2026-05-27T15:32:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLHtPQ",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:35:05Z",
+          "updatedAt": "2026-05-27T15:35:06Z",
+          "comments": [
+            {
+              "originalPosition": 191,
+              "body": "moved to #10 ",
+              "createdAt": "2026-05-27T15:35:05Z",
+              "updatedAt": "2026-05-27T15:35:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLIq4g",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:37:13Z",
+          "updatedAt": "2026-05-27T15:37:13Z",
+          "comments": [
+            {
+              "originalPosition": 259,
+              "body": "updated to\r\n\r\n```\r\nAn Endorsement is a cryptographic object that the client can later present to\r\na Moderator that proves the Client has been attested by the Anchor.\r\n```\r\n\r\nre-using cryptographic object, which we use in definitions, and re-using attested-by instead of approved-by",
+              "createdAt": "2026-05-27T15:37:13Z",
+              "updatedAt": "2026-05-27T15:37:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLKKfw",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:40:18Z",
+          "updatedAt": "2026-05-27T15:40:19Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "yes. these are very much raw notes before having the document filled\r\n\r\nupdated to cretendial issuance and presentation which wbe use in the arch",
+              "createdAt": "2026-05-27T15:40:18Z",
+              "updatedAt": "2026-05-27T15:40:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLLP2g",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:42:42Z",
+          "updatedAt": "2026-05-27T15:42:42Z",
+          "comments": [
+            {
+              "originalPosition": 70,
+              "body": "agree. updated with a generic \"mole-issuance\"",
+              "createdAt": "2026-05-27T15:42:42Z",
+              "updatedAt": "2026-05-27T15:42:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLMavg",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:45:12Z",
+          "updatedAt": "2026-05-27T15:45:12Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "agree. moved to informative.As the architecture evolves, I think we'll have the right vocabulary and pattern to register instantiations (part of what this PR is doing to the architecture document)",
+              "createdAt": "2026-05-27T15:45:12Z",
+              "updatedAt": "2026-05-27T15:45:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLOFDg",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:48:28Z",
+          "updatedAt": "2026-05-27T15:48:28Z",
+          "comments": [
+            {
+              "originalPosition": 281,
+              "body": "updated to\r\n\r\n```\r\nThe\r\npresentation must not be reveal the Anchor the Client has been endorsed by,\r\nand must not be linkable to other presentations of made using that same\r\nEndorsement.\r\n```",
+              "createdAt": "2026-05-27T15:48:28Z",
+              "updatedAt": "2026-05-27T15:48:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLO-wg",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:50:17Z",
+          "updatedAt": "2026-05-27T15:50:18Z",
+          "comments": [
+            {
+              "originalPosition": 307,
+              "body": "this is not new text\r\nI think the \"by validating it to the moderator hits #10, so for later discussion",
+              "createdAt": "2026-05-27T15:50:18Z",
+              "updatedAt": "2026-05-27T15:50:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLPXrw",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:51:06Z",
+          "updatedAt": "2026-05-27T15:51:06Z",
+          "comments": [
+            {
+              "originalPosition": 307,
+              "body": "added the bit about original issuance saying \"or to the credential issuance\"",
+              "createdAt": "2026-05-27T15:51:06Z",
+              "updatedAt": "2026-05-27T15:51:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLPwgg",
+          "commit": {
+            "abbreviatedOid": "1e3e859"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:51:50Z",
+          "updatedAt": "2026-05-27T15:51:50Z",
+          "comments": [
+            {
+              "originalPosition": 333,
+              "body": "a CRQC (cryptographically relevant QC). ",
+              "createdAt": "2026-05-27T15:51:50Z",
+              "updatedAt": "2026-05-27T15:51:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLP0bA",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:51:59Z",
+          "updatedAt": "2026-05-27T15:51:59Z",
+          "comments": [
+            {
+              "originalPosition": 48,
+              "body": "yes. very much placeholder. removed the mentiond of privacy pass to focus on the things we need",
+              "createdAt": "2026-05-27T15:51:59Z",
+              "updatedAt": "2026-05-27T15:52:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLQG2A",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:52:35Z",
+          "updatedAt": "2026-05-27T15:52:35Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "corrected. very much something that would have been removed in any case for an actual draft",
+              "createdAt": "2026-05-27T15:52:35Z",
+              "updatedAt": "2026-05-27T15:52:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLQVQg",
+          "commit": {
+            "abbreviatedOid": "1e3e859"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "LGTM modulo Sam's suggestions",
+          "createdAt": "2026-05-27T15:53:07Z",
+          "updatedAt": "2026-05-27T15:53:07Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBLQ9tg",
+          "commit": {
+            "abbreviatedOid": "af57665"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-05-27T15:54:32Z",
+          "updatedAt": "2026-05-27T15:54:32Z",
+          "comments": [
+            {
+              "originalPosition": 333,
+              "body": "left as is for now",
+              "createdAt": "2026-05-27T15:54:32Z",
+              "updatedAt": "2026-05-27T15:54:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBMpUww",
+          "commit": {
+            "abbreviatedOid": "c7ecb32"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-05-27T19:13:38Z",
+          "updatedAt": "2026-05-27T19:13:38Z",
+          "comments": []
         }
       ]
     }
