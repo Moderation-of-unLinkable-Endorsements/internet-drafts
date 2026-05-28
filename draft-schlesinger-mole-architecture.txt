@@ -4,8 +4,11 @@
 
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
-Intended status: Informational                               27 May 2026
-Expires: 28 November 2026
+Intended status: Informational                                D. Jackson
+Expires: 29 November 2026                                        Mozilla
+                                                              T. Meunier
+                                                              Cloudflare
+                                                             28 May 2026
 
 
                            MoLE Architecture
@@ -44,7 +47,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 November 2026.
+   This Internet-Draft will expire on 29 November 2026.
 
 Copyright Notice
 
@@ -70,11 +73,10 @@ Table of Contents
    3.  Conventions and Definitions
    4.  Architecture
      4.1.  Overview
-     4.2.  Protocols
+     4.2.  Flows
        4.2.1.  Endorsement
        4.2.2.  Credential Issuance
-       4.2.3.  Credential Presentation
-       4.2.4.  Credential Updates
+       4.2.3.  Credential Presentation and updates
    5.  Privacy Properties
      5.1.  Goals
      5.2.  Threat Model
@@ -89,50 +91,49 @@ Table of Contents
      10.1.  Normative References
      10.2.  Informative References
    Acknowledgments
-   Author's Address
+   Authors' Addresses
 
 1.  Introduction
 
    Moderation of unLinkable Endorsements (MoLE) is an architecture in
-   which Origins make authorization decisions from unlinkable, issuer-
+   which Sites make authorization decisions from unlinkable, issuer-
    hiding credential presentations derived from scarce signals.
 
-   Users often encounter friction when an Origin has little prior
-   context about them: for example, when they arrive with no cookies,
-   use a VPN, enable privacy-preserving browser settings, or delegate
-   browsing to a software agent.  In those cases, the Origin may present
-   a CAPTCHA, use fingerprinting, reject the request, or return a
-   degraded experience.  These mechanisms add friction, collect more
-   information about users, or both.  They affect users with strong
-   privacy preferences and users with accessibility needs.
-   [INTERNET-END-USER] directs the IETF to consider the interests of end
-   users; [PERVASIVE-MONITORING] treats pervasive monitoring as an
-   attack.
+   Users often encounter friction when a Site has little prior context
+   about them: for example, when they arrive with no cookies, use a VPN,
+   enable privacy-preserving browser settings, or delegate browsing to a
+   software agent.  In those cases, the Site may present a CAPTCHA, use
+   fingerprinting, reject the request, or return a degraded experience.
+   These mechanisms add friction, collect more information about users,
+   or both.  They affect users with strong privacy preferences and users
+   with accessibility needs.  [INTERNET-END-USER] directs the IETF to
+   consider the interests of end users; [PERVASIVE-MONITORING] treats
+   pervasive monitoring as an attack.
 
    MoLE aims to reduce this friction, whilst maintaining the privacy of
-   users, by enabling new information flows between Origins subject to
+   users, by enabling new information flows between Sites subject to
    cryptographically enforced limits.
 
-   Some Origins have access to relatively rich context about a user,
-   e.g. because the user maintains an account, made a payment or
-   provided some other scare signal to the Origin.  MoLE enables such
-   Origins to act as Anchors which issue Endorsements to users, suitable
-   for bootstrapping trust in other contexts.
+   Some Sites have access to relatively rich context about a user, e.g.
+   because the user maintains an account, made a payment or provided
+   some other scare signal to the Site.  MoLE enables such Sites to act
+   as Anchors which issue Endorsements to users, suitable for
+   bootstrapping trust in other contexts.
 
-   MoLE enables multiple Origins to share an access policy through a
+   MoLE enables multiple Sites to share an access policy through a
    Moderator.  The Moderator holds a list of trusted Anchors, and can
    use the Anchor's Endorsements to issue Credentials to Users which are
-   suitable for use on any of it's associated Origins.  The Moderator
-   can adjust their confidence in the credentials presented by a user
-   over time.  This allows the Moderator to reduce friction for honest
-   users and increase friction for users which are judged to be
-   misbehaving (e.g. spamming, credential stuffing, etc).
+   suitable for use on any of it's associated Sites.  The Moderator can
+   adjust their confidence in the credentials presented by a user over
+   time.  This allows the Moderator to reduce friction for honest users
+   and increase friction for users which are judged to be misbehaving
+   (e.g. spamming, credential stuffing, etc).
 
    MoLE delivers this functionality whilst providing strong privacy
-   protections for users.  Origins and Moderators cannot learn which
+   protections for users.  Sites and Moderators cannot learn which
    Anchors a user has access to, only that it holds at least one
    suitable Endorsement from the Moderator's trusted list (Anchor
-   Blindness).  Further, even if Origins, Moderators and Anchors all
+   Blindness).  Further, even if Sites, Moderators and Anchors all
    collude in an attempt to violate User privacy, the user's
    presentation of their credentials and endorsements cannot be linked
    across different contexts (Unlinkability).
@@ -140,7 +141,7 @@ Table of Contents
    MoLE is inspired by the Privacy Pass architecture [RFC9576], but
    differs in a number of aspects.
 
-   Firstly, MoLE provides greater utility to Origins by enabling
+   Firstly, MoLE provides greater utility to Sites by enabling
    Moderators to dynamically adjust access in response to how a
    credential is used.  Privacy Pass enforces a flat rate limit based on
    access to an underlying credential which cannot be curtailed even if
@@ -148,7 +149,7 @@ Table of Contents
    information flows, privacy analysis and cryptographic techniques.
 
    Secondly, MoLE targets a deployment in an open ecosystem where
-   multiple Anchors, Moderators and Origins coexist with different
+   multiple Anchors, Moderators and Sites coexist with different
    policies.  This openness, necessary for deployment in contexts like
    the Web, requires stronger privacy properties than are delivered by
    Privacy Pass.  For example, MoLE cannot rely on non-collusion
@@ -175,43 +176,43 @@ Table of Contents
 
 2.1.  Reduced-Friction Challenges
 
-   A user visits an Origin for the first time, with no cookies, possibly
+   A user visits a Site for the first time, with no cookies, possibly
    through a VPN or shared NAT that obscures the network-layer
-   identifier.  The Origin has no per-user history and limited
+   identifier.  The Site has no per-user history and limited
    reputational signal from the network path.  The user is the party who
-   bears the cost of whatever the Origin then chooses --- repeated
+   bears the cost of whatever the Site then chooses --- repeated
    CAPTCHAs, silent rejection, or a degraded experience --- with
    disproportionate cost to users on privacy-preserving network paths
    and to users with accessibility needs.
 
    In this use case, the Client presents a Moderator credential whose
    underlying Anchor credential attests to a scarce property accepted
-   under the Moderator's policy.  The Origin combines this signal with
-   its existing inputs to decide whether to admit, challenge, or reject
-   the request.  A Moderator credential is one input among several; it
-   does not entitle the Client to admission.
+   under the Moderator's policy.  The Site combines this signal with its
+   existing inputs to decide whether to admit, challenge, or reject the
+   request.  A Moderator credential is one input among several; it does
+   not entitle the Client to admission.
 
    Two consequences shape the design.  First, the Client presents a
-   Moderator credential to the Origin in a single request/response
+   Moderator credential to the Site in a single request/response
    exchange; acquisition of Anchor and Moderator credentials happens off
    this path.  Second, the design must admit user agents partially or
    wholly automated on behalf of the user; see Section 2.2.
 
 2.2.  User Agents Acting Under Delegation
 
-   A user delegates some of their interaction with an Origin to an
+   A user delegates some of their interaction with a Site to an
    automated agent running in, or alongside, their browser.  Such an
    agent is a user agent: it acts under delegation from a user who could
-   otherwise have driven the browser themselves.  Origins that lack a
+   otherwise have driven the browser themselves.  Sites that lack a
    richer signal commonly treat the appearance of automation as grounds
    for friction or denial of service.  This blocks delegated browsing as
    a side effect of resisting unwanted automation.
 
    In this use case, the user agent presents a Moderator credential on
-   the user's behalf.  The Origin admits the request based on the user's
+   the user's behalf.  The Site admits the request based on the user's
    standing without the user agent surfacing a stable identity or
    correlatable state.  From the credential alone, the Moderator and the
-   Origin cannot distinguish presentations driven by the agent from
+   Site cannot distinguish presentations driven by the agent from
    presentations driven by the user directly.  Distinguishability via
    request content, timing, or rate is the responsibility of the user
    agent and is not addressed by the credential.
@@ -220,7 +221,7 @@ Table of Contents
    Moderator may update state bound to the user's Moderator credential.
    This is a deliberate design choice: the user bears the policy
    consequence of how they have chosen to delegate, but does so via a
-   credential unlinkable to the Origin, not via per-user reputation
+   credential unlinkable to the Site, not via per-user reputation
    visible to it.  The scope of that state, and the requirement that
    Moderator state updates not leak information equivalent to per-user
    state queries, are addressed in Section 5.
@@ -242,16 +243,16 @@ Table of Contents
 
 2.3.  Private Access Control
 
-   A user visits an Origin repeatedly, without persistent cookies,
+   A user visits a Site repeatedly, without persistent cookies,
    expecting that successive visits are not linkable to one another.
-   The Origin gates some functionality on a non-public criterion such as
-   a paid subscription, group membership, or a per-period quota of
-   allowed operations.
+   The Site gates some functionality on a non-public criterion such as a
+   paid subscription, group membership, or a per-period quota of allowed
+   operations.
 
    In this use case, the Anchor's attestation conveys eligibility under
    such a criterion, and the Moderator translates that eligibility into
    a credential under a policy that may include rate or quota state.
-   Against the Origin alone, successive presentations are unlinkable to
+   Against the Site alone, successive presentations are unlinkable to
    each other and to issuance.  The Moderator necessarily observes
    issuance; cross-presentation linkage at the Moderator is bounded to
    the granularity of the rate or quota state the credential carries,
@@ -275,11 +276,10 @@ Table of Contents
 
    The following terms are used throughout this document:
 
-   *Client:*  An entity that seeks access to resources held by an
-      Origin.
+   *Client:*  An entity that seeks access to resources held by a Site.
 
-   *Origin:*  An entity that consumes presentations from Clients and
-      uses them to make authorization decisions.
+   *Site:*  An entity that consumes presentations from Clients and uses
+      them to make authorization decisions.
 
    *Anchor:*  An entity that issues Endorsements to Clients based on
       scarce signals.
@@ -296,7 +296,7 @@ Table of Contents
    *Presentation:*  The mechanism by which Clients prove possession of a
       credential satisfying specified attributes.
 
-   *Policy:*  Rules used by a Moderator or Origin to evaluate
+   *Policy:*  Rules used by a Moderator or Site to evaluate
       presentations.
 
 4.  Architecture
@@ -305,48 +305,95 @@ Table of Contents
 
    The Client obtains a credential from an Anchor, presents it to a
    Moderator, and uses the resulting Moderator credential when sending
-   requests to an Origin.
+   requests to a Site.
 
-   TODO: should tghis be three diagarms so we can detail things better?
-   Should it be like reverse flow privacy pass and then map roles
-   (anchor, moderator) onto flows?
-
-+--------+             +--------+             +-----------+             +--------+
-| Client |             | Anchor |             | Moderator |             | Origin |
-+---+----+             +---+----+             +-----+-----+             +---+----+
-    |                      |                        |                       |
-    +-- CredentialRequest->|                        |                       |
-    |<-CredentialResponse--+                        |                       |
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
-CredentialPresentation     |                        |                       |
-    +----------- CredentialPresentation ----------->|                       |
-    |<----------- CredentialResponse ---------------+                       |
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
-CredentialPresentation     |                        |                       |
-    +----------------- Request+CredentialPresentation --------------------->|
-    |                      |                        |<-- ValidateRequest ---+
-    |                      |                        +-- ValidationResult -->|
-    |<---------------- Response+CredentialResponse -------------------------+
-CredentialFinalization     |                        |                       |
-    |                      |                        |                       |
++--------+                 +--------+             +-----------+             +------+
+| Client |                 | Anchor |             | Moderator |             | Site |
++---+----+                 +---+----+             +-----+-----+             +---+--+
+    |                          |                        |                       |
+    +--- EndorsementRequest -->|                        |                       |
+    |<-- EndorsementResponse --+                        |                       |
+EndorsementFinalization        |                        |                       |
+    |                          |                        |                       |
+EndorsementPresentation        |                        |                       |
+    +------- EndorsementToken+CredentialRequest ------->|                       |
+    |<--------------- CredentialResponse ---------------+                       |
+CredentialFinalization         |                        |                       |
+    |                          |                        |                       |
+CredentialPresentation         |                        |                       |
+    +------------------------ Request+CredentialToken ------------------------->|
+    |                          |                        |<-- ValidateRequest ---+
+    |                          |                        +-- ValidationResult -->|
+    |<---------------------- Response+CredentialResponse -----------------------+
+CredentialFinalization         |                        |                       |
+    |                          |                        |                       |
 
                      Figure 1: MoLE Architecture
 
-4.2.  Protocols
+4.2.  Flows
+
+   Taking Figure 1, we can distinguish three flows.
 
 4.2.1.  Endorsement
 
+   +--------+                 +--------+
+   | Client |                 | Anchor |
+   +---+----+                 +---+----+
+       |                          |
+       |<===== Attestation ======>|
+       +--- EndorsementRequest -->|
+       |<-- EndorsementResponse --+
+   EndorsementFinalization        |
+       |                          |
+
+                         Figure 2: MoLE Endorsement
+
+   Upon passing an attestation, a Client may request an Endorsement from
+   an Anchor.  An Endorsement is a cryptographic object that the client
+   can later present to a Moderator that proves the Client has been
+   attested by the Anchor.
+
 4.2.2.  Credential Issuance
 
-4.2.3.  Credential Presentation
+   +--------+                 +--------+             +-----------+
+   | Client |                 | Anchor |             | Moderator |
+   +---+----+                 +---+----+             +-----+-----+
+       |<===== Endorsement ======>|                        |
+       |                          |                        |
+   EndorsementPresentation        |                        |
+       +------- EndorsementToken+CredentialRequest ------->|
+       |<--------------- CredentialResponse ---------------+
+   CredentialFinalization         |                        |
+       |                          |                        |
 
-   When a Moderator credential is presented to a Origin, the Origin
-   learns whether or not it satisfies an Origin specific policy.  The
-   presentation must not be linkable to past updates.
+                          Figure 3: MoLE Issuance
 
-4.2.4.  Credential Updates
+   When an Endorsement is presented to a Moderator, the Moderator learns
+   whether or not the Endorsement originates from the set of Anchors it
+   trusts.  The presentation must not be reveal the Anchor the Client
+   has been endorsed by, and must not be linkable to other presentations
+   of made using that same Endorsement.
+
+4.2.3.  Credential Presentation and updates
+
+   +--------+               +-----------+             +------+
+   | Client |               | Moderator |             | Site |
+   +---+----+               +-----+-----+             +---+--+
+       |<====== Endorsement =====>|                       |
+       |                          |                       |
+   CredentialPresentation         |                       |
+       +------------- Request+CredentialToken ----------->|
+       |                          |<-- ValidateRequest ---+
+       |                          +-- ValidationResult -->|
+       |<----------- Response+CredentialResponse ---------+
+   CredentialFinalization         |                       |
+       |                          |                       |
+
+                        Figure 4: MoLE Presentation
+
+   When a Moderator credential is presented to a Site, the Site learns
+   whether or not it satisfies a Site specific policy.  The presentation
+   must not be linkable to past updates, or to the credential issuance.
 
    Credential updates must demonstrate that they are applied to the same
    credential as was initially presented.  This prevents attacks where
@@ -367,7 +414,7 @@ CredentialFinalization     |                        |                       |
 
    MoLE constructions provide three privacy properties.
 
-   1.  _Moderator-credential unlinkability._ An Origin cannot link two
+   1.  _Moderator-credential unlinkability._ A Site cannot link two
        valid Moderator-credential presentations to the same Client from
        the presentation alone.
 
@@ -375,16 +422,14 @@ CredentialFinalization     |                        |                       |
        the underlying Anchor is in the Moderator's accepted Anchor set,
        but not which Anchor issued the Anchor credential.
 
-   3.  _Anchor-credential post-issuance unlinkability._ A Moderator
-       cannot link an Anchor-credential presentation to its issuance
-       transcript.
+   3.  _Anchor-endorsement post-issuance unlinkability._ A Moderator
+       cannot link an Anchor-endorsement presentation to its issuance
+       transcript.  Constructions are expected to preserve this property
+       against adversaries that record issuance traffic and later gain
+       access to a cryptographically relevant quantum computation.
 
-   Constructions are expected to preserve these properties against
-   adversaries that record issuance traffic and later gain access to
-   quantum computation.
-
-   A successful presentation tells the Origin that the Client holds a
-   Moderator credential satisfying the Origin's policy.  It does not
+   A successful presentation tells the Site that the Client holds a
+   Moderator credential satisfying the Site's policy.  It does not
    reveal the Client's identity, the underlying Anchor, or a score
    assigned by the Moderator.
 
@@ -395,7 +440,7 @@ CredentialFinalization     |                        |                       |
    transcript, such as network metadata, request contents, timing, or
    user-agent fingerprinting.
 
-   Collusion changes the privacy properties.  For example, an Origin and
+   Collusion changes the privacy properties.  For example, a Site and
    Moderator that share request timing, network metadata, and validation
    logs may be able to link presentations even when the credential
    presentation itself is unlinkable.  Deployment sections describe
@@ -416,8 +461,8 @@ CredentialFinalization     |                        |                       |
 5.4.  State
 
    Moderator credentials can carry policy state, such as quota or
-   revocation state.  State updates must not give an Origin or Moderator
-   a stable handle that links future presentations by the same Client.
+   revocation state.  State updates must not give a Site or Moderator a
+   stable handle that links future presentations by the same Client.
 
    The details are construction-specific.  Companion documents need to
    specify what state is carried, who can update it, and what
@@ -427,13 +472,13 @@ CredentialFinalization     |                        |                       |
 
    MoLE does not address all channels that can identify Clients.
    Relevant channels include network metadata between Client and Anchor,
-   Client and Moderator, and Client and Origin; presentation timing;
+   Client and Moderator, and Client and Site; presentation timing;
    request contents; accepted-set churn; policy changes; and key
    rotation.
 
    These channels need deployment-specific mitigations.  For example,
    [OBLIVIOUS-HTTP] can hide network metadata between the Client and
-   Anchor or Moderator.  The Client-Origin channel is outside this
+   Anchor or Moderator.  The Client-Site channel is outside this
    architecture.
 
 6.  Deployment Considerations
@@ -493,8 +538,18 @@ Acknowledgments
 
    TODO acknowledge.
 
-Author's Address
+Authors' Addresses
 
    Samuel Schlesinger
    Google LLC
    Email: sgschlesinger@gmail.com
+
+
+   Dennis Jackson
+   Mozilla
+   Email: ietf@dennis-jackson.uk
+
+
+   Thibault Meunier
+   Cloudflare
+   Email: ot-ietf@thibault.uk

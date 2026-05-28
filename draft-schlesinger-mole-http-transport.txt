@@ -1,0 +1,131 @@
+
+
+
+
+Network Working Group                                         T. Meunier
+Internet-Draft                                                Cloudflare
+Intended status: Informational                               28 May 2026
+Expires: 29 November 2026
+
+
+                           MoLE Architecture
+              draft-schlesinger-mole-http-transport-latest
+
+Abstract
+
+   TODO Abstract
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://Moderation-
+   of-unLinkable-Endorsements.github.io/architecture-draft/draft-
+   schlesinger-mole-http-transport.html.  Status information for this
+   document may be found at https://datatracker.ietf.org/doc/draft-
+   schlesinger-mole-http-transport/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/
+   architecture-draft.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 29 November 2026.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Overview
+   3.  IANA Considerations
+   4.  Informative References
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   We target browser first.  We'll need some HTTP transport.  We need to
+   iterate to have
+
+   1.  discovery.  Given both the Anchor and the Moderator both attest
+       and issue, exposing material can be done easily
+
+   2.  transmission of the anchor set (format+serialisation)
+
+   3.  errors?
+
+   4.  credential issuance+presentation flow.  Ideally we define a
+       header here that supports CredentialRequest and
+       CredentialResponse.  Either we provice one header with a
+       parameter (think step=client-request, step=anchor-response), or
+       distinct headers all together.  This is similar to waht is done
+       in [REVERSE-FLOW]
+
+2.  Overview
+
+   +--------+                                     +------+
+   | Client |                                     | Site |
+   +---+----+                                     +---+--+
+       |                                              |
+       |<--- WWW-Authenticate: CredentialChallenge ---+
+       |                                              |
+   (Run issuance and presentation protocol)           |
+       |                                              |
+       +--- Authorization: token                  --->|
+       |    Mole-Issuance: CredentialRequest          |
+       |                                              |
+       |<-------- Mole-Issuance: CredentialResponse --+
+       |                                              |
+
+   Mole-Issuance is a placeholder header.  We might want Mole-
+   Presentation as well.
+
+3.  IANA Considerations
+
+   This document has no IANA actions.
+
+4.  Informative References
+
+   [REVERSE-FLOW]
+              Meunier, T., "Privacy Pass Reverse Flow", Work in
+              Progress, Internet-Draft, draft-meunier-privacypass-
+              reverse-flow-04, 13 May 2026,
+              <https://datatracker.ietf.org/doc/html/draft-meunier-
+              privacypass-reverse-flow-04>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Thibault Meunier
+   Cloudflare
+   Email: ot-ietf@thibault.uk
