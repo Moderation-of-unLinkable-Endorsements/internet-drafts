@@ -328,7 +328,7 @@ Endorsement.
 +--------+               +-----------+             +------+
 | Client |               | Moderator |             | Site |
 +---+----+               +-----+-----+             +---+--+
-    |<====== Endorsement =====>|                       |
+    |<======= Issuance =======>|                       |
     |                          |                       |
 CredentialPresentation         |                       |
     +------------- Request+CredentialToken ----------->|
