@@ -1,13 +1,16 @@
 <!-- regenerate: off (set to off if you edit this file) -->
 
-# MoLE Architecture
+# MoLE IETF drafts
 
-This is the working area for the individual Internet-Draft, "MoLE Architecture".
+This is the working area for MoLE IETF drafts. The current items are as follow
 
-* [Editor's Copy](https://moderation-of-unlinkable-endorsements.github.io/architecture-draft/#go.draft-schlesinger-mole-architecture.html)
-* [Datatracker Page](https://datatracker.ietf.org/doc/draft-schlesinger-mole-architecture)
-* [Individual Draft](https://datatracker.ietf.org/doc/html/draft-schlesinger-mole-architecture)
-* [Compare Editor's Copy to Individual Draft](https://moderation-of-unlinkable-endorsements.github.io/architecture-draft/#go.draft-schlesinger-mole-architecture.diff)
+1. [Architecture](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-architecture.html) (Datatracker - not published yet)
+2. [HTTP Transport](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-http-transport.html) (Datatracker - not published yet)
+3. [Cryptography integration](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html) (Datatracker - not published yet)
+
+You can find all drafts and diff on [GitHub Pages](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/).
+
+The associated mailing list is [mole@ietf.org](https://mailarchive.ietf.org/arch/browse/mole/) ([Subscribe](https://mailman3.ietf.org/mailman3/lists/mole.ietf.org/)).
 
 ## Architecture overview
 
@@ -114,7 +117,7 @@ sequenceDiagram
 ## Contributing
 
 See the
-[guidelines for contributions](https://github.com/Moderation-of-unLinkable-Endorsements/architecture-draft/blob/main/CONTRIBUTING.md).
+[guidelines for contributions](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blob/main/CONTRIBUTING.md).
 
 The contributing file also has tips on how to make contributions, if you
 don't already know how to do that.
