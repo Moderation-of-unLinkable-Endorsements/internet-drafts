@@ -29,6 +29,8 @@ author:
     email: ot-ietf@thibault.uk
 
 normative:
+  HTTP: RFC9110
+  URI: RFC3986
   TLS13: RFC8446
 
 informative:
@@ -48,12 +50,12 @@ TODO Abstract
 
 # Introduction
 
-We target browser first. We'll need some HTTP transport. We need to iterate to have
+MoLE targets browser deployments, so Clients, Anchors, Moderators, and Sites
+need an HTTP transport for the protocol flows defined by the architecture.
 
-1. discovery. Given both the Anchor and the Moderator both attest and issue, exposing material can be done easily
-2. transmission of the anchor set (format+serialisation)
-3. errors?
-4. credential issuance+presentation flow. Ideally we define a header here that supports CredentialRequest and CredentialResponse. Either we provice one header with a parameter (think step=client-request, step=anchor-response), or distinct headers all together. This is similar to waht is done in {{REVERSE-FLOW}}
+This document defines HTTP authentication scheme for endorsement, credential
+issuance, and credential presentation. It also defines configuration material
+exposed by Anchors and Moderators.
 
 # Terminology
 
@@ -104,8 +106,13 @@ struct {
 
 # HTTP Authentication Scheme {#http-authentication-scheme}
 
-We describe authentication method of a client that has an endorsement from an
-anchor with a site and a moderator.
+We describe the HTTP authentication method used by a Client that has an
+Endorsement from an Anchor and obtains a Credential from a Moderator.
+
+The `Mole` authentication scheme follows the HTTP authentication framework
+defined in {{HTTP}}. The same scheme is used for three protocol exchanges:
+Client to Anchor endorsement, Client to Moderator credential issuance, and
+Client to Site credential presentation.
 
 ~~~ aasvg
 +--------+                                     +------+
@@ -125,10 +132,73 @@ anchor with a site and a moderator.
 
 Mole-Issuance is a placeholder header. We might want Mole-Presentation as well.
 
+# Configuration
+
+TODO(thibault)
+1. if protocol section goes into its own draft, this should follow
+2. I suspect we'll use JSON here. If we use key material, I think re-using JWKS is important (even if there are feelings).
+
+Anchors and Moderators publish configuration used by Clients and Sites before
+running the HTTP authentication flows. Configuration includes endpoint URLs,
+supported protocol types, public key material, and the Anchor set associated
+with each Moderator policy.
+
+TODO(thibault)
+1. Anchor-Set format. I'm not sure we can find a shared format, or if this should
+   be specific to each endorsement protocol
+
+# Error Handling
+
+TODO: define error status codes, authentication error parameters, and recovery
+behavior for malformed messages, unsupported protocol types, failed validation,
+and unavailable Anchors or Moderators.
+
 ## Endorsement
 
-Nothing to do here, as the attestation method is left to the discretion of the
-anchor.
+The attestation method is left to the Anchor. This document only defines the
+HTTP carriage for the Endorsement protocol messages.
+
+### Anchor -> Client
+
+~~~tls-presentation
+struct {
+  uint16 endorsement_type;
+  opaque anchor_context<V>;
+} EndorsementChallenge;
+~~~
+
+* `challenge` contains a base64url `EndorsementChallenge` value, encoded per
+  {{BASE64}}.
+
+~~~
+WWW-Authenticate: Mole challenge="<endorsement-challenge>", realm="anchor"
+~~~
+
+### Client -> Anchor
+
+~~~tls-presentation
+struct {
+  uint16 endorsement_type;
+  opaque request<V>;
+} EndorsementRequest;
+~~~
+
+~~~
+Authorization: Mole endorsement-request="<endorsement-request>"
+~~~
+
+### Anchor -> Client
+
+~~~tls-presentation
+struct {
+  uint16 endorsement_type;
+  opaque response<V>;
+} EndorsementResponse;
+~~~
+
+~~~
+Mole-Endorsement: response="<endorsement-response>"
+~~~
 
 ## Issuance
 
@@ -136,20 +206,21 @@ anchor.
 
 ~~~tls-presentation
 struct {
-  uint_8 endorsement-type; // We always want endorsement type to be present
-  opaque anchor-set; // left opaque for now. Probably opaque anchor-set<V>. This may differ based on the endorsement type: one cryptographic blob that the client can use, multiple public keys that form a set, something else.
+  uint16 endorsement_type; // We always want endorsement type to be present
+  opaque policy_context<V>; // Moderator-generated policy identifier
+  opaque anchor_set<V>; // This may differ based on the endorsement type: one cryptographic blob that the client can use, multiple public keys that form a set, something else.
 } ModeratorChallenge;
 ~~~
 
 * `challenge` which contains a base64url ModeratorChallenge value, encoded per {{BASE64}}
 
 ~~~
-WWW-Authenticate: Mole challenge="0x<moderator-challenge>";realm="moderator"
+WWW-Authenticate: Mole challenge="<moderator-challenge>", realm="moderator"
 ~~~
 
 ### Client -> Moderator
 
-MUST be prefixed by `endorsement-type`
+MUST be prefixed by `endorsement_type`.
 
 ~~~
 Authorization: Mole endorsement="..."
@@ -161,54 +232,104 @@ Authorization: Mole endorsement="..."
 
 ~~~tls-presentation
 struct {
-  uint_8 credential-type; // We always want credential type to be present
-  opaque moderator<1..2^16-1>; // URL of the moderator
+  uint16 credential_type; // We always want credential type to be present
+  opaque moderator_url<1..2^16-1>; // Absolute HTTPS URL of the moderator
+  opaque policy_context<V>; // Moderator-generated policy identifier
+  opaque presentation_context<0..32>; // Site-chosen binding value, analogous to redemption_context in RFC9577
 } CredentialChallenge;
 ~~~
 
 * `challenge` which contains a base64url `CredentialChallenge` value, encoded per {{BASE64}}
 
+The `moderator_url` field contains an absolute `https` URI. It MUST NOT contain
+a fragment component. Clients MUST reject challenges with non-HTTPS Moderator
+URLs or malformed URLs. URI syntax is defined by {{URI}}.
+
+The `policy_context` field is generated by the Moderator. It identifies the
+Moderator policy and accepted Anchor set used for this Site. The same Moderator
+MAY use different policy contexts for different Sites. The value MUST be
+non-empty.
+
+The `presentation_context` field is chosen by the Site. It binds the
+presentation to a request, session, or time window. A non-empty value affects
+credential caching and replay handling.
+
 TODO(thibault):
-1. do we need a context?
-2. do we need a nonce?
+1. decide exact construction rules for presentation_context
 
 ~~~
-WWW-Authenticate: Mole challenge="0x<credential-challenge>";realm="site"
+WWW-Authenticate: Mole challenge="<credential-challenge>", realm="site"
 ~~~
 
 ### Client -> Site - Presentation
 
 ~~~tls-presentation
 struct {
-  uint_8 credential-type; // We always want credential type to be present
-  opaque presentation-proof[Npp];
-  opaque update-request[Nur];
+  uint16 credential_type; // We always want credential type to be present
+  opaque presentation_proof[Npp];
+  opaque update_request[Nur];
 } CredentialPresentation;
 ~~~
 
 TODO(thibault):
-1. presentation needs to include both the proof and the update request. Maybe we split this into two headers as thsat would make scheme easier to compose. Might not be desireable
+1. presentation needs to include both the proof and the update request. Maybe we split this into two headers as that would make scheme easier to compose. Might not be desirable
 
 ~~~
-Authorization: Mole presentation="0x<credential-presentation>"
+Authorization: Mole presentation="<credential-presentation>"
 ~~~
 
-### Site -> Client - Presentation
+For Credential types that require private verification, the Site MUST validate
+the presentation with the Moderator identified by `moderator_url` before
+granting access to a protected resource.
 
-TODO(thibault)
-1. This is the only place where we don't have an established pattern. We need to define a new header. {{REVERSE-FLOW}} uses PrivacyPass-Reverse. Here is a Mole-Update. I'd like something clearer.
-2. Header "theoritically" don't have an upper limit, but that might be challenging. Other instantiation may define other method, such as returning a URL that the client can fetch. TBD
+The validation request is sent to `moderator_url` over HTTPS. The exact HTTP
+method and response status handling are TBD.
+
+### Site -> Moderator - Validation
 
 ~~~tls-presentation
 struct {
-  uint_8 credential-type;
-  opaque update-response<V>;
+  uint16 credential_type;
+  opaque policy_context<V>;
+  opaque presentation_context<0..32>;
+  opaque presentation_proof[Npp];
+  opaque update_request[Nur];
+} ValidationRequest;
+~~~
+
+~~~tls-presentation
+struct {
+  uint16 credential_type;
+  uint8 valid;
+  opaque update_response<V>;
+} ValidationResult;
+~~~
+
+### Site -> Client - Update
+
+TODO(thibault)
+1. This is the only place where we don't have an established pattern. We need to define a new header. {{REVERSE-FLOW}} uses PrivacyPass-Reverse. Here is a Mole-Update. I'd like something clearer.
+2. Headers do not have a fixed protocol limit, but large values are hard to deploy. Other instantiations may define another method, such as returning a URL that the client can fetch. TBD
+
+~~~tls-presentation
+struct {
+  uint16 credential_type;
+  opaque update_response<V>;
 } CredentialUpdate;
 ~~~
 
+The Site SHOULD send `Mole-Update` when the Credential remains usable after
+presentation. The Site MAY omit `Mole-Update` to intentionally consume the
+Credential. Clients MUST follow the Credential type semantics for reuse after an
+omitted update.
+
 ~~~
-Mole-Update: Mole update="0x<credential-presentation>"
+Mole-Update: update="<credential-update>"
 ~~~
+
+Cached Credentials MUST only be used for matching `credential_type`,
+`moderator_url`, and `policy_context`. If `presentation_context` is non-empty,
+the cached Credential MUST also match that value.
 
 
 # HTTP protocol (probably its own draft)
@@ -225,7 +346,7 @@ This is the first protocol
 
 0x0001 - ACT
 
-See {{PRIVACYPASS-ACT}}. Will need to be adapted to be specific here.
+See {{PRIVACYPASS_ACT}}. Will need to be adapted to be specific here.
 
 0x0002 - ReverseFlow(VOPRF(P384))
 
