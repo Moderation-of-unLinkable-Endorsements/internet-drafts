@@ -43,19 +43,19 @@ informative:
 
 --- abstract
 
-TODO Abstract
-
-
---- middle
-
-# Introduction
-
 MoLE targets browser deployments, so Clients, Anchors, Moderators, and Sites
 need an HTTP transport for the protocol flows defined by the architecture.
 
 This document defines HTTP authentication scheme for endorsement, credential
 issuance, and credential presentation. It also defines configuration material
 exposed by Anchors and Moderators.
+
+
+--- middle
+
+# Introduction
+
+TODO
 
 # Terminology
 
