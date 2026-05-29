@@ -356,6 +356,8 @@ Presenting a VOPRF token, with the update being a request for a new VOPRF token.
 
 ### Anchor -> Client
 
+# Security Considerations
+
 # IANA Considerations
 
 ## Authentication Scheme
