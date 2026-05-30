@@ -366,7 +366,7 @@ MoLE constructions provide three privacy properties.
    Moderator-credential presentations to the same Client from the presentation
    alone.
 
-2. *Issuer-hiding.* A Moderator-credential presentation reveals that the
+2. *Anchor-hiding.* A Moderator-credential presentation reveals that the
    underlying Anchor is in the Moderator's accepted Anchor set, but not which
    Anchor issued the Anchor credential.
 
