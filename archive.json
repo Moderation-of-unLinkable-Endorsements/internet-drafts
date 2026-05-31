@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-05-28T03:56:25.274206+00:00",
+  "timestamp": "2026-05-31T04:09:51.527454+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -142,15 +142,15 @@
       "id": "I_kwDOSX6krs8AAAABDYUmWA",
       "title": "Use \"site\", not Origin",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/6",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "martinthomson",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "Privacy Pass made a serious error in using \"origin\" to describe the thing the tokens grant access to.  In practice, the privacy unit on the web is a [site](https://html.spec.whatwg.org/#site).  That is, the set of web origins that share a registrable domain.\n\nBecause the website is something of a bystander in MoLE processing[^1], it's not a load-bearing notion, but I think that using \"site\" as the name of the primary beneficiary of the protocol is right.\n\n[^1]: In practice the moderator is the one involved in the protocol interactions on behalf of each site.  The site really only has a few interactions: first, to identify a moderator; second, to receive the moderator's verdict about the client; and, third, to provide the moderator with feedback about interactions with the client.",
       "createdAt": "2026-05-26T06:03:45Z",
-      "updatedAt": "2026-05-27T15:28:58Z",
-      "closedAt": null,
+      "updatedAt": "2026-05-28T10:57:36Z",
+      "closedAt": "2026-05-28T10:57:36Z",
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -541,7 +541,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-05-27T03:13:51Z",
-      "updatedAt": "2026-05-27T09:10:42Z",
+      "updatedAt": "2026-05-28T06:12:26Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "906f7940a7d9cdfd00b0ac05b850ebeeb510e909",
@@ -576,7 +576,7 @@
       "id": "PR_kwDOSX6krs7f2wEn",
       "title": "Architecture and placeholders for multiple drafts",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/8",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -587,17 +587,19 @@
       ],
       "body": "This PR aggregates MoLE drafts (architecture, crypto, and HTTP transport) into one repository as discussed in #2.\r\n\r\nIt also updates the architecture draft to use \"Site\" terminology, adds co-authors, and describes the three main flows: Endorsement, Credential Issuance, and Credential Presentation/Updates. It also adds early placeholder drafts for protocol token types (as a placeholder crypto API for issuer-hiding) and HTTP transport (placeholder as well).\r\n\r\nThis is intended to make the document structure and open design questions easier to review and to work on.",
       "createdAt": "2026-05-27T14:13:33Z",
-      "updatedAt": "2026-05-27T19:13:38Z",
+      "updatedAt": "2026-05-28T06:07:58Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "bb8ae0385c3b1093d8522562f97e2d74a6042601",
-      "headRepository": "thibmeu/architecture-draft",
+      "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "main",
       "headRefOid": "c7ecb32f4500edb1c7495a4432ffe05d3c6684b0",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-05-28T06:07:58Z",
+      "mergedAt": "2026-05-28T06:07:58Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "9483726d6a18fced91a2a0d4bdcdb4ab0798fe15"
+      },
       "comments": [],
       "reviews": [
         {
@@ -910,7 +912,7 @@
             "abbreviatedOid": "1e3e859"
           },
           "author": "dennisjackson",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2026-05-27T15:51:50Z",
@@ -970,7 +972,7 @@
             "abbreviatedOid": "1e3e859"
           },
           "author": "dennisjackson",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "APPROVED",
           "body": "LGTM modulo Sam's suggestions",
           "createdAt": "2026-05-27T15:53:07Z",
@@ -1008,6 +1010,174 @@
           "body": "",
           "createdAt": "2026-05-27T19:13:38Z",
           "updatedAt": "2026-05-27T19:13:38Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 11,
+      "id": "PR_kwDOSX6krs7gHmxl",
+      "title": "Fix links and README",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/11",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "documentation"
+      ],
+      "body": "The repository has been moved and now includes multiple drafts. This is a maintenance update",
+      "createdAt": "2026-05-28T06:25:41Z",
+      "updatedAt": "2026-05-28T10:56:57Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "9483726d6a18fced91a2a0d4bdcdb4ab0798fe15",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "main",
+      "headRefOid": "9972392460af7f3be952f62c1f561a419a29880d",
+      "closedAt": "2026-05-28T10:56:57Z",
+      "mergedAt": "2026-05-28T10:56:57Z",
+      "mergedBy": "dennisjackson",
+      "mergeCommit": {
+        "oid": "cff1499abac37764bbfa95f294a73bb10d728a20"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBRZzrA",
+          "commit": {
+            "abbreviatedOid": "9972392"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-05-28T10:55:40Z",
+          "updatedAt": "2026-05-28T10:55:40Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 12,
+      "id": "PR_kwDOSX6krs7gHxn8",
+      "title": "Fix Credential presentation diagram with \"Issuance\"",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/12",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "bug"
+      ],
+      "body": "Issuance has to happen before presentation. Endorsement is before the issuance itself",
+      "createdAt": "2026-05-28T06:36:00Z",
+      "updatedAt": "2026-05-28T10:56:44Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "9483726d6a18fced91a2a0d4bdcdb4ab0798fe15",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "fix-presentation-diagram",
+      "headRefOid": "99cbe91a60a180d15d316941ccb1a54855ffa191",
+      "closedAt": "2026-05-28T10:56:44Z",
+      "mergedAt": "2026-05-28T10:56:43Z",
+      "mergedBy": "dennisjackson",
+      "mergeCommit": {
+        "oid": "058d25d09dd07ca2e28e587997ccddc5bec1c2f4"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBRaH3Q",
+          "commit": {
+            "abbreviatedOid": "99cbe91"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-05-28T10:56:32Z",
+          "updatedAt": "2026-05-28T10:56:32Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 13,
+      "id": "PR_kwDOSX6krs7gsvQC",
+      "title": "HTTP Transport initial",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/13",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "This PR adds a first base for the HTTP Transport draft. It defines\r\n\r\n1. Presentation language (TLS + QUIC extension)\r\n2. HTTP Authentication Scheme to convey endorsement and credential presentation\r\n3. Configuration placeholder, for Anchor and Moderator, as well as a bigger todo for anchor-set\r\n4. Endorsement and credential registries, withoput parameters for now, to hold protocols for endorsement and credential respectively\r\n5. Multiple TODOs that should be moved to issues\r\n\r\nA change that's likely to happen is that the \"HTTP protocol\" sectino is going to be its own draft, where we can define protocol to be registered in endorsement and credential registry",
+      "createdAt": "2026-05-29T15:14:25Z",
+      "updatedAt": "2026-05-29T16:12:28Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "cff1499abac37764bbfa95f294a73bb10d728a20",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "http-transport-initial",
+      "headRefOid": "34b14d084719be0162b894f3fbd9879066d00b13",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 14,
+      "id": "PR_kwDOSX6krs7gs1pX",
+      "title": "[architecture] Issuer-hiding is Anchor-hiding",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/14",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "bug"
+      ],
+      "body": "very much a nit correction",
+      "createdAt": "2026-05-29T15:19:27Z",
+      "updatedAt": "2026-05-30T04:26:19Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "cff1499abac37764bbfa95f294a73bb10d728a20",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "issuer-hiding-naming",
+      "headRefOid": "3cfcefdbf120a3057a6cd94df2ba49ec38274616",
+      "closedAt": "2026-05-30T04:26:18Z",
+      "mergedAt": "2026-05-30T04:26:18Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "543e15940bfaf7729f352a976679e58e926503d1"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABBex_aQ",
+          "commit": {
+            "abbreviatedOid": "3cfcefd"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-05-30T04:26:14Z",
+          "updatedAt": "2026-05-30T04:26:14Z",
           "comments": []
         }
       ]
