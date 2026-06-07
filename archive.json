@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-02T04:17:23.521792+00:00",
+  "timestamp": "2026-06-07T04:15:31.919063+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -196,9 +196,17 @@
       "labels": [],
       "body": "At then moment, the arrow suggest credential presentation is forwarded by the site to the moderator. There might be a situation where the client goes to the moderator and obtains a response that the site would trust.\n\nIdeally this is not a distinct diagram, but has to be acknowledgted",
       "createdAt": "2026-05-27T15:34:25Z",
-      "updatedAt": "2026-05-27T15:34:25Z",
+      "updatedAt": "2026-06-05T19:03:16Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Separately from the initial anchor presentation? I think that the need to authenticate the site to moderator flow and response together with latency implications makes this juice not worth the squeeze.",
+          "createdAt": "2026-06-05T19:03:16Z",
+          "updatedAt": "2026-06-05T19:03:16Z"
+        }
+      ]
     },
     {
       "number": 15,
@@ -1138,19 +1146,88 @@
       ],
       "body": "This PR adds a first base for the HTTP Transport draft. It defines\r\n\r\n1. Presentation language (TLS + QUIC extension)\r\n2. HTTP Authentication Scheme to convey endorsement and credential presentation\r\n3. Configuration placeholder, for Anchor and Moderator, as well as a bigger todo for anchor-set\r\n4. Endorsement and credential registries, withoput parameters for now, to hold protocols for endorsement and credential respectively\r\n5. Multiple TODOs that should be moved to issues\r\n\r\nA change that's likely to happen is that the \"HTTP protocol\" sectino is going to be its own draft, where we can define protocol to be registered in endorsement and credential registry",
       "createdAt": "2026-05-29T15:14:25Z",
-      "updatedAt": "2026-05-29T16:12:28Z",
+      "updatedAt": "2026-06-05T17:49:45Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "cff1499abac37764bbfa95f294a73bb10d728a20",
       "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "http-transport-initial",
-      "headRefOid": "34b14d084719be0162b894f3fbd9879066d00b13",
+      "headRefOid": "7f31f9b923b20b4d8c10871aee55ccc7dd753c69",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "We can always merge and argue later",
+          "createdAt": "2026-06-05T17:49:45Z",
+          "updatedAt": "2026-06-05T17:49:45Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABCIt9cw",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-05T17:36:27Z",
+          "updatedAt": "2026-06-05T17:36:27Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "How does this interact with wanting A/B testing and subresources?",
+              "createdAt": "2026-06-05T17:36:27Z",
+              "updatedAt": "2026-06-05T17:36:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABCIuUyw",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-05T17:37:15Z",
+          "updatedAt": "2026-06-05T17:37:15Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "This will need fleshing out to say where authenticate: Mole can be applied later.",
+              "createdAt": "2026-06-05T17:37:15Z",
+              "updatedAt": "2026-06-05T17:37:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABCIy4IQ",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-05T17:49:31Z",
+          "updatedAt": "2026-06-05T17:49:31Z",
+          "comments": [
+            {
+              "originalPosition": 99,
+              "body": "I'm not sure what credential caching means/do we need it, or can the site set a cookie?",
+              "createdAt": "2026-06-05T17:49:31Z",
+              "updatedAt": "2026-06-05T17:49:31Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 14,
