@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-07T04:15:31.919063+00:00",
+  "timestamp": "2026-06-09T03:51:12.078080+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -196,7 +196,7 @@
       "labels": [],
       "body": "At then moment, the arrow suggest credential presentation is forwarded by the site to the moderator. There might be a situation where the client goes to the moderator and obtains a response that the site would trust.\n\nIdeally this is not a distinct diagram, but has to be acknowledgted",
       "createdAt": "2026-05-27T15:34:25Z",
-      "updatedAt": "2026-06-05T19:03:16Z",
+      "updatedAt": "2026-06-08T12:41:08Z",
       "closedAt": null,
       "comments": [
         {
@@ -205,6 +205,13 @@
           "body": "Separately from the initial anchor presentation? I think that the need to authenticate the site to moderator flow and response together with latency implications makes this juice not worth the squeeze.",
           "createdAt": "2026-06-05T19:03:16Z",
           "updatedAt": "2026-06-05T19:03:16Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Yes, separate from the initial anchor presentation. There are indeed some latency implication, but _technically_ that still conveys the information, and allows to remove the moderator online requirement which is a bottleneck.\n\nThe goal here is to ensure we convey this is a possible implementation, which protocols/transport would restrict these further.",
+          "createdAt": "2026-06-08T12:41:08Z",
+          "updatedAt": "2026-06-08T12:41:08Z"
         }
       ]
     },
@@ -220,9 +227,17 @@
       "labels": [],
       "body": "In MOLE we want abstractly clients to update their endorsements. However, the way we implement this is by having them reveal identifiers for an issued thing, and then getting back another issued thing. Right now our terminology mixes these levels, using credential for both. I'd like to differentiate between the cryptographic artifact and the state that is being managed",
       "createdAt": "2026-06-01T17:40:36Z",
-      "updatedAt": "2026-06-01T17:40:36Z",
+      "updatedAt": "2026-06-08T12:39:20Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The way I see this is endorsement is what you get from the anchor. It is NOT updated by the moderator.\n\nModerator are delivering credentials, which MAY (SHOULD?) be updated.\n\nThis is discussed in the [terminology section](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-architecture.html#name-conventions-and-definitions). I agree the wording is unfortunate, as _technically_ an endorsement may be a credential (in other context), and a credential represent some sort of endorsement (again, in other context)\n\nIs this the point you would like to discuss and differentiate?",
+          "createdAt": "2026-06-08T12:39:20Z",
+          "updatedAt": "2026-06-08T12:39:20Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -1146,7 +1161,7 @@
       ],
       "body": "This PR adds a first base for the HTTP Transport draft. It defines\r\n\r\n1. Presentation language (TLS + QUIC extension)\r\n2. HTTP Authentication Scheme to convey endorsement and credential presentation\r\n3. Configuration placeholder, for Anchor and Moderator, as well as a bigger todo for anchor-set\r\n4. Endorsement and credential registries, withoput parameters for now, to hold protocols for endorsement and credential respectively\r\n5. Multiple TODOs that should be moved to issues\r\n\r\nA change that's likely to happen is that the \"HTTP protocol\" sectino is going to be its own draft, where we can define protocol to be registered in endorsement and credential registry",
       "createdAt": "2026-05-29T15:14:25Z",
-      "updatedAt": "2026-06-05T17:49:45Z",
+      "updatedAt": "2026-06-08T12:36:06Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "cff1499abac37764bbfa95f294a73bb10d728a20",
@@ -1224,6 +1239,38 @@
               "body": "I'm not sure what credential caching means/do we need it, or can the site set a cookie?",
               "createdAt": "2026-06-05T17:49:31Z",
               "updatedAt": "2026-06-05T17:49:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABCTRcLg",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-08T12:20:28Z",
+          "updatedAt": "2026-06-08T12:36:06Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "probably something that we should discuss. I feel that a/b and subresources are still satisfiable with this constraint, this has to be considered by protocols though\n\ndo you have places where such a constraint would be challenging to design a protocol against?",
+              "createdAt": "2026-06-08T12:20:28Z",
+              "updatedAt": "2026-06-08T12:36:06Z"
+            },
+            {
+              "originalPosition": 8,
+              "body": "agree. this is a first pass",
+              "createdAt": "2026-06-08T12:20:49Z",
+              "updatedAt": "2026-06-08T12:36:06Z"
+            },
+            {
+              "originalPosition": 99,
+              "body": "both? I meant this as presentation/session reuse by the client, but the site can also set a cookie after accepting the presentation. I\u2019m not sure yet how much of that needs to be specified here.\n\noptimising the presentation so that it does not happen too often (due to cost) is something that we should discuss in the drafts",
+              "createdAt": "2026-06-08T12:24:09Z",
+              "updatedAt": "2026-06-08T12:36:06Z"
             }
           ]
         }
