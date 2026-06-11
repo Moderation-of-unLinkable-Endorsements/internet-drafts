@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-09T03:51:12.078080+00:00",
+  "timestamp": "2026-06-11T04:16:00.357898+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -227,7 +227,7 @@
       "labels": [],
       "body": "In MOLE we want abstractly clients to update their endorsements. However, the way we implement this is by having them reveal identifiers for an issued thing, and then getting back another issued thing. Right now our terminology mixes these levels, using credential for both. I'd like to differentiate between the cryptographic artifact and the state that is being managed",
       "createdAt": "2026-06-01T17:40:36Z",
-      "updatedAt": "2026-06-08T12:39:20Z",
+      "updatedAt": "2026-06-09T18:28:42Z",
       "closedAt": null,
       "comments": [
         {
@@ -236,6 +236,13 @@
           "body": "The way I see this is endorsement is what you get from the anchor. It is NOT updated by the moderator.\n\nModerator are delivering credentials, which MAY (SHOULD?) be updated.\n\nThis is discussed in the [terminology section](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-architecture.html#name-conventions-and-definitions). I agree the wording is unfortunate, as _technically_ an endorsement may be a credential (in other context), and a credential represent some sort of endorsement (again, in other context)\n\nIs this the point you would like to discuss and differentiate?",
           "createdAt": "2026-06-08T12:39:20Z",
           "updatedAt": "2026-06-08T12:39:20Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Somehow I missed that section but there's still a conceptual distinction to be made:\nA credential update works by the client burning something it has, and getting something back from the moderator. That thing needs a name, but it isn't the credential (which we conceptualize as always existing), and i think it would be clearer if we spelled it out.\n\nAlternatively I don't see why we need to have two separate names for the anchor to moderator and moderator to moderator flows. Yes they are very different, but they are both functionally similar. Calling them credentials, and the information that is transmitted an endorsement might work (but it's pretty different information, maybe just making them credentials work).",
+          "createdAt": "2026-06-09T18:28:42Z",
+          "updatedAt": "2026-06-09T18:28:42Z"
         }
       ]
     }
@@ -1321,6 +1328,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 16,
+      "id": "PR_kwDOSX6krs7k7XR9",
+      "title": "Draft architecture overview",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/16",
+      "state": "OPEN",
+      "author": "bvandersloot-mozilla",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "This includes a new sequence diagram and some updates to the definitions. One new definition is the \"score\" contained by the credential. Happy to bikeshed that.\r\n\r\nI took an approach of writing it as a presentation flow with fallbacks when a credential or endorsement are missing. This works better as a linear narrative and lets us show everything in a single diagram.  \r\n\r\nThe current details are substantively different than the skeleton there before because of the prior lack of clarity about what Javascript running on a website is. I've introduced language to make it clear that it is the Site, while still allowing the Site to still withhold data server-side. We can talk about the substance of that, but text to talk over helps.",
+      "createdAt": "2026-06-10T15:48:19Z",
+      "updatedAt": "2026-06-10T15:48:20Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "543e15940bfaf7729f352a976679e58e926503d1",
+      "headRepository": "bvandersloot-mozilla/mole-internet-drafts",
+      "headRefName": "overview",
+      "headRefOid": "caddd9b27b12be788480cd363218c1eeb09c1015",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
