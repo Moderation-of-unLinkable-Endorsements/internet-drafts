@@ -42,6 +42,9 @@ informative:
   INTERNET-END-USER: RFC8890
   OBLIVIOUS-HTTP: RFC9458
   PERVASIVE-MONITORING: RFC7258
+  CONSISTENCY-MIRROR: I-D.ietf-privacypass-consistency-mirror
+  KEYTRANS: I-D.ietf-keytrans-architecture
+  SCITT: I-D.ietf-scitt-architecture
   RFC9110:
   RFC9576:
 
@@ -352,6 +355,19 @@ to the other.
 Credential updates have to be applied before access to resources that
 an origin may gate or rate limit, so that Clients do not simply ignore
 the update request after getting them.
+
+### Discovery and consistency
+
+A Site challenge has to give Clients enough information to discover the
+Moderator and the policy context for the presentation. The Moderator then gives
+Clients enough information to discover the accepted Anchor material. The
+discovery method is deployment-specific. It can use URIs, lookup keys, or other
+opaque locators for out-of-band material that Clients are expected to resolve.
+
+Deployments should make both pieces of discovery material consistent across
+Clients and resistant to split views. A deployment can use a
+{{CONSISTENCY-MIRROR}}, {{KEYTRANS}}, {{SCITT}}, or another mechanism with
+similar properties.
 
 # Privacy Properties {#privacy-properties}
 
