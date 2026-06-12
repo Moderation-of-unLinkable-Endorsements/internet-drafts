@@ -143,10 +143,6 @@ running the HTTP authentication flows. Configuration includes endpoint URLs,
 supported protocol types, public key material, and the Anchor set associated
 with each Moderator policy.
 
-TODO(thibault)
-1. Anchor-Set format. I'm not sure we can find a shared format, or if this should
-   be specific to each endorsement protocol
-
 # Error Handling
 
 Sites can use MoLE as optional authentication. A `200` response MAY include a
@@ -161,7 +157,7 @@ material but did not accept it under policy.
 
 ## Endorsement
 
-The attestation method is left to the Anchor. This document only defines the
+The criteria to provide an endorsement is left to the Anchor. This document only defines the
 HTTP carriage for the Endorsement protocol messages.
 
 ### Anchor -> Client
