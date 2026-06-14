@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-11T04:16:00.357898+00:00",
+  "timestamp": "2026-06-14T04:24:00.039202+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1157,7 +1157,7 @@
       "id": "PR_kwDOSX6krs7gsvQC",
       "title": "HTTP Transport initial",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/13",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -1168,17 +1168,19 @@
       ],
       "body": "This PR adds a first base for the HTTP Transport draft. It defines\r\n\r\n1. Presentation language (TLS + QUIC extension)\r\n2. HTTP Authentication Scheme to convey endorsement and credential presentation\r\n3. Configuration placeholder, for Anchor and Moderator, as well as a bigger todo for anchor-set\r\n4. Endorsement and credential registries, withoput parameters for now, to hold protocols for endorsement and credential respectively\r\n5. Multiple TODOs that should be moved to issues\r\n\r\nA change that's likely to happen is that the \"HTTP protocol\" sectino is going to be its own draft, where we can define protocol to be registered in endorsement and credential registry",
       "createdAt": "2026-05-29T15:14:25Z",
-      "updatedAt": "2026-06-08T12:36:06Z",
+      "updatedAt": "2026-06-12T09:10:03Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "cff1499abac37764bbfa95f294a73bb10d728a20",
       "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "http-transport-initial",
-      "headRefOid": "7f31f9b923b20b4d8c10871aee55ccc7dd753c69",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "0cc9bcea2cd64f7a877d4910b7f478c3863aacc5",
+      "closedAt": "2026-06-12T09:09:57Z",
+      "mergedAt": "2026-06-12T09:09:57Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "2237ab1c35d8ea37e2e21016c6c2dfd967c75745"
+      },
       "comments": [
         {
           "author": "wbl",
@@ -1280,6 +1282,179 @@
               "updatedAt": "2026-06-08T12:36:06Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0O6wQ",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:50:27Z",
+          "updatedAt": "2026-06-12T08:50:28Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "> The discovery method is deployment-specific.\n\nBut still standardized right? ",
+              "createdAt": "2026-06-12T08:50:28Z",
+              "updatedAt": "2026-06-12T08:50:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0QLzA",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:53:23Z",
+          "updatedAt": "2026-06-12T08:53:24Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "I think in practice this is going to be nearly 100% determined by the crypto used in the Endorsement protocol right?",
+              "createdAt": "2026-06-12T08:53:24Z",
+              "updatedAt": "2026-06-12T08:53:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0QUvA",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:53:43Z",
+          "updatedAt": "2026-06-12T08:53:44Z",
+          "comments": [
+            {
+              "originalPosition": 19,
+              "body": "i don't think that's something we can mandate. there are likely to be standardised discovery method, but there might be some which are deployment specific. that's not something we can prevent",
+              "createdAt": "2026-06-12T08:53:43Z",
+              "updatedAt": "2026-06-12T08:53:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0QZFw",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:53:53Z",
+          "updatedAt": "2026-06-12T08:53:54Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "yes",
+              "createdAt": "2026-06-12T08:53:53Z",
+              "updatedAt": "2026-06-12T08:53:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0QrSw",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:54:43Z",
+          "updatedAt": "2026-06-12T08:54:43Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "> attestation method\n\nNit: Attestation is such an overloaded term in this context. It's a bit wordier, but I would prefer saying something like 'The criteria for issuing an endorsement is left to the Anchor'. ",
+              "createdAt": "2026-06-12T08:54:43Z",
+              "updatedAt": "2026-06-12T08:54:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0R2sw",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Left a few comments but this looks good to me! I like the opaque flows - seems like this layer should be as un opinionated as possible and we can keep the complexity in the Crypto / WebAPI layers",
+          "createdAt": "2026-06-12T08:58:04Z",
+          "updatedAt": "2026-06-12T08:58:04Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0SheQ",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T08:59:32Z",
+          "updatedAt": "2026-06-12T08:59:32Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "that's a better wording. adding that",
+              "createdAt": "2026-06-12T08:59:32Z",
+              "updatedAt": "2026-06-12T08:59:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0TjqQ",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T09:02:26Z",
+          "updatedAt": "2026-06-12T09:02:26Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "actually used \"providing\" instead of \"issuing\"",
+              "createdAt": "2026-06-12T09:02:26Z",
+              "updatedAt": "2026-06-12T09:02:26Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0T8fg",
+          "commit": {
+            "abbreviatedOid": "7f31f9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T09:03:33Z",
+          "updatedAt": "2026-06-12T09:03:34Z",
+          "comments": [
+            {
+              "originalPosition": 114,
+              "body": "i've removed that todo",
+              "createdAt": "2026-06-12T09:03:33Z",
+              "updatedAt": "2026-06-12T09:03:34Z"
+            }
+          ]
         }
       ]
     },
@@ -1341,7 +1516,7 @@
       "labels": [],
       "body": "This includes a new sequence diagram and some updates to the definitions. One new definition is the \"score\" contained by the credential. Happy to bikeshed that.\r\n\r\nI took an approach of writing it as a presentation flow with fallbacks when a credential or endorsement are missing. This works better as a linear narrative and lets us show everything in a single diagram.  \r\n\r\nThe current details are substantively different than the skeleton there before because of the prior lack of clarity about what Javascript running on a website is. I've introduced language to make it clear that it is the Site, while still allowing the Site to still withhold data server-side. We can talk about the substance of that, but text to talk over helps.",
       "createdAt": "2026-06-10T15:48:19Z",
-      "updatedAt": "2026-06-10T15:48:20Z",
+      "updatedAt": "2026-06-12T10:35:46Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "543e15940bfaf7729f352a976679e58e926503d1",
@@ -1352,8 +1527,317 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "(Apologies, didn't see @thibmeu's review before hitting submit on my own) ",
+          "createdAt": "2026-06-12T10:35:46Z",
+          "updatedAt": "2026-06-12T10:35:46Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0V_2w",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-12T09:08:02Z",
+          "updatedAt": "2026-06-12T09:08:03Z",
+          "comments": [
+            {
+              "originalPosition": 23,
+              "body": "```suggestion\ndynamic rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This\n```",
+              "createdAt": "2026-06-12T09:08:03Z",
+              "updatedAt": "2026-06-12T09:08:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0YLmQ",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "Thanks for the proposal. I like the addition of a flow in text, it should help readability.\n\nAs for the comments, I feel the current text overfit browsers and web semantic too much. The web execusion model where a site provides code for the client to run is one model. However, it's not unreasonable to say that client may have code already, or that site may not provide such discovery code.\nThe other point i'd like to sharpen is that a presentation proves that a client credential satisfy the moderator policy, not that the client is trusted by an anchor.",
+          "createdAt": "2026-06-12T09:12:22Z",
+          "updatedAt": "2026-06-12T10:19:29Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "```suggestion\n  context (client-side) and on a server outside of the Client's context\n```\n\nnot sure about control. i'm suggesting context, but you have expertise on web terminology here. also address the typo on client",
+              "createdAt": "2026-06-12T09:12:22Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 105,
+              "body": "```suggestion\n    +-PresentationChallenge->|                      |              |\n```\n\nthis would be a challenge. the way we use request is mostly things that will turn into a response that can be finalised and presented",
+              "createdAt": "2026-06-12T09:15:54Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 107,
+              "body": "i don't think it's optional. it has to happen at least once.\nthe flow may be simplified if a credential is already present, which could be a sentence just above",
+              "createdAt": "2026-06-12T09:17:45Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 119,
+              "body": "having them on one line is helpful visually I think",
+              "createdAt": "2026-06-12T09:18:32Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 125,
+              "body": "showcasing validationrequest is a function of presentation, rather than concatenated/distinct\n\n```suggestion\n    +-------------ValidationRequest(Presentation)->|              |\n```",
+              "createdAt": "2026-06-12T09:20:23Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 130,
+              "body": "```suggestion\n  ValidationUse            |                      |              |\n    +-- CredentialUpdate -->|                      |              |\n    |                   CredentialFinalization    |              |\n    |                      |                      |              |\n```\n\ni feel use is in parallel/before CredentialUpdate (which might be distinct from validationresult, which could be `(boolean, opaque(credentialupdate))`)",
+              "createdAt": "2026-06-12T09:23:11Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "this one probably should be aligned with the above diagram",
+              "createdAt": "2026-06-12T09:24:25Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 44,
+              "body": "the site should ideally not induces the client to produce. this could be done ahead of time for instance\n\n```suggestion\npresent a credential from a trusted Moderator. The precise mechanism does not\n```",
+              "createdAt": "2026-06-12T09:25:14Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 32,
+              "body": "```suggestion\nsequentially: Endorsement, in which a Client obtains an endorsement signifying\n```",
+              "createdAt": "2026-06-12T09:26:03Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "```suggestion\nits relationship with an Anchor; Issuance, in which a Client uses\n```\n\nconversion (at least to me) implies destruction of the previous material, which is not necessarily the case",
+              "createdAt": "2026-06-12T09:26:38Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "i'm not sure i understand the last two sentences. is it meant to convey that a Client may start each flow independently, without being prompted interactively by the website?",
+              "createdAt": "2026-06-12T09:35:08Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "```suggestion\n\nBeginning with Presentation, a typical flow is as follows:\n```",
+              "createdAt": "2026-06-12T09:35:17Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "browse is very web focused as i undersatnd. this applies beyond browsers\n\n```suggestion\n1. A Client requests the Site in such a way that the Site induces the Client to\n```",
+              "createdAt": "2026-06-12T09:35:49Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "```suggestion\nFundamentally, the Client learns that a resource may only\nbe obtained from the Site's servers with a valid presentation from this flow.\n```\n\nthis might not even be a Site's component. it could be that my local agent receives a WWW-Authenticate and perform the challenge, without ever using code from the site",
+              "createdAt": "2026-06-12T09:37:28Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 48,
+              "body": "```suggestion\n1. If the Client already has a credential from the Moderator, it may\n```",
+              "createdAt": "2026-06-12T09:37:46Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 55,
+              "body": "this is not true. the site learns that the client has no credential from the moderator, does not want to present one, or cannot present one (maybe the client has crashed).",
+              "createdAt": "2026-06-12T09:43:31Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 60,
+              "body": "```suggestion\nrequest to the Moderator, which returns a credential response that the client finalises. This credential stores an\n```",
+              "createdAt": "2026-06-12T09:44:55Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "i feel this assumes use of ACT like mechanism (and maybe that's a constraint we want)\n\nwe could imagine that the credential does not hold a score",
+              "createdAt": "2026-06-12T09:46:35Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 62,
+              "body": "```suggestion\n1. The Client provides a credential presentation to the Site. This\n```",
+              "createdAt": "2026-06-12T09:46:59Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 64,
+              "body": "```suggestion\n1. The Site issues a request to the Moderator to validate the\n```",
+              "createdAt": "2026-06-12T09:47:44Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 67,
+              "body": "```suggestion\nthe Site and Moderator's respective policy.\n```",
+              "createdAt": "2026-06-12T09:48:12Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 65,
+              "body": "```suggestion\npresentation. This may be accompanied by any information the Site wishes to provide\n```",
+              "createdAt": "2026-06-12T09:48:23Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 68,
+              "body": "```suggestion\n1. Given the context from the Site, the presentation, and its\n```",
+              "createdAt": "2026-06-12T09:49:23Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 70,
+              "body": "```suggestion\nverify that the Client's presentation prove ownership of a greater score. It returns\n```\n\nnot fully statisfied with the suggested wording. i want to use `the moderator verifies`, and not use `represent`",
+              "createdAt": "2026-06-12T09:52:00Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 71,
+              "body": "```suggestion\na validation response to the Site. This response includes material for the Site such as a boolean, and material for the client so they can update their credential state.\n```",
+              "createdAt": "2026-06-12T09:53:39Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 72,
+              "body": "```suggestion\n1. The Site provides the Moderator's response to the Client, who\n```",
+              "createdAt": "2026-06-12T09:53:48Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 74,
+              "body": "```suggestion\n1. If the validation response indicates to the Site that the Client's presentation does not satisfy the policy, the Site fails the request from\n```",
+              "createdAt": "2026-06-12T09:55:02Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 77,
+              "body": "```suggestion\nStep 1. On success, the Site provides the Client with the credential update it received from the moderator. This will allow the Client to perform future requests.\n```",
+              "createdAt": "2026-06-12T09:56:50Z",
+              "updatedAt": "2026-06-12T10:19:29Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "<img width=\"1800\" height=\"1600\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/c8930e47-5ee9-4515-aa52-43cdf1442abd\" />\n\ncurrent renderering of the suggested diagram\n\nI feel this is less readable than the existing version due to space. Given that we detail the flow below, we may simply have a diagram with Interaction, endorsement, issuance, presentation, and link to the ones below for analysis?\n\n<img width=\"736\" height=\"459\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/84286b5c-1854-4e81-b35a-1abe3d1582d0\" />",
+              "createdAt": "2026-06-12T10:00:08Z",
+              "updatedAt": "2026-06-12T10:19:30Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "i feel the instantiation is a state, not a score as a single integer. deployment may constraint state to an integer, even a single bit, but that's a distinct choice. the wording \"represented\" indeed denotes this is a construction and not something which is embedded in\n\nthe suggestion below is to replace \"in\" with \"by\"\n\n\n```suggestion\n**Score:**\n: An integer value represented by a credential, updated during presentation.\n```",
+              "createdAt": "2026-06-12T10:02:46Z",
+              "updatedAt": "2026-06-12T10:19:30Z"
+            },
+            {
+              "originalPosition": 42,
+              "body": "another preference: it would be good to have that flow _after_ the diagram",
+              "createdAt": "2026-06-12T10:03:52Z",
+              "updatedAt": "2026-06-12T10:19:30Z"
+            },
+            {
+              "originalPosition": 16,
+              "body": "an alternative which i prefer (not mention score at all)\n\n```\n**Credential state:**\n: State associated with a credential and updated during presentation. Some\n  deployments represent this state as an integer score.\n```",
+              "createdAt": "2026-06-12T10:10:58Z",
+              "updatedAt": "2026-06-12T10:19:30Z"
+            },
+            {
+              "originalPosition": 39,
+              "body": "some issues I have with the current formulation\n1. unlinkable exchange is too broad and i'm not sure what it means. the presentation are unlinkable (between each other and with the initial issuance), not the exchange (which is not defined)\n2. the presentation of a credential does not prove that the client has a relationshipu with a trusted anchor, because issuance is unlinkable. it prove that the moderator has in the past issued a credential. given moderator only issue against trusted anchors, there is transitivity, but that's subtle.\n3. rate-limited exchange - i prefer to state that the presentation matches a site policy that the moderator enforces, such as the credential has not been presented more than a certain time. the exchange is not rate limited per say\n\n\n```suggestion\nwhich Anchor it was; and Presentation, in which a Client presents a credential issued by a Moderator chosen by the Site. The presentation is unlinkable to issuance and to other presentations, and allows the Moderator to verify that the credential satisfies the Site's policy, such as a request budget, without revealing the issuing Anchor. However, if a Client is already\n```",
+              "createdAt": "2026-06-12T10:15:16Z",
+              "updatedAt": "2026-06-12T10:19:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABC0WNog",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-06-12T09:08:28Z",
+          "updatedAt": "2026-06-12T10:34:42Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "```suggestion\nsequentially: Endorsement, in which a Client obtains an endorsement signifying\n```",
+              "createdAt": "2026-06-12T09:08:29Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 32,
+              "body": "Sequentially is maybe not quite right though there is a dependency. We would expect Endorsement to happen opportunistically according to the Anchor's policy (e.g. at login, periodically, after a challenge). Issuance would happen on-demand. Presentation can happen many times. Could drop this first sentence, introduce the flows, then clarify the relationship after? ",
+              "createdAt": "2026-06-12T10:21:10Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "> prove via a rate-limited, unlinkable exchange with the Moderator that the Client has a relationship with a trusted Anchor\n\nThe presentation is proving that the credential is in good standing with the Moderator. It's issued on the initial basis of a trusted Anchor, but afterwards can be updated according to the Moderator's own criteria. ",
+              "createdAt": "2026-06-12T10:23:09Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 58,
+              "body": "I'm in two minds about this. I see the utility in having a Presentation request trigger a request to an Anchor, but we'd need to define a privacy preserving flow for that - e.g. a way of an Anchor specifying how to trigger the flow. Alternatively we could rely on Endorsements simply being present because the Anchors have already provisioned them - which mitigates timing side channels. ",
+              "createdAt": "2026-06-12T10:26:40Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "```suggestion\ninteger as state.\n```",
+              "createdAt": "2026-06-12T10:29:55Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "```suggestion\nproves the credentials integer is over some threshold, without revealing it's exact value\n```",
+              "createdAt": "2026-06-12T10:30:51Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 69,
+              "body": "```suggestion\npolicy, the Moderator determines the amount to deduct from the credential and\n```",
+              "createdAt": "2026-06-12T10:31:19Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 73,
+              "body": "```suggestion\nuses it to produce a modified credential with an updated state.\n```",
+              "createdAt": "2026-06-12T10:31:42Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "I think the three flows are bit more independent than this diagram suggests (see comment above). In particular, an Anchor endorsement would happen during interaction with another site. ",
+              "createdAt": "2026-06-12T10:34:19Z",
+              "updatedAt": "2026-06-12T10:34:42Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
