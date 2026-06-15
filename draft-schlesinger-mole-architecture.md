@@ -269,7 +269,22 @@ presently in good standing with the Moderator and that this request matches the
 Moderator and Site's policies through an online interaction. Clients most often
 interact with the MoLE architecture either by being requested by a Site to
 present a credential or by an Anchor to initiate an Endorsement.
-directly, the Anchor may initiate an Endorsement.
+
+~~~ aasvg
++--------+                 +--------+             +-----------+            +--------+
+| Client |                 |  Site  |             | Moderator |            | Anchor |
++---+----+                 +---+----+             +-----+-----+            +----+---+
+    |                          |                        |                       |
+    |<================================ Interaction ============================>|
+    |<================================ Endorsement ============================>|
+    |                          |                        |                       |
+    |                          |                        |                       |
+    |<==== Interaction========>|                        |                       |
+    |<=========== If needed: Issuance =================>|                       |
+    |<===== Presentation =====>|<===== Presentation ===>|                       |
+    |                          |                        |                       |
+~~~
+{: #fig-mole-architecture title="MoLE Architecture"}
 
 Beginning with Endorsement and proceeding to a Presentation, a typical
 overarching flow occurs as follows:
@@ -318,22 +333,6 @@ Step 4. On success, the Site provides the Client with the material it
 received from the Moderator.
 1. The Client updates its credential for the Moderator with the response
 forwarded by the Site. This will allow the Client to perform future requests.
-
-~~~ aasvg
-+--------+                 +--------+             +-----------+            +--------+
-| Client |                 |  Site  |             | Moderator |            | Anchor |
-+---+----+                 +---+----+             +-----+-----+            +----+---+
-    |                          |                        |                       |
-    |<================================ Interaction ============================>|
-    |<================================ Endorsement ============================>|
-    |                          |                        |                       |
-    |                          |                        |                       |
-    |<==== Interaction========>|                        |                       |
-    |<=========== If needed: Issuance =================>|                       |
-    |<===== Presentation =====>|<===== Presentation ===>|                       |
-    |                          |                        |                       |
-~~~
-{: #fig-mole-architecture title="MoLE Architecture"}
 
 ## Flows
 
