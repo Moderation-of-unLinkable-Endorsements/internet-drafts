@@ -271,7 +271,8 @@ interact with the MoLE architecture either by being requested by a Site to
 present a credential or by an Anchor to initiate an Endorsement.
 directly, the Anchor may initiate an Endorsement. 
 
-Beginning with Endorsement, a typical overarching flow proceeds as follows:
+Beginning with Endorsement and proceeding to a Presentation, a typical 
+overarching flow occurs as follows:
 
 
 1. A Client interacts with an Anchor in such a way that the Client believes the
@@ -319,10 +320,23 @@ received from the Moderator.
 forwarded by the Site. This will allow the Client to perform future requests.
 
 ~~~ aasvg
-+------+              +--------+            +-----------+    +--------+
-| Site |              | Client |            | Moderator |    | Anchor |
-+---+--+              +----+---+            +-----+-----+    +---+----+
-    |                      |                      |              |
++--------+                 +--------+             +-----------+            +--------+
+| Client |                 |  Site  |             | Moderator |            | Anchor |
++---+----+                 +---+----+             +-----+-----+            +----+---+
+    |                          |                        |                       |
+    |<================================ Interaction ============================>|
+    |<================================ Endorsement ============================>|
+    |                          |                        |                       |
+    |                          |                        |                       |
+    |<==== Interaction========>|                        |                       |
+    |<=========== If needed: Issuance =================>|                       |
+    |<===== Presentation =====>|<===== Presentation ===>|                       |
+    |                          |                        |                       |
+
++--------+              +--------+            +-----------+    +--------+
+| Client |              |  Site  |            | Moderator |    | Anchor |
++----+---+              +----+---+            +-----+-----+    +---+----+
+     |                      |                      |              |
     |<====Interaction=====>|                      |              |
     +-PresentationRequest->|                      |              |
     |                      |                      |              |
@@ -379,16 +393,17 @@ a Moderator that proves the Client has been attested by the Anchor.
 ### Credential Issuance
 
 ~~~ aasvg
-+--------+                 +--------+             +-----------+
-| Client |                 | Anchor |             | Moderator |
-+---+----+                 +---+----+             +-----+-----+
-    |<===== Endorsement ======>|                        |
-    |                          |                        |
-EndorsementPresentation        |                        |
-    +------- EndorsementToken+CredentialRequest ------->|
-    |<--------------- CredentialResponse ---------------+
-CredentialFinalization         |                        |
-    |                          |                        |
++--------+                                +-----------+           
+| Client |                                | Moderator |          
++---+----+                                +-----+-----+  
+    |                                           |       
+    +------------ AnchorRequest --------------->|
+    |<----------- AnchorResponse ---------------+
+EndorsementPresentation                         |       
+    +--- EndorsementToken+CredentialRequest --->|
+    |<---------- CredentialResponse ------------+
+CredentialFinalization                          |
+    |                                           |
 ~~~
 {: #fig-mole-architecture-issuance title="MoLE Issuance"}
 
@@ -401,18 +416,19 @@ Endorsement.
 ### Credential Presentation and updates
 
 ~~~ aasvg
-+--------+               +-----------+             +------+
-| Client |               | Moderator |             | Site |
-+---+----+               +-----+-----+             +---+--+
-    |<======= Issuance =======>|                       |
-    |                          |                       |
-CredentialPresentation         |                       |
-    +------------- Request+CredentialToken ----------->|
-    |                          |<-- ValidateRequest ---+
-    |                          +-- ValidationResult -->|
-    |<----------- Response+CredentialResponse ---------+
-CredentialFinalization         |                       |
-    |                          |                       |
++--------+                          +------+              +-----------+
+| Client |                          | Site |              | Moderator |
++---+----+                          +---+--+              +-----+-----+
+    |                                   |                       |
+    |<------ PresentationRequest -------+                       |
+    |<===================== If needed, Issuance ===============>|
+CredentialPresentation                  |                       |
+    +----- Request+CredentialToken ---->|                       |
+    |                                   +--- ValidateRequest -->|
+    |                                   |<- ValidationResult ---+
+    |<-- Response+CredentialResponse ---+
+CredentialFinalization                  |                       |
+    |                                   |                       |
 ~~~
 {: #fig-mole-architecture-presentation title="MoLE Presentation"}
 
