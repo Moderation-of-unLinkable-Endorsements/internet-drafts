@@ -224,9 +224,8 @@ The following terms are used throughout this document:
 
 **Site:**
 : An entity that consumes presentations from Clients and uses them to make
-  authorization decisions. The Site operates software both within the Client's
-  control (client-side) and on a server outside of the cilent's control
-  (server-side).
+  authorization decisions. The Site may operate software client-side, 
+  server-side, or both, depending on the deployment. 
 
 **Anchor:**
 : An entity that issues Endorsements to Clients based on scarce signals.
@@ -239,7 +238,8 @@ The following terms are used throughout this document:
   according to a policy.
 
 **Credential:**
-: A cryptographic object issued by a Moderator to a Client.
+: A cryptographic object issued by a Moderator to a Client. This credential
+  has an associated integer state that is updated during presentation.
 
 **Presentation:**
 : The mechanism by which Clients prove possession of a credential satisfying
@@ -248,67 +248,75 @@ The following terms are used throughout this document:
 **Policy:**
 : Rules used by a Moderator or Site to evaluate presentations.
 
-**Score:**
-: An integer value represented in a credential, updated during presentation.
-
 # Architecture {#architecture}
 
 The MoLE architecture is constructed to orchestrate trust relationships and
 infomation flows between four entities: Client, Anchor, Moderator, and Site.
-These entities have a limited exchange of information that allows for
+These entities have a limited exchange of information that allows for dynamic
 rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This
 section details the information flows and trust relationships between these
 entities along with requirements for the underlying protocols and APIs.
 
 ## Overview
 
-A complete exchange for MoLE has three distinct flows that must complete
-sequentially: Endoresement, in which a Client obtains an endorsement signifying
-its relationship with an Anchor; Issuance, in which a Client converts
-an endorsement from an Anchor to credentials from a Moderator without revealing
-which Anchor it was; and Presentation, in which a Client uses credentials from
-a Moderator of the Site's choosing to prove via a rate-limited, unlinkable
-exchange with the Moderator that the Client has a relationship with a trusted
-Anchor. Clients most often interact with the MoLE architecture by being
-requested by a Site to present a credential. However, if a Client is already
-interacting with them independently, an Anchor may initiate an Endorsement.
-Beginning with Presentation, a typical flow is as follows:
+A complete exchange for MoLE has three distinct flows: 
+Endorsement, in which a Client obtains an endorsement signifying
+its relationship with an Anchor; Issuance, in which a Client uses an 
+endorsement from an Anchor to obtain credentials from a Moderator without 
+revealing which Anchor it was; and Presentation, in which a Client uses 
+credentials from a Moderator of the Site's choosing to prove that it is 
+presently in good standing with the Moderator and that this request matches the
+Moderator and Site's policies through an online interaction. Clients most often 
+interact with the MoLE architecture either by being requested by a Site to 
+present a credential or by an Anchor to initiate an Endorsement.
+directly, the Anchor may initiate an Endorsement. 
 
-1. A Client browses the Site in such a way that the Site induces the Client to
-produce a credential from a trusted Moderator. The precise mechanism does not
-matter, but may be a Javascript API call, HTML attribute, or HTTP header.
-Fundamentally, the Site's client-side components know that a resource may only
-be obtained from the Site's servers with a valid presentation from this flow.
-1. If the Client already has a credential from the Moderator cached, it may
-skipping to Step 8.
+Beginning with Endorsement, a typical overarching flow proceeds as follows:
+
+
+1. A Client interacts with an Anchor in such a way that the Client believes the
+Anchor may endorse the Client. This mechanism that advertises the Anchor's 
+endorsement capability does not matter, but may be an HTTP header, Javascript 
+API call, or HTML attribute. Fundamentally, the Anchor wishes to grant an
+endorsement to the Client so that it may be used later.
+1. A Client requests an endorsement from the Anchor, which responds based upon 
+its policy and the Client's request. Upon success, the Client then finalizes 
+its endorsement.
+1. Some time later, the Client interacts with the Site.
+1. The Site induces the Client to present a credential from a trusted 
+Moderator. The precise mechanism does not matter, but may be an HTTP Header, 
+Javascript API call, or HTML attribute. Fundamentally, the Site knows that a 
+resource may only be obtained with a valid  presentation from this flow, so it
+directs the client to present one.
+1. If the Client already has a credential from the Moderator, it may
+skip to Step 9.
 1. The Client requests a list of trusted Anchors from the Moderator.
-1. If the Client already has an endorsement from one of these Anchors,
-it may present that to the Moderator, skipping to Step 7.
-1. The Client may decide that it does not wish to seek an endorsement for any
-of the provided Anchors. If this is the case, the flow fails and the Site
-learns that the Client has no credentials from a given Anchor.
-1. The Client chooses an Anchor to attempt to gain an endorsement from. The
-Client then issues an endorsement request to that Anchor. If this fails, the
-Client may repeat this step until it decides to fail the flow.
-1. The Client takes the endorsement and presents it along with a credential
-request to the Moderator, which returns a credential. This credential stores an
-integer score as state.
-1. The Client provides a credential presentation to the client-side Site. This
-encodes, but does not reveal the credential's score.
-1. The client-side Site issues a request to the Moderator to validate the
-presentation. This is accompanied by any information the Site wishes to provide
-the Moderator as context for the request, such as the request itself, following
-the policy.
-1. Given the context from the client-side Site, the presentation, and the
-policy, the Moderator determines the amount to deduct from the score and
-validates that the presentation represents a score greater than that. It returns
-the result to the client-side Site.
-1. The client-side Site provides the Moderator's response to the Client, who
-uses it to produce a modified credential with an updated score.
-1. If the result signifies failure, the client-side Site fails the request from
-Step 1. On success, the client-side Site produces a proof of the successful
-presentation. This may be used to prove to the server-side site that the Client
-satisfies the requirements to complete an expensive request.
+1. If the Client is unwilling or unable to present a matching endorsement, the 
+flow fails, informing the Site.
+1. The Client takes an endorsement from one of the trusted anchors and presents 
+it along with a credential request to the Moderator, which returns a 
+credential response that the Client finalizes.
+1. The Client provides a credential presentation to the Site. This
+may be used to prove that the credential's state is over some threshold, but 
+does not reveal the exact value..
+1. The Site issues a request to the Moderator to validate the presentation. 
+This may be accompanied by any information the Site wishes to provide the 
+Moderator as context for the request, such as the request itself, following the 
+Site and Moderator's respective policy.
+1. Given the context from the Site, the presentation, and its policy, the
+Moderator determines how to mutate the credential's state and validates that 
+the presentation proves a sufficiently large value in the credential's state. 
+It returns the result to the Site. This response includes material for the Site
+such as a boolean, and material for the client so they can update their 
+credential state.
+1. The Site provides the Moderator's response to the Client, who uses it to 
+produce a modified credential with an updated state.
+1. If the validation response indicates to the Site that the Client's 
+presentation does not satisfy the policy, the Site fails the request from
+Step 4. On success, the Site provides the Client with the material it 
+received from the Moderator. 
+1. The Client updates its credential for the Moderator with the response 
+forwarded by the Site. This will allow the Client to perform future requests.
 
 ~~~ aasvg
 +------+              +--------+            +-----------+    +--------+
