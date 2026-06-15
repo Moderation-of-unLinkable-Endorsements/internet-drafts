@@ -332,38 +332,6 @@ forwarded by the Site. This will allow the Client to perform future requests.
     |<=========== If needed: Issuance =================>|                       |
     |<===== Presentation =====>|<===== Presentation ===>|                       |
     |                          |                        |                       |
-
-+--------+              +--------+            +-----------+    +--------+
-| Client |              |  Site  |            | Moderator |    | Anchor |
-+----+---+              +----+---+            +-----+-----+    +---+----+
-     |                      |                      |              |
-    |<====Interaction=====>|                      |              |
-    +-PresentationRequest->|                      |              |
-    |                      |                      |              |
- [Optional: credential fetching begins]           |              |
-    |                      +----AnchorRequest---->|              |
-    |                      |<---AnchorResponse----|              |
-    |                      |                      |              |
-  [Optional: endorsement fetching begins]         |              |
-    |                      |<===========Attestation=============>|
-    |                      +------------EndorsementRequest------>|
-    |                      |<-----------EndorsementResponse------+
-    |                    EndorsementFinalization  |              |
-  [Optional: endorsement fetching ends]           |              |
-    |                      |                      |              |
-    |                      |   CredentialRequest, |              |
-    |                      +---EndorsementToken-->|              |
-    |                      |<--CredentialResponse----------------+
-    |                    CredentialFinalization   |              |
- [Optional: credential fetching ends]             |              |
-    |                      |                      |              |
-    |<-----Presentation----+                      |              |
-    +-------------Presentation,ValidationRequest->|              |
-    |<------------ValidationResult----------------|              |
-    |--ValidationResult--->|                      |              |
-    |                   CredentialFinalization    |              |
-  ValidationUse            |                      |              |
-    |                      |                      |              |
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture"}
 
@@ -420,7 +388,7 @@ Endorsement.
 | Client |                          | Site |              | Moderator |
 +---+----+                          +---+--+              +-----+-----+
     |                                   |                       |
-    |<------ PresentationRequest -------+                       |
+    |<----- PresentationChallenge ------+                       |
     |<===================== If needed, Issuance ===============>|
 CredentialPresentation                  |                       |
     +----- Request+CredentialToken ---->|                       |
