@@ -393,7 +393,7 @@ CredentialPresentation                  |                       |
     +----- Request+CredentialToken ---->|                       |
     |                                   +--- ValidateRequest -->|
     |                                   |<- ValidationResult ---+
-    |<-- Response+CredentialResponse ---+
+    |<-- Response+CredentialResponse ---+                       |
 CredentialFinalization                  |                       |
     |                                   |                       |
 ~~~
