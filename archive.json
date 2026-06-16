@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-14T04:24:00.039202+00:00",
+  "timestamp": "2026-06-16T04:44:24.589610+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1516,13 +1516,13 @@
       "labels": [],
       "body": "This includes a new sequence diagram and some updates to the definitions. One new definition is the \"score\" contained by the credential. Happy to bikeshed that.\r\n\r\nI took an approach of writing it as a presentation flow with fallbacks when a credential or endorsement are missing. This works better as a linear narrative and lets us show everything in a single diagram.  \r\n\r\nThe current details are substantively different than the skeleton there before because of the prior lack of clarity about what Javascript running on a website is. I've introduced language to make it clear that it is the Site, while still allowing the Site to still withhold data server-side. We can talk about the substance of that, but text to talk over helps.",
       "createdAt": "2026-06-10T15:48:19Z",
-      "updatedAt": "2026-06-12T10:35:46Z",
+      "updatedAt": "2026-06-15T18:13:14Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "543e15940bfaf7729f352a976679e58e926503d1",
       "headRepository": "bvandersloot-mozilla/mole-internet-drafts",
       "headRefName": "overview",
-      "headRefOid": "caddd9b27b12be788480cd363218c1eeb09c1015",
+      "headRefOid": "5ec60a4322a00054f7315f79c3d4bea874d37fcd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -1534,6 +1534,13 @@
           "body": "(Apologies, didn't see @thibmeu's review before hitting submit on my own) ",
           "createdAt": "2026-06-12T10:35:46Z",
           "updatedAt": "2026-06-12T10:35:46Z"
+        },
+        {
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "body": "Many friendly changes here. I'll apply some directly, then capture the spirit of the rest before tackling anything harder.\r\n\r\n> As for the comments, I feel the current text overfit browsers and web semantic too much. \r\n\r\nYeah, that's a fair criticism. I may have overcorrected to an individual instantiation rather than something I thought was too abstract. I think there is a middle ground here where we make clear how it maps onto a browser deployment without making it sound exclusive to that Client.\r\n\r\nWRT the flow diagram, I was trying to capture the same sequence as the narrative description, especially since the three other flows are already provided in isolation in the subsequent sections. putting them on the same lines at the top didn't seem to offer much. I'll see if there is a middle ground here as well.",
+          "createdAt": "2026-06-15T12:34:31Z",
+          "updatedAt": "2026-06-15T12:34:31Z"
         }
       ],
       "reviews": [
@@ -1834,6 +1841,166 @@
               "body": "I think the three flows are bit more independent than this diagram suggests (see comment above). In particular, an Anchor endorsement would happen during interaction with another site. ",
               "createdAt": "2026-06-12T10:34:19Z",
               "updatedAt": "2026-06-12T10:34:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDAyyQA",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-15T11:58:49Z",
+          "updatedAt": "2026-06-15T11:58:49Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "Fair. the UX may also turn into a nightmare. I think pulling endorsement out is probably right.\r\n\r\nDo we have similar timing side-channel concerns linking Credential issuance and presentation? I imagine it depends on the details of the endorsement mechanism.",
+              "createdAt": "2026-06-15T11:58:49Z",
+              "updatedAt": "2026-06-15T11:58:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDA8Otg",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-15T12:21:44Z",
+          "updatedAt": "2026-06-15T12:21:44Z",
+          "comments": [
+            {
+              "originalPosition": 58,
+              "body": "I think Credential Issuance <-> Presentation side channels are much less significant. Credential Issuance blinds the anchor used and doesn't involve revealing any information, unlike receiving an Endorsement from an Anchor which may well be in response to something identifying. ",
+              "createdAt": "2026-06-15T12:21:44Z",
+              "updatedAt": "2026-06-15T12:21:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDCWk7w",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-15T15:22:55Z",
+          "updatedAt": "2026-06-15T15:22:55Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "Context would likely invoke something closer to https://tc39.es/ecma262/#sec-execution-contexts in the mind of a web-native reader. I'll reword away from control.",
+              "createdAt": "2026-06-15T15:22:55Z",
+              "updatedAt": "2026-06-15T15:22:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDCbqJw",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-15T15:34:54Z",
+          "updatedAt": "2026-06-15T15:34:54Z",
+          "comments": [
+            {
+              "originalPosition": 16,
+              "body": "I'll integrate this into the credential definition and drop score.",
+              "createdAt": "2026-06-15T15:34:54Z",
+              "updatedAt": "2026-06-15T15:34:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDCgRHQ",
+          "commit": {
+            "abbreviatedOid": "caddd9b"
+          },
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "I've closed all comments I've taken the suggestions on or are no longer needed because of how the sequence diagrams are now being approached. Ready for another round!",
+          "createdAt": "2026-06-15T15:44:56Z",
+          "updatedAt": "2026-06-15T18:03:28Z",
+          "comments": [
+            {
+              "originalPosition": 32,
+              "body": "Let me know how this reads. I've dropped the clause, but left the introduction of the distinct flows.\n\n\"In order\" may have been better than sequentially.",
+              "createdAt": "2026-06-15T15:44:56Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 38,
+              "body": "Updated.",
+              "createdAt": "2026-06-15T15:53:55Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 39,
+              "body": "Let me know if the current text corrects these concerns.",
+              "createdAt": "2026-06-15T15:55:19Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "It was to try to clarify that an endorsement flow can happen independently. This is hopefully less necessary with a bit of restructure.",
+              "createdAt": "2026-06-15T15:59:58Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "I initially combined it into one to have it match the narrative structure and try to convey more information in the diagram. You may be on to something with the more abstract version here. I'll try it out.",
+              "createdAt": "2026-06-15T16:18:10Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "Agreed that we definitely need to pull that one out.",
+              "createdAt": "2026-06-15T16:18:27Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 43,
+              "body": "Going with \"interacts with\" to capture a broad stretch of deployments.",
+              "createdAt": "2026-06-15T16:20:21Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 44,
+              "body": "Produce here meant \"to bring forward; present to view or notice; exhibit.\" Admittedly, this is a bit unclear. I'll take the suggestion.",
+              "createdAt": "2026-06-15T16:22:46Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 47,
+              "body": "Part of what I'm trying to tease apart here is the boundary between Client and Site. Agent or not, there is a web application that has client and server components. I argue that the client-side parts of that application (JS + HTML) are part of the Site, not the Client. That the Client-Site boundary is at the platform-definition level, not the edge of my network card.\n\nWWW-Authenticate definitely makes it greyer because it permits the server to speak directly to the Client. So I am going to cut out a lot of the \"client-side\"s to fit this case. But I think \"Fundamentally, the Site knows that a resource may only be obtained with a valid  presentation from this flow, so it directs the client to present one.\" still applies.",
+              "createdAt": "2026-06-15T16:52:00Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 58,
+              "body": "Pulling it out to the top of the flow.",
+              "createdAt": "2026-06-15T17:01:27Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "Let's write it as an integer for now. If we feel that it is insufficiently flexible, we can relax the language later. ",
+              "createdAt": "2026-06-15T17:05:04Z",
+              "updatedAt": "2026-06-15T18:03:28Z"
             }
           ]
         }
