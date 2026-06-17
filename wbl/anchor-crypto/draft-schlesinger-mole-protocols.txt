@@ -4,8 +4,8 @@
 
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
-Intended status: Informational                              16 June 2026
-Expires: 18 December 2026
+Intended status: Informational                              17 June 2026
+Expires: 19 December 2026
 
 
                              MoLE Protocols
@@ -44,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 December 2026.
+   This Internet-Draft will expire on 19 December 2026.
 
 Copyright Notice
 
@@ -73,7 +73,7 @@ Table of Contents
    4.  Crypto Bits
      4.1.  Issuance Step One: Statement and Commitment
      4.2.  Issuance Step Two: Opening and Proof
-     4.3.  Verifying such a credential
+     4.3.  Verifying such an endorsement
      4.4.  Connecting to the issuer
    5.  IANA Considerations
    6.  References
@@ -179,22 +179,22 @@ Table of Contents
 4.  Crypto Bits
 
    We define a two round protocol between an Anchor and Client to
-   produce a Credential, and then a half-round Token generation step
-   presuming the Client knows the Anchors the Issuer accepts.  We let
-   hash2curve be the Hash2Curve function from [Hash2Curve], and H be
+   produce an endorsement, and then a half-round Credential generation
+   step presuming the Client knows the Anchors the Issuer accepts.  We
+   let hash2curve be the Hash2Curve function from [Hash2Curve], and H be
    hash function whose output length is sufficiently long.
 
-   The Credential is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
-   private data gamma.  The Anchor has a public key X and a private key
-   x, and X = xG.  The public form of a credential Zhat, Xhat, and a
+   The Endorsement is a structure with m, Y=Hash2Curve(m), Zhat, Xhat
+   and private data gamma.  The Anchor has a public key X and a private
+   key x, and X = xG.  The public form of a credential Zhat, Xhat, and a
    proof that Xhat = vG, Zhat = vY.  Xhat = gamma X, and the client will
    prove it knows gamma such that Xhat is a power of one of the public
    keys of an Anchor the moderator trusts.
 
 4.1.  Issuance Step One: Statement and Commitment
 
-   Client selects randomly v and gamma, and sends Yprime = v Y to the
-   anchor.
+   Client randomly selects scalars v and gamma, and sends Yprime = v Y
+   to the anchor.
 
    The Anchor computes Zprime = x Yprime, selects three random scalars
    aprime, bprime, and tprime.  It computes a commitment.  It then
@@ -204,25 +204,25 @@ Table of Contents
 4.2.  Issuance Step Two: Opening and Proof
 
    The client now has to compute some proof elements and send a scalar
-   to the server.  The client lets Zhat = gamma v^-1 Y.  It then picks
-   alpha a random nonzero scalar, beta a random scalar, epsilon a random
-   nonzero scalar, rho a random scalar.  The client computes C =
-   alpha^-1 C' - beta G, T1 = epsilon ^ -1 v ^ -1 (T1prime - rho
+   to the server.  The client lets Zhat = gamma v^-1 Z.  It then picks
+   alpha, a random nonzero scalar, beta, a random scalar, epsilon, a
+   random nonzero scalar, and rho, a random scalar.  The client computes
+   C = alpha^-1 C' - beta H, T1 = epsilon ^ -1 v ^ -1 (T1prime - rho
    Yprime), T2 = epsilon ^ -1 (T2prime - rho G).
 
    The client now computes e = H(Y, Zhat, T1, T2, C), and sends eprime =
    epsilon alpha^{-1} gamma e to the anchor
 
    The anchor computes rprime = tprime + eprime aprime x and sends back
-   rprime aprime bprime.
+   rprime aprime and bprime.
 
-   The client then checks Cprime = aprime G + brime H, that aprime is
-   invertable, and then computes a = alpha ^ aprime, b=alpha^-1 bprime -
-   beta, r = epsilon ^ -1 (rprime - rho).  The client then verifies
-   Xhat, Zhat, m, e, a, b, r are a valid credential as in the section
+   The client then checks Cprime = aprime G + bprime H, that aprime is
+   invertable, and then computes a = alpha ^-1 aprime, b=alpha^-1 bprime
+   - beta, r = epsilon ^ -1 (rprime - rho).  The client then verifies
+   Xhat, Zhat, m, e, a, b, r are a valid endorsement as in the section
    below.
 
-4.3.  Verifying such a credential
+4.3.  Verifying such an endorsement
 
    A verifier gets Xhat, Zhat, m and e, a, b, r.  The verifier computes
    Y=Hash2Curve(m), and then lets T1 = r Y - e a Zhat, T2 = rG - e a
@@ -231,7 +231,7 @@ Table of Contents
 
 4.4.  Connecting to the issuer
 
-   In addition to the above credential, the client must prove knowledge
+   In addition to the above endorsement, the client must prove knowledge
    of a value gamma such that Xhat = gamma Xi for some i, where the Xi
    is the list of issuers trusted.  This is a standard OR sigma proof,
    and we can use sigma stacking to compact the proof.

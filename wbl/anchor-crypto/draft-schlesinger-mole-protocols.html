@@ -1050,7 +1050,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger</td>
-<td class="center">Expires 18 December 2026</td>
+<td class="center">Expires 19 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1063,12 +1063,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-protocols-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-16" class="published">16 June 2026</time>
+<time datetime="2026-06-17" class="published">17 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-18">18 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-19">19 December 2026</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1113,7 +1113,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 19 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1177,7 +1177,7 @@ svg {
                 <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-issuance-step-two-opening-a" class="internal xref">Issuance Step Two: Opening and Proof</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
-                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-verifying-such-a-credential" class="internal xref">Verifying such a credential</a></p>
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-verifying-such-an-endorseme" class="internal xref">Verifying such an endorsement</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
                 <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-connecting-to-the-issuer" class="internal xref">Connecting to the issuer</a></p>
@@ -1340,10 +1340,10 @@ struct Token {
       <h2 id="name-crypto-bits">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-crypto-bits" class="section-name selfRef">Crypto Bits</a>
       </h2>
-<p id="section-4-1">We define a two round protocol between an Anchor and Client to produce a Credential, and then a half-round
-Token generation step presuming the Client knows the Anchors the Issuer accepts. We let hash2curve be the
+<p id="section-4-1">We define a two round protocol between an Anchor and Client to produce an endorsement, and then a half-round
+Credential generation step presuming the Client knows the Anchors the Issuer accepts. We let hash2curve be the
 Hash2Curve function from <span>[<a href="#Hash2Curve" class="cite xref">Hash2Curve</a>]</span>, and H be hash function whose output length is sufficiently long.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">The Credential is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
+<p id="section-4-2">The Endorsement is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
 private data gamma. The Anchor has a public key X and a private key x,
 and X = xG. The public form of a credential Zhat, Xhat, and a proof
 that Xhat = vG, Zhat = vY. Xhat = gamma X, and the client will prove
@@ -1354,7 +1354,7 @@ an Anchor the moderator trusts.<a href="#section-4-2" class="pilcrow">¶</a></p>
         <h3 id="name-issuance-step-one-statement">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-issuance-step-one-statement" class="section-name selfRef">Issuance Step One: Statement and Commitment</a>
         </h3>
-<p id="section-4.1-1">Client selects randomly v and gamma, and sends Yprime = v Y to the anchor.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">Client randomly selects scalars v and gamma, and sends Yprime = v Y to the anchor.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <p id="section-4.1-2">The Anchor computes Zprime = x Yprime, selects three random scalars aprime, bprime, and tprime.
 It computes a commitment. It then computes T1prime = tprime Yprime, T2Prime = tprime G. It then transmits Zprime, Cprime,
 and T1prime and T2prime to the client.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
@@ -1366,21 +1366,21 @@ and T1prime and T2prime to the client.<a href="#section-4.1-2" class="pilcrow">�
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-issuance-step-two-opening-a" class="section-name selfRef">Issuance Step Two: Opening and Proof</a>
         </h3>
 <p id="section-4.2-1">The client now has to compute some proof elements and send a scalar to the server. The client
-lets Zhat = gamma v^-1 Y. It then picks alpha a random nonzero scalar, beta a random scalar,
-epsilon a random nonzero scalar, rho a random scalar. The client computes C = alpha^-1 C' - beta G,
+lets Zhat = gamma v^-1 Z. It then picks alpha, a random nonzero scalar, beta, a random scalar,
+epsilon, a random nonzero scalar, and rho, a random scalar. The client computes C = alpha^-1 C' - beta H,
 T1 = epsilon ^ -1 v ^ -1 (T1prime - rho Yprime), T2 = epsilon ^ -1 (T2prime - rho G).<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">The client now computes e = H(Y, Zhat, T1, T2, C), and sends eprime = epsilon alpha^{-1} gamma e
 to the anchor<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">The anchor computes rprime = tprime + eprime aprime x and sends back rprime aprime bprime.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">The client then checks Cprime = aprime G + brime H, that aprime is invertable, and then computes
-a = alpha ^ aprime, b=alpha^-1 bprime - beta, r = epsilon ^ -1 (rprime - rho). The client then
-verifies Xhat, Zhat, m, e, a, b, r  are a valid credential as in the section below.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">The anchor computes rprime = tprime + eprime aprime x and sends back rprime aprime and  bprime.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">The client then checks Cprime = aprime G + bprime H, that aprime is invertable, and then computes
+a = alpha ^-1 aprime, b=alpha^-1 bprime - beta, r = epsilon ^ -1 (rprime - rho). The client then
+verifies Xhat, Zhat, m, e, a, b, r  are a valid endorsement as in the section below.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="verifying-such-a-credential">
+<div id="verifying-such-an-endorsement">
 <section id="section-4.3">
-        <h3 id="name-verifying-such-a-credential">
-<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-verifying-such-a-credential" class="section-name selfRef">Verifying such a credential</a>
+        <h3 id="name-verifying-such-an-endorseme">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-verifying-such-an-endorseme" class="section-name selfRef">Verifying such an endorsement</a>
         </h3>
 <p id="section-4.3-1">A verifier gets Xhat, Zhat, m and e, a, b, r. The verifier computes Y=Hash2Curve(m), and then
 lets T1 = r Y - e a Zhat, T2 = rG - e a Xhat, C = a G + b H. It checks a is not zero and Y is
@@ -1392,7 +1392,7 @@ not the identity and then checks e = H(Y, Zhat, T1, T2, C).<a href="#section-4.3
         <h3 id="name-connecting-to-the-issuer">
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-connecting-to-the-issuer" class="section-name selfRef">Connecting to the issuer</a>
         </h3>
-<p id="section-4.4-1">In addition to the above credential, the client must prove knowledge of a value gamma such that
+<p id="section-4.4-1">In addition to the above endorsement, the client must prove knowledge of a value gamma such that
 Xhat = gamma Xi for some i, where the Xi is the list of issuers trusted. This is a standard
 OR sigma proof, and we can use sigma stacking to compact the proof.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
 </section>
