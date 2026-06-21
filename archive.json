@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-18T04:18:12.489448+00:00",
+  "timestamp": "2026-06-21T04:41:56.993259+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -189,15 +189,15 @@
       "id": "I_kwDOSX6krs8AAAABDjmKew",
       "title": "Ensure the architecture accounts for the possibility that credential presentation might not flow through the site",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/10",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "At then moment, the arrow suggest credential presentation is forwarded by the site to the moderator. There might be a situation where the client goes to the moderator and obtains a response that the site would trust.\n\nIdeally this is not a distinct diagram, but has to be acknowledgted",
       "createdAt": "2026-05-27T15:34:25Z",
-      "updatedAt": "2026-06-08T12:41:08Z",
-      "closedAt": null,
+      "updatedAt": "2026-06-18T07:19:24Z",
+      "closedAt": "2026-06-18T07:19:24Z",
       "comments": [
         {
           "author": "wbl",
@@ -212,6 +212,20 @@
           "body": "Yes, separate from the initial anchor presentation. There are indeed some latency implication, but _technically_ that still conveys the information, and allows to remove the moderator online requirement which is a bottleneck.\n\nThe goal here is to ensure we convey this is a possible implementation, which protocols/transport would restrict these further.",
           "createdAt": "2026-06-08T12:41:08Z",
           "updatedAt": "2026-06-08T12:41:08Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "We'll probably leave the text as is for now in the absence of clear use case (and proponent) for a separate flow.\n\nThis is something we can re-open if (when?) the issue comes up.",
+          "createdAt": "2026-06-18T07:07:50Z",
+          "updatedAt": "2026-06-18T07:07:50Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "NONE",
+          "body": "The site nominates the moderator.  On the web, that gives them the ability to intermediate anyway.  So I'd suggest not worrying about the added complication.",
+          "createdAt": "2026-06-18T07:17:55Z",
+          "updatedAt": "2026-06-18T07:17:55Z"
         }
       ]
     },
@@ -227,7 +241,7 @@
       "labels": [],
       "body": "In MOLE we want abstractly clients to update their endorsements. However, the way we implement this is by having them reveal identifiers for an issued thing, and then getting back another issued thing. Right now our terminology mixes these levels, using credential for both. I'd like to differentiate between the cryptographic artifact and the state that is being managed",
       "createdAt": "2026-06-01T17:40:36Z",
-      "updatedAt": "2026-06-09T18:28:42Z",
+      "updatedAt": "2026-06-18T07:06:26Z",
       "closedAt": null,
       "comments": [
         {
@@ -243,6 +257,13 @@
           "body": "Somehow I missed that section but there's still a conceptual distinction to be made:\nA credential update works by the client burning something it has, and getting something back from the moderator. That thing needs a name, but it isn't the credential (which we conceptualize as always existing), and i think it would be clearer if we spelled it out.\n\nAlternatively I don't see why we need to have two separate names for the anchor to moderator and moderator to moderator flows. Yes they are very different, but they are both functionally similar. Calling them credentials, and the information that is transmitted an endorsement might work (but it's pretty different information, maybe just making them credentials work).",
           "createdAt": "2026-06-09T18:28:42Z",
           "updatedAt": "2026-06-09T18:28:42Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Following discussion, my impression is that having distinctive name for _anchor material_ and _moderator material_ is good. In my view, _endorsement_ works for anchor material, but credential is a bit broad for moderator material.\n\nFrom @etrouton (if I'm understanding correctly), having something that reflect accumulation over time would be best. Personal suggestions would be _accumulator_ or _momentum_, with a preference for _accumulator_.\n\nThis would allow the use of \"credential\" for all steps as an underlying realisation, with a disambiguation about the state.",
+          "createdAt": "2026-06-18T07:06:26Z",
+          "updatedAt": "2026-06-18T07:06:26Z"
         }
       ]
     }
@@ -1516,7 +1537,7 @@
       "labels": [],
       "body": "This includes a new sequence diagram and some updates to the definitions. One new definition is the \"score\" contained by the credential. Happy to bikeshed that.\r\n\r\nI took an approach of writing it as a presentation flow with fallbacks when a credential or endorsement are missing. This works better as a linear narrative and lets us show everything in a single diagram.  \r\n\r\nThe current details are substantively different than the skeleton there before because of the prior lack of clarity about what Javascript running on a website is. I've introduced language to make it clear that it is the Site, while still allowing the Site to still withhold data server-side. We can talk about the substance of that, but text to talk over helps.",
       "createdAt": "2026-06-10T15:48:19Z",
-      "updatedAt": "2026-06-16T23:58:21Z",
+      "updatedAt": "2026-06-19T08:36:58Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "543e15940bfaf7729f352a976679e58e926503d1",
@@ -2063,6 +2084,92 @@
               "updatedAt": "2026-06-16T23:58:21Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDZHFvw",
+          "commit": {
+            "abbreviatedOid": "97cb017"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "no big blocker. mostly tuning word for sentence which seems to be broken.\n\nthanks again for the work here!\n\nHappy to approve and merge pending the word tuning",
+          "createdAt": "2026-06-18T07:23:42Z",
+          "updatedAt": "2026-06-19T08:36:58Z",
+          "comments": [
+            {
+              "originalPosition": 148,
+              "body": "the client may know the anchor that a moderator trust ahead of time. Having a step \"negotiation\" (maybe \"retrieval\"/\"configuration\") seems better than specifying a flow\n\n```suggestion\n    |<========== Anchor Negotiation ===========>|\n```",
+              "createdAt": "2026-06-18T07:23:42Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 148,
+              "body": "also, my undersatnding of `<===>` arrows is they mean \"should happen\". if that's already done, then it indeed happened",
+              "createdAt": "2026-06-18T07:25:06Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 178,
+              "body": "```suggestion\n    |<===================== If needed, Issuance ===============>|\n    |                                   |                       |\n```",
+              "createdAt": "2026-06-18T07:25:43Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 86,
+              "body": "```suggestion\n1. A Client interacts with an Anchor in such a way that the Client believes the\nAnchor may endorse them. This mechanism that advertises the Anchor's\nendorsement capability is deployment specific. It may be an HTTP header, a Javascript\nAPI call, or an HTML attribute. Fundamentally, the Anchor offers to grant an\nendorsement to the Client so that it may be used later.\n```\n\nthere is probably some more fine-tuning. here is a first proposal.",
+              "createdAt": "2026-06-19T08:23:04Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 89,
+              "body": "```suggestion\n1. A Client requests an endorsement from the Anchor. The Anchor responds to this request based upon\nits policy. Upon success, the Client finalizes\nits endorsement.\n```\n\nmight be my English, but the initial sentence did not parse for me. Also splitting into shorter sentences",
+              "createdAt": "2026-06-19T08:25:09Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 95,
+              "body": "```suggestion\n1. The Site induces the Client to present a credential from a Moderator it (the Site) trusts. The precise mechanism is deployment specific. It may be an HTTP Header,\na Javascript API call, or an HTML attribute. Fundamentally, the Site enforces that a given\nresource may only be obtained upon the Client providing a valid presentation.\nSo it asks the Client to obtain a credential that will produce such a valid presentation.\n```\n\nnot sure if that's what you want to say. adding some refinement",
+              "createdAt": "2026-06-19T08:29:58Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 86,
+              "body": "specifically, \"does not matteor\" ios not correct. The specificities matters. I replaced with \"deployment specific\"",
+              "createdAt": "2026-06-19T08:30:32Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 100,
+              "body": "```suggestion\nflow fails.\n```\n\nthe information to the Site is not clear from the sentence. That's probably a privacy consideration. I'd say the site learns that: 1. the client is unwilling, 2. the client is unable to present, 3. the client changed their mind, 4. possibly other",
+              "createdAt": "2026-06-19T08:32:23Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 101,
+              "body": "```suggestion\n1. The Client obtains an endorsement from one of the trusted anchors and presents\n```",
+              "createdAt": "2026-06-19T08:32:55Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 102,
+              "body": "```suggestion\nit along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a\n```",
+              "createdAt": "2026-06-19T08:33:27Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 106,
+              "body": "```suggestion\ndoes not reveal the exact value.\n```",
+              "createdAt": "2026-06-19T08:34:03Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            },
+            {
+              "originalPosition": 113,
+              "body": "i'd have that the other way around: validate the presentation and then consider how to mutate the state. i agree both could be independant though",
+              "createdAt": "2026-06-19T08:35:23Z",
+              "updatedAt": "2026-06-19T08:36:58Z"
+            }
+          ]
         }
       ]
     },
@@ -2078,7 +2185,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-06-16T17:39:00Z",
-      "updatedAt": "2026-06-17T18:41:58Z",
+      "updatedAt": "2026-06-19T02:36:01Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "2237ab1c35d8ea37e2e21016c6c2dfd967c75745",
@@ -2103,6 +2210,27 @@
           "body": "Pushed a version that makes the corrections",
           "createdAt": "2026-06-17T18:41:55Z",
           "updatedAt": "2026-06-17T18:41:55Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "What's the route to merging for this?",
+          "createdAt": "2026-06-18T21:26:17Z",
+          "updatedAt": "2026-06-18T21:26:17Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "NONE",
+          "body": "My suggestion - though it is Sam's draft still - is that you get listed as author, and gain push access to this repo.  Obviously, I wouldn't merge this without approvals.\r\n\r\nI do have to ask whether it makes sense to have credentials and endorsement crypto pieces in the same document.  It would be easier if there were separate drafts for these things given their quite dramatically different shape.  (Unless I'm missing something, the overlap here is going to be pretty minimal.)",
+          "createdAt": "2026-06-19T02:06:14Z",
+          "updatedAt": "2026-06-19T02:06:14Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> My suggestion - though it is Sam's draft still - is that you get listed as author, and gain push access to this repo. Obviously, I wouldn't merge this without approvals.\r\n\r\nOh I do have push access, that's how this PR got oppened anyway.\r\n\r\n> \r\n> I do have to ask whether it makes sense to have credentials and endorsement crypto pieces in the same document. It would be easier if there were separate drafts for these things given their quite dramatically different shape. (Unless I'm missing something, the overlap here is going to be pretty minimal.)\r\n\r\nI think that's a good idea.\r\n\r\n",
+          "createdAt": "2026-06-19T02:36:01Z",
+          "updatedAt": "2026-06-19T02:36:01Z"
         }
       ],
       "reviews": [
