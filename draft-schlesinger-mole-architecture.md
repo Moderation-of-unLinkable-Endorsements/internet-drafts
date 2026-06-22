@@ -291,37 +291,36 @@ overarching flow occurs as follows:
 
 
 1. A Client interacts with an Anchor in such a way that the Client believes the
-Anchor may endorse the Client. This mechanism that advertises the Anchor's
-endorsement capability does not matter, but may be an HTTP header, Javascript
-API call, or HTML attribute. Fundamentally, the Anchor wishes to grant an
+Anchor may endorse them. This mechanism that advertises the Anchor's
+endorsement capability is deployment specific. It may be an HTTP header, a Javascript
+API call, or an HTML attribute. Fundamentally, the Anchor offers to grant an
 endorsement to the Client so that it may be used later.
-1. A Client requests an endorsement from the Anchor, which responds based upon
-its policy and the Client's request. Upon success, the Client then finalizes
+1. A Client requests an endorsement from the Anchor. The Anchor responds to this request based upon
+its policy. Upon success, the Client finalizes
 its endorsement.
 1. Some time later, the Client interacts with the Site.
-1. The Site induces the Client to present a credential from a trusted
-Moderator. The precise mechanism does not matter, but may be an HTTP Header,
-Javascript API call, or HTML attribute. Fundamentally, the Site knows that a
-resource may only be obtained with a valid  presentation from this flow, so it
-directs the client to present one.
+1. The Site induces the Client to present a credential from a Moderator it (the Site) trusts. The precise mechanism is deployment specific. It may be an HTTP Header,
+a Javascript API call, or an HTML attribute. Fundamentally, the Site enforces that a given
+resource may only be obtained upon the Client providing a valid presentation.
+So it asks the Client to obtain a credential that will produce such a valid presentation.
 1. If the Client already has a credential from the Moderator, it may
 skip to Step 9.
 1. The Client requests a list of trusted Anchors from the Moderator.
 1. If the Client is unwilling or unable to present a matching endorsement, the
-flow fails, informing the Site.
-1. The Client takes an endorsement from one of the trusted anchors and presents
-it along with a credential request to the Moderator, which returns a
+flow fails.
+1. The Client obtains an endorsement from one of the trusted anchors and presents
+it along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a
 credential response that the Client finalizes.
 1. The Client provides a credential presentation to the Site. This
 may be used to prove that the credential's state is over some threshold, but
-does not reveal the exact value..
+does not reveal the exact value.
 1. The Site issues a request to the Moderator to validate the presentation.
 This may be accompanied by any information the Site wishes to provide the
 Moderator as context for the request, such as the request itself, following the
 Site and Moderator's respective policy.
 1. Given the context from the Site, the presentation, and its policy, the
-Moderator determines how to mutate the credential's state and validates that
-the presentation proves a sufficiently large value in the credential's state.
+Moderator validates that the presentation proves a sufficiently large value in
+the credential's state and determines how to mutate that state.
 It returns the result to the Site. This response includes material for the Site
 such as a boolean, and material for the client so they can update their
 credential state.
@@ -364,8 +363,7 @@ a Moderator that proves the Client has been attested by the Anchor.
 | Client |                                | Moderator |
 +---+----+                                +-----+-----+
     |                                           |
-    +------------ AnchorRequest --------------->|
-    |<----------- AnchorResponse ---------------+
+    |<========== Anchor Negotiation ===========>|
 EndorsementPresentation                         |
     +--- EndorsementToken+CredentialRequest --->|
     |<---------- CredentialResponse ------------+
@@ -389,6 +387,7 @@ Endorsement.
     |                                   |                       |
     |<----- PresentationChallenge ------+                       |
     |<===================== If needed, Issuance ===============>|
+    |                                   |                       |
 CredentialPresentation                  |                       |
     +----- Request+CredentialToken ---->|                       |
     |                                   +--- ValidateRequest -->|
