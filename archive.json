@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-21T04:41:56.993259+00:00",
+  "timestamp": "2026-06-23T03:52:26.032328+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1537,13 +1537,13 @@
       "labels": [],
       "body": "This includes a new sequence diagram and some updates to the definitions. One new definition is the \"score\" contained by the credential. Happy to bikeshed that.\r\n\r\nI took an approach of writing it as a presentation flow with fallbacks when a credential or endorsement are missing. This works better as a linear narrative and lets us show everything in a single diagram.  \r\n\r\nThe current details are substantively different than the skeleton there before because of the prior lack of clarity about what Javascript running on a website is. I've introduced language to make it clear that it is the Site, while still allowing the Site to still withhold data server-side. We can talk about the substance of that, but text to talk over helps.",
       "createdAt": "2026-06-10T15:48:19Z",
-      "updatedAt": "2026-06-19T08:36:58Z",
+      "updatedAt": "2026-06-22T17:02:15Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "543e15940bfaf7729f352a976679e58e926503d1",
       "headRepository": "bvandersloot-mozilla/mole-internet-drafts",
       "headRefName": "overview",
-      "headRefOid": "97cb01729eb62be814add4aff92fc6de5f1d8913",
+      "headRefOid": "1856b67ded3d12ce2b92d38b18a2454baa89f6dd",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -2168,6 +2168,26 @@
               "body": "i'd have that the other way around: validate the presentation and then consider how to mutate the state. i agree both could be independant though",
               "createdAt": "2026-06-19T08:35:23Z",
               "updatedAt": "2026-06-19T08:36:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABDvwEsQ",
+          "commit": {
+            "abbreviatedOid": "97cb017"
+          },
+          "author": "bvandersloot-mozilla",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-06-22T17:01:04Z",
+          "updatedAt": "2026-06-22T17:01:04Z",
+          "comments": [
+            {
+              "originalPosition": 113,
+              "body": "```suggestion\nModerator validates that the presentation proves a sufficiently large value in\nthe credential's state and determines how to mutate that state.\n```",
+              "createdAt": "2026-06-22T17:01:04Z",
+              "updatedAt": "2026-06-22T17:01:42Z"
             }
           ]
         }
