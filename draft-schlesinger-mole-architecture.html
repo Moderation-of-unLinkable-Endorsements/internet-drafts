@@ -11,25 +11,26 @@
 <meta content="
        TODO Abstract 
     " name="description">
-<meta content="xml2rfc 3.33.0" name="generator">
+<meta content="xml2rfc 3.34.0" name="generator">
 <meta content="moderation" name="keyword">
 <meta content="endorsement" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
 <meta content="draft-schlesinger-mole-architecture-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.33.0
-    Python 3.12.13
-    ConfigArgParse 1.7
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
-    lxml 6.0.2
-    platformdirs 4.9.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.10.0
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.7.0
+    wcwidth 0.8.1
 -->
 <link href="draft-schlesinger-mole-architecture.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1052,7 +1053,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 14 December 2026</td>
+<td class="center">Expires 25 December 2026</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1065,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-architecture-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-12" class="published">12 June 2026</time>
+<time datetime="2026-06-23" class="published">23 June 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-14">14 December 2026</time></dd>
+<dd class="expires"><time datetime="2026-12-25">25 December 2026</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1124,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1429,7 +1430,8 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <dt id="section-3-3.3"><strong>Site:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.4">
           <p id="section-3-3.4.1">An entity that consumes presentations from Clients and uses them to make
-authorization decisions.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
+authorization decisions. The Site may operate software client-side,
+server-side, or both, depending on the deployment.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.5"><strong>Anchor:</strong></dt>
@@ -1450,7 +1452,8 @@ according to a policy.<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
         <dd class="break"></dd>
 <dt id="section-3-3.11"><strong>Credential:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.12">
-          <p id="section-3-3.12.1">A cryptographic object issued by a Moderator to a Client.<a href="#section-3-3.12.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.12.1">A cryptographic object issued by a Moderator to a Client. This credential
+has an associated integer state that is updated during presentation.<a href="#section-3-3.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.13"><strong>Presentation:</strong></dt>
@@ -1472,90 +1475,104 @@ specified attributes.<a href="#section-3-3.14.1" class="pilcrow">¶</a></p>
       <h2 id="name-architecture">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-architecture" class="section-name selfRef">Architecture</a>
       </h2>
+<p id="section-4-1">The MoLE architecture is constructed to orchestrate trust relationships and
+infomation flows between four entities: Client, Anchor, Moderator, and Site.
+These entities have a limited exchange of information that allows for dynamic
+rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This
+section details the information flows and trust relationships between these
+entities along with requirements for the underlying protocols and APIs.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <div id="overview">
 <section id="section-4.1">
         <h3 id="name-overview">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
         </h3>
-<p id="section-4.1-1">The Client obtains a credential from an Anchor, presents it to a Moderator, and
-uses the resulting Moderator credential when sending requests to a Site.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">A complete exchange for MoLE has three distinct flows:
+Endorsement, in which a Client obtains an endorsement signifying
+its relationship with an Anchor; Issuance, in which a Client uses an
+endorsement from an Anchor to obtain credentials from a Moderator without
+revealing which Anchor it was; and Presentation, in which a Client uses
+credentials from a Moderator of the Site's choosing to prove that it is
+presently in good standing with the Moderator and that this request matches the
+Moderator and Site's policies through an online interaction. Clients most often
+interact with the MoLE architecture either by being requested by a Site to
+present a credential or by an Anchor to initiate an Endorsement.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <span id="name-mole-architecture"></span><div id="fig-mole-architecture">
 <figure id="figure-1">
           <div id="section-4.1-2.1">
             <div class="alignLeft art-svg artwork" id="section-4.1-2.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="352" width="680" viewBox="0 0 680 352" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="224" width="688" viewBox="0 0 688 224" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                 <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
-                <path d="M 40,64 L 40,112" fill="none" stroke="black"></path>
-                <path d="M 40,176 L 40,192" fill="none" stroke="black"></path>
-                <path d="M 40,256 L 40,304" fill="none" stroke="black"></path>
+                <path d="M 40,64 L 40,208" fill="none" stroke="black"></path>
                 <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
                 <path d="M 224,32 L 224,64" fill="none" stroke="black"></path>
-                <path d="M 256,64 L 256,160" fill="none" stroke="black"></path>
-                <path d="M 256,208 L 256,240" fill="none" stroke="black"></path>
-                <path d="M 256,272 L 256,288" fill="none" stroke="black"></path>
-                <path d="M 256,320 L 256,336" fill="none" stroke="black"></path>
+                <path d="M 256,64 L 256,80" fill="none" stroke="black"></path>
+                <path d="M 256,128 L 256,160" fill="none" stroke="black"></path>
+                <path d="M 256,192 L 256,208" fill="none" stroke="black"></path>
                 <path d="M 296,32 L 296,64" fill="none" stroke="black"></path>
                 <path d="M 408,32 L 408,64" fill="none" stroke="black"></path>
-                <path d="M 456,64 L 456,248" fill="none" stroke="black"></path>
-                <path d="M 456,264 L 456,288" fill="none" stroke="black"></path>
-                <path d="M 456,320 L 456,336" fill="none" stroke="black"></path>
+                <path d="M 456,64 L 456,80" fill="none" stroke="black"></path>
+                <path d="M 456,128 L 456,208" fill="none" stroke="black"></path>
                 <path d="M 504,32 L 504,64" fill="none" stroke="black"></path>
-                <path d="M 616,32 L 616,64" fill="none" stroke="black"></path>
-                <path d="M 648,64 L 648,336" fill="none" stroke="black"></path>
-                <path d="M 672,32 L 672,64" fill="none" stroke="black"></path>
+                <path d="M 608,32 L 608,64" fill="none" stroke="black"></path>
+                <path d="M 648,64 L 648,208" fill="none" stroke="black"></path>
+                <path d="M 680,32 L 680,64" fill="none" stroke="black"></path>
                 <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
                 <path d="M 224,32 L 296,32" fill="none" stroke="black"></path>
                 <path d="M 408,32 L 504,32" fill="none" stroke="black"></path>
-                <path d="M 616,32 L 672,32" fill="none" stroke="black"></path>
+                <path d="M 608,32 L 680,32" fill="none" stroke="black"></path>
                 <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
                 <path d="M 224,64 L 296,64" fill="none" stroke="black"></path>
                 <path d="M 408,64 L 504,64" fill="none" stroke="black"></path>
-                <path d="M 616,64 L 672,64" fill="none" stroke="black"></path>
-                <path d="M 40,96 L 64,96" fill="none" stroke="black"></path>
-                <path d="M 232,96 L 248,96" fill="none" stroke="black"></path>
-                <path d="M 48,112 L 64,112" fill="none" stroke="black"></path>
-                <path d="M 240,112 L 256,112" fill="none" stroke="black"></path>
-                <path d="M 40,176 L 96,176" fill="none" stroke="black"></path>
-                <path d="M 392,176 L 448,176" fill="none" stroke="black"></path>
-                <path d="M 48,192 L 168,192" fill="none" stroke="black"></path>
-                <path d="M 336,192 L 456,192" fill="none" stroke="black"></path>
-                <path d="M 40,256 L 232,256" fill="none" stroke="black"></path>
-                <path d="M 440,256 L 640,256" fill="none" stroke="black"></path>
-                <path d="M 464,272 L 480,272" fill="none" stroke="black"></path>
-                <path d="M 624,272 L 648,272" fill="none" stroke="black"></path>
-                <path d="M 456,288 L 472,288" fill="none" stroke="black"></path>
-                <path d="M 624,288 L 640,288" fill="none" stroke="black"></path>
-                <path d="M 48,304 L 224,304" fill="none" stroke="black"></path>
-                <path d="M 464,304 L 648,304" fill="none" stroke="black"></path>
-                <polygon class="arrowhead" points="648,288 636,282.4 636,293.6" fill="black" transform="rotate(0,640,288)"></polygon>
-                <polygon class="arrowhead" points="648,256 636,250.4 636,261.6" fill="black" transform="rotate(0,640,256)"></polygon>
-                <polygon class="arrowhead" points="472,272 460,266.4 460,277.6" fill="black" transform="rotate(180,464,272)"></polygon>
+                <path d="M 608,64 L 680,64" fill="none" stroke="black"></path>
+                <path d="M 48,94 L 304,94" fill="none" stroke="black"></path>
+                <path d="M 48,98 L 304,98" fill="none" stroke="black"></path>
+                <path d="M 416,94 L 640,94" fill="none" stroke="black"></path>
+                <path d="M 416,98 L 640,98" fill="none" stroke="black"></path>
+                <path d="M 48,110 L 304,110" fill="none" stroke="black"></path>
+                <path d="M 48,114 L 304,114" fill="none" stroke="black"></path>
+                <path d="M 416,110 L 640,110" fill="none" stroke="black"></path>
+                <path d="M 416,114 L 640,114" fill="none" stroke="black"></path>
+                <path d="M 48,158 L 80,158" fill="none" stroke="black"></path>
+                <path d="M 48,162 L 80,162" fill="none" stroke="black"></path>
+                <path d="M 184,158 L 248,158" fill="none" stroke="black"></path>
+                <path d="M 184,162 L 248,162" fill="none" stroke="black"></path>
+                <path d="M 48,174 L 136,174" fill="none" stroke="black"></path>
+                <path d="M 48,178 L 136,178" fill="none" stroke="black"></path>
+                <path d="M 312,174 L 448,174" fill="none" stroke="black"></path>
+                <path d="M 312,178 L 448,178" fill="none" stroke="black"></path>
+                <path d="M 48,190 L 88,190" fill="none" stroke="black"></path>
+                <path d="M 48,194 L 88,194" fill="none" stroke="black"></path>
+                <path d="M 208,190 L 248,190" fill="none" stroke="black"></path>
+                <path d="M 208,194 L 248,194" fill="none" stroke="black"></path>
+                <path d="M 264,190 L 304,190" fill="none" stroke="black"></path>
+                <path d="M 264,194 L 304,194" fill="none" stroke="black"></path>
+                <path d="M 424,190 L 448,190" fill="none" stroke="black"></path>
+                <path d="M 424,194 L 448,194" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="648,112 636,106.4 636,117.6" fill="black" transform="rotate(0,640,112)"></polygon>
+                <polygon class="arrowhead" points="648,96 636,90.4 636,101.6" fill="black" transform="rotate(0,640,96)"></polygon>
+                <polygon class="arrowhead" points="456,192 444,186.4 444,197.6" fill="black" transform="rotate(0,448,192)"></polygon>
                 <polygon class="arrowhead" points="456,176 444,170.4 444,181.6" fill="black" transform="rotate(0,448,176)"></polygon>
-                <polygon class="arrowhead" points="256,96 244,90.4 244,101.6" fill="black" transform="rotate(0,248,96)"></polygon>
-                <polygon class="arrowhead" points="56,304 44,298.4 44,309.6" fill="black" transform="rotate(180,48,304)"></polygon>
+                <polygon class="arrowhead" points="272,192 260,186.4 260,197.6" fill="black" transform="rotate(180,264,192)"></polygon>
+                <polygon class="arrowhead" points="256,192 244,186.4 244,197.6" fill="black" transform="rotate(0,248,192)"></polygon>
+                <polygon class="arrowhead" points="256,160 244,154.4 244,165.6" fill="black" transform="rotate(0,248,160)"></polygon>
                 <polygon class="arrowhead" points="56,192 44,186.4 44,197.6" fill="black" transform="rotate(180,48,192)"></polygon>
+                <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
+                <polygon class="arrowhead" points="56,160 44,154.4 44,165.6" fill="black" transform="rotate(180,48,160)"></polygon>
                 <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
+                <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
                 <g class="text">
                   <text x="44" y="52">Client</text>
-                  <text x="260" y="52">Anchor</text>
+                  <text x="260" y="52">Site</text>
                   <text x="456" y="52">Moderator</text>
-                  <text x="644" y="52">Site</text>
-                  <text x="148" y="100">EndorsementRequest</text>
-                  <text x="152" y="116">EndorsementResponse</text>
-                  <text x="96" y="132">EndorsementFinalization</text>
-                  <text x="40" y="148">|</text>
-                  <text x="96" y="164">EndorsementPresentation</text>
-                  <text x="244" y="180">EndorsementToken+CredentialRequest</text>
-                  <text x="252" y="196">CredentialResponse</text>
-                  <text x="92" y="212">CredentialFinalization</text>
-                  <text x="40" y="228">|</text>
-                  <text x="92" y="244">CredentialPresentation</text>
-                  <text x="336" y="260">Request+CredentialToken</text>
-                  <text x="552" y="276">ValidateRequest</text>
-                  <text x="548" y="292">ValidationResult</text>
-                  <text x="344" y="308">Response+CredentialResponse</text>
-                  <text x="92" y="324">CredentialFinalization</text>
-                  <text x="40" y="340">|</text>
+                  <text x="644" y="52">Anchor</text>
+                  <text x="360" y="100">Interaction</text>
+                  <text x="360" y="116">Endorsement</text>
+                  <text x="136" y="164">Interaction</text>
+                  <text x="156" y="180">If</text>
+                  <text x="200" y="180">needed:</text>
+                  <text x="268" y="180">Issuance</text>
+                  <text x="148" y="196">Presentation</text>
+                  <text x="364" y="196">Presentation</text>
                 </g>
               </svg><a href="#section-4.1-2.1.1" class="pilcrow">¶</a>
 </div>
@@ -1564,6 +1581,80 @@ uses the resulting Moderator credential when sending requests to a Site.<a href=
 <a href="#name-mole-architecture" class="selfRef">MoLE Architecture</a>
           </figcaption></figure>
 </div>
+<p id="section-4.1-3">Beginning with Endorsement and proceeding to a Presentation, a typical
+overarching flow occurs as follows:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-4">
+<li id="section-4.1-4.1">
+            <p id="section-4.1-4.1.1">A Client interacts with an Anchor in such a way that the Client believes the
+Anchor may endorse them. This mechanism that advertises the Anchor's
+endorsement capability is deployment specific. It may be an HTTP header, a Javascript
+API call, or an HTML attribute. Fundamentally, the Anchor offers to grant an
+endorsement to the Client so that it may be used later.<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.2">
+            <p id="section-4.1-4.2.1">A Client requests an endorsement from the Anchor. The Anchor responds to this request based upon
+its policy. Upon success, the Client finalizes
+its endorsement.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.3">
+            <p id="section-4.1-4.3.1">Some time later, the Client interacts with the Site.<a href="#section-4.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.4">
+            <p id="section-4.1-4.4.1">The Site induces the Client to present a credential from a Moderator it (the Site) trusts. The precise mechanism is deployment specific. It may be an HTTP Header,
+a Javascript API call, or an HTML attribute. Fundamentally, the Site enforces that a given
+resource may only be obtained upon the Client providing a valid presentation.
+So it asks the Client to obtain a credential that will produce such a valid presentation.<a href="#section-4.1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.5">
+            <p id="section-4.1-4.5.1">If the Client already has a credential from the Moderator, it may
+skip to Step 9.<a href="#section-4.1-4.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.6">
+            <p id="section-4.1-4.6.1">The Client requests a list of trusted Anchors from the Moderator.<a href="#section-4.1-4.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.7">
+            <p id="section-4.1-4.7.1">If the Client is unwilling or unable to present a matching endorsement, the
+flow fails.<a href="#section-4.1-4.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.8">
+            <p id="section-4.1-4.8.1">The Client obtains an endorsement from one of the trusted anchors and presents
+it along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a
+credential response that the Client finalizes.<a href="#section-4.1-4.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.9">
+            <p id="section-4.1-4.9.1">The Client provides a credential presentation to the Site. This
+may be used to prove that the credential's state is over some threshold, but
+does not reveal the exact value.<a href="#section-4.1-4.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.10">
+            <p id="section-4.1-4.10.1">The Site issues a request to the Moderator to validate the presentation.
+This may be accompanied by any information the Site wishes to provide the
+Moderator as context for the request, such as the request itself, following the
+Site and Moderator's respective policy.<a href="#section-4.1-4.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.11">
+            <p id="section-4.1-4.11.1">Given the context from the Site, the presentation, and its policy, the
+Moderator validates that the presentation proves a sufficiently large value in
+the credential's state and determines how to mutate that state.
+It returns the result to the Site. This response includes material for the Site
+such as a boolean, and material for the client so they can update their
+credential state.<a href="#section-4.1-4.11.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.12">
+            <p id="section-4.1-4.12.1">The Site provides the Moderator's response to the Client, who uses it to
+produce a modified credential with an updated state.<a href="#section-4.1-4.12.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.13">
+            <p id="section-4.1-4.13.1">If the validation response indicates to the Site that the Client's
+presentation does not satisfy the policy, the Site fails the request from
+Step 4. On success, the Site provides the Client with the material it
+received from the Moderator.<a href="#section-4.1-4.13.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-4.14">
+            <p id="section-4.1-4.14.1">The Client updates its credential for the Moderator with the response
+forwarded by the Site. This will allow the Client to perform future requests.<a href="#section-4.1-4.14.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
 </section>
 </div>
 <div id="flows">
@@ -1634,44 +1725,38 @@ a Moderator that proves the Client has been attested by the Anchor.<a href="#sec
 <figure id="figure-3">
             <div id="section-4.2.2-1.1">
               <div class="alignLeft art-svg artwork" id="section-4.2.2-1.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="192" width="512" viewBox="0 0 512 192" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="192" width="448" viewBox="0 0 448 192" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                   <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
                   <path d="M 40,64 L 40,96" fill="none" stroke="black"></path>
                   <path d="M 40,128 L 40,144" fill="none" stroke="black"></path>
                   <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 224,32 L 224,64" fill="none" stroke="black"></path>
-                  <path d="M 256,64 L 256,112" fill="none" stroke="black"></path>
-                  <path d="M 256,160 L 256,176" fill="none" stroke="black"></path>
-                  <path d="M 296,32 L 296,64" fill="none" stroke="black"></path>
-                  <path d="M 408,32 L 408,64" fill="none" stroke="black"></path>
-                  <path d="M 456,64 L 456,176" fill="none" stroke="black"></path>
-                  <path d="M 504,32 L 504,64" fill="none" stroke="black"></path>
+                  <path d="M 344,32 L 344,64" fill="none" stroke="black"></path>
+                  <path d="M 392,64 L 392,176" fill="none" stroke="black"></path>
+                  <path d="M 440,32 L 440,64" fill="none" stroke="black"></path>
                   <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
-                  <path d="M 224,32 L 296,32" fill="none" stroke="black"></path>
-                  <path d="M 408,32 L 504,32" fill="none" stroke="black"></path>
+                  <path d="M 344,32 L 440,32" fill="none" stroke="black"></path>
                   <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 224,64 L 296,64" fill="none" stroke="black"></path>
-                  <path d="M 408,64 L 504,64" fill="none" stroke="black"></path>
-                  <path d="M 48,78 L 88,78" fill="none" stroke="black"></path>
-                  <path d="M 48,82 L 88,82" fill="none" stroke="black"></path>
-                  <path d="M 200,78 L 248,78" fill="none" stroke="black"></path>
-                  <path d="M 200,82 L 248,82" fill="none" stroke="black"></path>
-                  <path d="M 40,128 L 96,128" fill="none" stroke="black"></path>
-                  <path d="M 392,128 L 448,128" fill="none" stroke="black"></path>
-                  <path d="M 48,144 L 168,144" fill="none" stroke="black"></path>
-                  <path d="M 336,144 L 456,144" fill="none" stroke="black"></path>
-                  <polygon class="arrowhead" points="456,128 444,122.4 444,133.6" fill="black" transform="rotate(0,448,128)"></polygon>
-                  <polygon class="arrowhead" points="256,80 244,74.4 244,85.6" fill="black" transform="rotate(0,248,80)"></polygon>
+                  <path d="M 344,64 L 440,64" fill="none" stroke="black"></path>
+                  <path d="M 48,94 L 128,94" fill="none" stroke="black"></path>
+                  <path d="M 48,98 L 128,98" fill="none" stroke="black"></path>
+                  <path d="M 296,94 L 384,94" fill="none" stroke="black"></path>
+                  <path d="M 296,98 L 384,98" fill="none" stroke="black"></path>
+                  <path d="M 40,128 L 64,128" fill="none" stroke="black"></path>
+                  <path d="M 360,128 L 384,128" fill="none" stroke="black"></path>
+                  <path d="M 48,144 L 128,144" fill="none" stroke="black"></path>
+                  <path d="M 296,144 L 392,144" fill="none" stroke="black"></path>
+                  <polygon class="arrowhead" points="392,128 380,122.4 380,133.6" fill="black" transform="rotate(0,384,128)"></polygon>
+                  <polygon class="arrowhead" points="392,96 380,90.4 380,101.6" fill="black" transform="rotate(0,384,96)"></polygon>
                   <polygon class="arrowhead" points="56,144 44,138.4 44,149.6" fill="black" transform="rotate(180,48,144)"></polygon>
-                  <polygon class="arrowhead" points="56,80 44,74.4 44,85.6" fill="black" transform="rotate(180,48,80)"></polygon>
+                  <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
                   <g class="text">
                     <text x="44" y="52">Client</text>
-                    <text x="260" y="52">Anchor</text>
-                    <text x="456" y="52">Moderator</text>
-                    <text x="144" y="84">Endorsement</text>
+                    <text x="392" y="52">Moderator</text>
+                    <text x="164" y="100">Anchor</text>
+                    <text x="240" y="100">Negotiation</text>
                     <text x="96" y="116">EndorsementPresentation</text>
-                    <text x="244" y="132">EndorsementToken+CredentialRequest</text>
-                    <text x="252" y="148">CredentialResponse</text>
+                    <text x="212" y="132">EndorsementToken+CredentialRequest</text>
+                    <text x="212" y="148">CredentialResponse</text>
                     <text x="92" y="164">CredentialFinalization</text>
                     <text x="40" y="180">|</text>
                   </g>
@@ -1698,55 +1783,59 @@ Endorsement.<a href="#section-4.2.2-2" class="pilcrow">¶</a></p>
 <figure id="figure-4">
             <div id="section-4.2.3-1.1">
               <div class="alignLeft art-svg artwork" id="section-4.2.3-1.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="224" width="480" viewBox="0 0 480 224" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="256" width="576" viewBox="0 0 576 256" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                   <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
-                  <path d="M 40,64 L 40,96" fill="none" stroke="black"></path>
-                  <path d="M 40,128 L 40,176" fill="none" stroke="black"></path>
+                  <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
+                  <path d="M 40,160 L 40,208" fill="none" stroke="black"></path>
                   <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 208,32 L 208,64" fill="none" stroke="black"></path>
-                  <path d="M 256,64 L 256,112" fill="none" stroke="black"></path>
-                  <path d="M 256,144 L 256,160" fill="none" stroke="black"></path>
-                  <path d="M 256,192 L 256,208" fill="none" stroke="black"></path>
-                  <path d="M 304,32 L 304,64" fill="none" stroke="black"></path>
-                  <path d="M 416,32 L 416,64" fill="none" stroke="black"></path>
-                  <path d="M 448,64 L 448,208" fill="none" stroke="black"></path>
+                  <path d="M 296,32 L 296,64" fill="none" stroke="black"></path>
+                  <path d="M 328,64 L 328,96" fill="none" stroke="black"></path>
+                  <path d="M 328,128 L 328,240" fill="none" stroke="black"></path>
+                  <path d="M 352,32 L 352,64" fill="none" stroke="black"></path>
                   <path d="M 472,32 L 472,64" fill="none" stroke="black"></path>
+                  <path d="M 520,64 L 520,240" fill="none" stroke="black"></path>
+                  <path d="M 568,32 L 568,64" fill="none" stroke="black"></path>
                   <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
-                  <path d="M 208,32 L 304,32" fill="none" stroke="black"></path>
-                  <path d="M 416,32 L 472,32" fill="none" stroke="black"></path>
+                  <path d="M 296,32 L 352,32" fill="none" stroke="black"></path>
+                  <path d="M 472,32 L 568,32" fill="none" stroke="black"></path>
                   <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 208,64 L 304,64" fill="none" stroke="black"></path>
-                  <path d="M 416,64 L 472,64" fill="none" stroke="black"></path>
-                  <path d="M 48,78 L 104,78" fill="none" stroke="black"></path>
-                  <path d="M 48,82 L 104,82" fill="none" stroke="black"></path>
-                  <path d="M 192,78 L 248,78" fill="none" stroke="black"></path>
-                  <path d="M 192,82 L 248,82" fill="none" stroke="black"></path>
-                  <path d="M 40,128 L 144,128" fill="none" stroke="black"></path>
-                  <path d="M 352,128 L 440,128" fill="none" stroke="black"></path>
-                  <path d="M 264,144 L 280,144" fill="none" stroke="black"></path>
-                  <path d="M 424,144 L 448,144" fill="none" stroke="black"></path>
-                  <path d="M 256,160 L 272,160" fill="none" stroke="black"></path>
-                  <path d="M 424,160 L 440,160" fill="none" stroke="black"></path>
-                  <path d="M 48,176 L 136,176" fill="none" stroke="black"></path>
-                  <path d="M 376,176 L 448,176" fill="none" stroke="black"></path>
-                  <polygon class="arrowhead" points="448,160 436,154.4 436,165.6" fill="black" transform="rotate(0,440,160)"></polygon>
-                  <polygon class="arrowhead" points="448,128 436,122.4 436,133.6" fill="black" transform="rotate(0,440,128)"></polygon>
-                  <polygon class="arrowhead" points="272,144 260,138.4 260,149.6" fill="black" transform="rotate(180,264,144)"></polygon>
-                  <polygon class="arrowhead" points="256,80 244,74.4 244,85.6" fill="black" transform="rotate(0,248,80)"></polygon>
-                  <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
-                  <polygon class="arrowhead" points="56,80 44,74.4 44,85.6" fill="black" transform="rotate(180,48,80)"></polygon>
+                  <path d="M 296,64 L 352,64" fill="none" stroke="black"></path>
+                  <path d="M 472,64 L 568,64" fill="none" stroke="black"></path>
+                  <path d="M 48,96 L 88,96" fill="none" stroke="black"></path>
+                  <path d="M 280,96 L 328,96" fill="none" stroke="black"></path>
+                  <path d="M 48,110 L 216,110" fill="none" stroke="black"></path>
+                  <path d="M 48,114 L 216,114" fill="none" stroke="black"></path>
+                  <path d="M 392,110 L 512,110" fill="none" stroke="black"></path>
+                  <path d="M 392,114 L 512,114" fill="none" stroke="black"></path>
+                  <path d="M 40,160 L 80,160" fill="none" stroke="black"></path>
+                  <path d="M 288,160 L 320,160" fill="none" stroke="black"></path>
+                  <path d="M 328,176 L 352,176" fill="none" stroke="black"></path>
+                  <path d="M 496,176 L 512,176" fill="none" stroke="black"></path>
+                  <path d="M 496,192 L 520,192" fill="none" stroke="black"></path>
+                  <path d="M 48,208 L 64,208" fill="none" stroke="black"></path>
+                  <path d="M 304,208 L 328,208" fill="none" stroke="black"></path>
+                  <polygon class="arrowhead" points="520,176 508,170.4 508,181.6" fill="black" transform="rotate(0,512,176)"></polygon>
+                  <polygon class="arrowhead" points="520,112 508,106.4 508,117.6" fill="black" transform="rotate(0,512,112)"></polygon>
+                  <polygon class="arrowhead" points="328,160 316,154.4 316,165.6" fill="black" transform="rotate(0,320,160)"></polygon>
+                  <polygon class="arrowhead" points="56,208 44,202.4 44,213.6" fill="black" transform="rotate(180,48,208)"></polygon>
+                  <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
+                  <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
                   <g class="text">
                     <text x="44" y="52">Client</text>
-                    <text x="256" y="52">Moderator</text>
-                    <text x="444" y="52">Site</text>
-                    <text x="148" y="84">Issuance</text>
-                    <text x="92" y="116">CredentialPresentation</text>
-                    <text x="248" y="132">Request+CredentialToken</text>
-                    <text x="352" y="148">ValidateRequest</text>
-                    <text x="348" y="164">ValidationResult</text>
-                    <text x="256" y="180">Response+CredentialResponse</text>
-                    <text x="92" y="196">CredentialFinalization</text>
-                    <text x="40" y="212">|</text>
+                    <text x="324" y="52">Site</text>
+                    <text x="520" y="52">Moderator</text>
+                    <text x="184" y="100">PresentationChallenge</text>
+                    <text x="236" y="116">If</text>
+                    <text x="280" y="116">needed,</text>
+                    <text x="348" y="116">Issuance</text>
+                    <text x="92" y="148">CredentialPresentation</text>
+                    <text x="184" y="164">Request+CredentialToken</text>
+                    <text x="424" y="180">ValidateRequest</text>
+                    <text x="340" y="196">&lt;-</text>
+                    <text x="420" y="196">ValidationResult</text>
+                    <text x="184" y="212">Response+CredentialResponse</text>
+                    <text x="92" y="228">CredentialFinalization</text>
+                    <text x="40" y="244">|</text>
                   </g>
                 </svg><a href="#section-4.2.3-1.1.1" class="pilcrow">¶</a>
 </div>
