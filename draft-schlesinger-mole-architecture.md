@@ -227,7 +227,8 @@ The following terms are used throughout this document:
 
 **Site:**
 : An entity that consumes presentations from Clients and uses them to make
-  authorization decisions.
+  authorization decisions. The Site may operate software client-side,
+  server-side, or both, depending on the deployment.
 
 **Anchor:**
 : An entity that issues Endorsements to Clients based on scarce signals.
@@ -240,7 +241,8 @@ The following terms are used throughout this document:
   according to a policy.
 
 **Credential:**
-: A cryptographic object issued by a Moderator to a Client.
+: A cryptographic object issued by a Moderator to a Client. This credential
+  has an associated integer state that is updated during presentation.
 
 **Presentation:**
 : The mechanism by which Clients prove possession of a credential satisfying
@@ -251,34 +253,88 @@ The following terms are used throughout this document:
 
 # Architecture {#architecture}
 
+The MoLE architecture is constructed to orchestrate trust relationships and
+infomation flows between four entities: Client, Anchor, Moderator, and Site.
+These entities have a limited exchange of information that allows for dynamic
+rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This
+section details the information flows and trust relationships between these
+entities along with requirements for the underlying protocols and APIs.
+
 ## Overview
 
-The Client obtains a credential from an Anchor, presents it to a Moderator, and
-uses the resulting Moderator credential when sending requests to a Site.
+A complete exchange for MoLE has three distinct flows:
+Endorsement, in which a Client obtains an endorsement signifying
+its relationship with an Anchor; Issuance, in which a Client uses an
+endorsement from an Anchor to obtain credentials from a Moderator without
+revealing which Anchor it was; and Presentation, in which a Client uses
+credentials from a Moderator of the Site's choosing to prove that it is
+presently in good standing with the Moderator and that this request matches the
+Moderator and Site's policies through an online interaction. Clients most often
+interact with the MoLE architecture either by being requested by a Site to
+present a credential or by an Anchor to initiate an Endorsement.
 
 ~~~ aasvg
-+--------+                 +--------+             +-----------+             +------+
-| Client |                 | Anchor |             | Moderator |             | Site |
-+---+----+                 +---+----+             +-----+-----+             +---+--+
++--------+                 +--------+             +-----------+            +--------+
+| Client |                 |  Site  |             | Moderator |            | Anchor |
++---+----+                 +---+----+             +-----+-----+            +----+---+
     |                          |                        |                       |
-    +--- EndorsementRequest -->|                        |                       |
-    |<-- EndorsementResponse --+                        |                       |
-EndorsementFinalization        |                        |                       |
+    |<================================ Interaction ============================>|
+    |<================================ Endorsement ============================>|
     |                          |                        |                       |
-EndorsementPresentation        |                        |                       |
-    +------- EndorsementToken+CredentialRequest ------->|                       |
-    |<--------------- CredentialResponse ---------------+                       |
-CredentialFinalization         |                        |                       |
     |                          |                        |                       |
-CredentialPresentation         |                        |                       |
-    +------------------------ Request+CredentialToken ------------------------->|
-    |                          |                        |<-- ValidateRequest ---+
-    |                          |                        +-- ValidationResult -->|
-    |<---------------------- Response+CredentialResponse -----------------------+
-CredentialFinalization         |                        |                       |
+    |<==== Interaction========>|                        |                       |
+    |<=========== If needed: Issuance =================>|                       |
+    |<===== Presentation =====>|<===== Presentation ===>|                       |
     |                          |                        |                       |
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture"}
+
+Beginning with Endorsement and proceeding to a Presentation, a typical
+overarching flow occurs as follows:
+
+
+1. A Client interacts with an Anchor in such a way that the Client believes the
+Anchor may endorse them. This mechanism that advertises the Anchor's
+endorsement capability is deployment specific. It may be an HTTP header, a Javascript
+API call, or an HTML attribute. Fundamentally, the Anchor offers to grant an
+endorsement to the Client so that it may be used later.
+1. A Client requests an endorsement from the Anchor. The Anchor responds to this request based upon
+its policy. Upon success, the Client finalizes
+its endorsement.
+1. Some time later, the Client interacts with the Site.
+1. The Site induces the Client to present a credential from a Moderator it (the Site) trusts. The precise mechanism is deployment specific. It may be an HTTP Header,
+a Javascript API call, or an HTML attribute. Fundamentally, the Site enforces that a given
+resource may only be obtained upon the Client providing a valid presentation.
+So it asks the Client to obtain a credential that will produce such a valid presentation.
+1. If the Client already has a credential from the Moderator, it may
+skip to Step 9.
+1. The Client requests a list of trusted Anchors from the Moderator.
+1. If the Client is unwilling or unable to present a matching endorsement, the
+flow fails.
+1. The Client obtains an endorsement from one of the trusted anchors and presents
+it along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a
+credential response that the Client finalizes.
+1. The Client provides a credential presentation to the Site. This
+may be used to prove that the credential's state is over some threshold, but
+does not reveal the exact value.
+1. The Site issues a request to the Moderator to validate the presentation.
+This may be accompanied by any information the Site wishes to provide the
+Moderator as context for the request, such as the request itself, following the
+Site and Moderator's respective policy.
+1. Given the context from the Site, the presentation, and its policy, the
+Moderator validates that the presentation proves a sufficiently large value in
+the credential's state and determines how to mutate that state.
+It returns the result to the Site. This response includes material for the Site
+such as a boolean, and material for the client so they can update their
+credential state.
+1. The Site provides the Moderator's response to the Client, who uses it to
+produce a modified credential with an updated state.
+1. If the validation response indicates to the Site that the Client's
+presentation does not satisfy the policy, the Site fails the request from
+Step 4. On success, the Site provides the Client with the material it
+received from the Moderator.
+1. The Client updates its credential for the Moderator with the response
+forwarded by the Site. This will allow the Client to perform future requests.
 
 ## Flows
 
@@ -306,16 +362,16 @@ a Moderator that proves the Client has been attested by the Anchor.
 ### Credential Issuance
 
 ~~~ aasvg
-+--------+                 +--------+             +-----------+
-| Client |                 | Anchor |             | Moderator |
-+---+----+                 +---+----+             +-----+-----+
-    |<===== Endorsement ======>|                        |
-    |                          |                        |
-EndorsementPresentation        |                        |
-    +------- EndorsementToken+CredentialRequest ------->|
-    |<--------------- CredentialResponse ---------------+
-CredentialFinalization         |                        |
-    |                          |                        |
++--------+                                +-----------+
+| Client |                                | Moderator |
++---+----+                                +-----+-----+
+    |                                           |
+    |<========== Anchor Negotiation ===========>|
+EndorsementPresentation                         |
+    +--- EndorsementToken+CredentialRequest --->|
+    |<---------- CredentialResponse ------------+
+CredentialFinalization                          |
+    |                                           |
 ~~~
 {: #fig-mole-architecture-issuance title="MoLE Issuance"}
 
@@ -328,18 +384,20 @@ Endorsement.
 ### Credential Presentation and updates
 
 ~~~ aasvg
-+--------+               +-----------+             +------+
-| Client |               | Moderator |             | Site |
-+---+----+               +-----+-----+             +---+--+
-    |<======= Issuance =======>|                       |
-    |                          |                       |
-CredentialPresentation         |                       |
-    +------------- Request+CredentialToken ----------->|
-    |                          |<-- ValidateRequest ---+
-    |                          +-- ValidationResult -->|
-    |<----------- Response+CredentialResponse ---------+
-CredentialFinalization         |                       |
-    |                          |                       |
++--------+                          +------+              +-----------+
+| Client |                          | Site |              | Moderator |
++---+----+                          +---+--+              +-----+-----+
+    |                                   |                       |
+    |<----- PresentationChallenge ------+                       |
+    |<===================== If needed, Issuance ===============>|
+    |                                   |                       |
+CredentialPresentation                  |                       |
+    +----- Request+CredentialToken ---->|                       |
+    |                                   +--- ValidateRequest -->|
+    |                                   |<- ValidationResult ---+
+    |<-- Response+CredentialResponse ---+                       |
+CredentialFinalization                  |                       |
+    |                                   |                       |
 ~~~
 {: #fig-mole-architecture-presentation title="MoLE Presentation"}
 
