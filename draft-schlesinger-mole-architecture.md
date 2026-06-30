@@ -254,9 +254,9 @@ The following terms are used throughout this document:
 # Architecture {#architecture}
 
 The MoLE architecture is constructed to orchestrate trust relationships and
-infomation flows between four entities: Client, Anchor, Moderator, and Site.
+information flows between four entities: Client, Anchor, Moderator, and Site.
 These entities have a limited exchange of information that allows for dynamic
-rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This
+rate-limiting, bootstrapped from existing knowledge, in an open ecosystem. This
 section details the information flows and trust relationships between these
 entities along with requirements for the underlying protocols and APIs.
 
@@ -377,9 +377,8 @@ CredentialFinalization                          |
 
 When an Endorsement is presented to a Moderator, the Moderator learns
 whether or not the Endorsement originates from the set of Anchors it trusts. The
-presentation must not be reveal the Anchor the Client has been endorsed by,
-and must not be linkable to other presentations of made using that same
-Endorsement.
+presentation must not reveal the Anchor the Client has been endorsed by,
+and must not be linkable to other presentations made using that same Endorsement.
 
 ### Credential Presentation and updates
 
