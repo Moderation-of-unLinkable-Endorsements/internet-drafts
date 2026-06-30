@@ -314,7 +314,7 @@ flow fails.
 1. The Client obtains an endorsement from one of the trusted anchors and presents
 it along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a
 credential response that the Client finalizes.
-1. The Client provides a credential presentation to the Site. This
+1. The Client provides a credential presentation, which possibly accompies a credential update request, to the Site. This
 may be used to prove that the credential's state is over some threshold, but
 does not reveal the exact value.
 1. The Site issues a request to the Moderator to validate the presentation.
