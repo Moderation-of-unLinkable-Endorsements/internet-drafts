@@ -297,7 +297,7 @@ MoLE's security properties are intended to hold in the face of coordinated attac
 - Cannot violate the issuance criteria for a Moderator's Trusted Anchors but may control other Anchors
 - Do not have access to a cryptographically relevant quantum computer.
 
-MoLe considers a cryptographically relevant quantum computer (CRQC) for it's privacy properties because a CRQG deployed in the future could be used to analyse protocol transcripts recorded today and so identify users. Contrastingly, MoLe's security properties hold until attackers have access to a CRQC and once they do, only impact security in future protocol sessions.
+MoLe considers a cryptographically relevant quantum computer (CRQC) for it's privacy properties like anchor hiding and unlinkability because a CRQG deployed in the future could be used to analyse protocol transcripts recorded today and so identify users. Contrastingly, MoLe's security properties hold until attackers have access to a CRQC and once they do, only impact security in future protocol sessions.
 
 ## Flows
 
