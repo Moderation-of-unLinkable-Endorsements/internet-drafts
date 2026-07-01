@@ -9,7 +9,7 @@
 <meta content="Dennis Jackson" name="author">
 <meta content="Thibault Meunier" name="author">
 <meta content="
-       TODO Abstract 
+       This document describes the Moderation of unLinkable Endorsements (MoLE) architecture. In MoLE, Moderators make access control decisions using cryptographic Credentials derived from third-party Endorsements, with no client identification required. Credential presentations are unlinkable across presentations, and the issuing Anchor is hidden from Moderators, even under collusion. The architecture supports dynamic trust adjustment and is designed for open deployments where Anchors and Moderators set policy independently. This document specifies roles, privacy and security requirements, and deployment considerations. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="moderation" name="keyword">
@@ -1049,11 +1049,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">MoLE Architecture</td>
-<td class="right">June 2026</td>
+<td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 1 January 2027</td>
+<td class="center">Expires 2 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1066,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-architecture-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-30" class="published">30 June 2026</time>
+<time datetime="2026-07-01" class="published">1 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-01">1 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-02">2 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1092,7 +1092,7 @@ svg {
 <h1 id="title">MoLE Architecture</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document describes the Moderation of unLinkable Endorsements (MoLE) architecture. In MoLE, Moderators make access control decisions using cryptographic Credentials derived from third-party Endorsements, with no client identification required. Credential presentations are unlinkable across presentations, and the issuing Anchor is hidden from Moderators, even under collusion. The architecture supports dynamic trust adjustment and is designed for open deployments where Anchors and Moderators set policy independently. This document specifies roles, privacy and security requirements, and deployment considerations.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1124,7 +1124,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 1 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1302,17 +1302,17 @@ svg {
       </h2>
 <p id="section-1-1">Moderation of unLinkable Endorsements (MoLE) is an architecture designed to
 allow trust in a client to be efficiently bootstrapped
-and then adjusted over a time, whilst minimizing the information disclosed about
-the client during the bootstrapping and preventing the client from being tracked
+and then adjusted over a time, whilst minimizing the information the client
+discloses during the bootstrapping and reducing signals the client can be tracked
 as they interact with the system. The architecture supports an open deployment
 where participants do not need to coordinate and may have independent views of the
 client's trustworthiness and other participants trustworthiness.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">Traditional approaches to this problem rely on exposing long-term identifiers like user ids or cookies which enable clients to be tracked as they interact with
 the system. Newer approaches like Privacy Pass enable access control without identification but do not support a privacy-preserving bootstrapping
 mechanism, cannot adjust trust in clients dynamically over time and does not maintain privacy if deployed for rate-limiting in an open system where collusion is possible.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">MoLe has three distinct roles. Clients are looking to access resources protected by Moderators, who handle access control policy. Moderators may not have a direct trust relationship with Clients, but may trust Anchors, who do have a trust relationship with some Clients, to vouch for them. Moderators may trust multiple Anchors in order to achieve a high coverage of their user base. Some anchors may trust malicious clients, which Moderators can mitigate either by withdrawing trust in those specific clients or by withdrawing trust in the Anchor entirely.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">At a high level, MoLE relies on three distinct flows: Endorsement, Issuance and Presentation. In Endorsement, a Client is issued with an Endorsement by an Anchor, which conveys the Anchor's trust in the Client to other parties. In Issuance, a Client presents an Endorsement to a Moderator and receives a Credential, enabling the Moderator to bootstrap trust in the client. In Presentation, the Client presents a Credential to a Moderator, enabling it to make a trust decision and adjust it's level of trust in the credential.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">Critically, Endorsement does not reveal which Anchor was used by the Client, only that the Anchor was drawn from a pool of Anchors trusted by the Moderator, to avoid leaking information about the client (e.g. which Anchor's policy they satisfy). Further, the Clients interactions in Issuance and Presentation are unlinkable, preventing Anchors and Moderators from tracking clients.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-3">MoLe has three distinct roles. Clients are looking to access resources protected by Moderators, who handle access control policy. Moderators may not have a direct trust relationship with Clients, but trust Anchors, who do have a trust relationship with some Clients, to vouch for them. A given Moderator may trust multiple Anchors in order to achieve a high coverage of their user base. Anchors may trust clients which Moderator deem untrustworthy. Moderators can mitigate either by withdrawing trust in those specific clients or by withdrawing trust in the Anchor.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">At a high level, MoLE relies on three distinct flows: Endorsement, Issuance, and Presentation. In Endorsement, a Client is issued with an Endorsement by an Anchor, which conveys the Anchor's trust in the Client to other parties. In Issuance, a Client presents an Endorsement to a Moderator and receives a Credential, enabling the Moderator to bootstrap trust in the client. In Presentation, the Client presents a Credential to a Moderator, enabling it to make a trust decision and adjust it's level of trust in the credential.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">Critically, the presentation of an Endorsement does not reveal the issuing Anchor, only that the Anchor was drawn from a pool of Anchors trusted by the Moderator. This is to avoid leaking information about the client (e.g. which Anchor's policy they satisfy). Further, the Clients interactions in Issuance and Presentation are unlinkable, preventing Anchors and Moderators from tracking clients.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">This architecture enables Anchors, parties that have trust relationships with clients, to convey that trust to Moderators, parties which perform access control. Moderators can adjust their trust in clients over time according to the behavior and dynamically rate limit their access, but clients enjoy strong privacy protections from Anchors and Moderators, even if they collude.<a href="#section-1-6" class="pilcrow">¶</a></p>
 <p id="section-1-7">This document describes the requirements for these flows and how they interact, as well as the anticipated deployment model.<a href="#section-1-7" class="pilcrow">¶</a></p>
 </section>
@@ -1332,7 +1332,7 @@ mechanism, cannot adjust trust in clients dynamically over time and does not mai
 <p id="section-2.1-1">A user visits a website for the first time, with no cookies, possibly through a
 VPN or shared NAT that obscures the network-layer identifier. The site has no
 per-user history and limited reputational signal from the network path, e.g. due to the use of a VPN or privacy preserving proxy. The
-user is the party who bears the cost if the site then chooses ---
+user is the party who faces friction if the site then chooses ---
 repeated CAPTCHAs, silent rejection, or a degraded experience --- intended to mitigate volumetric abuse, but harming users trying to access the site legitimately.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
 <p id="section-2.1-2">However, other sites may have access to relatively rich context about a user, e.g. because
 the user maintains an account, made a payment or provided some other scare
@@ -1554,7 +1554,7 @@ a Credential. If the Client doesn't have a Credential for this Moderator it will
 Issuance flow. In this flow, the Client presents the Moderator with an Endorsement from the Moderator's
 list of trusted Anchors and receives a Credential in return. Presenting an Endorsement does not reveal which
 Anchor was used, only that it came from the trusted pool.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">Once a Moderator has accepted a specific Endorsement, it can't be used again with that Moderator. This property prevents abusive clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that endorsement in their system. This property prevents abusive clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 <p id="section-4.1-6">Finally, the Client can present the Credential to the Moderator. This presentation enables the Moderator to
 query the state of the credential and receive a boolean value indicating whether the presented credential meets the
 Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g.to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
@@ -1576,7 +1576,7 @@ Moderator's chosen predicate. The Moderator can also update the state of the Cre
               <p id="section-4.2.1-2.1.1"><em>Endorsement Issuances and Presentations are Unlinkable</em> - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement presented from an Anchor, neither the Moderator nor the Anchor can link the session in which the Endorsement was issued to the session in which it was presented.<a href="#section-4.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-4.2.1-2.2">
-              <p id="section-4.2.1-2.2.1"><em>Endorsement Presentations are Anchor-hiding</em> - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement from an Anchor, the specific Anchor used is indistinguishable from the other Anchors the Moderator trusts, to both the Anchor and Moderator.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-4.2.1-2.2.1"><em>Endorsement Presentations are Anchor-hiding</em> - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtain the Endorsement from among a set of Anchors the Moderator trust. Such Anchor-hiding makes the Endorsement presentation from the Client choosen Anchor indistinguishable from others, to both the Anchor and the Moderator.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-4.2.1-2.3">
               <p id="section-4.2.1-2.3.1"><em>Credential Presentations are Unlinkable</em> - If the user engages in multiple presentations, then those presentations are unlinkable to each other.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
@@ -1875,8 +1875,7 @@ Anchor Trusted by the Moderator without revealing which specific Anchor was used
                     <text x="168" y="116">needed,</text>
                     <text x="236" y="116">Issuance</text>
                     <text x="92" y="148">CredentialPresentation</text>
-                    <text x="328" y="148">z</text>
-                    <text x="424" y="148">|</text>
+                    <text x="416" y="148">|</text>
                     <text x="184" y="164">Request+CredentialToken</text>
                     <text x="200" y="196">Response+CredentialResponse</text>
                     <text x="92" y="212">CredentialFinalization</text>
