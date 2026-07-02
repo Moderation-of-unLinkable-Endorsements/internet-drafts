@@ -232,7 +232,7 @@ Anchor was used, only that it came from the trusted pool.
 
 Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that endorsement in their system. This property prevents abusive clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.
 
-Finally, the Client can present the Credential to the Moderator. This presentation enables the Moderator to
+Finally, the Client can present the Credential to the Moderator, along with a credential update request. This presentation enables the Moderator to
 query the state of the credential and receive a boolean value indicating whether the presented credential meets the
 Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g.to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.
 
