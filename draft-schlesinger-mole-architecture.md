@@ -68,7 +68,7 @@ client's trustworthiness and other participants trustworthiness.
 
 Traditional approaches to this problem rely on exposing long-term identifiers like user ids or cookies which enable clients to be tracked as they interact with
 the system. Newer approaches like Privacy Pass enable access control without identification but do not support a privacy-preserving bootstrapping
-mechanism, cannot adjust trust in clients dynamically over time and does not maintain privacy if deployed for rate-limiting in an open system where collusion is possible.
+mechanism, and cannot adjust trust in clients dynamically over time.
 
 MoLe has three distinct roles. Clients are looking to access resources protected by Moderators, who handle access control policy. Moderators may not have a direct trust relationship with Clients, but trust Anchors, who do have a trust relationship with some Clients, to vouch for them. A given Moderator may trust multiple Anchors in order to achieve a high coverage of their user base. Anchors may trust clients which Moderator deem untrustworthy. Moderators can mitigate either by withdrawing trust in those specific clients or by withdrawing trust in the Anchor.
 
