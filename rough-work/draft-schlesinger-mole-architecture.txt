@@ -98,6 +98,7 @@ Table of Contents
      5.2.   Authorization Strategies
      5.3.  Discriminatory Treatment
      5.4.   Centralization
+     5.5.  Deployment in a Web Context
    6.  Security Considerations
      6.1.  Key Compromise
      6.2.   State Management
@@ -393,9 +394,9 @@ Table of Contents
        presentation from the Client choosen Anchor indistinguishable
        from others, to both the Anchor and the Moderator.
 
-   3.  _Credential Presentations are Unlinkable_ - If the user engages
-       in multiple presentations, then those presentations are
-       unlinkable to each other.
+   3.  _Credential Issuances and Presentations are Unlinkable_ - If the
+       user engages in multiple presentations, then those presentations
+       are unlinkable to each other.
 
    A successful presentation tells the Moderator that the Client holds a
    Credential satisfying the Moderator's policy.  It does not reveal the
@@ -484,7 +485,7 @@ Table of Contents
    | Client |                 | Anchor |
    +---+----+                 +---+----+
        |                          |
-       |<==Trust Relationship====>|
+       |<==Trust Establishment===>|
        +--- EndorsementRequest -->|
        |<-- EndorsementResponse --+
    EndorsementFinalization        |
@@ -564,7 +565,9 @@ Table of Contents
    should contain enough information to identify the Moderator and the
    Anchors whose Endorsements it will trust for Issuance.  If the Client
    wishes to complete the presentation and has suitable Endorsements, it
-   will begin the Issuance flow.
+   will begin the Issuance flow.  In some circumstances, the Moderator
+   may not require any Anchors for Issuance, i.e. it has some local
+   means of establishing trust in this case.
 
    In order to maximize unlinkability, the Issuance and Presentation
    flows can happen in isolated contexts, e.g. over distinct
@@ -666,6 +669,8 @@ Table of Contents
    an origin may gate or rate limit, so that Clients do not simply
    ignore the update request after getting them.
 
+   TODO: Updates are Predicates which are true.
+
 4.5.  Anchor Feedback
 
    TODO: Discuss use of Prio in Endorsements which feeds into
@@ -763,6 +768,25 @@ Table of Contents
    impactful.  Sharing a rate limit across more sites means the amount
    of volumetric abuse that a attacker can inflict becomes smaller.
 
+5.5.  Deployment in a Web Context
+
+   In a Web setting, the MoLe architecture may be deployed in several
+   different configurations.  For example, the Moderator could be
+   deployed in front of a site, mediating access to protected resources
+   directly, or it could be deployed as an independent service which the
+   site interacts with on the back-end, or the Moderator could be a
+   third party service which communicates with the site through an
+   information flow mediated by the user-agent.
+
+   Many browsers limit the flow of information between distinct top-
+   level origins, for example by partitioning cookies and other state.
+   In a web context, MoLe endorsements and credentials may be used
+   without partitioning to enable a limited form of cross-site
+   information transfer.  However, user-agents must employ suitable
+   safeguards to ensure that the information flow is limited in line
+   with the user-agent's privacy posture, specific recommendations are
+   given in the Privacy Considerations.
+
 6.  Security Considerations
 
 6.1.  Key Compromise
@@ -851,6 +875,9 @@ Table of Contents
    Clients and resistant to split views.  A deployment can use a
    [CONSISTENCY-MIRROR], [KEYTRANS], [SCITT], or another mechanism with
    similar properties.
+
+   TODO: Client-local consistent information vs Globally consistent
+   configuration.
 
 7.3.  Side Channels
 
