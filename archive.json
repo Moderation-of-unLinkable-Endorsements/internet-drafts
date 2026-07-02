@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-06-25T03:54:30.853674+00:00",
+  "timestamp": "2026-07-02T03:52:27.433198+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -2458,6 +2458,311 @@
           "body": "",
           "createdAt": "2026-06-23T13:16:48Z",
           "updatedAt": "2026-06-23T13:16:48Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 18,
+      "id": "PR_kwDOSX6krs7sTPLG",
+      "title": "Rough work: Filling out the architecture doc",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/18",
+      "state": "OPEN",
+      "author": "dennisjackson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is a first pass on filling out the rest of the architecture draft. It's still pretty rough, but throwing it up for visibility. Not too attached to any of the text, so feel free to provide early comments on anything that looks totally wrong or unnecessary. ",
+      "createdAt": "2026-06-30T15:46:09Z",
+      "updatedAt": "2026-07-01T18:52:20Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "rough-work",
+      "headRefOid": "1c44e972a9d8ea1d2d59a182358fa394a3ee12d2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABElUNRA",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "overall ok. the main concern I have is wrt removing the site from the architecture. I feel having it so that there can be joint moderator-site discussion, and disjoint is important for the security and privacy considetatoins",
+          "createdAt": "2026-06-30T17:08:55Z",
+          "updatedAt": "2026-06-30T17:39:51Z",
+          "comments": [
+            {
+              "originalPosition": 70,
+              "body": "reputation rather than trust?",
+              "createdAt": "2026-06-30T17:08:55Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 72,
+              "body": "1. putting the client in control\n2. we reduce tracking rather than prevent it i feel\n\n```suggestion\nand then adjusted over a time, whilst minimizing the information the client\ndiscloses during the bootstrapping and reducing signals the client can be tracked\n```",
+              "createdAt": "2026-06-30T17:11:53Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 79,
+              "body": "I feel that privacy pass has _some_ rate limit, but that's not the one we are discussing here.\n\n```suggestion\nmechanism, and cannot adjust trust in clients dynamically over time.\n```",
+              "createdAt": "2026-06-30T17:14:55Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "```suggestion\nMoLe has three distinct roles. Clients are looking to access resources protected by Moderators, who handle access control policy. Moderators may not have a direct trust relationship with Clients, but trust Anchors, who do have a trust relationship with some Clients, to vouch for them. A given Moderator may trust multiple Anchors in order to achieve a high coverage of their user base. Anchors may trust clients which Moderator deem untrustworthy. Moderators can mitigate either by withdrawing trust in those specific clients or by withdrawing trust in the Anchor.\n```\n\nremoving entirely: similar t IP addresses, you have trust in a given ASN, and trust in a particular IP. it does not have to be completely binary",
+              "createdAt": "2026-06-30T17:17:34Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 83,
+              "body": "```suggestion\nAt a high level, MoLE relies on three distinct flows: Endorsement, Issuance, and Presentation. In Endorsement, a Client is issued with an Endorsement by an Anchor, which conveys the Anchor's trust in the Client to other parties. In Issuance, a Client presents an Endorsement to a Moderator and receives a Credential, enabling the Moderator to bootstrap trust in the client. In Presentation, the Client presents a Credential to a Moderator, enabling it to make a trust decision and adjust it's level of trust in the credential.\n```\n\nbeyond the oxford comma, I still feel reputation is the right word here",
+              "createdAt": "2026-06-30T17:18:55Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 85,
+              "body": "```suggestion\nCritically, the presentation of an Endorsement does not reveal the issuing Anchor, only that the Anchor was drawn from a pool of Anchors trusted by the Moderator. This is to avoid leaking information about the client (e.g. which Anchor's policy they satisfy). Further, the Clients interactions in Issuance and Presentation are unlinkable, preventing Anchors and Moderators from tracking clients.\n```",
+              "createdAt": "2026-06-30T17:20:18Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 117,
+              "body": "```suggestion\nuser is the party who faces friction if the site then chooses ---\n```",
+              "createdAt": "2026-06-30T17:22:13Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 228,
+              "body": "i feel we should preserve the Site as an entity, should it only be to make it simpler to state \"joint site-moderator\" and \"disjoint site-moderator\"\n\ni agree it's not core to the protocol, but will be core to deployment considetation we would provide",
+              "createdAt": "2026-06-30T17:23:58Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 283,
+              "body": "nits: having the site as a proxy makes it much simpler to read imo",
+              "createdAt": "2026-06-30T17:24:33Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 437,
+              "body": "I think we should state explicitely what that means: anchor hidding and unlinkability (issuance and presentation) have to follow",
+              "createdAt": "2026-06-30T17:28:08Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 369,
+              "body": "```suggestion\nOnce a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that endorsement in their system. This property prevents abusive clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.\n```\n\ntweaking to make it so moderator CAN prevent double spend, but not that Endorsement can't be used again (which mandates a global antireplay somehw)",
+              "createdAt": "2026-06-30T17:30:38Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 383,
+              "body": "```suggestion\n1. *Endorsement Presentations are Anchor-hiding* - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtain the Endorsement from among a set of Anchors the Moderator trust. Such Anchor-hiding makes the Endorsement presentation from the Client choosen Anchor indistinguishable from others, to both the Anchor and the Moderator.\n```\n\nmight be too long. want to highlight that this is a property the client should be able to verify",
+              "createdAt": "2026-06-30T17:35:15Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 542,
+              "body": "```suggestion\nCredentialPresentation                             |\n```",
+              "createdAt": "2026-06-30T17:35:59Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            },
+            {
+              "originalPosition": 2,
+              "body": "```suggestion\nThis document describes the Moderation of unLinkable Endorsements (MoLE) architecture. In MoLE, Moderators make access control decisions using cryptographic Credentials derived from third-party Endorsements, with no client identification required. Credential presentations are unlinkable across presentations, and the issuing Anchor is hidden from Moderators, even under collusion. The architecture supports dynamic trust adjustment and is designed for open deployments where Anchors and Moderators set policy independently. This document specifies roles, privacy and security requirements, and deployment considerations.\n```\n\n\nprobably needs to be adjusted, but for the sake of completion",
+              "createdAt": "2026-06-30T17:39:00Z",
+              "updatedAt": "2026-06-30T17:39:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEptBCQ",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-01T08:31:36Z",
+          "updatedAt": "2026-07-01T08:31:36Z",
+          "comments": [
+            {
+              "originalPosition": 371,
+              "body": "```suggestion\nFinally, the Client can present the Credential to the Moderator, along with a credential update request. This presentation enables the Moderator to\n```\n\nFrom #19 by @cryptphil",
+              "createdAt": "2026-07-01T08:31:36Z",
+              "updatedAt": "2026-07-01T08:31:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEuWzNQ",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-01T18:42:04Z",
+          "updatedAt": "2026-07-01T18:42:04Z",
+          "comments": [
+            {
+              "originalPosition": 70,
+              "body": "I'm leaning towards 'trust' as the most generic possible term since some Moderator credentials don't support reputation.",
+              "createdAt": "2026-07-01T18:42:04Z",
+              "updatedAt": "2026-07-01T18:42:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEuYOyg",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-01T18:45:14Z",
+          "updatedAt": "2026-07-01T18:45:14Z",
+          "comments": [
+            {
+              "originalPosition": 79,
+              "body": "Privacy Pass has a specific deployment mode where the Attestor and Issuer use a special protocol to rate limit access per site. That's the one I'm thinking of here.",
+              "createdAt": "2026-07-01T18:45:14Z",
+              "updatedAt": "2026-07-01T18:45:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEuYqdA",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-01T18:46:18Z",
+          "updatedAt": "2026-07-01T18:46:19Z",
+          "comments": [
+            {
+              "originalPosition": 83,
+              "body": "(let's keep discussion in the first comment) ",
+              "createdAt": "2026-07-01T18:46:18Z",
+              "updatedAt": "2026-07-01T18:46:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEubAdw",
+          "commit": {
+            "abbreviatedOid": "4853494"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-01T18:52:07Z",
+          "updatedAt": "2026-07-01T18:52:07Z",
+          "comments": [
+            {
+              "originalPosition": 440,
+              "body": "```suggestion\nMoLe considers a cryptographically relevant quantum computer (CRQC) for it's privacy properties like anchor hiding and unlinkability because a CRQG deployed in the future could be used to analyse protocol transcripts recorded today and so identify users. Contrastingly, MoLe's security properties hold until attackers have access to a CRQC and once they do, only impact security in future protocol sessions.\n```",
+              "createdAt": "2026-07-01T18:52:07Z",
+              "updatedAt": "2026-07-01T18:52:07Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 19,
+      "id": "PR_kwDOSX6krs7sk6NP",
+      "title": "Mention credential update request for the credential presentation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/19",
+      "state": "OPEN",
+      "author": "cryptphil",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "Minor addition to mention that a Client may include a credential update request to the credential presentation to a Site. \r\nIf the moderator credential is represented by a batch of Privacy Pass tokens (or similar one-show tokens), this credential update request could consist of the `IssuanceMessage` for n new tokens.",
+      "createdAt": "2026-07-01T08:10:37Z",
+      "updatedAt": "2026-07-01T08:32:03Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
+      "headRepository": "cryptphil/internet-drafts",
+      "headRefName": "add-credential-update-request",
+      "headRefOid": "1e05fdf87e28b04a1fe6107c05db3ad816237445",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEptMjQ",
+          "commit": {
+            "abbreviatedOid": "1e05fdf"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "there's a bigger edit ongoing in #18 . I've added this specific addition in https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/18/changes#r3504385178",
+          "createdAt": "2026-07-01T08:32:03Z",
+          "updatedAt": "2026-07-01T08:32:03Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 20,
+      "id": "PR_kwDOSX6krs7sk76w",
+      "title": "Fix some typos",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/20",
+      "state": "OPEN",
+      "author": "cryptphil",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "This PR fixes three small typos.",
+      "createdAt": "2026-07-01T08:11:42Z",
+      "updatedAt": "2026-07-01T08:26:58Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
+      "headRepository": "cryptphil/internet-drafts",
+      "headRefName": "minor-typos",
+      "headRefOid": "6b0dbac53a7c7794e5053affe4df124e70bb0045",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABEprAuQ",
+          "commit": {
+            "abbreviatedOid": "6b0dbac"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "i think it's safe to wait for #18 which also fixes these issue. that's a good change though",
+          "createdAt": "2026-07-01T08:26:58Z",
+          "updatedAt": "2026-07-01T08:26:58Z",
           "comments": []
         }
       ]
