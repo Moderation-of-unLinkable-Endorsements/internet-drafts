@@ -246,7 +246,7 @@ MoLE deployments aim to provide three privacy properties for Clients:
 
 1. *Endorsement Presentations are Anchor-hiding* - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtain the Endorsement from among a set of Anchors the Moderator trust. Such Anchor-hiding makes the Endorsement presentation from the Client choosen Anchor indistinguishable from others, to both the Anchor and the Moderator.
 
-1. *Credential Presentations are Unlinkable* - If the user engages in multiple presentations, then those presentations are unlinkable to each other.
+1. *Credential Issuances and Presentations are Unlinkable* - If the user engages in multiple presentations, then those presentations are unlinkable to each other.
 
 A successful presentation tells the Moderator that the Client holds a
 Credential satisfying the Moderator's policy. It does not reveal the Client's
@@ -308,7 +308,7 @@ MoLe considers a cryptographically relevant quantum computer (CRQC) for it's pri
 | Client |                 | Anchor |
 +---+----+                 +---+----+
     |                          |
-    |<==Trust Relationship====>|
+    |<==Trust Establishment===>|
     +--- EndorsementRequest -->|
     |<-- EndorsementResponse --+
 EndorsementFinalization        |
@@ -361,7 +361,7 @@ Issuance is likely to happen on-demand in response to a Moderator's challenge fo
 Client to present a valid Credential. The challenge should contain enough information
 to identify the Moderator and the Anchors whose Endorsements it will trust for Issuance.
 If the Client wishes to complete the presentation and has suitable Endorsements, it will
-begin the Issuance flow.
+begin the Issuance flow. In some circumstances, the Moderator may not require any Anchors for Issuance, i.e. it has some local means of establishing trust in this case.
 
 In order to maximize unlinkability, the Issuance and Presentation flows can happen in isolated
 contexts, e.g. over distinct communication channels with partitioned state.
@@ -424,6 +424,8 @@ Credential updates have to be applied before access to resources that
 an origin may gate or rate limit, so that Clients do not simply ignore
 the update request after getting them.
 
+TODO: Updates are Predicates which are true.
+
 ## Anchor Feedback
 
 TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measure per-anchor abuse rates.
@@ -461,6 +463,12 @@ The Anchor / Endorsement mechanism means that parties that have user relationshi
 MoLe allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLe enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
 
 However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.
+
+## Deployment in a Web Context
+
+In a Web setting, the MoLe architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.
+
+Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLe endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.
 
 # Security Considerations
 
@@ -504,6 +512,8 @@ Deployments should make configuration material consistent across
 Clients and resistant to split views. A deployment can use a
 {{CONSISTENCY-MIRROR}}, {{KEYTRANS}}, {{SCITT}}, or another mechanism with
 similar properties.
+
+TODO: Client-local consistent information vs Globally consistent configuration.
 
 ## Side Channels
 
