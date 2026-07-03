@@ -324,19 +324,19 @@ These side channels, which depend on details specific to each deployment, may co
 
 MoLE's security properties are intended for Moderators. Moderators can be assured:
 
-- When they accept an Endorsement, that it corresponds to exactly one Endorsement Issuance by trusted Anchor.
-- When they accept a Credential under a given predicate, that the credential is one they previously issued with a matching predicate. Once a Credential has been presented, it will only be accepted once unless the Moderator chooses to re-issue it.
+- When they accept an Endorsement, that it corresponds to exactly one Endorsement Issuance by a trusted Anchor.
+- When they accept a Credential under a given predicate, that the Credential is one they previously issued with a matching predicate. Once a Credential has been presented, it will not be accepted again unless the Moderator chooses to re-issue it.
 
-Collectively, these two properties allow Moderators to dynamically rate limit access to the population of Anchor-endorsed clients. If Endorsements or Credentials could be presented multiple times, it would allow malicious Clients to obtain additional Credentials which could be used to bypass rate limits.
+Collectively, these two properties allow Moderators to dynamically rate-limit access to the population of Anchor-endorsed Clients. If Endorsements or Credentials could be presented multiple times, it would allow malicious Clients to obtain additional Credentials which could be used to bypass rate limits.
 
 ### Threat Model
 
 MoLE's security properties are intended to hold in the face of coordinated attackers who:
-- Can control a number of clients and deviate from the protocol
-- Cannot violate the issuance criteria for a Moderator's Trusted Anchors but may control other Anchors
+- Can control a number of Clients and deviate from the protocol.
+- Cannot violate the issuance criteria for a Moderator's trusted Anchors but may control other Anchors.
 - Do not have access to a cryptographically relevant quantum computer.
 
-MoLe considers a cryptographically relevant quantum computer (CRQC) for it's privacy properties like anchor hiding and unlinkability because a CRQG deployed in the future could be used to analyse protocol transcripts recorded today and so identify users. Contrastingly, MoLe's security properties hold until attackers have access to a CRQC and once they do, only impact security in future protocol sessions.
+MoLE considers a cryptographically relevant quantum computer (CRQC) for its privacy properties like Anchor-hiding and unlinkability, because a CRQC deployed in the future could be used to analyse protocol transcripts recorded today and so identify Clients. By contrast, MoLE's security properties hold until an attacker gains access to a CRQC; once they do, only future protocol sessions are affected.
 
 ## Flows
 
