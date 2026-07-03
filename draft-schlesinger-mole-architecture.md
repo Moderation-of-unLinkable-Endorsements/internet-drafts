@@ -224,21 +224,21 @@ The following terms are used throughout this document:
 
 # Architecture {#architecture}
 
-The MoLE architecture is constructed to orchestrate trust relationships and
+The MoLE architecture orchestrates trust relationships and
 information flows between three entities: Client, Anchor, and Moderator.
 These entities have a limited exchange of information that allows for dynamic
-rate-limiting, bootstrapped from existing knowledge, in an open ecosystem. This
+rate-limiting, bootstrapped from an Anchor's existing trust, in an open ecosystem. This
 section details the information flows and trust relationships between these
 entities along with requirements for the underlying protocols and APIs.
 
 ## Overview
 
 MoLE is composed of three distinct flows:
-Endorsement, in which a Client obtains an endorsement signifying
+Endorsement, in which a Client obtains an Endorsement signifying
 its trust relationship with an Anchor; Issuance, in which a Client uses an
-endorsement from an Anchor to obtain credentials from a Moderator without
-revealing which Anchor it was; and Presentation, in which a Client uses
-credentials from a Moderator prove that it is
+Endorsement from an Anchor to obtain a Credential from a Moderator without
+revealing which Anchor issued it; and Presentation, in which a Client uses
+a Credential from a Moderator to prove that it is
 presently in good standing with the Moderator in order to access a resource.
 
 ~~~ aasvg
@@ -256,10 +256,10 @@ presently in good standing with the Moderator in order to access a resource.
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture"}
 
-During Endorsement, a Client interacts with an Anchor and the Anchor has a
-trust relationship with the Client. The nature of the trust relationship is specific to the Anchor and may be based on some kind
-of strong authentication, e.g. a login or may be relatively weak, e.g. based on solving a
-CAPTCHA. The Anchor issues the Client with an Endorsement to signify this trust relationship.
+During Endorsement, a Client interacts with an Anchor with which it has a
+trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
+of strong authentication, e.g. a login, or may be relatively weak, e.g. based on solving a
+CAPTCHA. The Anchor issues the Client an Endorsement to signify this trust relationship.
 Clients may accrue multiple Endorsements from the same or different Anchors.
 
 Later, when trying to access a resource, a Client may be prompted by a Moderator to present
@@ -268,11 +268,11 @@ Issuance flow. In this flow, the Client presents the Moderator with an Endorseme
 list of trusted Anchors and receives a Credential in return. Presenting an Endorsement does not reveal which
 Anchor was used, only that it came from the trusted pool.
 
-Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that endorsement in their system. This property prevents abusive clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.
+Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that Endorsement in their system. This property prevents abusive Clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.
 
 Finally, the Client can present the Credential to the Moderator, along with a credential update request. This presentation enables the Moderator to
-query the state of the credential and receive a boolean value indicating whether the presented credential meets the
-Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g.to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.
+query the state of the Credential and receive a boolean value indicating whether the presented Credential meets the
+Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g. to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.
 
 ## Privacy Goals and Threat Model {#privacy-properties}
 
