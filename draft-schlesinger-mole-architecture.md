@@ -62,27 +62,49 @@ This document specifies the roles, the information flows between them, the priva
 
 # Introduction
 
-Moderation of unLinkable Endorsements (MoLE) is an architecture designed to
-allow trust in a client to be efficiently bootstrapped
-and then adjusted over a time, whilst minimizing the information the client
-discloses during the bootstrapping and reducing signals the client can be tracked
-as they interact with the system. The architecture supports an open deployment
-where participants do not need to coordinate and may have independent views of the
-client's trustworthiness and other participants trustworthiness.
+Moderation of unLinkable Endorsements (MoLE) is an architecture that allows a
+party performing access control to efficiently bootstrap trust in a client from
+a third party that already trusts it, and then to adjust that trust over time in
+response to the client's behaviour. It does so while minimizing the information
+the client discloses when trust is bootstrapped and reducing the signals by
+which the client can be tracked as it interacts with the system. MoLE targets
+open deployments, in which participants need not coordinate and may hold
+independent views of a client's trustworthiness and of one another's
+trustworthiness.
 
-Traditional approaches to this problem rely on exposing long-term identifiers like user ids or cookies which enable clients to be tracked as they interact with
-the system. Newer approaches like Privacy Pass enable access control without identification but do not support a privacy-preserving bootstrapping
-mechanism, and cannot adjust trust in clients dynamically over time.
+Traditional approaches to this problem rely on long-term identifiers such as
+user IDs or cookies, which allow clients to be tracked as they interact with the
+system. Newer approaches like Privacy Pass {{RFC9576}} enable access control
+without identification, but do not support a privacy-preserving mechanism for
+bootstrapping trust and cannot adjust trust in clients dynamically over time.
 
-MoLe has three distinct roles. Clients are looking to access resources protected by Moderators, who handle access control policy. Moderators may not have a direct trust relationship with Clients, but trust Anchors, who do have a trust relationship with some Clients, to vouch for them. A given Moderator may trust multiple Anchors in order to achieve a high coverage of their user base. Anchors may trust clients which Moderator deem untrustworthy. Moderators can mitigate either by withdrawing trust in those specific clients or by withdrawing trust in the Anchor.
+MoLE has three distinct roles. Clients seek to access resources protected by
+Moderators, who set and enforce access control policy. A Moderator may have no
+direct trust relationship with a Client, but instead trusts Anchors, who do have
+a relationship with some Clients, to vouch for them. A given Moderator may trust
+multiple Anchors in order to cover more of its user base. An Anchor may vouch for
+Clients that a Moderator deems untrustworthy; the Moderator can mitigate this
+either by withdrawing trust in those specific Clients or by withdrawing trust in
+the Anchor entirely.
 
-At a high level, MoLE relies on three distinct flows: Endorsement, Issuance, and Presentation. In Endorsement, a Client is issued with an Endorsement by an Anchor, which conveys the Anchor's trust in the Client to other parties. In Issuance, a Client presents an Endorsement to a Moderator and receives a Credential, enabling the Moderator to bootstrap trust in the client. In Presentation, the Client presents a Credential to a Moderator, enabling it to make a trust decision and adjust it's level of trust in the credential.
+At a high level, MoLE relies on three distinct flows: Endorsement, Issuance, and
+Presentation. In Endorsement, an Anchor issues a Client an Endorsement, which
+conveys the Anchor's trust in the Client to other parties. In Issuance, a Client
+presents an Endorsement to a Moderator and receives a Credential, allowing the
+Moderator to bootstrap its trust in the Client. In Presentation, the Client
+presents a Credential to a Moderator, allowing the Moderator to make an access
+control decision and to adjust its level of trust in the Client over time,
+including by dynamically rate-limiting access.
 
-Critically, the presentation of an Endorsement does not reveal the issuing Anchor, only that the Anchor was drawn from a pool of Anchors trusted by the Moderator. This is to avoid leaking information about the client (e.g. which Anchor's policy they satisfy). Further, the Clients interactions in Issuance and Presentation are unlinkable, preventing Anchors and Moderators from tracking clients.
+Critically, presenting an Endorsement does not reveal the issuing Anchor, only
+that it was drawn from a pool of Anchors the Moderator trusts. This avoids
+leaking information about the Client, such as which Anchor's policy it satisfies.
+Further, a Client's interactions across Issuance and Presentation are unlinkable,
+preventing Anchors and Moderators from tracking Clients. These privacy properties
+are designed to hold even when Anchors and Moderators collude.
 
-This architecture enables Anchors, parties that have trust relationships with clients, to convey that trust to Moderators, parties which perform access control. Moderators can adjust their trust in clients over time according to the behavior and dynamically rate limit their access, but clients enjoy strong privacy protections from Anchors and Moderators, even if they collude.
-
-This document describes the requirements for these flows and how they interact, as well as the anticipated deployment model.
+This document describes the requirements for these flows and how they interact,
+as well as the anticipated deployment model.
 
 # Use Cases {#use-cases}
 
