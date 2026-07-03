@@ -52,7 +52,11 @@ informative:
 
 --- abstract
 
-This document describes the Moderation of unLinkable Endorsements (MoLE) architecture. In MoLE, Moderators make access control decisions using cryptographic Credentials derived from third-party Endorsements, with no client identification required. Credential presentations are unlinkable across presentations, and the issuing Anchor is hidden from Moderators, even under collusion. The architecture supports dynamic trust adjustment and is designed for open deployments where Anchors and Moderators set policy independently. This document specifies roles, privacy and security requirements, and deployment considerations.
+Moderation of unLinkable Endorsements (MoLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access.
+
+MoLE minimizes the information a client discloses when trust is bootstrapped and limits the signals by which a client can be tracked as it interacts with the system. In particular, a client's interactions are unlinkable to one another, and the endorsing Anchor for a client is hidden among the set of Anchors a Moderator trusts. These properties are designed to hold even when Anchors and Moderators collude. MoLE targets open deployments, in which Moderators and Anchors set their policies independently and need not coordinate.
+
+This document specifies the roles, the information flows between them, the privacy and security requirements, and deployment considerations.
 
 --- middle
 
