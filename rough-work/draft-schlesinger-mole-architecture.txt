@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 3 January 2027                                          Mozilla
+Expires: 4 January 2027                                          Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                             2 July 2026
+                                                             3 July 2026
 
 
                            MoLE Architecture
@@ -16,16 +16,26 @@ Expires: 3 January 2027                                          Mozilla
 
 Abstract
 
-   This document describes the Moderation of unLinkable Endorsements
-   (MoLE) architecture.  In MoLE, Moderators make access control
-   decisions using cryptographic Credentials derived from third-party
-   Endorsements, with no client identification required.  Credential
-   presentations are unlinkable across presentations, and the issuing
-   Anchor is hidden from Moderators, even under collusion.  The
-   architecture supports dynamic trust adjustment and is designed for
-   open deployments where Anchors and Moderators set policy
-   independently.  This document specifies roles, privacy and security
-   requirements, and deployment considerations.
+   Moderation of unLinkable Endorsements (MoLE) is an architecture that
+   lets a party performing access control (a Moderator) bootstrap trust
+   in a client from a third party (an Anchor) that already has a trust
+   relationship with that client, and then adjust that trust over time
+   in response to the client's behaviour, for example by dynamically
+   rate-limiting access.
+
+   MoLE minimizes the information a client discloses when trust is
+   bootstrapped and limits the signals by which a client can be tracked
+   as it interacts with the system.  In particular, a client's
+   interactions are unlinkable to one another, and the endorsing Anchor
+   for a client is hidden among the set of Anchors a Moderator trusts.
+   These properties are designed to hold even when Anchors and
+   Moderators collude.  MoLE targets open deployments, in which
+   Moderators and Anchors set their policies independently and need not
+   coordinate.
+
+   This document specifies the roles, the information flows between
+   them, the privacy and security requirements, and deployment
+   considerations.
 
 About This Document
 
@@ -56,7 +66,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 3 January 2027.
+   This Internet-Draft will expire on 4 January 2027.
 
 Copyright Notice
 
@@ -118,66 +128,64 @@ Table of Contents
 
 1.  Introduction
 
-   Moderation of unLinkable Endorsements (MoLE) is an architecture
-   designed to allow trust in a client to be efficiently bootstrapped
-   and then adjusted over a time, whilst minimizing the information the
-   client discloses during the bootstrapping and reducing signals the
-   client can be tracked as they interact with the system.  The
-   architecture supports an open deployment where participants do not
-   need to coordinate and may have independent views of the client's
-   trustworthiness and other participants trustworthiness.
+   Moderation of unLinkable Endorsements (MoLE) is an architecture that
+   allows a party performing access control to efficiently bootstrap
+   trust in a client from a third party that already trusts it, and then
+   to adjust that trust over time in response to the client's behaviour.
+   It does so while minimizing the information the client discloses when
+   trust is bootstrapped and reducing the signals by which the client
+   can be tracked as it interacts with the system.  MoLE targets open
+   deployments, in which participants need not coordinate and may hold
+   independent views of a client's trustworthiness and of one another's
+   trustworthiness.
 
-   Traditional approaches to this problem rely on exposing long-term
-   identifiers like user ids or cookies which enable clients to be
-   tracked as they interact with the system.  Newer approaches like
-   Privacy Pass enable access control without identification but do not
-   support a privacy-preserving bootstrapping mechanism, and cannot
-   adjust trust in clients dynamically over time.
+   Traditional approaches to this problem rely on long-term identifiers
+   such as user IDs or cookies, which allow clients to be tracked as
+   they interact with the system.  Newer approaches like Privacy Pass
+   [RFC9576] enable access control without identification, but do not
+   support a privacy-preserving mechanism for bootstrapping trust and
+   cannot adjust trust in clients dynamically over time.
 
-   MoLe has three distinct roles.  Clients are looking to access
-   resources protected by Moderators, who handle access control policy.
-   Moderators may not have a direct trust relationship with Clients, but
-   trust Anchors, who do have a trust relationship with some Clients, to
-   vouch for them.  A given Moderator may trust multiple Anchors in
-   order to achieve a high coverage of their user base.  Anchors may
-   trust clients which Moderator deem untrustworthy.  Moderators can
-   mitigate either by withdrawing trust in those specific clients or by
-   withdrawing trust in the Anchor.
+   MoLE has three distinct roles.  Clients seek to access resources
+   protected by Moderators, who set and enforce access control policy.
+   A Moderator may have no direct trust relationship with a Client, but
+   instead trusts Anchors, who do have a relationship with some Clients,
+   to vouch for them.  A given Moderator may trust multiple Anchors in
+   order to cover more of its user base.  An Anchor may vouch for
+   Clients that a Moderator deems untrustworthy; the Moderator can
+   mitigate this either by withdrawing trust in those specific Clients
+   or by withdrawing trust in the Anchor entirely.
 
    At a high level, MoLE relies on three distinct flows: Endorsement,
-   Issuance, and Presentation.  In Endorsement, a Client is issued with
-   an Endorsement by an Anchor, which conveys the Anchor's trust in the
-   Client to other parties.  In Issuance, a Client presents an
-   Endorsement to a Moderator and receives a Credential, enabling the
-   Moderator to bootstrap trust in the client.  In Presentation, the
-   Client presents a Credential to a Moderator, enabling it to make a
-   trust decision and adjust it's level of trust in the credential.
+   Issuance, and Presentation.  In Endorsement, an Anchor issues a
+   Client an Endorsement, which conveys the Anchor's trust in the Client
+   to other parties.  In Issuance, a Client presents an Endorsement to a
+   Moderator and receives a Credential, allowing the Moderator to
+   bootstrap its trust in the Client.  In Presentation, the Client
+   presents a Credential to a Moderator, allowing the Moderator to make
+   an access control decision and to adjust its level of trust in the
+   Client over time, including by dynamically rate-limiting access.
 
-   Critically, the presentation of an Endorsement does not reveal the
-   issuing Anchor, only that the Anchor was drawn from a pool of Anchors
-   trusted by the Moderator.  This is to avoid leaking information about
-   the client (e.g. which Anchor's policy they satisfy).  Further, the
-   Clients interactions in Issuance and Presentation are unlinkable,
-   preventing Anchors and Moderators from tracking clients.
-
-   This architecture enables Anchors, parties that have trust
-   relationships with clients, to convey that trust to Moderators,
-   parties which perform access control.  Moderators can adjust their
-   trust in clients over time according to the behavior and dynamically
-   rate limit their access, but clients enjoy strong privacy protections
-   from Anchors and Moderators, even if they collude.
+   Critically, presenting an Endorsement does not reveal the issuing
+   Anchor, only that it was drawn from a pool of Anchors the Moderator
+   trusts.  This avoids leaking information about the Client, such as
+   which Anchor's policy it satisfies.  Further, a Client's interactions
+   across Issuance and Presentation are unlinkable, preventing Anchors
+   and Moderators from tracking Clients.  These privacy properties are
+   designed to hold even when Anchors and Moderators collude.
 
    This document describes the requirements for these flows and how they
    interact, as well as the anticipated deployment model.
 
 2.  Use Cases
 
-   MoLe is intended to be deployed on the web, but is applicable for any
-   system where Moderators desire to rate limit access to resources
-   without having a direct relationship with their clients, but trust
-   third parties to vouch for trustworthy users.  MoLe tolerates third
-   parties making incorrect decisions, e.g. trusting a malicious client,
-   and enables Moderators to respond dynamically to limit abuse.
+   MoLE is intended to be deployed on the web, but is applicable to any
+   system where Moderators wish to rate-limit access to resources
+   without having a direct relationship with those clients, instead
+   trusting third parties to vouch for trustworthy users.  MoLE
+   tolerates third parties making incorrect decisions, e.g. trusting a
+   malicious client, and enables Moderators to respond dynamically to
+   limit abuse.
 
    MoLE targets an open system where a population of Moderators and
    Anchors make independent decisions about their access control policy,
@@ -188,32 +196,31 @@ Table of Contents
 
 2.1.  Reduced-Friction Challenges
 
-   A user visits a website for the first time, with no cookies, possibly
-   through a VPN or shared NAT that obscures the network-layer
-   identifier.  The site has no per-user history and limited
-   reputational signal from the network path, e.g. due to the use of a
-   VPN or privacy preserving proxy.  The user is the party who faces
-   friction if the site then chooses --- repeated CAPTCHAs, silent
-   rejection, or a degraded experience --- intended to mitigate
-   volumetric abuse, but harming users trying to access the site
-   legitimately.
+   A user visits a website for the first time, with no cookies and
+   possibly through a VPN, shared NAT, or privacy-preserving proxy that
+   obscures network-layer identifiers.  The site has no per-user history
+   and limited reputational signal from the network path.  The user then
+   bears the friction if the site responds with measures intended to
+   mitigate volumetric abuse --- repeated CAPTCHAs, silent rejection, or
+   a degraded experience --- which also harm users trying to access the
+   site legitimately.
 
    However, other sites may have access to relatively rich context about
-   a user, e.g. because the user maintains an account, made a payment or
-   provided some other scare signal to the site.  MoLE enables such
+   a user, e.g. because the user maintains an account, made a payment,
+   or provided some other scarce signal to the site.  MoLE enables such
    sites to act as Anchors which issue Endorsements to users, suitable
    for bootstrapping trust when users visit new sites for the first
    time.
 
    In this use case, the site acts as or works with a Moderator.  The
-   Client presents a Moderator credential whose underlying Anchor
-   credential attests to a scarce property accepted under the
-   Moderator's policy.  The site combines this signal with its existing
-   inputs to decide whether to admit, challenge, or reject the request.
-   A Moderator credential may be one input among several; it does not
-   entitle the Client to admission.  The Moderator can then go on to
-   adjust the client's credential in response to the Client's behaviour,
-   allowing access to be upgraded or removed over time.
+   Client presents a Credential whose underlying Endorsement attests to
+   a scarce property accepted under the Moderator's policy.  The site
+   combines this signal with its existing inputs to decide whether to
+   admit, challenge, or reject the request.  A Credential may be one
+   input among several; it does not entitle the Client to admission.
+   The Moderator can then go on to adjust the Client's Credential in
+   response to the Client's behaviour, allowing access to be upgraded or
+   removed over time.
 
 2.2.  User Agents Acting Under Delegation
 
@@ -225,29 +232,29 @@ Table of Contents
    for friction or denial of service.  This blocks delegated browsing as
    a side effect of resisting unwanted automation.
 
-   In this use case, the user agent presents a Moderator credential on
-   the user's behalf.  The site admits the request based on the user's
-   standing without the user agent surfacing a stable identity or
-   correlatable state.  From the credential alone, the Moderator and the
-   site cannot distinguish presentations driven by the agent from
-   presentations driven by the user directly.  Distinguishability via
-   request content, timing, or rate is the responsibility of the user
-   agent and is not addressed by the credential.
+   In this use case, the user agent presents a Credential on the user's
+   behalf.  The site admits the request based on the user's standing
+   without the user agent surfacing a stable identity or correlatable
+   state.  From the Credential alone, the Moderator and the site cannot
+   distinguish presentations driven by the agent from presentations
+   driven by the user directly.  Distinguishability via request content,
+   timing, or rate is the responsibility of the user agent and is not
+   addressed by the Credential.
 
    When delegated agent behaviour violates a Moderator's policy, the
-   Moderator may update state bound to the user's Moderator credential.
-   The result is the user bears the policy consequence of for the
-   behavior of the delegated agent.  However, the delegated agent's
-   actions remain unlinkable from other sessions and from the user's
-   sessions and the user's identity is not revealed to the site.
+   Moderator may update state bound to the user's Credential.  As a
+   result, the user bears the policy consequences for the behaviour of
+   the delegated agent.  However, the delegated agent's actions remain
+   unlinkable to other sessions and to the user's own sessions, and the
+   user's identity is not revealed to the site.
 
    Alternatively, delegated agents may use a distinct pool of Anchors
-   and Credentials from the user's traditional user-agent.  This
-   configuration enables to sites and Moderators to differentiate
-   between traditional user-agents and delegated user-agents and
-   prevents consequences of misbehavior in one context propagating to
-   the other.  User agents not acting under delegation from a user ---
-   for example, autonomous crawlers and non-browser automation --- could
+   and Credentials from the user's traditional user agent.  This
+   configuration enables sites and Moderators to differentiate between
+   traditional user agents and delegated user agents and prevents the
+   consequences of misbehaviour in one context from propagating to the
+   other.  User agents not acting under delegation from a user --- for
+   example, autonomous crawlers and non-browser automation --- could
    also be served with this architecture.
 
    In all configurations, clients enjoy strong privacy protections from
@@ -264,10 +271,10 @@ Table of Contents
 
    In this use case, the Anchor's attestation conveys eligibility under
    such a criterion, and the Moderator translates that eligibility into
-   a credential under a policy that may include rate or quota state.
+   a Credential under a policy that may include rate or quota state.
    Against the site alone, successive presentations are unlinkable to
-   each other and to issuance.  The Moderator necessarily observes
-   issuance; cross-presentation linkage at the Moderator is bounded to
+   each other and to Issuance.  The Moderator necessarily observes
+   Issuance; cross-presentation linkage at the Moderator is bounded to
    the granularity of the rate or quota state the credential carries,
    with details in Section 4.2.
 
@@ -292,40 +299,51 @@ Table of Contents
    *Anchor:*  An entity that issues Endorsements to Clients based on a
       trust relationship.
 
+   *Moderator:*  An entity that consumes presentations from Clients and
+      issues Credentials according to an access policy.
+
    *Endorsement:*  A cryptographic object issued by an Anchor to a
       Client.
 
-   *Moderator:*  An entity that consumes presentations from Clients and
-      issues credentials according to an access policy.
-
    *Credential:*  A cryptographic object issued by a Moderator to a
-      Client.  This credential has an associated integer state that is
+      Client.  This Credential has an associated integer state that is
       updated during presentation.
 
-   *Presentation:*  The mechanism by which Clients prove possession of a
-      credential satisfying specified attributes.
+   *Predicate:*  A boolean test that a Moderator evaluates against a
+      Credential's hidden state during a Presentation.  The Moderator
+      learns only whether the state satisfies the Predicate, not the
+      state itself.
+
+   *Presentation:*  The mechanism by which a Client proves possession of
+      a Credential whose state satisfies a Predicate specified by the
+      Moderator.
 
    *Policy:*  Rules used by a Moderator to evaluate presentations.
 
+   *Anonymity Set:*  The set of Clients among which a given Client is
+      indistinguishable during an interaction.  The strength of MoLE's
+      unlinkability and Anchor-hiding properties depends on the size of
+      this set.
+
 4.  Architecture
 
-   The MoLE architecture is constructed to orchestrate trust
-   relationships and information flows between three entities: Client,
-   Anchor, and Moderator.  These entities have a limited exchange of
-   information that allows for dynamic rate-limiting, bootstrapped from
-   existing knowledge, in an open ecosystem.  This section details the
+   The MoLE architecture orchestrates trust relationships and
+   information flows between three entities: Client, Anchor, and
+   Moderator.  These entities have a limited exchange of information
+   that allows for dynamic rate-limiting, bootstrapped from an Anchor's
+   existing trust, in an open ecosystem.  This section details the
    information flows and trust relationships between these entities
    along with requirements for the underlying protocols and APIs.
 
 4.1.  Overview
 
    MoLE is composed of three distinct flows: Endorsement, in which a
-   Client obtains an endorsement signifying its trust relationship with
-   an Anchor; Issuance, in which a Client uses an endorsement from an
-   Anchor to obtain credentials from a Moderator without revealing which
-   Anchor it was; and Presentation, in which a Client uses credentials
-   from a Moderator prove that it is presently in good standing with the
-   Moderator in order to access a resource.
+   Client obtains an Endorsement signifying its trust relationship with
+   an Anchor; Issuance, in which a Client uses an Endorsement from an
+   Anchor to obtain a Credential from a Moderator without revealing
+   which Anchor issued it; and Presentation, in which a Client uses a
+   Credential from a Moderator to prove that it is presently in good
+   standing with the Moderator in order to access a resource.
 
    +--------+                    +-----------+               +--------+
    | Client |                    | Moderator |               | Anchor |
@@ -341,13 +359,13 @@ Table of Contents
 
                         Figure 1: MoLE Architecture
 
-   During Endorsement, a Client interacts with an Anchor and the Anchor
-   has a trust relationship with the Client.  The nature of the trust
-   relationship is specific to the Anchor and may be based on some kind
-   of strong authentication, e.g. a login or may be relatively weak,
-   e.g. based on solving a CAPTCHA.  The Anchor issues the Client with
-   an Endorsement to signify this trust relationship.  Clients may
-   accrue multiple Endorsements from the same or different Anchors.
+   During Endorsement, a Client interacts with an Anchor with which it
+   has a trust relationship.  The nature of the trust relationship is
+   specific to the Anchor and may be based on some kind of strong
+   authentication, e.g. a login, or may be relatively weak, e.g. based
+   on solving a CAPTCHA.  The Anchor issues the Client an Endorsement to
+   signify this trust relationship.  Clients may accrue multiple
+   Endorsements from the same or different Anchors.
 
    Later, when trying to access a resource, a Client may be prompted by
    a Moderator to present a Credential.  If the Client doesn't have a
@@ -358,19 +376,19 @@ Table of Contents
    which Anchor was used, only that it came from the trusted pool.
 
    Once a Moderator has accepted a specific Endorsement, the Moderator
-   can prevent a second use of that endorsement in their system.  This
-   property prevents abusive clients from constantly resetting their
+   can prevent a second use of that Endorsement in their system.  This
+   property prevents abusive Clients from constantly resetting their
    state to receive an initial Credential from the Moderator in order to
    bypass rate limits.
 
    Finally, the Client can present the Credential to the Moderator,
    along with a credential update request.  This presentation enables
-   the Moderator to query the state of the credential and receive a
-   boolean value indicating whether the presented credential meets the
+   the Moderator to query the state of the Credential and receive a
+   boolean value indicating whether the presented Credential meets the
    Moderator's chosen predicate.  The Moderator can also update the
-   state of the Credential, e.g.to increase or decrease access, but this
-   process does not reveal any further information about the state of
-   the Credential.  Depending on the result of the applied predicate,
+   state of the Credential, e.g. to increase or decrease access, but
+   this process does not reveal any further information about the state
+   of the Credential.  Depending on the result of the applied predicate,
    the Moderator can make a decision about access control to the
    protected resource.
 
@@ -381,48 +399,49 @@ Table of Contents
    MoLE deployments aim to provide three privacy properties for Clients:
 
    1.  _Endorsement Issuances and Presentations are Unlinkable_ - During
-       an interaction in which a Moderator issues a new credential on
-       the basis of an Endorsement presented from an Anchor, neither the
+       an interaction in which a Moderator issues a new Credential on
+       the basis of an Endorsement obtained from an Anchor, neither the
        Moderator nor the Anchor can link the session in which the
        Endorsement was issued to the session in which it was presented.
 
    2.  _Endorsement Presentations are Anchor-hiding_ - During an
-       interaction in which a Moderator issues a new credential on the
+       interaction in which a Moderator issues a new Credential on the
        basis of an Endorsement from an Anchor, the Client hides the
-       Anchor it obtain the Endorsement from among a set of Anchors the
-       Moderator trust.  Such Anchor-hiding makes the Endorsement
-       presentation from the Client choosen Anchor indistinguishable
-       from others, to both the Anchor and the Moderator.
+       Anchor it obtained the Endorsement from among a set of Anchors
+       the Moderator trusts.  Such Anchor-hiding makes an Endorsement
+       presentation indistinguishable regardless of which trusted Anchor
+       the Client used, to both the Anchor and the Moderator.
 
-   3.  _Credential Issuances and Presentations are Unlinkable_ - If the
-       user engages in multiple presentations, then those presentations
-       are unlinkable to each other.
+   3.  _Credential Issuances and Presentations are Unlinkable_ - If a
+       Client engages in multiple presentations, then those
+       presentations are unlinkable to each other and to the Issuance
+       that produced the Credential.
 
    A successful presentation tells the Moderator that the Client holds a
    Credential satisfying the Moderator's policy.  It does not reveal the
    Client's identity, the underlying Anchor, or the state of the
-   Credential.  These strong privacy properties which aim to minimize
-   the information which Clients reveal to Anchors and Moderators,
-   beyond that which they are trusted to participate in the system.
+   Credential.  Collectively, these properties minimize the information
+   Clients reveal to Anchors and Moderators beyond what is necessary to
+   participate in the system.
 
    The strength of these unlinkability properties depends on anonymity-
    set size.  For Moderator-credential unlinkability, the relevant set
-   is the population of Clients holding credentials under the same
+   is the population of Clients holding Credentials under the same
    Moderator policy.
 
    For Anchor-hiding, the relevant set is the Moderator's accepted
-   Anchor set.  A Moderator with one accepted Anchor provides no issuer-
+   Anchor set.  A Moderator with one accepted Anchor provides no Anchor-
    hiding.
 
-   Further considerations for maximizing the size of these sets is set
-   out in Privacy Considerations.
+   Further considerations for maximizing the size of these sets are set
+   out in the Privacy Considerations section.
 
 4.2.2.  Threat Model
 
    MoLE's privacy properties are intended to hold in the face of strong
    attackers who:
 
-   *  May act in the role of Anchor, Moderator and other Clients
+   *  May act in the role of Anchor, Moderator, or Client.
 
    *  May collude with other Anchors and Moderators in order to try to
       identify Clients.
@@ -434,7 +453,7 @@ Table of Contents
 
    Some attackers may exploit information not directly revealed by the
    protocol, for example: - Timing information - Network metadata like
-   IP Addresses - Implementation Fingerprinting
+   IP addresses - Implementation fingerprinting
 
    These side channels, which depend on details specific to each
    deployment, may compromise the privacy properties of MoLE and are
@@ -448,15 +467,15 @@ Table of Contents
    can be assured:
 
    *  When they accept an Endorsement, that it corresponds to exactly
-      one Endorsement Issuance by trusted Anchor.
+      one Endorsement Issuance by a trusted Anchor.
 
    *  When they accept a Credential under a given predicate, that the
-      credential is one they previously issued with a matching
-      predicate.  Once a Credential has been presented, it will only be
-      accepted once unless the Moderator chooses to re-issue it.
+      Credential is one they previously issued with a matching
+      predicate.  Once a Credential has been presented, it will not be
+      accepted again unless the Moderator chooses to re-issue it.
 
    Collectively, these two properties allow Moderators to dynamically
-   rate limit access to the population of Anchor-endorsed clients.  If
+   rate-limit access to the population of Anchor-endorsed Clients.  If
    Endorsements or Credentials could be presented multiple times, it
    would allow malicious Clients to obtain additional Credentials which
    could be used to bypass rate limits.
@@ -464,18 +483,18 @@ Table of Contents
 4.3.2.  Threat Model
 
    MoLE's security properties are intended to hold in the face of
-   coordinated attackers who: - Can control a number of clients and
-   deviate from the protocol - Cannot violate the issuance criteria for
-   a Moderator's Trusted Anchors but may control other Anchors - Do not
+   coordinated attackers who: - Can control a number of Clients and
+   deviate from the protocol. - Cannot violate the issuance criteria for
+   a Moderator's trusted Anchors but may control other Anchors. - Do not
    have access to a cryptographically relevant quantum computer.
 
-   MoLe considers a cryptographically relevant quantum computer (CRQC)
-   for it's privacy properties like anchor hiding and unlinkability
-   because a CRQG deployed in the future could be used to analyse
-   protocol transcripts recorded today and so identify users.
-   Contrastingly, MoLe's security properties hold until attackers have
-   access to a CRQC and once they do, only impact security in future
-   protocol sessions.
+   MoLE considers a cryptographically relevant quantum computer (CRQC)
+   for its privacy properties like Anchor-hiding and unlinkability,
+   because a CRQC deployed in the future could be used to analyse
+   protocol transcripts recorded today and so identify Clients.  By
+   contrast, MoLE's security properties hold until an attacker gains
+   access to a CRQC; once they do, only future protocol sessions are
+   affected.
 
 4.4.  Flows
 
