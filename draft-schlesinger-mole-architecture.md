@@ -194,23 +194,33 @@ The following terms are used throughout this document:
 **Anchor:**
 : An entity that issues Endorsements to Clients based on a trust relationship.
 
+**Moderator:**
+: An entity that consumes presentations from Clients and issues Credentials
+  according to an access policy.
+
 **Endorsement:**
 : A cryptographic object issued by an Anchor to a Client.
 
-**Moderator:**
-: An entity that consumes presentations from Clients and issues credentials
-  according to an access policy.
-
 **Credential:**
-: A cryptographic object issued by a Moderator to a Client. This credential
+: A cryptographic object issued by a Moderator to a Client. This Credential
   has an associated integer state that is updated during presentation.
 
+**Predicate:**
+: A boolean test that a Moderator evaluates against a Credential's hidden state
+  during a Presentation. The Moderator learns only whether the state satisfies
+  the Predicate, not the state itself.
+
 **Presentation:**
-: The mechanism by which Clients prove possession of a credential satisfying
-  specified attributes.
+: The mechanism by which a Client proves possession of a Credential whose state
+  satisfies a Predicate specified by the Moderator.
 
 **Policy:**
 : Rules used by a Moderator to evaluate presentations.
+
+**Anonymity Set:**
+: The set of Clients among which a given Client is indistinguishable during an
+  interaction. The strength of MoLE's unlinkability and Anchor-hiding properties
+  depends on the size of this set.
 
 # Architecture {#architecture}
 
