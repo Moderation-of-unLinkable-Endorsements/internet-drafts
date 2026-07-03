@@ -280,40 +280,41 @@ Moderator's chosen predicate. The Moderator can also update the state of the Cre
 
 MoLE deployments aim to provide three privacy properties for Clients:
 
-1. *Endorsement Issuances and Presentations are Unlinkable* - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement presented from an Anchor, neither the Moderator nor the Anchor can link the session in which the Endorsement was issued to the session in which it was presented.
+1. *Endorsement Issuances and Presentations are Unlinkable* - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the session in which the Endorsement was issued to the session in which it was presented.
 
-1. *Endorsement Presentations are Anchor-hiding* - During an interaction in which a Moderator issues a new credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtain the Endorsement from among a set of Anchors the Moderator trust. Such Anchor-hiding makes the Endorsement presentation from the Client choosen Anchor indistinguishable from others, to both the Anchor and the Moderator.
+1. *Endorsement Presentations are Anchor-hiding* - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtained the Endorsement from among a set of Anchors the Moderator trusts. Such Anchor-hiding makes an Endorsement presentation indistinguishable regardless of which trusted Anchor the Client used, to both the Anchor and the Moderator.
 
-1. *Credential Issuances and Presentations are Unlinkable* - If the user engages in multiple presentations, then those presentations are unlinkable to each other.
+1. *Credential Issuances and Presentations are Unlinkable* - If a Client engages in multiple presentations, then those presentations are unlinkable to each other and to the Issuance that produced the Credential.
 
 A successful presentation tells the Moderator that the Client holds a
 Credential satisfying the Moderator's policy. It does not reveal the Client's
-identity, the underlying Anchor, or the state of the Credential. These strong privacy properties which
-aim to minimize the information which Clients reveal to Anchors and Moderators, beyond that which they are trusted to participate in the system.
+identity, the underlying Anchor, or the state of the Credential. Collectively,
+these properties minimize the information Clients reveal to Anchors and Moderators
+beyond what is necessary to participate in the system.
 
 The strength of these unlinkability properties depends on anonymity-set size. For
 Moderator-credential unlinkability, the relevant set is the population of
-Clients holding credentials under the same Moderator policy.
+Clients holding Credentials under the same Moderator policy.
 
 For Anchor-hiding,
 the relevant set is the Moderator's accepted Anchor set. A Moderator with one
-accepted Anchor provides no issuer-hiding.
+accepted Anchor provides no Anchor-hiding.
 
-Further considerations for maximizing the size of these sets is set out in Privacy Considerations.
+Further considerations for maximizing the size of these sets are set out in the Privacy Considerations section.
 
 ### Threat Model
 
 MoLE's privacy properties are intended to hold in the face of strong attackers who:
 
-* May act in the role of Anchor, Moderator and other Clients
+* May act in the role of Anchor, Moderator, or Client.
 * May collude with other Anchors and Moderators in order to try to identify Clients.
 * May have access to a cryptographically relevant quantum computer.
 * May deliberately deviate from the protocol and attempt to alter or forge messages.
 
 Some attackers may exploit information not directly revealed by the protocol, for example:
  - Timing information
- - Network metadata like IP Addresses
- - Implementation Fingerprinting
+ - Network metadata like IP addresses
+ - Implementation fingerprinting
 
 These side channels, which depend on details specific to each deployment, may compromise the privacy properties of MoLE and are discussed further in the Privacy Considerations.
 
