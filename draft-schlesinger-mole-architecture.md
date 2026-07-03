@@ -108,30 +108,32 @@ as well as the anticipated deployment model.
 
 # Use Cases {#use-cases}
 
-MoLe is intended to be deployed on the web, but is applicable for any system where Moderators desire to rate limit access to resources without having a direct relationship with their clients, but trust third parties to vouch for trustworthy users. MoLe tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
+MoLE is intended to be deployed on the web, but is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MoLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
 
 MoLE targets an open system where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.
 
 ## Reduced-Friction Challenges {#uc-friction}
 
-A user visits a website for the first time, with no cookies, possibly through a
-VPN or shared NAT that obscures the network-layer identifier. The site has no
-per-user history and limited reputational signal from the network path, e.g. due to the use of a VPN or privacy preserving proxy. The
-user is the party who faces friction if the site then chooses ---
-repeated CAPTCHAs, silent rejection, or a degraded experience --- intended to mitigate volumetric abuse, but harming users trying to access the site legitimately.
+A user visits a website for the first time, with no cookies and possibly through
+a VPN, shared NAT, or privacy-preserving proxy that obscures network-layer
+identifiers. The site has no per-user history and limited reputational signal
+from the network path. The user then bears the friction if the site responds
+with measures intended to mitigate volumetric abuse --- repeated CAPTCHAs,
+silent rejection, or a degraded experience --- which also harm users trying to
+access the site legitimately.
 
 However, other sites may have access to relatively rich context about a user, e.g. because
-the user maintains an account, made a payment or provided some other scare
+the user maintains an account, made a payment, or provided some other scarce
 signal to the site. MoLE enables such sites to act as Anchors which issue
 Endorsements to users, suitable for bootstrapping trust when users visit new sites for the first time.
 
 In this use case, the site acts as or works with a Moderator.
-The Client presents a Moderator credential whose underlying
-Anchor credential attests to a scarce property accepted under the Moderator's
+The Client presents a Credential whose underlying
+Endorsement attests to a scarce property accepted under the Moderator's
 policy. The site combines this signal with its existing inputs to decide
-whether to admit, challenge, or reject the request. A Moderator credential may be
+whether to admit, challenge, or reject the request. A Credential may be
 one input among several; it does not entitle the Client to admission.
-The Moderator can then go on to adjust the client's credential in response to the Client's behaviour, allowing access to be upgraded or removed over time.
+The Moderator can then go on to adjust the Client's Credential in response to the Client's behaviour, allowing access to be upgraded or removed over time.
 
 ## User Agents Acting Under Delegation {#uc-agents}
 
@@ -142,21 +144,21 @@ themselves. Sites that lack a richer signal commonly treat the appearance of
 automation as grounds for friction or denial of service. This blocks delegated
 browsing as a side effect of resisting unwanted automation.
 
-In this use case, the user agent presents a Moderator credential on the user's
+In this use case, the user agent presents a Credential on the user's
 behalf. The site admits the request based on the user's standing without the
 user agent surfacing a stable identity or correlatable state. From the
-credential alone, the Moderator and the site cannot distinguish presentations
+Credential alone, the Moderator and the site cannot distinguish presentations
 driven by the agent from presentations driven by the user directly.
 Distinguishability via request content, timing, or rate is the responsibility
-of the user agent and is not addressed by the credential.
+of the user agent and is not addressed by the Credential.
 
 When delegated agent behaviour violates a Moderator's policy, the Moderator may
-update state bound to the user's Moderator credential. The result is the user bears the policy consequence of for the behavior of the delegated agent. However, the delegated agent's actions remain unlinkable from other sessions and from the user's sessions and the user's identity is not revealed to the site.
+update state bound to the user's Credential. As a result, the user bears the policy consequences for the behaviour of the delegated agent. However, the delegated agent's actions remain unlinkable to other sessions and to the user's own sessions, and the user's identity is not revealed to the site.
 
 Alternatively, delegated agents may use a distinct pool of Anchors and Credentials from
-the user's traditional user-agent. This configuration enables to sites and Moderators to differentiate
-between traditional user-agents and delegated user-agents and prevents consequences of
-misbehavior in one context propagating to the other. User agents not acting under delegation from a user --- for example, autonomous crawlers and non-browser automation --- could also be served with this architecture.
+the user's traditional user agent. This configuration enables sites and Moderators to differentiate
+between traditional user agents and delegated user agents and prevents the consequences of
+misbehaviour in one context from propagating to the other. User agents not acting under delegation from a user --- for example, autonomous crawlers and non-browser automation --- could also be served with this architecture.
 
 In all configurations, clients enjoy strong privacy protections from sites and Moderators, whilst sites and Moderators enjoy strong protections from abusive clients mounting volumetric attacks.
 
@@ -168,10 +170,10 @@ functionality on a non-public criterion such as a paid subscription, group
 membership, or a per-period quota of allowed operations.
 
 In this use case, the Anchor's attestation conveys eligibility under such a
-criterion, and the Moderator translates that eligibility into a credential
+criterion, and the Moderator translates that eligibility into a Credential
 under a policy that may include rate or quota state. Against the site alone,
-successive presentations are unlinkable to each other and to issuance. The
-Moderator necessarily observes issuance; cross-presentation linkage at the
+successive presentations are unlinkable to each other and to Issuance. The
+Moderator necessarily observes Issuance; cross-presentation linkage at the
 Moderator is bounded to the granularity of the rate or quota state the
 credential carries, with details in {{privacy-properties}}.
 
