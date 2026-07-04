@@ -355,13 +355,13 @@ EndorsementFinalization        |
 ~~~
 {: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
 
-An Anchor will endorse a client according to it's own criteria for trust in the client.
+An Anchor will endorse a client according to its own criteria for trust in the client.
 This may be because of some kind of strong authentication like a login, weak authentication
 like a CAPTCHA or any other mechanism that the Anchor deems suitable. Moderators will choose
-whether to trust a specific Anchor on the basis of it's criteria for endorsing users.
+whether to trust a specific Anchor on the basis of its criteria for endorsing users.
 
 In order to be useful, Anchors will need to constrain how many times they will Endorse a given user.
-This is because Endorsement's are valuable to Clients and Moderators in sofar as they are scarce. If
+This is because Endorsements are valuable to Clients and Moderators insofar as they are scarce. If
 an Anchor gave out a very large number of Endorsements, this would reduce the effectiveness of rate limiting
 applied by Moderators.
 
@@ -485,9 +485,9 @@ Similarly, when a Moderator is challenging for a credential, the client needs to
 
 ## Discriminatory Treatment
 
-In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLe does not change this but does provide a new privacy preserving access control mechanism.
+In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLE does not change this but does provide a new privacy preserving access control mechanism.
 
-In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to support a diverse range of attestors in order to reduce the possibility of discriminator treatment by token verifiers. However, arranging many attestors to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attestors with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attestors to share fate with low value attestors.
+In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to support a diverse range of attesters in order to reduce the possibility of discriminatory treatment by token verifiers. However, arranging many attesters to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attesters with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attesters to share fate with low value attesters.
 
 The use of Anchors in MoLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.
 
@@ -499,15 +499,15 @@ RFC XXXX, Section XX.X, identifies Centralization as a major risk from Privacy P
 
 The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.
 
-MoLe allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLe enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
+MoLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLE enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
 
 However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.
 
 ## Deployment in a Web Context
 
-In a Web setting, the MoLe architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.
+In a Web setting, the MoLE architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.
 
-Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLe endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.
+Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLE endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.
 
 # Security Considerations
 
@@ -519,9 +519,9 @@ Moderator key compromise will enable an attack to produce as many credentials as
 
 ## State Management
 
-MoLe requires Anchors and Moderators to maintain state in order to uphold it's security properties. Anchors which issues on the basis of some long term account will need to maintain state in order to record when a user has been issued an Endorsement. Moderators require state in order to prevent the double-spend of Endorsements and Credentials.
+MoLE requires Anchors and Moderators to maintain state in order to uphold its security properties. Anchors which issue on the basis of some long term account will need to maintain state in order to record when a user has been issued an Endorsement. Moderators require state in order to prevent the double-spend of Endorsements and Credentials.
 
-MoLe requires Clients to maintain state in order to benefit from the system. It also requires the timely deletion of state in order to maintain it's privacy properties. Firstly, clients must maintain state for their Endorsements and Credentials in order to benefit from the system. Secondly, clients must ensure that once an Endorsement or Credential has been presented, it is deleted or otherwise rendered incapable of being presented again. If a Client undergoes state reset, it compromise the privacy properties of the system.
+MoLE requires Clients to maintain state in order to benefit from the system. It also requires the timely deletion of state in order to maintain its privacy properties. Firstly, clients must maintain state for their Endorsements and Credentials in order to benefit from the system. Secondly, clients must ensure that once an Endorsement or Credential has been presented, it is deleted or otherwise rendered incapable of being presented again. If a Client undergoes state reset, it compromises the privacy properties of the system.
 
 ## DDOS Mitigations
 
@@ -535,7 +535,7 @@ As the Endorsement flow is triggered by the Anchor in a context where it already
 
 ## Anonymity Sets and Minimum Thresholds
 
-Client anonymity sets depend on the total number of clients that share the same configuration metadata. During an Issuance flow, this corresponds to the number of other Clients that posess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.
+Client anonymity sets depend on the total number of clients that share the same configuration metadata. During an Issuance flow, this corresponds to the number of other Clients that possess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.
 
 Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to present an Endorsement during Issuance unless at least one trusted Anchor is of sufficient size.
 
@@ -560,15 +560,15 @@ MoLE does not address all channels that can identify Clients. For example, side 
 
 Timing side channels may also reduce the practical anonymity set. For example, Issuance may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long issuance takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after issuance.
 
-Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Issuance. This timing side channel is particuarly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Issuance session.
+Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Issuance. This timing side channel is particularly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to an Issuance session.
 
 Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Issuance and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.
 
 ## Multiple Presentations in Concurrent Contexts
 
-Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client beings to present their credential, they must mark it as burned and cannot use it in another session.
+Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client begins to present their credential, they must mark it as burned and cannot use it in another session.
 
-If the Moderator simultanousely issues a challenge for a presentation in a different session, the Moderator can conclude that the Client cannot also answer that presentation (assuming it has a single Credential). A similar pattern holds for Updates. A Credential being Updated cannot be Updated or Presented in any other session.
+If the Moderator simultaneously issues a challenge for a presentation in a different session, the Moderator can conclude that the Client cannot also answer that presentation (assuming it has a single Credential). A similar pattern holds for Updates. A Credential being Updated cannot be Updated or Presented in any other session.
 
 In order to avoid this behavior being exploited for a timing side channel. E.g. an attacker holds an Update on one client and challenges for Updates in other sessions in order to link two sessions. The client must only never offer the same Credential in concurrent contexts. That is, once a Credential has been used in one context, it must remain locked to that context for a period of a time.
 
@@ -580,7 +580,7 @@ Every successful presentation of a Credential reveals at least one bit of inform
 
 For example, consider a Moderator that assigns each user a unique integer in their credential, a Presentation Predictate which checks the integer is > 0 and an Update predicate which reduces the integer by 1. If the Moderator can repeatedly issue Presentations and Updates, it can recover each user's unique integer in a given context, allowing their sessions to be linked.
 
-Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigation's to different sites as bounc tracking or use of tracking URLs can enable information to cross to new pages.
+Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigations to different sites as bounce tracking or use of tracking URLs can enable information to cross to new pages.
 
 Multiple updates are fine as long as the Updates can never fail.
 
