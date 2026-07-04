@@ -487,7 +487,7 @@ Similarly, when a Moderator is challenging for a credential, the client needs to
 
 In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLE does not change this but does provide a new privacy preserving access control mechanism.
 
-In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to support a diverse range of attesters in order to reduce the possibility of discriminatory treatment by token verifiers. However, arranging many attesters to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attesters with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attesters to share fate with low value attesters.
+In {{Section 5.1 of RFC9576}}, Privacy Pass Issuers were encouraged to support a diverse range of attesters in order to reduce the possibility of discriminatory treatment by token verifiers. However, arranging many attesters to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attesters with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attesters to share fate with low value attesters.
 
 The use of Anchors in MoLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.
 
@@ -495,7 +495,7 @@ Further, the use of Anchor-Blinding prevents this from being a privacy risk for 
 
 ## Centralization
 
-RFC XXXX, Section XX.X, identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.
+{{Section 5.2 of RFC9576}} identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.
 
 The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.
 
