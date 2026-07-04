@@ -471,7 +471,7 @@ TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measur
 
 # Deployment Considerations
 
-## Anchor Selection and Policy
+## Anchor Selection and Policy {#anchor-policy}
 
 Moderators seek a deployment where honest users are able to pass as many challenges as possible, whereas the number of presentations that malicious users can pass is minimized. The exact weighting between the risk of excluding honest users vs including malicious users is deployment specific.
 
@@ -519,9 +519,22 @@ Moderator key compromise will enable an attack to produce as many credentials as
 
 ## State Management
 
-MoLE requires Anchors and Moderators to maintain state in order to uphold its security properties. Anchors which issue on the basis of some long term account will need to maintain state in order to record when a user has been issued an Endorsement. Moderators require state in order to prevent the double-spend of Endorsements and Credentials.
+MoLE requires all parties to maintain state in order to uphold its security and
+privacy properties.
 
-MoLE requires Clients to maintain state in order to benefit from the system. It also requires the timely deletion of state in order to maintain its privacy properties. Firstly, clients must maintain state for their Endorsements and Credentials in order to benefit from the system. Secondly, clients must ensure that once an Endorsement or Credential has been presented, it is deleted or otherwise rendered incapable of being presented again. If a Client undergoes state reset, it compromises the privacy properties of the system.
+**Anchors** which issue on the basis of some long term account
+will need to maintain state in order to record when a user has been issued an
+Endorsement (see {{anchor-policy}}). Losing this state means over-issuance,
+but not a privacy loss.
+
+**Moderators** require state in order to prevent the double-spend of
+Endorsements and Credentials. State should be bounded to uphold {{privacy-properties}}.
+
+**Clients** store their tokens and MUST burn them once presented (see
+{{concurrent-contexts}}). Ensuring that they do no replay state is their responsibility,
+as it puts them in control of the {{privacy-properties}}. If a Client is unsure
+that its state is valid SHOULD discard the affected tokens. This might affect
+their availability, but still uphold privacy and security.
 
 ## DDOS Mitigations
 
@@ -564,7 +577,7 @@ Depending on the configuration of clients, other timing side channels may exist 
 
 Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Issuance and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.
 
-## Multiple Presentations in Concurrent Contexts
+## Multiple Presentations in Concurrent Contexts {#concurrent-contexts}
 
 Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client begins to present their credential, they must mark it as burned and cannot use it in another session.
 
