@@ -9,7 +9,9 @@
 <meta content="Dennis Jackson" name="author">
 <meta content="Thibault Meunier" name="author">
 <meta content="
-       TODO Abstract 
+       Moderation of unLinkable Endorsements (MoLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access. 
+       MoLE minimizes the information a client discloses when trust is bootstrapped and limits the signals by which a client can be tracked as it interacts with the system. In particular, a client's interactions are unlinkable to one another, and the endorsing Anchor for a client is hidden among the set of Anchors a Moderator trusts. These properties are designed to hold even when Anchors and Moderators collude. MoLE targets open deployments, in which Moderators and Anchors set their policies independently and need not coordinate. 
+       This document specifies the roles, the information flows between them, the privacy and security requirements, and deployment considerations. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="moderation" name="keyword">
@@ -30,7 +32,7 @@
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.1
+    wcwidth 0.8.2
 -->
 <link href="draft-schlesinger-mole-architecture.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1049,11 +1051,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">MoLE Architecture</td>
-<td class="right">June 2026</td>
+<td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 25 December 2026</td>
+<td class="center">Expires 5 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-architecture-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-06-23" class="published">23 June 2026</time>
+<time datetime="2026-07-04" class="published">4 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2026-12-25">25 December 2026</time></dd>
+<dd class="expires"><time datetime="2027-01-05">5 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1092,7 +1094,9 @@ svg {
 <h1 id="title">MoLE Architecture</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">Moderation of unLinkable Endorsements (MoLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">MoLE minimizes the information a client discloses when trust is bootstrapped and limits the signals by which a client can be tracked as it interacts with the system. In particular, a client's interactions are unlinkable to one another, and the endorsing Anchor for a client is hidden among the set of Anchors a Moderator trusts. These properties are designed to hold even when Anchors and Moderators collude. MoLE targets open deployments, in which Moderators and Anchors set their policies independently and need not coordinate.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-3">This document specifies the roles, the information flows between them, the privacy and security requirements, and deployment considerations.<a href="#section-abstract-3" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1124,7 +1128,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 December 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 5 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1180,72 +1184,119 @@ svg {
                 <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-overview" class="internal xref">Overview</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-flows" class="internal xref">Flows</a></p>
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-privacy-goals-and-threat-mo" class="internal xref">Privacy Goals and Threat Model</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
-                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-endorsement" class="internal xref">Endorsement</a></p>
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-goals" class="internal xref">Goals</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
-                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-credential-issuance" class="internal xref">Credential Issuance</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
-                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-credential-presentation-and" class="internal xref">Credential Presentation and updates</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.4">
-                    <p id="section-toc.1-1.4.2.2.2.4.1"><a href="#section-4.2.4" class="auto internal xref">4.2.4</a>.  <a href="#name-discovery-and-consistency" class="internal xref">Discovery and consistency</a></p>
+                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-threat-model" class="internal xref">Threat Model</a></p>
 </li>
                 </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-security-goals-and-threat-m" class="internal xref">Security Goals and Threat Model</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.1">
+                    <p id="section-toc.1-1.4.2.3.2.1.1"><a href="#section-4.3.1" class="auto internal xref">4.3.1</a>.  <a href="#name-goals-2" class="internal xref">Goals</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3.2.2">
+                    <p id="section-toc.1-1.4.2.3.2.2.1"><a href="#section-4.3.2" class="auto internal xref">4.3.2</a>.  <a href="#name-threat-model-2" class="internal xref">Threat Model</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-flows" class="internal xref">Flows</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-endorsement" class="internal xref">Endorsement</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-credential-issuance" class="internal xref">Credential Issuance</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
+                    <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-credential-presentation-and" class="internal xref">Credential Presentation and updates</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-anchor-feedback" class="internal xref">Anchor Feedback</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-privacy-properties" class="internal xref">Privacy Properties</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-deployment-considerations" class="internal xref">Deployment Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-goals" class="internal xref">Goals</a></p>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-anchor-selection-and-policy" class="internal xref">Anchor Selection and Policy</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-threat-model" class="internal xref">Threat Model</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-authorization-strategies" class="internal xref">Authorization Strategies</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-anonymity-sets" class="internal xref">Anonymity Sets</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-discriminatory-treatment" class="internal xref">Discriminatory Treatment</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
-                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-state" class="internal xref">State</a></p>
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-centralization" class="internal xref">Centralization</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
-                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-side-channels" class="internal xref">Side Channels</a></p>
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-deployment-in-a-web-context" class="internal xref">Deployment in a Web Context</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-deployment-considerations" class="internal xref">Deployment Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-references" class="internal xref">References</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
-                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-key-compromise" class="internal xref">Key Compromise</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
-                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-state-management" class="internal xref">State Management</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-ddos-mitigations" class="internal xref">DDOS Mitigations</a></p>
 </li>
             </ul>
 </li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-anonymity-sets-and-minimum-" class="internal xref">Anonymity Sets and Minimum Thresholds</a></p>
 </li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
-            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-configuration-consistency-a" class="internal xref">Configuration Consistency and Partitioning Attacks</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-side-channels" class="internal xref">Side Channels</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.4">
+                <p id="section-toc.1-1.7.2.4.1"><a href="#section-7.4" class="auto internal xref">7.4</a>.  <a href="#name-multiple-presentations-in-c" class="internal xref">Multiple Presentations in Concurrent Contexts</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.5">
+                <p id="section-toc.1-1.7.2.5.1"><a href="#section-7.5" class="auto internal xref">7.5</a>.  <a href="#name-multiple-presentations-in-t" class="internal xref">Multiple Presentations in the Same Context</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1256,57 +1307,44 @@ svg {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">Moderation of unLinkable Endorsements (MoLE) is an architecture in which
-Sites make authorization decisions from unlinkable, issuer-hiding credential
-presentations derived from scarce signals.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">Users often encounter friction when a Site has little prior context about
-them: for example, when they arrive with no cookies, use a VPN, enable
-privacy-preserving browser settings, or delegate browsing to a software agent.
-In those cases, the Site may present a CAPTCHA, use fingerprinting, reject the
-request, or return a degraded experience. These mechanisms add friction,
-collect more information about users, or both. They affect users with strong
-privacy preferences and users with accessibility needs. <span>[<a href="#INTERNET-END-USER" class="cite xref">INTERNET-END-USER</a>]</span>
-directs the IETF to consider the interests of end users;
-<span>[<a href="#PERVASIVE-MONITORING" class="cite xref">PERVASIVE-MONITORING</a>]</span> treats pervasive monitoring as an attack.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">MoLE aims to reduce this friction, whilst maintaining the privacy of users, by
-enabling new information flows between Sites subject to cryptographically
-enforced limits.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">Some Sites have access to relatively rich context about a user, e.g. because
-the user maintains an account, made a payment or provided some other scare
-signal to the Site. MoLE enables such Sites to act as Anchors which issue
-Endorsements to users, suitable for bootstrapping trust in other contexts.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">MoLE enables multiple Sites to share an access policy through a
-Moderator. The Moderator holds a list of trusted Anchors, and can use the Anchor's
-Endorsements to issue Credentials to Users which are suitable for use on any of
-it's associated Sites. The Moderator can adjust their confidence in the
-credentials presented by a user over time. This allows the Moderator to reduce
-friction for honest users and increase friction for users which are judged to be
-misbehaving (e.g. spamming, credential stuffing, etc).<a href="#section-1-5" class="pilcrow">¶</a></p>
-<p id="section-1-6">MoLE
-delivers this functionality whilst providing strong privacy protections for users. Sites and Moderators cannot
-learn which Anchors a user has access to, only that it holds at least one
-suitable Endorsement from the Moderator's trusted list (Anchor Blindness).
-Further, even if Sites, Moderators and Anchors all collude in an attempt to
-violate User privacy, the user's presentation of their credentials and
-endorsements cannot be linked across different contexts (Unlinkability).<a href="#section-1-6" class="pilcrow">¶</a></p>
-<p id="section-1-7">MoLE is inspired by the Privacy Pass architecture <span>[<a href="#RFC9576" class="cite xref">RFC9576</a>]</span>, but differs in
-a number of aspects.<a href="#section-1-7" class="pilcrow">¶</a></p>
-<p id="section-1-8">Firstly, MoLE provides greater utility to Sites by enabling Moderators to
-dynamically adjust access in response to how a credential is used. Privacy Pass
-enforces a flat rate limit based on access to an underlying credential which
-cannot be curtailed even if usage is obviously abusive. This leads to
-fundamentally different information flows, privacy analysis and cryptographic
-techniques.<a href="#section-1-8" class="pilcrow">¶</a></p>
-<p id="section-1-9">Secondly, MoLE targets a deployment in an open ecosystem where multiple Anchors,
-Moderators and Sites coexist with different policies. This openness, necessary
-for deployment in contexts like the Web, requires stronger privacy properties
-than are delivered by Privacy Pass. For example, MoLE cannot rely on
-non-collusion assumptions between Issuer and Attester as is required in Privacy
-Pass's rate-limiting deployments and must instead ensure it's privacy properties
-are founded on suitable cryptographic assumptions.<a href="#section-1-9" class="pilcrow">¶</a></p>
-<p id="section-1-10">This document specifies MoLE roles, privacy and security requirements, and
-deployment considerations. Wire protocols and cryptographic instantiations are
-specified in companion documents.<a href="#section-1-10" class="pilcrow">¶</a></p>
+<p id="section-1-1">Moderation of unLinkable Endorsements (MoLE) is an architecture that allows a
+party performing access control to efficiently bootstrap trust in a client from
+a third party that already trusts it, and then to adjust that trust over time in
+response to the client's behaviour. It does so while minimizing the information
+the client discloses when trust is bootstrapped and reducing the signals by
+which the client can be tracked as it interacts with the system. MoLE targets
+open deployments, in which participants need not coordinate and may hold
+independent views of a client's trustworthiness and of one another's
+trustworthiness.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">Traditional approaches to this problem rely on long-term identifiers such as
+user IDs or cookies, which allow clients to be tracked as they interact with the
+system. Newer approaches like Privacy Pass <span>[<a href="#RFC9576" class="cite xref">RFC9576</a>]</span> enable access control
+without identification, but do not support a privacy-preserving mechanism for
+bootstrapping trust and cannot adjust trust in clients dynamically over time.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">MoLE has three distinct roles. Clients seek to access resources protected by
+Moderators, who set and enforce access control policy. A Moderator may have no
+direct trust relationship with a Client, but instead trusts Anchors, who do have
+a relationship with some Clients, to vouch for them. A given Moderator may trust
+multiple Anchors in order to cover more of its user base. An Anchor may vouch for
+Clients that a Moderator deems untrustworthy; the Moderator can mitigate this
+either by withdrawing trust in those specific Clients or by withdrawing trust in
+the Anchor entirely.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">At a high level, MoLE relies on three distinct flows: Endorsement, Issuance, and
+Presentation. In Endorsement, an Anchor issues a Client an Endorsement, which
+conveys the Anchor's trust in the Client to other parties. In Issuance, a Client
+presents an Endorsement to a Moderator and receives a Credential, allowing the
+Moderator to bootstrap its trust in the Client. In Presentation, the Client
+presents a Credential to a Moderator, allowing the Moderator to make an access
+control decision and to adjust its level of trust in the Client over time,
+including by dynamically rate-limiting access.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">Critically, presenting an Endorsement does not reveal the issuing Anchor, only
+that it was drawn from a pool of Anchors the Moderator trusts. This avoids
+leaking information about the Client, such as which Anchor's policy it satisfies.
+Further, a Client's interactions across Issuance and Presentation are unlinkable,
+preventing Anchors and Moderators from tracking Clients. These privacy properties
+are designed to hold even when Anchors and Moderators collude.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">This document describes the requirements for these flows and how they interact,
+as well as the anticipated deployment model.<a href="#section-1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="use-cases">
@@ -1314,36 +1352,31 @@ specified in companion documents.<a href="#section-1-10" class="pilcrow">¶</a><
       <h2 id="name-use-cases">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-use-cases" class="section-name selfRef">Use Cases</a>
       </h2>
-<p id="section-2-1">In each use case the Client acts on behalf of a user, as part of, or accessed
-by, a user agent <span>[<a href="#RFC9110" class="cite xref">RFC9110</a>]</span>. The architecture distinguishes the trust the
-user places in the user agent from any further delegation the user agent may
-itself perform, and does not prejudge the latter.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">No use case below by itself motivates the full architecture: simpler designs
-cover each in isolation. The case for the architecture rests on the openness
-argument in the Introduction together with the union of these cases, and is
-most strongly load-bearing for the second.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-1">MoLE is intended to be deployed on the web, but is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MoLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">MoLE targets an open system where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <div id="uc-friction">
 <section id="section-2.1">
         <h3 id="name-reduced-friction-challenges">
 <a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-reduced-friction-challenges" class="section-name selfRef">Reduced-Friction Challenges</a>
         </h3>
-<p id="section-2.1-1">A user visits a Site for the first time, with no cookies, possibly through a
-VPN or shared NAT that obscures the network-layer identifier. The Site has no
-per-user history and limited reputational signal from the network path. The
-user is the party who bears the cost of whatever the Site then chooses ---
-repeated CAPTCHAs, silent rejection, or a degraded experience --- with
-disproportionate cost to users on privacy-preserving network paths and to users
-with accessibility needs.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
-<p id="section-2.1-2">In this use case, the Client presents a Moderator credential whose underlying
-Anchor credential attests to a scarce property accepted under the Moderator's
-policy. The Site combines this signal with its existing inputs to decide
-whether to admit, challenge, or reject the request. A Moderator credential is
-one input among several; it does not entitle the Client to admission.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
-<p id="section-2.1-3">Two consequences shape the design. First, the Client presents a Moderator
-credential to the Site in a single request/response exchange; acquisition of
-Anchor and Moderator credentials happens off this path. Second, the design must
-admit user agents partially or wholly automated on behalf of the user; see
-<a href="#uc-agents" class="auto internal xref">Section 2.2</a>.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
+<p id="section-2.1-1">A user visits a website for the first time, with no cookies and possibly through
+a VPN, shared NAT, or privacy-preserving proxy that obscures network-layer
+identifiers. The site has no per-user history and limited reputational signal
+from the network path. The user then bears the friction if the site responds
+with measures intended to mitigate volumetric abuse --- repeated CAPTCHAs,
+silent rejection, or a degraded experience --- which also harm users trying to
+access the site legitimately.<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<p id="section-2.1-2">However, other sites may have access to relatively rich context about a user, e.g. because
+the user maintains an account, made a payment, or provided some other scarce
+signal to the site. MoLE enables such sites to act as Anchors which issue
+Endorsements to users, suitable for bootstrapping trust when users visit new sites for the first time.<a href="#section-2.1-2" class="pilcrow">¶</a></p>
+<p id="section-2.1-3">In this use case, the site acts as or works with a Moderator.
+The Client presents a Credential whose underlying
+Endorsement attests to a scarce property accepted under the Moderator's
+policy. The site combines this signal with its existing inputs to decide
+whether to admit, challenge, or reject the request. A Credential may be
+one input among several; it does not entitle the Client to admission.
+The Moderator can then go on to adjust the Client's Credential in response to the Client's behaviour, allowing access to be upgraded or removed over time.<a href="#section-2.1-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="uc-agents">
@@ -1351,38 +1384,26 @@ admit user agents partially or wholly automated on behalf of the user; see
         <h3 id="name-user-agents-acting-under-de">
 <a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-user-agents-acting-under-de" class="section-name selfRef">User Agents Acting Under Delegation</a>
         </h3>
-<p id="section-2.2-1">A user delegates some of their interaction with a Site to an automated agent
+<p id="section-2.2-1">A user delegates some of their interaction with a site to an automated agent
 running in, or alongside, their browser. Such an agent is a user agent: it acts
 under delegation from a user who could otherwise have driven the browser
 themselves. Sites that lack a richer signal commonly treat the appearance of
 automation as grounds for friction or denial of service. This blocks delegated
 browsing as a side effect of resisting unwanted automation.<a href="#section-2.2-1" class="pilcrow">¶</a></p>
-<p id="section-2.2-2">In this use case, the user agent presents a Moderator credential on the user's
-behalf. The Site admits the request based on the user's standing without the
+<p id="section-2.2-2">In this use case, the user agent presents a Credential on the user's
+behalf. The site admits the request based on the user's standing without the
 user agent surfacing a stable identity or correlatable state. From the
-credential alone, the Moderator and the Site cannot distinguish presentations
+Credential alone, the Moderator and the site cannot distinguish presentations
 driven by the agent from presentations driven by the user directly.
 Distinguishability via request content, timing, or rate is the responsibility
-of the user agent and is not addressed by the credential.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
+of the user agent and is not addressed by the Credential.<a href="#section-2.2-2" class="pilcrow">¶</a></p>
 <p id="section-2.2-3">When delegated agent behaviour violates a Moderator's policy, the Moderator may
-update state bound to the user's Moderator credential. This is a deliberate
-design choice: the user bears the policy consequence of how they have chosen to
-delegate, but does so via a credential unlinkable to the Site, not via
-per-user reputation visible to it. The scope of that state, and the requirement
-that Moderator state updates not leak information equivalent to per-user state
-queries, are addressed in <a href="#privacy-properties" class="auto internal xref">Section 5</a>.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
-<p id="section-2.2-4">This use case is in tension with <a href="#uc-friction" class="auto internal xref">Section 2.1</a>: the same surface that admits
-a low-friction first visit can also admit unwanted automation. The architecture
-locates the trust decision at the Anchor (over scarce signals about the user or
-device) and at the Moderator (over policy), not at the appearance of automation
-in any single request.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
-<p id="section-2.2-5">User agents not acting under delegation from a user --- for example, autonomous
-crawlers and non-browser automation --- are not explicitly dealt with by this
-document, though the architecture can likely apply in many such cases as well.
-Whether such an agent obtains an Anchor credential is determined by Anchor
-policy, and whether a Moderator continues to admit them when detectable is
-determined by Moderator policy. The line between user-driven and autonomous
-agents is therefore drawn by Anchors and Moderators.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
+update state bound to the user's Credential. As a result, the user bears the policy consequences for the behaviour of the delegated agent. However, the delegated agent's actions remain unlinkable to other sessions and to the user's own sessions, and the user's identity is not revealed to the site.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
+<p id="section-2.2-4">Alternatively, delegated agents may use a distinct pool of Anchors and Credentials from
+the user's traditional user agent. This configuration enables sites and Moderators to differentiate
+between traditional user agents and delegated user agents and prevents the consequences of
+misbehaviour in one context from propagating to the other. User agents not acting under delegation from a user --- for example, autonomous crawlers and non-browser automation --- could also be served with this architecture.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
+<p id="section-2.2-5">In all configurations, clients enjoy strong privacy protections from sites and Moderators, whilst sites and Moderators enjoy strong protections from abusive clients mounting volumetric attacks.<a href="#section-2.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="uc-access">
@@ -1390,20 +1411,18 @@ agents is therefore drawn by Anchors and Moderators.<a href="#section-2.2-5" cla
         <h3 id="name-private-access-control">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-private-access-control" class="section-name selfRef">Private Access Control</a>
         </h3>
-<p id="section-2.3-1">A user visits a Site repeatedly, without persistent cookies, expecting that
-successive visits are not linkable to one another. The Site gates some
+<p id="section-2.3-1">A user visits a site repeatedly, without persistent cookies, expecting that
+successive visits are not linkable to one another. The site gates some
 functionality on a non-public criterion such as a paid subscription, group
 membership, or a per-period quota of allowed operations.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <p id="section-2.3-2">In this use case, the Anchor's attestation conveys eligibility under such a
-criterion, and the Moderator translates that eligibility into a credential
-under a policy that may include rate or quota state. Against the Site alone,
-successive presentations are unlinkable to each other and to issuance. The
-Moderator necessarily observes issuance; cross-presentation linkage at the
+criterion, and the Moderator translates that eligibility into a Credential
+under a policy that may include rate or quota state. Against the site alone,
+successive presentations are unlinkable to each other and to Issuance. The
+Moderator necessarily observes Issuance; cross-presentation linkage at the
 Moderator is bounded to the granularity of the rate or quota state the
-credential carries, with details in <a href="#privacy-properties" class="auto internal xref">Section 5</a>.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
-<p id="section-2.3-3">This use case is a secondary goal: it does not by itself motivate the
-state-bearing Moderator credential, but the architecture admits it and the
-authors recommend it's usage for deployments which require this feature. More
+credential carries, with details in <a href="#privacy-properties" class="auto internal xref">Section 4.2</a>.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
+<p id="section-2.3-3">This use case is a secondary goal. More
 elaborate authorization policies, including rich attribute-based access control
 and multi-factor eligibility combinations, are out of scope of this
 architecture document but may be included in companion documents.<a href="#section-2.3-3" class="pilcrow">¶</a></p>
@@ -1424,19 +1443,18 @@ appear in all capitals, as shown here.<a href="#section-3-1" class="pilcrow">¶<
 <span class="break"></span><dl class="dlParallel" id="section-3-3">
         <dt id="section-3-3.1"><strong>Client:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.2">
-          <p id="section-3-3.2.1">An entity that seeks access to resources held by a Site.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.2.1">An entity that seeks access to resources controlled by a Moderator.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-3.3"><strong>Site:</strong></dt>
+<dt id="section-3-3.3"><strong>Anchor:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.4">
-          <p id="section-3-3.4.1">An entity that consumes presentations from Clients and uses them to make
-authorization decisions. The Site may operate software client-side,
-server-side, or both, depending on the deployment.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.4.1">An entity that issues Endorsements to Clients based on a trust relationship.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-3.5"><strong>Anchor:</strong></dt>
+<dt id="section-3-3.5"><strong>Moderator:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.6">
-          <p id="section-3-3.6.1">An entity that issues Endorsements to Clients based on scarce signals.<a href="#section-3-3.6.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.6.1">An entity that consumes presentations from Clients and issues Credentials
+according to an access policy.<a href="#section-3-3.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.7"><strong>Endorsement:</strong></dt>
@@ -1444,27 +1462,35 @@ server-side, or both, depending on the deployment.<a href="#section-3-3.4.1" cla
           <p id="section-3-3.8.1">A cryptographic object issued by an Anchor to a Client.<a href="#section-3-3.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-3.9"><strong>Moderator:</strong></dt>
+<dt id="section-3-3.9"><strong>Credential:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.10">
-          <p id="section-3-3.10.1">An entity that consumes presentations from Clients and issues credentials
-according to a policy.<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.10.1">A cryptographic object issued by a Moderator to a Client. This Credential
+has an associated integer state that is updated during presentation.<a href="#section-3-3.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-3.11"><strong>Credential:</strong></dt>
+<dt id="section-3-3.11"><strong>Predicate:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.12">
-          <p id="section-3-3.12.1">A cryptographic object issued by a Moderator to a Client. This credential
-has an associated integer state that is updated during presentation.<a href="#section-3-3.12.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.12.1">A boolean test that a Moderator evaluates against a Credential's hidden state
+during a Presentation. The Moderator learns only whether the state satisfies
+the Predicate, not the state itself.<a href="#section-3-3.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.13"><strong>Presentation:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.14">
-          <p id="section-3-3.14.1">The mechanism by which Clients prove possession of a credential satisfying
-specified attributes.<a href="#section-3-3.14.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.14.1">The mechanism by which a Client proves possession of a Credential whose state
+satisfies a Predicate specified by the Moderator.<a href="#section-3-3.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.15"><strong>Policy:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.16">
-          <p id="section-3-3.16.1">Rules used by a Moderator or Site to evaluate presentations.<a href="#section-3-3.16.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.16.1">Rules used by a Moderator to evaluate presentations.<a href="#section-3-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-3.17"><strong>Anonymity Set:</strong></dt>
+        <dd style="margin-left: 1.5em" id="section-3-3.18">
+          <p id="section-3-3.18.1">The set of Clients among which a given Client is indistinguishable during an
+interaction. The strength of MoLE's unlinkability and Anchor-hiding properties
+depends on the size of this set.<a href="#section-3-3.18.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1475,10 +1501,10 @@ specified attributes.<a href="#section-3-3.14.1" class="pilcrow">¶</a></p>
       <h2 id="name-architecture">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-architecture" class="section-name selfRef">Architecture</a>
       </h2>
-<p id="section-4-1">The MoLE architecture is constructed to orchestrate trust relationships and
-infomation flows between four entities: Client, Anchor, Moderator, and Site.
+<p id="section-4-1">The MoLE architecture orchestrates trust relationships and
+information flows between three entities: Client, Anchor, and Moderator.
 These entities have a limited exchange of information that allows for dynamic
-rate-limiting, bootstrapped from exising knowledge, in an open ecosystem. This
+rate-limiting, bootstrapped from an Anchor's existing trust, in an open ecosystem. This
 section details the information flows and trust relationships between these
 entities along with requirements for the underlying protocols and APIs.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <div id="overview">
@@ -1486,93 +1512,76 @@ entities along with requirements for the underlying protocols and APIs.<a href="
         <h3 id="name-overview">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
         </h3>
-<p id="section-4.1-1">A complete exchange for MoLE has three distinct flows:
-Endorsement, in which a Client obtains an endorsement signifying
-its relationship with an Anchor; Issuance, in which a Client uses an
-endorsement from an Anchor to obtain credentials from a Moderator without
-revealing which Anchor it was; and Presentation, in which a Client uses
-credentials from a Moderator of the Site's choosing to prove that it is
-presently in good standing with the Moderator and that this request matches the
-Moderator and Site's policies through an online interaction. Clients most often
-interact with the MoLE architecture either by being requested by a Site to
-present a credential or by an Anchor to initiate an Endorsement.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-1">MoLE is composed of three distinct flows:
+Endorsement, in which a Client obtains an Endorsement signifying
+its trust relationship with an Anchor; Issuance, in which a Client uses an
+Endorsement from an Anchor to obtain a Credential from a Moderator without
+revealing which Anchor issued it; and Presentation, in which a Client uses
+a Credential from a Moderator to prove that it is
+presently in good standing with the Moderator in order to access a resource.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
 <span id="name-mole-architecture"></span><div id="fig-mole-architecture">
 <figure id="figure-1">
           <div id="section-4.1-2.1">
             <div class="alignLeft art-svg artwork" id="section-4.1-2.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="224" width="688" viewBox="0 0 688 224" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="208" width="552" viewBox="0 0 552 208" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                 <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
-                <path d="M 40,64 L 40,208" fill="none" stroke="black"></path>
+                <path d="M 40,64 L 40,192" fill="none" stroke="black"></path>
                 <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
-                <path d="M 224,32 L 224,64" fill="none" stroke="black"></path>
-                <path d="M 256,64 L 256,80" fill="none" stroke="black"></path>
-                <path d="M 256,128 L 256,160" fill="none" stroke="black"></path>
-                <path d="M 256,192 L 256,208" fill="none" stroke="black"></path>
-                <path d="M 296,32 L 296,64" fill="none" stroke="black"></path>
-                <path d="M 408,32 L 408,64" fill="none" stroke="black"></path>
-                <path d="M 456,64 L 456,80" fill="none" stroke="black"></path>
-                <path d="M 456,128 L 456,208" fill="none" stroke="black"></path>
-                <path d="M 504,32 L 504,64" fill="none" stroke="black"></path>
-                <path d="M 608,32 L 608,64" fill="none" stroke="black"></path>
-                <path d="M 648,64 L 648,208" fill="none" stroke="black"></path>
-                <path d="M 680,32 L 680,64" fill="none" stroke="black"></path>
+                <path d="M 248,32 L 248,64" fill="none" stroke="black"></path>
+                <path d="M 296,64 L 296,80" fill="none" stroke="black"></path>
+                <path d="M 296,128 L 296,192" fill="none" stroke="black"></path>
+                <path d="M 344,32 L 344,64" fill="none" stroke="black"></path>
+                <path d="M 472,32 L 472,64" fill="none" stroke="black"></path>
+                <path d="M 512,64 L 512,128" fill="none" stroke="black"></path>
+                <path d="M 512,160 L 512,192" fill="none" stroke="black"></path>
+                <path d="M 544,32 L 544,64" fill="none" stroke="black"></path>
                 <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
-                <path d="M 224,32 L 296,32" fill="none" stroke="black"></path>
-                <path d="M 408,32 L 504,32" fill="none" stroke="black"></path>
-                <path d="M 608,32 L 680,32" fill="none" stroke="black"></path>
+                <path d="M 248,32 L 344,32" fill="none" stroke="black"></path>
+                <path d="M 472,32 L 544,32" fill="none" stroke="black"></path>
                 <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
-                <path d="M 224,64 L 296,64" fill="none" stroke="black"></path>
-                <path d="M 408,64 L 504,64" fill="none" stroke="black"></path>
-                <path d="M 608,64 L 680,64" fill="none" stroke="black"></path>
-                <path d="M 48,94 L 304,94" fill="none" stroke="black"></path>
-                <path d="M 48,98 L 304,98" fill="none" stroke="black"></path>
-                <path d="M 416,94 L 640,94" fill="none" stroke="black"></path>
-                <path d="M 416,98 L 640,98" fill="none" stroke="black"></path>
-                <path d="M 48,110 L 304,110" fill="none" stroke="black"></path>
-                <path d="M 48,114 L 304,114" fill="none" stroke="black"></path>
-                <path d="M 416,110 L 640,110" fill="none" stroke="black"></path>
-                <path d="M 416,114 L 640,114" fill="none" stroke="black"></path>
-                <path d="M 48,158 L 80,158" fill="none" stroke="black"></path>
-                <path d="M 48,162 L 80,162" fill="none" stroke="black"></path>
-                <path d="M 184,158 L 248,158" fill="none" stroke="black"></path>
-                <path d="M 184,162 L 248,162" fill="none" stroke="black"></path>
-                <path d="M 48,174 L 136,174" fill="none" stroke="black"></path>
-                <path d="M 48,178 L 136,178" fill="none" stroke="black"></path>
-                <path d="M 312,174 L 448,174" fill="none" stroke="black"></path>
-                <path d="M 312,178 L 448,178" fill="none" stroke="black"></path>
-                <path d="M 48,190 L 88,190" fill="none" stroke="black"></path>
-                <path d="M 48,194 L 88,194" fill="none" stroke="black"></path>
-                <path d="M 208,190 L 248,190" fill="none" stroke="black"></path>
-                <path d="M 208,194 L 248,194" fill="none" stroke="black"></path>
-                <path d="M 264,190 L 304,190" fill="none" stroke="black"></path>
-                <path d="M 264,194 L 304,194" fill="none" stroke="black"></path>
-                <path d="M 424,190 L 448,190" fill="none" stroke="black"></path>
-                <path d="M 424,194 L 448,194" fill="none" stroke="black"></path>
-                <polygon class="arrowhead" points="648,112 636,106.4 636,117.6" fill="black" transform="rotate(0,640,112)"></polygon>
-                <polygon class="arrowhead" points="648,96 636,90.4 636,101.6" fill="black" transform="rotate(0,640,96)"></polygon>
-                <polygon class="arrowhead" points="456,192 444,186.4 444,197.6" fill="black" transform="rotate(0,448,192)"></polygon>
-                <polygon class="arrowhead" points="456,176 444,170.4 444,181.6" fill="black" transform="rotate(0,448,176)"></polygon>
-                <polygon class="arrowhead" points="272,192 260,186.4 260,197.6" fill="black" transform="rotate(180,264,192)"></polygon>
-                <polygon class="arrowhead" points="256,192 244,186.4 244,197.6" fill="black" transform="rotate(0,248,192)"></polygon>
-                <polygon class="arrowhead" points="256,160 244,154.4 244,165.6" fill="black" transform="rotate(0,248,160)"></polygon>
-                <polygon class="arrowhead" points="56,192 44,186.4 44,197.6" fill="black" transform="rotate(180,48,192)"></polygon>
+                <path d="M 248,64 L 344,64" fill="none" stroke="black"></path>
+                <path d="M 472,64 L 544,64" fill="none" stroke="black"></path>
+                <path d="M 48,94 L 136,94" fill="none" stroke="black"></path>
+                <path d="M 48,98 L 136,98" fill="none" stroke="black"></path>
+                <path d="M 248,94 L 504,94" fill="none" stroke="black"></path>
+                <path d="M 248,98 L 504,98" fill="none" stroke="black"></path>
+                <path d="M 48,110 L 136,110" fill="none" stroke="black"></path>
+                <path d="M 48,114 L 136,114" fill="none" stroke="black"></path>
+                <path d="M 248,110 L 504,110" fill="none" stroke="black"></path>
+                <path d="M 248,114 L 504,114" fill="none" stroke="black"></path>
+                <path d="M 48,142 L 136,142" fill="none" stroke="black"></path>
+                <path d="M 48,146 L 136,146" fill="none" stroke="black"></path>
+                <path d="M 248,142 L 288,142" fill="none" stroke="black"></path>
+                <path d="M 248,146 L 288,146" fill="none" stroke="black"></path>
+                <path d="M 48,158 L 96,158" fill="none" stroke="black"></path>
+                <path d="M 48,162 L 96,162" fill="none" stroke="black"></path>
+                <path d="M 272,158 L 288,158" fill="none" stroke="black"></path>
+                <path d="M 272,162 L 288,162" fill="none" stroke="black"></path>
+                <path d="M 48,174 L 120,174" fill="none" stroke="black"></path>
+                <path d="M 48,178 L 120,178" fill="none" stroke="black"></path>
+                <path d="M 240,174 L 288,174" fill="none" stroke="black"></path>
+                <path d="M 240,178 L 288,178" fill="none" stroke="black"></path>
+                <polygon class="arrowhead" points="512,112 500,106.4 500,117.6" fill="black" transform="rotate(0,504,112)"></polygon>
+                <polygon class="arrowhead" points="512,96 500,90.4 500,101.6" fill="black" transform="rotate(0,504,96)"></polygon>
+                <polygon class="arrowhead" points="296,176 284,170.4 284,181.6" fill="black" transform="rotate(0,288,176)"></polygon>
+                <polygon class="arrowhead" points="296,160 284,154.4 284,165.6" fill="black" transform="rotate(0,288,160)"></polygon>
+                <polygon class="arrowhead" points="296,144 284,138.4 284,149.6" fill="black" transform="rotate(0,288,144)"></polygon>
                 <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
                 <polygon class="arrowhead" points="56,160 44,154.4 44,165.6" fill="black" transform="rotate(180,48,160)"></polygon>
+                <polygon class="arrowhead" points="56,144 44,138.4 44,149.6" fill="black" transform="rotate(180,48,144)"></polygon>
                 <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
                 <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
                 <g class="text">
                   <text x="44" y="52">Client</text>
-                  <text x="260" y="52">Site</text>
-                  <text x="456" y="52">Moderator</text>
-                  <text x="644" y="52">Anchor</text>
-                  <text x="360" y="100">Interaction</text>
-                  <text x="360" y="116">Endorsement</text>
-                  <text x="136" y="164">Interaction</text>
-                  <text x="156" y="180">If</text>
-                  <text x="200" y="180">needed:</text>
-                  <text x="268" y="180">Issuance</text>
-                  <text x="148" y="196">Presentation</text>
-                  <text x="364" y="196">Presentation</text>
+                  <text x="296" y="52">Moderator</text>
+                  <text x="508" y="52">Anchor</text>
+                  <text x="192" y="100">Interaction</text>
+                  <text x="192" y="116">Endorsement</text>
+                  <text x="192" y="148">Interaction</text>
+                  <text x="116" y="164">If</text>
+                  <text x="160" y="164">needed:</text>
+                  <text x="228" y="164">Issuance</text>
+                  <text x="180" y="180">Presentation</text>
                 </g>
               </svg><a href="#section-4.1-2.1.1" class="pilcrow">¶</a>
 </div>
@@ -1581,97 +1590,137 @@ present a credential or by an Anchor to initiate an Endorsement.<a href="#sectio
 <a href="#name-mole-architecture" class="selfRef">MoLE Architecture</a>
           </figcaption></figure>
 </div>
-<p id="section-4.1-3">Beginning with Endorsement and proceeding to a Presentation, a typical
-overarching flow occurs as follows:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-4.1-4">
-<li id="section-4.1-4.1">
-            <p id="section-4.1-4.1.1">A Client interacts with an Anchor in such a way that the Client believes the
-Anchor may endorse them. This mechanism that advertises the Anchor's
-endorsement capability is deployment specific. It may be an HTTP header, a Javascript
-API call, or an HTML attribute. Fundamentally, the Anchor offers to grant an
-endorsement to the Client so that it may be used later.<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">During Endorsement, a Client interacts with an Anchor with which it has a
+trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
+of strong authentication, e.g. a login, or may be relatively weak, e.g. based on solving a
+CAPTCHA. The Anchor issues the Client an Endorsement to signify this trust relationship.
+Clients may accrue multiple Endorsements from the same or different Anchors.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">Later, when trying to access a resource, a Client may be prompted by a Moderator to present
+a Credential. If the Client doesn't have a Credential for this Moderator it will then engage in the
+Issuance flow. In this flow, the Client presents the Moderator with an Endorsement from the Moderator's
+list of trusted Anchors and receives a Credential in return. Presenting an Endorsement does not reveal which
+Anchor was used, only that it came from the trusted pool.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that Endorsement in their system. This property prevents abusive Clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-6">Finally, the Client can present the Credential to the Moderator, along with a credential update request. This presentation enables the Moderator to
+query the state of the Credential and receive a boolean value indicating whether the presented Credential meets the
+Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g. to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.<a href="#section-4.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-properties">
+<section id="section-4.2">
+        <h3 id="name-privacy-goals-and-threat-mo">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-privacy-goals-and-threat-mo" class="section-name selfRef">Privacy Goals and Threat Model</a>
+        </h3>
+<div id="goals">
+<section id="section-4.2.1">
+          <h4 id="name-goals">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-goals" class="section-name selfRef">Goals</a>
+          </h4>
+<p id="section-4.2.1-1">MoLE deployments aim to provide three privacy properties for Clients:<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.2.1-2">
+<li id="section-4.2.1-2.1">
+              <p id="section-4.2.1-2.1.1"><em>Endorsement Issuances and Presentations are Unlinkable</em> - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the session in which the Endorsement was issued to the session in which it was presented.<a href="#section-4.2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.2">
-            <p id="section-4.1-4.2.1">A Client requests an endorsement from the Anchor. The Anchor responds to this request based upon
-its policy. Upon success, the Client finalizes
-its endorsement.<a href="#section-4.1-4.2.1" class="pilcrow">¶</a></p>
+            <li id="section-4.2.1-2.2">
+              <p id="section-4.2.1-2.2.1"><em>Endorsement Presentations are Anchor-hiding</em> - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtained the Endorsement from among a set of Anchors the Moderator trusts. Such Anchor-hiding makes an Endorsement presentation indistinguishable regardless of which trusted Anchor the Client used, to both the Anchor and the Moderator.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.3">
-            <p id="section-4.1-4.3.1">Some time later, the Client interacts with the Site.<a href="#section-4.1-4.3.1" class="pilcrow">¶</a></p>
+            <li id="section-4.2.1-2.3">
+              <p id="section-4.2.1-2.3.1"><em>Credential Issuances and Presentations are Unlinkable</em> - If a Client engages in multiple presentations, then those presentations are unlinkable to each other and to the Issuance that produced the Credential.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.4">
-            <p id="section-4.1-4.4.1">The Site induces the Client to present a credential from a Moderator it (the Site) trusts. The precise mechanism is deployment specific. It may be an HTTP Header,
-a Javascript API call, or an HTML attribute. Fundamentally, the Site enforces that a given
-resource may only be obtained upon the Client providing a valid presentation.
-So it asks the Client to obtain a credential that will produce such a valid presentation.<a href="#section-4.1-4.4.1" class="pilcrow">¶</a></p>
+          </ol>
+<p id="section-4.2.1-3">A successful presentation tells the Moderator that the Client holds a
+Credential satisfying the Moderator's policy. It does not reveal the Client's
+identity, the underlying Anchor, or the state of the Credential. Collectively,
+these properties minimize the information Clients reveal to Anchors and Moderators
+beyond what is necessary to participate in the system.<a href="#section-4.2.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-4">The strength of these unlinkability properties depends on anonymity-set size. For
+Moderator-credential unlinkability, the relevant set is the population of
+Clients holding Credentials under the same Moderator policy.<a href="#section-4.2.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-5">For Anchor-hiding,
+the relevant set is the Moderator's accepted Anchor set. A Moderator with one
+accepted Anchor provides no Anchor-hiding.<a href="#section-4.2.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.2.1-6">Further considerations for maximizing the size of these sets are set out in the Privacy Considerations section.<a href="#section-4.2.1-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="threat-model">
+<section id="section-4.2.2">
+          <h4 id="name-threat-model">
+<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-threat-model" class="section-name selfRef">Threat Model</a>
+          </h4>
+<p id="section-4.2.2-1">MoLE's privacy properties are intended to hold in the face of strong attackers who:<a href="#section-4.2.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.2.2-2.1">
+              <p id="section-4.2.2-2.1.1">May act in the role of Anchor, Moderator, or Client.<a href="#section-4.2.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.5">
-            <p id="section-4.1-4.5.1">If the Client already has a credential from the Moderator, it may
-skip to Step 9.<a href="#section-4.1-4.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-4.2.2-2.2">
+              <p id="section-4.2.2-2.2.1">May collude with other Anchors and Moderators in order to try to identify Clients.<a href="#section-4.2.2-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.6">
-            <p id="section-4.1-4.6.1">The Client requests a list of trusted Anchors from the Moderator.<a href="#section-4.1-4.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-4.2.2-2.3">
+              <p id="section-4.2.2-2.3.1">May have access to a cryptographically relevant quantum computer.<a href="#section-4.2.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.7">
-            <p id="section-4.1-4.7.1">If the Client is unwilling or unable to present a matching endorsement, the
-flow fails.<a href="#section-4.1-4.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-4.2.2-2.4">
+              <p id="section-4.2.2-2.4.1">May deliberately deviate from the protocol and attempt to alter or forge messages.<a href="#section-4.2.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.8">
-            <p id="section-4.1-4.8.1">The Client obtains an endorsement from one of the trusted anchors and presents
-it along with a credential request to the Moderator. Upon validation of the endorsement presentation, the Moderator returns a
-credential response that the Client finalizes.<a href="#section-4.1-4.8.1" class="pilcrow">¶</a></p>
+          </ul>
+<p id="section-4.2.2-3">Some attackers may exploit information not directly revealed by the protocol, for example:
+ - Timing information
+ - Network metadata like IP addresses
+ - Implementation fingerprinting<a href="#section-4.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.2.2-4">These side channels, which depend on details specific to each deployment, may compromise the privacy properties of MoLE and are discussed further in the Privacy Considerations.<a href="#section-4.2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security-goals-and-threat-model">
+<section id="section-4.3">
+        <h3 id="name-security-goals-and-threat-m">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-security-goals-and-threat-m" class="section-name selfRef">Security Goals and Threat Model</a>
+        </h3>
+<div id="goals-1">
+<section id="section-4.3.1">
+          <h4 id="name-goals-2">
+<a href="#section-4.3.1" class="section-number selfRef">4.3.1. </a><a href="#name-goals-2" class="section-name selfRef">Goals</a>
+          </h4>
+<p id="section-4.3.1-1">MoLE's security properties are intended for Moderators. Moderators can be assured:<a href="#section-4.3.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.3.1-2.1">
+              <p id="section-4.3.1-2.1.1">When they accept an Endorsement, that it corresponds to exactly one Endorsement Issuance by a trusted Anchor.<a href="#section-4.3.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.9">
-            <p id="section-4.1-4.9.1">The Client provides a credential presentation to the Site. This
-may be used to prove that the credential's state is over some threshold, but
-does not reveal the exact value.<a href="#section-4.1-4.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-4.3.1-2.2">
+              <p id="section-4.3.1-2.2.1">When they accept a Credential under a given predicate, that the Credential is one they previously issued with a matching predicate. Once a Credential has been presented, it will not be accepted again unless the Moderator chooses to re-issue it.<a href="#section-4.3.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li id="section-4.1-4.10">
-            <p id="section-4.1-4.10.1">The Site issues a request to the Moderator to validate the presentation.
-This may be accompanied by any information the Site wishes to provide the
-Moderator as context for the request, such as the request itself, following the
-Site and Moderator's respective policy.<a href="#section-4.1-4.10.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-4.1-4.11">
-            <p id="section-4.1-4.11.1">Given the context from the Site, the presentation, and its policy, the
-Moderator validates that the presentation proves a sufficiently large value in
-the credential's state and determines how to mutate that state.
-It returns the result to the Site. This response includes material for the Site
-such as a boolean, and material for the client so they can update their
-credential state.<a href="#section-4.1-4.11.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-4.1-4.12">
-            <p id="section-4.1-4.12.1">The Site provides the Moderator's response to the Client, who uses it to
-produce a modified credential with an updated state.<a href="#section-4.1-4.12.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-4.1-4.13">
-            <p id="section-4.1-4.13.1">If the validation response indicates to the Site that the Client's
-presentation does not satisfy the policy, the Site fails the request from
-Step 4. On success, the Site provides the Client with the material it
-received from the Moderator.<a href="#section-4.1-4.13.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-4.1-4.14">
-            <p id="section-4.1-4.14.1">The Client updates its credential for the Moderator with the response
-forwarded by the Site. This will allow the Client to perform future requests.<a href="#section-4.1-4.14.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
+          </ul>
+<p id="section-4.3.1-3">Collectively, these two properties allow Moderators to dynamically rate-limit access to the population of Anchor-endorsed Clients. If Endorsements or Credentials could be presented multiple times, it would allow malicious Clients to obtain additional Credentials which could be used to bypass rate limits.<a href="#section-4.3.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="threat-model-1">
+<section id="section-4.3.2">
+          <h4 id="name-threat-model-2">
+<a href="#section-4.3.2" class="section-number selfRef">4.3.2. </a><a href="#name-threat-model-2" class="section-name selfRef">Threat Model</a>
+          </h4>
+<p id="section-4.3.2-1">MoLE's security properties are intended to hold in the face of coordinated attackers who:
+- Can control a number of Clients and deviate from the protocol.
+- Cannot violate the issuance criteria for a Moderator's trusted Anchors but may control other Anchors.
+- Do not have access to a cryptographically relevant quantum computer.<a href="#section-4.3.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.3.2-2">MoLE considers a cryptographically relevant quantum computer (CRQC) for its privacy properties like Anchor-hiding and unlinkability, because a CRQC deployed in the future could be used to analyse protocol transcripts recorded today and so identify Clients. By contrast, MoLE's security properties hold until an attacker gains access to a CRQC; once they do, only future protocol sessions are affected.<a href="#section-4.3.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="flows">
-<section id="section-4.2">
+<section id="section-4.4">
         <h3 id="name-flows">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-flows" class="section-name selfRef">Flows</a>
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-flows" class="section-name selfRef">Flows</a>
         </h3>
-<p id="section-4.2-1">Taking <a href="#fig-mole-architecture" class="auto internal xref">Figure 1</a>, we can distinguish three flows.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <div id="endorsement">
-<section id="section-4.2.1">
+<section id="section-4.4.1">
           <h4 id="name-endorsement">
-<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-endorsement" class="section-name selfRef">Endorsement</a>
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-endorsement" class="section-name selfRef">Endorsement</a>
           </h4>
 <span id="name-mole-endorsement"></span><div id="fig-mole-architecture-endorsement">
 <figure id="figure-2">
-            <div id="section-4.2.1-1.1">
-              <div class="alignLeft art-svg artwork" id="section-4.2.1-1.1.1">
+            <div id="section-4.4.1-1.1">
+              <div class="alignLeft art-svg artwork" id="section-4.4.1-1.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="176" width="304" viewBox="0 0 304 176" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                   <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
                   <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
@@ -1683,10 +1732,10 @@ forwarded by the Site. This will allow the Client to perform future requests.<a 
                   <path d="M 224,32 L 296,32" fill="none" stroke="black"></path>
                   <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
                   <path d="M 224,64 L 296,64" fill="none" stroke="black"></path>
-                  <path d="M 48,94 L 88,94" fill="none" stroke="black"></path>
-                  <path d="M 48,98 L 88,98" fill="none" stroke="black"></path>
-                  <path d="M 200,94 L 248,94" fill="none" stroke="black"></path>
-                  <path d="M 200,98 L 248,98" fill="none" stroke="black"></path>
+                  <path d="M 48,94 L 64,94" fill="none" stroke="black"></path>
+                  <path d="M 48,98 L 64,98" fill="none" stroke="black"></path>
+                  <path d="M 224,94 L 248,94" fill="none" stroke="black"></path>
+                  <path d="M 224,98 L 248,98" fill="none" stroke="black"></path>
                   <path d="M 40,112 L 64,112" fill="none" stroke="black"></path>
                   <path d="M 232,112 L 248,112" fill="none" stroke="black"></path>
                   <path d="M 48,128 L 64,128" fill="none" stroke="black"></path>
@@ -1698,33 +1747,61 @@ forwarded by the Site. This will allow the Client to perform future requests.<a 
                   <g class="text">
                     <text x="44" y="52">Client</text>
                     <text x="260" y="52">Anchor</text>
-                    <text x="144" y="100">Attestation</text>
+                    <text x="88" y="100">Trust</text>
+                    <text x="168" y="100">Establishment</text>
                     <text x="148" y="116">EndorsementRequest</text>
                     <text x="152" y="132">EndorsementResponse</text>
                     <text x="96" y="148">EndorsementFinalization</text>
                     <text x="40" y="164">|</text>
                   </g>
-                </svg><a href="#section-4.2.1-1.1.1" class="pilcrow">¶</a>
+                </svg><a href="#section-4.4.1-1.1.1" class="pilcrow">¶</a>
 </div>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
 <a href="#name-mole-endorsement" class="selfRef">MoLE Endorsement</a>
             </figcaption></figure>
 </div>
-<p id="section-4.2.1-2">Upon passing an attestation, a Client may request an Endorsement from an Anchor.
-An Endorsement is a cryptographic object that the client can later present to
-a Moderator that proves the Client has been attested by the Anchor.<a href="#section-4.2.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-2">An Anchor will endorse a client according to it's own criteria for trust in the client.
+This may be because of some kind of strong authentication like a login, weak authentication
+like a CAPTCHA or any other mechanism that the Anchor deems suitable. Moderators will choose
+whether to trust a specific Anchor on the basis of it's criteria for endorsing users.<a href="#section-4.4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-3">In order to be useful, Anchors will need to constrain how many times they will Endorse a given user.
+This is because Endorsement's are valuable to Clients and Moderators in sofar as they are scarce. If
+an Anchor gave out a very large number of Endorsements, this would reduce the effectiveness of rate limiting
+applied by Moderators.<a href="#section-4.4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-4">Endorsement is likely to be triggered by the Anchor, with the Client storing the resulting
+Endorsement. However, in some deployments it may be requested pro-actively by the Client.<a href="#section-4.4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-5">Anchors furnish each Endorsement with the necessary metadata to identify the Anchor that used it and for the Client to evaluate whether a given Moderator can consume that Endorsement. This metadata may enumerate specific Moderators (in a small deployment) or identify authentication material like a public key which can be used later to evaluate whether a given Moderator is authorized.<a href="#section-4.4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-6">The specific properties of the Endorsement vary based on the exact protocol used. Important properties are described below:<a href="#section-4.4.1-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.4.1-7">
+<li id="section-4.4.1-7.1">
+              <p id="section-4.4.1-7.1.1">The Endorsement is publicly verifiable. That is, any party can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.<a href="#section-4.4.1-7.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.1-7.2">
+              <p id="section-4.4.1-7.2.1">The Endorsement supports blind presentation. A client presenting the Endorsement does not reveal any information other than that the Endorsement from one of a set of trusted Anchors.<a href="#section-4.4.1-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.1-7.3">
+              <p id="section-4.4.1-7.3.1">Unlinkable Presentation. Even if the Anchor colludes with another party to whom the Endorsement is presented to, they can't link the presentation to the issuance session.<a href="#section-4.4.1-7.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.1-7.4">
+              <p id="section-4.4.1-7.4.1">The Endorsement supports expiry. A client presenting the Endorsement can prove that the Endorsement was issued within a particular time period.<a href="#section-4.4.1-7.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.1-7.5">
+              <p id="section-4.4.1-7.5.1">The Endorsement supports one-time use. A Moderator accepting a presented Endorsement will not accept it a second time.<a href="#section-4.4.1-7.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+<p id="section-4.4.1-8">The Endorsement flow must not allow malicious clients to forge tokens offline or otherwise obtain further valid Endorsements without interacting with the Anchor directly. It must be safe to run the Endorsement protocol concurrently with many Clients, some of whom may abort or otherwise misbehave.<a href="#section-4.4.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="credential-issuance">
-<section id="section-4.2.2">
+<section id="section-4.4.2">
           <h4 id="name-credential-issuance">
-<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-credential-issuance" class="section-name selfRef">Credential Issuance</a>
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-credential-issuance" class="section-name selfRef">Credential Issuance</a>
           </h4>
 <span id="name-mole-issuance"></span><div id="fig-mole-architecture-issuance">
 <figure id="figure-3">
-            <div id="section-4.2.2-1.1">
-              <div class="alignLeft art-svg artwork" id="section-4.2.2-1.1.1">
+            <div id="section-4.4.2-1.1">
+              <div class="alignLeft art-svg artwork" id="section-4.4.2-1.1.1">
 <svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="192" width="448" viewBox="0 0 448 192" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                   <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
                   <path d="M 40,64 L 40,96" fill="none" stroke="black"></path>
@@ -1760,258 +1837,310 @@ a Moderator that proves the Client has been attested by the Anchor.<a href="#sec
                     <text x="92" y="164">CredentialFinalization</text>
                     <text x="40" y="180">|</text>
                   </g>
-                </svg><a href="#section-4.2.2-1.1.1" class="pilcrow">¶</a>
+                </svg><a href="#section-4.4.2-1.1.1" class="pilcrow">¶</a>
 </div>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
 <a href="#name-mole-issuance" class="selfRef">MoLE Issuance</a>
             </figcaption></figure>
 </div>
-<p id="section-4.2.2-2">When an Endorsement is presented to a Moderator, the Moderator learns
-whether or not the Endorsement originates from the set of Anchors it trusts. The
-presentation must not be reveal the Anchor the Client has been endorsed by,
-and must not be linkable to other presentations of made using that same
-Endorsement.<a href="#section-4.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-2">Issuance is likely to happen on-demand in response to a Moderator's challenge for a
+Client to present a valid Credential. The challenge should contain enough information
+to identify the Moderator and the Anchors whose Endorsements it will trust for Issuance.
+If the Client wishes to complete the presentation and has suitable Endorsements, it will
+begin the Issuance flow. In some circumstances, the Moderator may not require any Anchors for Issuance, i.e. it has some local means of establishing trust in this case.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-3">In order to maximize unlinkability, the Issuance and Presentation flows can happen in isolated
+contexts, e.g. over distinct communication channels with partitioned state.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-4">In Issuance, the Client presents a proof that it has a suitable Endorsement from an
+Anchor Trusted by the Moderator without revealing which specific Anchor was used. In order to translate this into a tangible privacy property for clients, the see the Privacy Considerations section for a discussion around anonymity sets and maximizing them. The proof of Endorsement must be unlinkable to the Issuance of the Endorsement so that even if the Anchor and Moderator collude they can't link the two sessions.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-5">Further, the proof of Endorsement must ensure that even in the presence of a dishonest client, a Moderator will only issue a Credential once for a given Endorsement in order to mitigate attempts to bypass rate limits.<a href="#section-4.4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-6">The properties of the Credential issued by the Moderator will vary depending on the exact protocol used. However, they must support:<a href="#section-4.4.2-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.4.2-7">
+<li id="section-4.4.2-7.1">
+              <p id="section-4.4.2-7.1.1">Unlinkable Presentation. A Client presenting a Credential reveals nothing beyond the result of the Moderator's predicate. Two successful presentations cannot be linked to one another, to the Issuance session that produced the Credential, or to any prior update, even if the Moderator records every transcript.<a href="#section-4.4.2-7.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-7.2">
+              <p id="section-4.4.2-7.2.1">One-Time Use. A Moderator accepting a presented Credential will not accept the same Credential a second time. Each successful presentation yields a freshly issued Credential carrying the updated state, so a Client cannot replay a Credential or present a version whose state has since been updated.<a href="#section-4.4.2-7.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-7.3">
+              <p id="section-4.4.2-7.3.1">Predicate Testing. The Moderator can evaluate a predicate against the Credential's hidden state and learns only whether the state satisfies the predicate, not the state itself nor any other information about the Credential.<a href="#section-4.4.2-7.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-7.4">
+              <p id="section-4.4.2-7.4.1">Private Verifiability. Unlike an Endorsement, a Credential is not publicly verifiable. Only the issuing Moderator, using its secret key material, can verify a presented Credential and apply updates to it.<a href="#section-4.4.2-7.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-7.5">
+              <p id="section-4.4.2-7.5.1">One-More Unforgeability. Even a dishonest Client cannot forge a Credential or derive additional valid Credentials from those it holds. A Client issued some number of Credentials cannot produce more valid presentations than it was issued, ensuring each accepted presentation corresponds to exactly one Credential the Moderator issued.<a href="#section-4.4.2-7.5.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-7.6">
+              <p id="section-4.4.2-7.6.1">Authorization Material. Used by the Client to determine whether a presentation challenge is genuine. This is necessary to prevent a party other than the Moderator 'burning' the Client's Credential.<a href="#section-4.4.2-7.6.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
 </section>
 </div>
 <div id="credential-presentation-and-updates">
-<section id="section-4.2.3">
+<section id="section-4.4.3">
           <h4 id="name-credential-presentation-and">
-<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-credential-presentation-and" class="section-name selfRef">Credential Presentation and updates</a>
+<a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-credential-presentation-and" class="section-name selfRef">Credential Presentation and updates</a>
           </h4>
 <span id="name-mole-presentation"></span><div id="fig-mole-architecture-presentation">
 <figure id="figure-4">
-            <div id="section-4.2.3-1.1">
-              <div class="alignLeft art-svg artwork" id="section-4.2.3-1.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="256" width="576" viewBox="0 0 576 256" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+            <div id="section-4.4.3-1.1">
+              <div class="alignLeft art-svg artwork" id="section-4.4.3-1.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="240" width="448" viewBox="0 0 448 240" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
                   <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
                   <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
-                  <path d="M 40,160 L 40,208" fill="none" stroke="black"></path>
+                  <path d="M 40,160 L 40,192" fill="none" stroke="black"></path>
                   <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 296,32 L 296,64" fill="none" stroke="black"></path>
-                  <path d="M 328,64 L 328,96" fill="none" stroke="black"></path>
-                  <path d="M 328,128 L 328,240" fill="none" stroke="black"></path>
-                  <path d="M 352,32 L 352,64" fill="none" stroke="black"></path>
-                  <path d="M 472,32 L 472,64" fill="none" stroke="black"></path>
-                  <path d="M 520,64 L 520,240" fill="none" stroke="black"></path>
-                  <path d="M 568,32 L 568,64" fill="none" stroke="black"></path>
+                  <path d="M 344,32 L 344,64" fill="none" stroke="black"></path>
+                  <path d="M 392,64 L 392,128" fill="none" stroke="black"></path>
+                  <path d="M 392,160 L 392,224" fill="none" stroke="black"></path>
+                  <path d="M 440,32 L 440,64" fill="none" stroke="black"></path>
                   <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
-                  <path d="M 296,32 L 352,32" fill="none" stroke="black"></path>
-                  <path d="M 472,32 L 568,32" fill="none" stroke="black"></path>
+                  <path d="M 344,32 L 440,32" fill="none" stroke="black"></path>
                   <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
-                  <path d="M 296,64 L 352,64" fill="none" stroke="black"></path>
-                  <path d="M 472,64 L 568,64" fill="none" stroke="black"></path>
-                  <path d="M 48,96 L 88,96" fill="none" stroke="black"></path>
-                  <path d="M 280,96 L 328,96" fill="none" stroke="black"></path>
-                  <path d="M 48,110 L 216,110" fill="none" stroke="black"></path>
-                  <path d="M 48,114 L 216,114" fill="none" stroke="black"></path>
-                  <path d="M 392,110 L 512,110" fill="none" stroke="black"></path>
-                  <path d="M 392,114 L 512,114" fill="none" stroke="black"></path>
+                  <path d="M 344,64 L 440,64" fill="none" stroke="black"></path>
+                  <path d="M 48,96 L 120,96" fill="none" stroke="black"></path>
+                  <path d="M 312,96 L 392,96" fill="none" stroke="black"></path>
+                  <path d="M 48,110 L 104,110" fill="none" stroke="black"></path>
+                  <path d="M 48,114 L 104,114" fill="none" stroke="black"></path>
+                  <path d="M 280,110 L 384,110" fill="none" stroke="black"></path>
+                  <path d="M 280,114 L 384,114" fill="none" stroke="black"></path>
                   <path d="M 40,160 L 80,160" fill="none" stroke="black"></path>
-                  <path d="M 288,160 L 320,160" fill="none" stroke="black"></path>
-                  <path d="M 328,176 L 352,176" fill="none" stroke="black"></path>
-                  <path d="M 496,176 L 512,176" fill="none" stroke="black"></path>
-                  <path d="M 496,192 L 520,192" fill="none" stroke="black"></path>
-                  <path d="M 48,208 L 64,208" fill="none" stroke="black"></path>
-                  <path d="M 304,208 L 328,208" fill="none" stroke="black"></path>
-                  <polygon class="arrowhead" points="520,176 508,170.4 508,181.6" fill="black" transform="rotate(0,512,176)"></polygon>
-                  <polygon class="arrowhead" points="520,112 508,106.4 508,117.6" fill="black" transform="rotate(0,512,112)"></polygon>
-                  <polygon class="arrowhead" points="328,160 316,154.4 316,165.6" fill="black" transform="rotate(0,320,160)"></polygon>
-                  <polygon class="arrowhead" points="56,208 44,202.4 44,213.6" fill="black" transform="rotate(180,48,208)"></polygon>
+                  <path d="M 288,160 L 384,160" fill="none" stroke="black"></path>
+                  <path d="M 48,192 L 80,192" fill="none" stroke="black"></path>
+                  <path d="M 320,192 L 392,192" fill="none" stroke="black"></path>
+                  <polygon class="arrowhead" points="392,160 380,154.4 380,165.6" fill="black" transform="rotate(0,384,160)"></polygon>
+                  <polygon class="arrowhead" points="392,112 380,106.4 380,117.6" fill="black" transform="rotate(0,384,112)"></polygon>
+                  <polygon class="arrowhead" points="56,192 44,186.4 44,197.6" fill="black" transform="rotate(180,48,192)"></polygon>
                   <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
                   <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
                   <g class="text">
                     <text x="44" y="52">Client</text>
-                    <text x="324" y="52">Site</text>
-                    <text x="520" y="52">Moderator</text>
-                    <text x="184" y="100">PresentationChallenge</text>
-                    <text x="236" y="116">If</text>
-                    <text x="280" y="116">needed,</text>
-                    <text x="348" y="116">Issuance</text>
+                    <text x="392" y="52">Moderator</text>
+                    <text x="216" y="100">PresentationChallenge</text>
+                    <text x="124" y="116">If</text>
+                    <text x="168" y="116">needed,</text>
+                    <text x="236" y="116">Issuance</text>
                     <text x="92" y="148">CredentialPresentation</text>
+                    <text x="416" y="148">|</text>
                     <text x="184" y="164">Request+CredentialToken</text>
-                    <text x="424" y="180">ValidateRequest</text>
-                    <text x="340" y="196">&lt;-</text>
-                    <text x="420" y="196">ValidationResult</text>
-                    <text x="184" y="212">Response+CredentialResponse</text>
-                    <text x="92" y="228">CredentialFinalization</text>
-                    <text x="40" y="244">|</text>
+                    <text x="200" y="196">Response+CredentialResponse</text>
+                    <text x="92" y="212">CredentialFinalization</text>
+                    <text x="40" y="228">|</text>
                   </g>
-                </svg><a href="#section-4.2.3-1.1.1" class="pilcrow">¶</a>
+                </svg><a href="#section-4.4.3-1.1.1" class="pilcrow">¶</a>
 </div>
 </div>
 <figcaption><a href="#figure-4" class="selfRef">Figure 4</a>:
 <a href="#name-mole-presentation" class="selfRef">MoLE Presentation</a>
             </figcaption></figure>
 </div>
-<p id="section-4.2.3-2">When a Moderator credential is presented to a Site, the Site learns
-whether or not it satisfies a Site specific policy. The presentation
-must not be linkable to past updates, or to the credential issuance.<a href="#section-4.2.3-2" class="pilcrow">¶</a></p>
-<p id="section-4.2.3-3">Credential updates must demonstrate that they are applied to the same
+<p id="section-4.4.3-2">A Presentation is triggered by the Moderator challenging the Client to present a valid Credential.
+The Client will check that the Challenge is from the Moderator via the Authorization Material.
+The client will consult its stored Credentials and identify if it has a Credential for this Moderator.
+If it doesn't, it will consider triggering the Issuance flow described above.<a href="#section-4.4.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-3">The challenge will identify a specific Predicate.
+If the Client holds a Credential which satisfies the predicate it will perform the presentation.
+When a Moderator credential is presented, the Moderator learns
+whether or not it satisfies the Moderator's predicate. The presentation
+must not be linkable to past updates, or to the credential issuance.<a href="#section-4.4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-4">The Presentation is one-time. The Client will not present it again.
+The Moderator may re-issue the Credential.
+The Moderator may adjust the Credential.<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-5">Credential updates must demonstrate that they are applied to the same
 credential as was initially presented. This prevents attacks where an
 attacker with two credentials shows one, and applies updates only
-to the other.<a href="#section-4.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.2.3-4">Credential updates have to be applied before access to resources that
+to the other.<a href="#section-4.4.3-5" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-6">Credential updates have to be applied before access to resources that
 an origin may gate or rate limit, so that Clients do not simply ignore
-the update request after getting them.<a href="#section-4.2.3-4" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="discovery-and-consistency">
-<section id="section-4.2.4">
-          <h4 id="name-discovery-and-consistency">
-<a href="#section-4.2.4" class="section-number selfRef">4.2.4. </a><a href="#name-discovery-and-consistency" class="section-name selfRef">Discovery and consistency</a>
-          </h4>
-<p id="section-4.2.4-1">A Site challenge has to give Clients enough information to discover the
-Moderator and the policy context for the presentation. The Moderator then gives
-Clients enough information to discover the accepted Anchor material. The
-discovery method is deployment-specific. It can use URIs, lookup keys, or other
-opaque locators for out-of-band material that Clients are expected to resolve.<a href="#section-4.2.4-1" class="pilcrow">¶</a></p>
-<p id="section-4.2.4-2">Deployments should make both pieces of discovery material consistent across
-Clients and resistant to split views. A deployment can use a
-<span>[<a href="#CONSISTENCY-MIRROR" class="cite xref">CONSISTENCY-MIRROR</a>]</span>, <span>[<a href="#KEYTRANS" class="cite xref">KEYTRANS</a>]</span>, <span>[<a href="#SCITT" class="cite xref">SCITT</a>]</span>, or another mechanism with
-similar properties.<a href="#section-4.2.4-2" class="pilcrow">¶</a></p>
+the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.4.3-7">TODO: Updates are Predicates which are true.<a href="#section-4.4.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
-</section>
-</div>
-<div id="privacy-properties">
-<section id="section-5">
-      <h2 id="name-privacy-properties">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-privacy-properties" class="section-name selfRef">Privacy Properties</a>
-      </h2>
-<p id="section-5-1">This section states the privacy goals for MoLE constructions. The wire protocol
-and cryptographic instantiation are specified in companion documents.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<div id="goals">
-<section id="section-5.1">
-        <h3 id="name-goals">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-goals" class="section-name selfRef">Goals</a>
+<div id="anchor-feedback">
+<section id="section-4.5">
+        <h3 id="name-anchor-feedback">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-anchor-feedback" class="section-name selfRef">Anchor Feedback</a>
         </h3>
-<p id="section-5.1-1">MoLE constructions provide three privacy properties.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.1-2">
-<li id="section-5.1-2.1">
-            <p id="section-5.1-2.1.1"><em>Moderator-credential unlinkability.</em> A Site cannot link two valid
-Moderator-credential presentations to the same Client from the presentation
-alone.<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1"><em>Anchor-hiding.</em> A Moderator-credential presentation reveals that the
-underlying Anchor is in the Moderator's accepted Anchor set, but not which
-Anchor issued the Anchor credential.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.1-2.3">
-            <p id="section-5.1-2.3.1"><em>Anchor-endorsement post-issuance unlinkability.</em> A Moderator cannot link an
-Anchor-endorsement presentation to its issuance transcript. Constructions are
-expected to preserve this property against adversaries that record issuance
-traffic and later gain access to a cryptographically relevant quantum
-computation.<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-5.1-3">A successful presentation tells the Site that the Client holds a Moderator
-credential satisfying the Site's policy. It does not reveal the Client's
-identity, the underlying Anchor, or a score assigned by the Moderator.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="threat-model">
-<section id="section-5.2">
-        <h3 id="name-threat-model">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-threat-model" class="section-name selfRef">Threat Model</a>
-        </h3>
-<p id="section-5.2-1">The properties above are cryptographic properties of the protocol transcript.
-They do not hide information available outside the transcript, such as network
-metadata, request contents, timing, or user-agent fingerprinting.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">Collusion changes the privacy properties. For example, a Site and Moderator
-that share request timing, network metadata, and validation logs may be able to
-link presentations even when the credential presentation itself is unlinkable.
-Deployment sections describe which entities need to be separated for a given
-privacy claim.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="anonymity-sets">
-<section id="section-5.3">
-        <h3 id="name-anonymity-sets">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-anonymity-sets" class="section-name selfRef">Anonymity Sets</a>
-        </h3>
-<p id="section-5.3-1">The strength of these properties depends on anonymity-set size. For
-Moderator-credential unlinkability, the relevant set is the population of
-Clients holding credentials under the same Moderator policy. For issuer-hiding,
-the relevant set is the Moderator's accepted Anchor set. A Moderator with one
-accepted Anchor provides no issuer-hiding.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">Deployments should avoid policy choices, key rotations, or Anchor-set changes
-that partition Clients into small sets.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="state">
-<section id="section-5.4">
-        <h3 id="name-state">
-<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-state" class="section-name selfRef">State</a>
-        </h3>
-<p id="section-5.4-1">Moderator credentials can carry policy state, such as quota or revocation state.
-State updates must not give a Site or Moderator a stable handle that links
-future presentations by the same Client.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-<p id="section-5.4-2">The details are construction-specific. Companion documents need to specify what
-state is carried, who can update it, and what information is revealed by each
-update.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="side-channels">
-<section id="section-5.5">
-        <h3 id="name-side-channels">
-<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-side-channels" class="section-name selfRef">Side Channels</a>
-        </h3>
-<p id="section-5.5-1">MoLE does not address all channels that can identify Clients. Relevant channels
-include network metadata between Client and Anchor, Client and Moderator, and
-Client and Site; presentation timing; request contents; accepted-set churn;
-policy changes; and key rotation.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
-<p id="section-5.5-2">These channels need deployment-specific mitigations. For example, <span>[<a href="#OBLIVIOUS-HTTP" class="cite xref">OBLIVIOUS-HTTP</a>]</span>
-can hide network metadata between the Client and Anchor or
-Moderator. The Client-Site channel is outside this architecture.<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.5-1">TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measure per-anchor abuse rates.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="deployment-considerations">
-<section id="section-6">
+<section id="section-5">
       <h2 id="name-deployment-considerations">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-deployment-considerations" class="section-name selfRef">Deployment Considerations</a>
-    </h2>
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-deployment-considerations" class="section-name selfRef">Deployment Considerations</a>
+      </h2>
+<div id="anchor-selection-and-policy">
+<section id="section-5.1">
+        <h3 id="name-anchor-selection-and-policy">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-anchor-selection-and-policy" class="section-name selfRef">Anchor Selection and Policy</a>
+        </h3>
+<p id="section-5.1-1">Moderators seek a deployment where honest users are able to pass as many challenges as possible, whereas the number of presentations that malicious users can pass is minimized. The exact weighting between the risk of excluding honest users vs including malicious users is deployment specific.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">This guides how Moderator's should select suitable Anchors, seeking to cover their user base whilst minimizing the number of Endorsements that users hold for a given time period. Each Endorsment can be converted into an independent credential, so if a malicious user can get away with X queries before their credential is revoked and they have E endorsements then their total access is X * E.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authorization-strategies">
+<section id="section-5.2">
+        <h3 id="name-authorization-strategies">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-authorization-strategies" class="section-name selfRef">Authorization Strategies</a>
+        </h3>
+<p id="section-5.2-1">Endorsements are associated with a list of Moderators which the Anchor has approved for them to be used with. In a small deployment, this might be a hardcoded list. In a larger deployment, this might be a public key and each Moderator presented a suitable signature from their trusted Anchors. Alternatively an open credential which could be used with any Moderator could be issued.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Similarly, when a Moderator is challenging for a credential, the client needs to know it's a legitimate request. This might be because of a hardcoded credential like a domain name and then using TLS to authenticate the presentation request or might involve a public key and a signature over the challenge.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="discriminatory-treatment">
+<section id="section-5.3">
+        <h3 id="name-discriminatory-treatment">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-discriminatory-treatment" class="section-name selfRef">Discriminatory Treatment</a>
+        </h3>
+<p id="section-5.3-1">In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLe does not change this but does provide a new privacy preserving access control mechanism.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to support a diverse range of attestors in order to reduce the possibility of discriminator treatment by token verifiers. However, arranging many attestors to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attestors with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attestors to share fate with low value attestors.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">The use of Anchors in MoLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-4">Further, the use of Anchor-Blinding prevents this from being a privacy risk for Clients, since even if Anchors are very fine grained and specific to a particular attestation type, the Moderator does not learn which Anchor was used and so cannot discriminate on this basis. This relies on the Moderator's Anchor set being large and not being partitioned on something specific to the client, which is discussed further in the Privacy Considerations section.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="centralization">
+<section id="section-5.4">
+        <h3 id="name-centralization">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-centralization" class="section-name selfRef">Centralization</a>
+        </h3>
+<p id="section-5.4-1">RFC XXXX, Section XX.X, identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<p id="section-5.4-3">MoLe allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLe enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="deployment-in-a-web-context">
+<section id="section-5.5">
+        <h3 id="name-deployment-in-a-web-context">
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-deployment-in-a-web-context" class="section-name selfRef">Deployment in a Web Context</a>
+        </h3>
+<p id="section-5.5-1">In a Web setting, the MoLe architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+<p id="section-5.5-2">Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLe endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="security-considerations">
-<section id="section-7">
+<section id="section-6">
       <h2 id="name-security-considerations">
-<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-7-1">TODO Security<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div id="key-compromise">
+<section id="section-6.1">
+        <h3 id="name-key-compromise">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-key-compromise" class="section-name selfRef">Key Compromise</a>
+        </h3>
+<p id="section-6.1-1">Anchor key compromise will enable an attacker to produce as many endorsement as they wish. For Moderators which trust this Anchor, attackers will be able to run the Issuance flow as many times as they wish. If any Moderator allocates some rate limited access to each initial Credential, this will enable the Attacker to bypass the rate limit.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-2">Moderator key compromise will enable an attack to produce as many credentials as they like with arbitrary state. However, this will impact only the Moderator and not any other parties.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="state-management">
+<section id="section-6.2">
+        <h3 id="name-state-management">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-state-management" class="section-name selfRef">State Management</a>
+        </h3>
+<p id="section-6.2-1">MoLe requires Anchors and Moderators to maintain state in order to uphold it's security properties. Anchors which issues on the basis of some long term account will need to maintain state in order to record when a user has been issued an Endorsement. Moderators require state in order to prevent the double-spend of Endorsements and Credentials.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">MoLe requires Clients to maintain state in order to benefit from the system. It also requires the timely deletion of state in order to maintain it's privacy properties. Firstly, clients must maintain state for their Endorsements and Credentials in order to benefit from the system. Secondly, clients must ensure that once an Endorsement or Credential has been presented, it is deleted or otherwise rendered incapable of being presented again. If a Client undergoes state reset, it compromise the privacy properties of the system.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ddos-mitigations">
+<section id="section-6.3">
+        <h3 id="name-ddos-mitigations">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-ddos-mitigations" class="section-name selfRef">DDOS Mitigations</a>
+        </h3>
+<p id="section-6.3-1">The server-side cost of Presentation flows needs to be as cheap as possible as malicious users who receive a challenge for a presentation may submit responses which will certainly fail but cost server-side resources to verify.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">The Issuance Flow is particularly susceptible to DDOS as it is the only flow which is triggered by the client. Moderators should give consideration to suitable protection mechanisms for this endpoint, for example, using a client-side puzzle to ensure that clients spend at least as much CPU as it costs servers to reject a faulty Endorsement presentation.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-3">As the Endorsement flow is triggered by the Anchor in a context where it already trusts the user, it is less vulnerable to DDOS.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="privacy-considerations">
-<section id="section-8">
+<section id="section-7">
       <h2 id="name-privacy-considerations">
-<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
       </h2>
-<p id="section-8-1">TODO Privacy
-Consideration section is more widespread than properties<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div id="anonymity-sets-and-minimum-thresholds">
+<section id="section-7.1">
+        <h3 id="name-anonymity-sets-and-minimum-">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-anonymity-sets-and-minimum-" class="section-name selfRef">Anonymity Sets and Minimum Thresholds</a>
+        </h3>
+<p id="section-7.1-1">Client anonymity sets depend on the total number of clients that share the same configuration metadata. During an Issuance flow, this corresponds to the number of other Clients that posess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to present an Endorsement during Issuance unless at least one trusted Anchor is of sufficient size.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The same process may be applied to a Moderator's credential during issuance, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1-4">TODO: Provide a stronger recommendation about which mitigation to apply.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="configuration-consistency-and-partitioning-attacks">
+<section id="section-7.2">
+        <h3 id="name-configuration-consistency-a">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-configuration-consistency-a" class="section-name selfRef">Configuration Consistency and Partitioning Attacks</a>
+        </h3>
+<p id="section-7.2-1">During Issuance, if Moderators can rotate their configuration material freely, they can enable the tracking of users, e.g. by restricting a user to a unique configuration which it can later detect. For this reason, Client Vendors should ensure that their clients receive consistent information from Anchors and Moderators.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">Deployments should make configuration material consistent across
+Clients and resistant to split views. A deployment can use a
+<span>[<a href="#CONSISTENCY-MIRROR" class="cite xref">CONSISTENCY-MIRROR</a>]</span>, <span>[<a href="#KEYTRANS" class="cite xref">KEYTRANS</a>]</span>, <span>[<a href="#SCITT" class="cite xref">SCITT</a>]</span>, or another mechanism with
+similar properties.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">TODO: Client-local consistent information vs Globally consistent configuration.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="side-channels">
+<section id="section-7.3">
+        <h3 id="name-side-channels">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-side-channels" class="section-name selfRef">Side Channels</a>
+        </h3>
+<p id="section-7.3-1">MoLE does not address all channels that can identify Clients. For example, side channels may reveal information about the user's Client, associated user-agent, hardware configuration, network address or similar information which can be used to cut the user's practical anonymity set. This type of side channel exists largely outside of the architecture's deployment and needs deployment-specific mitigations.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">Timing side channels may also reduce the practical anonymity set. For example, Issuance may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long issuance takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after issuance.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Issuance. This timing side channel is particuarly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Issuance session.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-7.3-4">Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Issuance and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="multiple-presentations-in-concurrent-contexts">
+<section id="section-7.4">
+        <h3 id="name-multiple-presentations-in-c">
+<a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-multiple-presentations-in-c" class="section-name selfRef">Multiple Presentations in Concurrent Contexts</a>
+        </h3>
+<p id="section-7.4-1">Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client beings to present their credential, they must mark it as burned and cannot use it in another session.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">If the Moderator simultanousely issues a challenge for a presentation in a different session, the Moderator can conclude that the Client cannot also answer that presentation (assuming it has a single Credential). A similar pattern holds for Updates. A Credential being Updated cannot be Updated or Presented in any other session.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.4-3">In order to avoid this behavior being exploited for a timing side channel. E.g. an attacker holds an Update on one client and challenges for Updates in other sessions in order to link two sessions. The client must only never offer the same Credential in concurrent contexts. That is, once a Credential has been used in one context, it must remain locked to that context for a period of a time.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
+<p id="section-7.4-4">Alt: Destroy credentials for a Moderator if you ever can't present because of concurrency issues?<a href="#section-7.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="multiple-presentations-in-the-same-context">
+<section id="section-7.5">
+        <h3 id="name-multiple-presentations-in-t">
+<a href="#section-7.5" class="section-number selfRef">7.5. </a><a href="#name-multiple-presentations-in-t" class="section-name selfRef">Multiple Presentations in the Same Context</a>
+        </h3>
+<p id="section-7.5-1">Every successful presentation of a Credential reveals at least one bit of information about a client. Answering Multiple presentations for the same or different moderators within one context can lead to greater inferences about the Client.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
+<p id="section-7.5-2">For example, consider a Moderator that assigns each user a unique integer in their credential, a Presentation Predictate which checks the integer is &gt; 0 and an Update predicate which reduces the integer by 1. If the Moderator can repeatedly issue Presentations and Updates, it can recover each user's unique integer in a given context, allowing their sessions to be linked.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
+<p id="section-7.5-3">Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigation's to different sites as bounc tracking or use of tracking URLs can enable information to cross to new pages.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+<p id="section-7.5-4">Multiple updates are fine as long as the Updates can never fail.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-9">
+<section id="section-8">
       <h2 id="name-iana-considerations">
-<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-9-1">This document has no IANA actions.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">This document has no IANA actions.<a href="#section-8-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-10">
+<section id="section-9">
       <h2 id="name-references">
-<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-10.1">
+<section id="section-9.1">
         <h3 id="name-normative-references">
-<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="RFC2119">[RFC2119]</dt>
@@ -2026,9 +2155,9 @@ Consideration section is more widespread than properties<a href="#section-8-1" c
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-10.2">
+<section id="section-9.2">
         <h3 id="name-informative-references">
-<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="CONSISTENCY-MIRROR">[CONSISTENCY-MIRROR]</dt>
@@ -2041,7 +2170,7 @@ Consideration section is more widespread than properties<a href="#section-8-1" c
 <dd class="break"></dd>
 <dt id="KEYTRANS">[KEYTRANS]</dt>
         <dd>
-<span class="refAuthor">McMillion, B.</span>, <span class="refTitle">"Key Transparency Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-keytrans-architecture-08</span>, <time datetime="2026-04-12" class="refDate">12 April 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-keytrans-architecture-08">https://datatracker.ietf.org/doc/html/draft-ietf-keytrans-architecture-08</a>&gt;</span>. </dd>
+<span class="refAuthor">McMillion, B.</span>, <span class="refTitle">"Key Transparency Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-keytrans-architecture-09</span>, <time datetime="2026-06-29" class="refDate">29 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-keytrans-architecture-09">https://datatracker.ietf.org/doc/html/draft-ietf-keytrans-architecture-09</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="OBLIVIOUS-HTTP">[OBLIVIOUS-HTTP]</dt>
         <dd>
