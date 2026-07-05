@@ -1212,7 +1212,7 @@ svg {
                     <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-endorsement" class="internal xref">Endorsement</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
-                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-redemption" class="internal xref">Redemption</a></p>
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-redeem-issue" class="internal xref">Redeem &amp; Issue</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
                     <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-presentation-and-updates" class="internal xref">Presentation and Updates</a></p>
@@ -1329,9 +1329,9 @@ multiple Anchors in order to cover more of its user base. An Anchor may vouch fo
 Clients that a Moderator deems untrustworthy; the Moderator can mitigate this
 either by withdrawing trust in those specific Clients or by withdrawing trust in
 the Anchor entirely.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">At a high level, MoLE relies on three distinct flows: Endorsement, Redemption, and
+<p id="section-1-4">At a high level, MoLE relies on three distinct flows: Endorsement, Redeem &amp; Issue, and
 Presentation. In Endorsement, an Anchor grants a Client an Endorsement, which
-conveys the Anchor's trust in the Client to other parties. In Redemption, a Client
+conveys the Anchor's trust in the Client to other parties. In Redeem &amp; Issue, a Client
 redeems an Endorsement at a Moderator and receives a Credential, allowing the
 Moderator to bootstrap its trust in the Client. In Presentation, the Client
 presents a Credential to a Moderator, allowing the Moderator to make an access
@@ -1340,7 +1340,7 @@ including by dynamically rate-limiting access.<a href="#section-1-4" class="pilc
 <p id="section-1-5">Critically, redeeming an Endorsement does not reveal the granting Anchor, only
 that it was drawn from the Moderator's Anchor Set. This avoids
 leaking information about the Client, such as which Anchor's policy it satisfies.
-Further, a Client's interactions across Redemption and Presentation are unlinkable,
+Further, a Client's interactions across Redeem &amp; Issue and Presentation are unlinkable,
 preventing Anchors and Moderators from tracking Clients. These privacy properties
 are designed to hold even when Anchors and Moderators collude.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">This document describes the requirements for these flows and how they interact,
@@ -1417,11 +1417,8 @@ functionality on a non-public criterion such as a paid subscription, group
 membership, or a per-period quota of allowed operations.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
 <p id="section-2.3-2">In this use case, the Anchor's attestation conveys eligibility under such a
 criterion, and the Moderator translates that eligibility into a Credential
-under a policy that may include rate or quota state. Against the site alone,
-successive presentations are unlinkable to each other and to Redemption. The
-Moderator necessarily observes Redemption; cross-presentation linkage at the
-Moderator is bounded to the granularity of the rate or quota state the
-credential carries, with details in <a href="#privacy-properties" class="auto internal xref">Section 4.2</a>.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
+under a policy that may include rate or quota state.
+The successive presentations are unlinkable to each other and to Redeem &amp; Issue.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
 <p id="section-2.3-3">This use case is a secondary goal. More
 elaborate authorization policies, including rich attribute-based access control
 and multi-factor eligibility combinations, are out of scope of this
@@ -1481,7 +1478,7 @@ the Predicate, not the state itself.<a href="#section-3-3.12.1" class="pilcrow">
 Anchor's trust relationship with that Client.<a href="#section-3-3.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-3-3.15"><strong>Redemption Flow:</strong></dt>
+<dt id="section-3-3.15"><strong>Redeem &amp; Issue Flow:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.16">
           <p id="section-3-3.16.1">The flow in which a Client redeems an Endorsement at a Moderator and, in
 return, obtains a Credential, without revealing which Anchor granted the
@@ -1501,7 +1498,7 @@ satisfies a Predicate specified by the Moderator.<a href="#section-3-3.18.1" cla
         <dd class="break"></dd>
 <dt id="section-3-3.21"><strong>Anchor Set:</strong></dt>
         <dd style="margin-left: 1.5em" id="section-3-3.22">
-          <p id="section-3-3.22.1">The set of Anchors whose Endorsements a Moderator will accept during Redemption.<a href="#section-3-3.22.1" class="pilcrow">¶</a></p>
+          <p id="section-3-3.22.1">The set of Anchors whose Endorsements a Moderator will accept during Redeem &amp; Issue.<a href="#section-3-3.22.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.23"><strong>Anonymity Set:</strong></dt>
@@ -1532,7 +1529,7 @@ entities along with requirements for the underlying protocols and APIs.<a href="
         </h3>
 <p id="section-4.1-1">MoLE is composed of three distinct flows:
 Endorsement, in which a Client obtains an Endorsement signifying
-its trust relationship with an Anchor; Redemption, in which a Client redeems an
+its trust relationship with an Anchor; Redeem &amp; Issue, in which a Client redeems an
 Endorsement from an Anchor to obtain a Credential from a Moderator without
 revealing which Anchor granted it; and Presentation, in which a Client uses
 a Credential from a Moderator to prove that it is
@@ -1571,10 +1568,6 @@ presently in good standing with the Moderator in order to access a resource.<a h
                 <path d="M 48,146 L 136,146" fill="none" stroke="black"></path>
                 <path d="M 248,142 L 288,142" fill="none" stroke="black"></path>
                 <path d="M 248,146 L 288,146" fill="none" stroke="black"></path>
-                <path d="M 48,158 L 80,158" fill="none" stroke="black"></path>
-                <path d="M 48,162 L 80,162" fill="none" stroke="black"></path>
-                <path d="M 272,158 L 288,158" fill="none" stroke="black"></path>
-                <path d="M 272,162 L 288,162" fill="none" stroke="black"></path>
                 <path d="M 48,174 L 120,174" fill="none" stroke="black"></path>
                 <path d="M 48,178 L 120,178" fill="none" stroke="black"></path>
                 <path d="M 240,174 L 288,174" fill="none" stroke="black"></path>
@@ -1582,10 +1575,8 @@ presently in good standing with the Moderator in order to access a resource.<a h
                 <polygon class="arrowhead" points="512,112 500,106.4 500,117.6" fill="black" transform="rotate(0,504,112)"></polygon>
                 <polygon class="arrowhead" points="512,96 500,90.4 500,101.6" fill="black" transform="rotate(0,504,96)"></polygon>
                 <polygon class="arrowhead" points="296,176 284,170.4 284,181.6" fill="black" transform="rotate(0,288,176)"></polygon>
-                <polygon class="arrowhead" points="296,160 284,154.4 284,165.6" fill="black" transform="rotate(0,288,160)"></polygon>
                 <polygon class="arrowhead" points="296,144 284,138.4 284,149.6" fill="black" transform="rotate(0,288,144)"></polygon>
                 <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
-                <polygon class="arrowhead" points="56,160 44,154.4 44,165.6" fill="black" transform="rotate(180,48,160)"></polygon>
                 <polygon class="arrowhead" points="56,144 44,138.4 44,149.6" fill="black" transform="rotate(180,48,144)"></polygon>
                 <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
                 <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
@@ -1596,9 +1587,13 @@ presently in good standing with the Moderator in order to access a resource.<a h
                   <text x="192" y="100">Interaction</text>
                   <text x="192" y="116">Endorsement</text>
                   <text x="192" y="148">Interaction</text>
-                  <text x="100" y="164">If</text>
-                  <text x="144" y="164">needed:</text>
-                  <text x="220" y="164">Redemption</text>
+                  <text x="52" y="164">&lt;=</text>
+                  <text x="76" y="164">If</text>
+                  <text x="120" y="164">needed:</text>
+                  <text x="180" y="164">Redeem</text>
+                  <text x="216" y="164">&amp;</text>
+                  <text x="248" y="164">Issue</text>
+                  <text x="284" y="164">=&gt;</text>
                   <text x="180" y="180">Presentation</text>
                 </g>
               </svg><a href="#section-4.1-2.1.1" class="pilcrow">¶</a>
@@ -1615,7 +1610,7 @@ CAPTCHA. The Anchor grants the Client an Endorsement to signify this trust relat
 Clients may accrue multiple Endorsements from the same or different Anchors.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
 <p id="section-4.1-4">Later, when trying to access a resource, a Client may be prompted by a Moderator to present
 a Credential. If the Client doesn't have a Credential for this Moderator it will then engage in the
-Redemption flow. In this flow, the Client redeems an Endorsement from the Moderator's
+Redeem &amp; Issue flow. In this flow, the Client redeems an Endorsement from the Moderator's
 Anchor Set and receives a Credential in return. Redeeming an Endorsement does not reveal which
 Anchor was used, only that it came from the Anchor Set.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <p id="section-4.1-5">Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that Endorsement in their system. This property prevents abusive Clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
@@ -1643,7 +1638,7 @@ Moderator's chosen predicate. The Moderator can also update the state of the Cre
               <p id="section-4.2.1-2.2.1"><em>Endorsement Redemptions are Anchor-hiding</em> - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement from an Anchor, the Client hides the Anchor it obtained the Endorsement from among the Moderator's Anchor Set. Such Anchor-hiding makes an Endorsement redemption indistinguishable regardless of which Anchor in the Anchor Set the Client used, to both the Anchor and the Moderator.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-4.2.1-2.3">
-              <p id="section-4.2.1-2.3.1"><em>Credential Issuances and Presentations are Unlinkable</em> - If a Client engages in multiple presentations, then those presentations are unlinkable to each other and to the Redemption that produced the Credential.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
+              <p id="section-4.2.1-2.3.1"><em>Credential Issuances and Presentations are Unlinkable</em> - If a Client engages in multiple presentations, then those presentations are unlinkable to each other and to the Redeem &amp; Issue flow that produced the Credential.<a href="#section-4.2.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-4.2.1-3">A successful presentation tells the Moderator that the Client holds a
@@ -1811,12 +1806,12 @@ Endorsement. However, in some deployments it may be requested pro-actively by th
 <p id="section-4.4.1-8">The Endorsement flow must not allow malicious clients to forge tokens offline or otherwise obtain further valid Endorsements without interacting with the Anchor directly. It must be safe to run the Endorsement protocol concurrently with many Clients, some of whom may abort or otherwise misbehave.<a href="#section-4.4.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="redemption">
+<div id="redeem-issue">
 <section id="section-4.4.2">
-          <h4 id="name-redemption">
-<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
+          <h4 id="name-redeem-issue">
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-redeem-issue" class="section-name selfRef">Redeem &amp; Issue</a>
           </h4>
-<span id="name-mole-redemption"></span><div id="fig-mole-architecture-issuance">
+<span id="name-mole-redeem-issue"></span><div id="fig-mole-architecture-issuance">
 <figure id="figure-3">
             <div id="section-4.4.2-1.1">
               <div class="alignLeft art-svg artwork" id="section-4.4.2-1.1.1">
@@ -1859,23 +1854,23 @@ Endorsement. However, in some deployments it may be requested pro-actively by th
 </div>
 </div>
 <figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
-<a href="#name-mole-redemption" class="selfRef">MoLE Redemption</a>
+<a href="#name-mole-redeem-issue" class="selfRef">MoLE Redeem &amp; Issue</a>
             </figcaption></figure>
 </div>
-<p id="section-4.4.2-2">Redemption is likely to happen on-demand in response to a Moderator's challenge for a
+<p id="section-4.4.2-2">Redeem &amp; Issue is likely to happen on-demand in response to a Moderator's challenge for a
 Client to present a valid Credential. The challenge should contain enough information
-to identify the Moderator and the Anchors whose Endorsements it will trust for Redemption.
+to identify the Moderator and the Anchors whose Endorsements it will trust for redemption.
 If the Client wishes to complete the presentation and has suitable Endorsements, it will
-begin the Redemption flow. In some circumstances, the Moderator may not require any Anchors for Redemption, i.e. it has some local means of establishing trust in this case.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.4.2-3">In order to maximize unlinkability, the Redemption and Presentation flows can happen in isolated
+begin the Redeem &amp; Issue flow. In some circumstances, the Moderator may not require any Anchors for redemption, i.e. it has some local means of establishing trust in this case.<a href="#section-4.4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-3">In order to maximize unlinkability, the Redeem &amp; Issue and Presentation flows can happen in isolated
 contexts, e.g. over distinct communication channels with partitioned state.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.4.2-4">In Redemption, the Client redeems an Endorsement, proving to the Moderator that it holds a suitable Endorsement from an
+<p id="section-4.4.2-4">In Redeem &amp; Issue, the Client redeems an Endorsement, proving to the Moderator that it holds a suitable Endorsement from an
 Anchor trusted by the Moderator without revealing which specific Anchor was used. In order to translate this into a tangible privacy property for clients, the see the Privacy Considerations section for a discussion around anonymity sets and maximizing them. The redemption must be unlinkable to the grant of the Endorsement so that even if the Anchor and Moderator collude they can't link the two sessions.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
 <p id="section-4.4.2-5">Further, the redemption of the Endorsement must ensure that even in the presence of a dishonest client, a Moderator will only issue a Credential once for a given Endorsement in order to mitigate attempts to bypass rate limits.<a href="#section-4.4.2-5" class="pilcrow">¶</a></p>
 <p id="section-4.4.2-6">The properties of the Credential issued by the Moderator will vary depending on the exact protocol used. However, they must support:<a href="#section-4.4.2-6" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.4.2-7">
 <li id="section-4.4.2-7.1">
-              <p id="section-4.4.2-7.1.1">Unlinkable Presentation. A Client presenting a Credential reveals nothing beyond the result of the Moderator's predicate. Two successful presentations cannot be linked to one another, to the Redemption session that produced the Credential, or to any prior update, even if the Moderator records every transcript.<a href="#section-4.4.2-7.1.1" class="pilcrow">¶</a></p>
+              <p id="section-4.4.2-7.1.1">Unlinkable Presentation. A Client presenting a Credential reveals nothing beyond the result of the Moderator's predicate. Two successful presentations cannot be linked to one another, to the Redeem &amp; Issue session that produced the Credential, or to any prior update, even if the Moderator records every transcript.<a href="#section-4.4.2-7.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-4.4.2-7.2">
               <p id="section-4.4.2-7.2.1">One-Time Use. A Moderator accepting a presented Credential will not accept the same Credential a second time. Each successful presentation yields a freshly issued Credential carrying the updated state, so a Client cannot replay a Credential or present a version whose state has since been updated.<a href="#section-4.4.2-7.2.1" class="pilcrow">¶</a></p>
@@ -1921,8 +1916,8 @@ Anchor trusted by the Moderator without revealing which specific Anchor was used
                   <path d="M 312,96 L 392,96" fill="none" stroke="black"></path>
                   <path d="M 48,110 L 88,110" fill="none" stroke="black"></path>
                   <path d="M 48,114 L 88,114" fill="none" stroke="black"></path>
-                  <path d="M 280,110 L 384,110" fill="none" stroke="black"></path>
-                  <path d="M 280,114 L 384,114" fill="none" stroke="black"></path>
+                  <path d="M 312,110 L 384,110" fill="none" stroke="black"></path>
+                  <path d="M 312,114 L 384,114" fill="none" stroke="black"></path>
                   <path d="M 40,160 L 80,160" fill="none" stroke="black"></path>
                   <path d="M 288,160 L 384,160" fill="none" stroke="black"></path>
                   <path d="M 48,192 L 80,192" fill="none" stroke="black"></path>
@@ -1938,7 +1933,9 @@ Anchor trusted by the Moderator without revealing which specific Anchor was used
                     <text x="216" y="100">PresentationChallenge</text>
                     <text x="108" y="116">If</text>
                     <text x="152" y="116">needed,</text>
-                    <text x="228" y="116">Redemption</text>
+                    <text x="212" y="116">Redeem</text>
+                    <text x="248" y="116">&amp;</text>
+                    <text x="280" y="116">Issue</text>
                     <text x="92" y="148">CredentialPresentation</text>
                     <text x="416" y="148">|</text>
                     <text x="184" y="164">Request+CredentialToken</text>
@@ -1956,12 +1953,12 @@ Anchor trusted by the Moderator without revealing which specific Anchor was used
 <p id="section-4.4.3-2">A Presentation is triggered by the Moderator challenging the Client to present a valid Credential.
 The Client will check that the Challenge is from the Moderator via the Authorization Material.
 The client will consult its stored Credentials and identify if it has a Credential for this Moderator.
-If it doesn't, it will consider triggering the Redemption flow described above.<a href="#section-4.4.3-2" class="pilcrow">¶</a></p>
+If it doesn't, it will consider triggering the Redeem &amp; Issue flow described above.<a href="#section-4.4.3-2" class="pilcrow">¶</a></p>
 <p id="section-4.4.3-3">The challenge will identify a specific Predicate.
 If the Client holds a Credential which satisfies the predicate it will perform the presentation.
 When a Moderator credential is presented, the Moderator learns
 whether or not it satisfies the Moderator's predicate. The presentation
-must not be linkable to past updates, or to the Redemption that produced it.<a href="#section-4.4.3-3" class="pilcrow">¶</a></p>
+must not be linkable to past updates, or to the Redeem &amp; Issue flow that produced it.<a href="#section-4.4.3-3" class="pilcrow">¶</a></p>
 <p id="section-4.4.3-4">The Presentation is one-time. The Client will not present it again.
 The Moderator may re-issue the Credential.
 The Moderator may adjust the Credential.<a href="#section-4.4.3-4" class="pilcrow">¶</a></p>
@@ -2053,7 +2050,7 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-key-compromise">
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-key-compromise" class="section-name selfRef">Key Compromise</a>
         </h3>
-<p id="section-6.1-1">Anchor key compromise will enable an attacker to produce as many endorsement as they wish. For Moderators which trust this Anchor, attackers will be able to run the Redemption flow as many times as they wish. If any Moderator allocates some rate limited access to each initial Credential, this will enable the Attacker to bypass the rate limit.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+<p id="section-6.1-1">Anchor key compromise will enable an attacker to produce as many endorsement as they wish. For Moderators which trust this Anchor, attackers will be able to run the Redeem &amp; Issue flow as many times as they wish. If any Moderator allocates some rate limited access to each initial Credential, this will enable the Attacker to bypass the rate limit.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 <p id="section-6.1-2">Moderator key compromise will enable an attack to produce as many credentials as they like with arbitrary state. However, this will impact only the Moderator and not any other parties.<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2083,7 +2080,7 @@ their availability, but still uphold privacy and security.<a href="#section-6.2-
 <a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-ddos-mitigations" class="section-name selfRef">DDOS Mitigations</a>
         </h3>
 <p id="section-6.3-1">The server-side cost of Presentation flows needs to be as cheap as possible as malicious users who receive a challenge for a presentation may submit responses which will certainly fail but cost server-side resources to verify.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.3-2">The Redemption flow is particularly susceptible to DDOS as it is the only flow which is triggered by the client. Moderators should give consideration to suitable protection mechanisms for this endpoint, for example, using a client-side puzzle to ensure that clients spend at least as much CPU as it costs servers to reject a faulty Endorsement redemption.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-2">The Redeem &amp; Issue flow is particularly susceptible to DDOS as it is the only flow which is triggered by the client. Moderators should give consideration to suitable protection mechanisms for this endpoint, for example, using a client-side puzzle to ensure that clients spend at least as much CPU as it costs servers to reject a faulty Endorsement redemption.<a href="#section-6.3-2" class="pilcrow">¶</a></p>
 <p id="section-6.3-3">As the Endorsement flow is triggered by the Anchor in a context where it already trusts the user, it is less vulnerable to DDOS.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2099,9 +2096,9 @@ their availability, but still uphold privacy and security.<a href="#section-6.2-
         <h3 id="name-anonymity-sets-and-minimum-">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-anonymity-sets-and-minimum-" class="section-name selfRef">Anonymity Sets and Minimum Thresholds</a>
         </h3>
-<p id="section-7.1-1">Client anonymity sets depend on the total number of clients that share the same configuration metadata. During a Redemption flow, this corresponds to the number of other Clients that possess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to redeem an Endorsement during Redemption unless at least one trusted Anchor is of sufficient size.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">The same process may be applied to a Moderator's credential during Redemption, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">Client anonymity sets depend on the total number of clients that share the same configuration metadata. During a Redeem &amp; Issue flow, this corresponds to the number of other Clients that possess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to redeem an Endorsement during Redeem &amp; Issue unless at least one trusted Anchor is of sufficient size.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-3">The same process may be applied to a Moderator's credential during Redeem &amp; Issue, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <p id="section-7.1-4">TODO: Provide a stronger recommendation about which mitigation to apply.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2110,7 +2107,7 @@ their availability, but still uphold privacy and security.<a href="#section-6.2-
         <h3 id="name-configuration-consistency-a">
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-configuration-consistency-a" class="section-name selfRef">Configuration Consistency and Partitioning Attacks</a>
         </h3>
-<p id="section-7.2-1">During Redemption, if Moderators can rotate their configuration material freely, they can enable the tracking of users, e.g. by restricting a user to a unique configuration which it can later detect. For this reason, Client Vendors should ensure that their clients receive consistent information from Anchors and Moderators.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-1">During Redeem &amp; Issue, if Moderators can rotate their configuration material freely, they can enable the tracking of users, e.g. by restricting a user to a unique configuration which it can later detect. For this reason, Client Vendors should ensure that their clients receive consistent information from Anchors and Moderators.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <p id="section-7.2-2">Deployments should make configuration material consistent across
 Clients and resistant to split views. A deployment can use a
 <span>[<a href="#CONSISTENCY-MIRROR" class="cite xref">CONSISTENCY-MIRROR</a>]</span>, <span>[<a href="#KEYTRANS" class="cite xref">KEYTRANS</a>]</span>, <span>[<a href="#SCITT" class="cite xref">SCITT</a>]</span>, or another mechanism with
@@ -2124,9 +2121,9 @@ similar properties.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-side-channels" class="section-name selfRef">Side Channels</a>
         </h3>
 <p id="section-7.3-1">MoLE does not address all channels that can identify Clients. For example, side channels may reveal information about the user's Client, associated user-agent, hardware configuration, network address or similar information which can be used to cut the user's practical anonymity set. This type of side channel exists largely outside of the architecture's deployment and needs deployment-specific mitigations.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
-<p id="section-7.3-2">Timing side channels may also reduce the practical anonymity set. For example, Redemption may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long Redemption takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after Redemption.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
-<p id="section-7.3-3">Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Redemption. This timing side channel is particularly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Redemption session.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
-<p id="section-7.3-4">Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Redemption and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+<p id="section-7.3-2">Timing side channels may also reduce the practical anonymity set. For example, Redeem &amp; Issue may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long Redeem &amp; Issue takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after Redeem &amp; Issue.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Redeem &amp; Issue. This timing side channel is particularly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Redeem &amp; Issue session.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-7.3-4">Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Redeem &amp; Issue and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="concurrent-contexts">

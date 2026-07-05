@@ -100,7 +100,7 @@ Table of Contents
        4.3.2.  Threat Model
      4.4.  Flows
        4.4.1.  Endorsement
-       4.4.2.  Redemption
+       4.4.2.  Redeem & Issue
        4.4.3.  Presentation and Updates
      4.5.  Anchor Feedback
    5.  Deployment Considerations
@@ -157,10 +157,10 @@ Table of Contents
    or by withdrawing trust in the Anchor entirely.
 
    At a high level, MoLE relies on three distinct flows: Endorsement,
-   Redemption, and Presentation.  In Endorsement, an Anchor grants a
+   Redeem & Issue, and Presentation.  In Endorsement, an Anchor grants a
    Client an Endorsement, which conveys the Anchor's trust in the Client
-   to other parties.  In Redemption, a Client redeems an Endorsement at
-   a Moderator and receives a Credential, allowing the Moderator to
+   to other parties.  In Redeem & Issue, a Client redeems an Endorsement
+   at a Moderator and receives a Credential, allowing the Moderator to
    bootstrap its trust in the Client.  In Presentation, the Client
    presents a Credential to a Moderator, allowing the Moderator to make
    an access control decision and to adjust its level of trust in the
@@ -169,8 +169,8 @@ Table of Contents
    Critically, redeeming an Endorsement does not reveal the granting
    Anchor, only that it was drawn from the Moderator's Anchor Set. This
    avoids leaking information about the Client, such as which Anchor's
-   policy it satisfies.  Further, a Client's interactions across
-   Redemption and Presentation are unlinkable, preventing Anchors and
+   policy it satisfies.  Further, a Client's interactions across Redeem
+   & Issue and Presentation are unlinkable, preventing Anchors and
    Moderators from tracking Clients.  These privacy properties are
    designed to hold even when Anchors and Moderators collude.
 
@@ -272,11 +272,8 @@ Table of Contents
    In this use case, the Anchor's attestation conveys eligibility under
    such a criterion, and the Moderator translates that eligibility into
    a Credential under a policy that may include rate or quota state.
-   Against the site alone, successive presentations are unlinkable to
-   each other and to Redemption.  The Moderator necessarily observes
-   Redemption; cross-presentation linkage at the Moderator is bounded to
-   the granularity of the rate or quota state the credential carries,
-   with details in Section 4.2.
+   The successive presentations are unlinkable to each other and to
+   Redeem & Issue.
 
    This use case is a secondary goal.  More elaborate authorization
    policies, including rich attribute-based access control and multi-
@@ -319,9 +316,9 @@ Table of Contents
       Endorsement to a Client, based on the Anchor's trust relationship
       with that Client.
 
-   *Redemption Flow:*  The flow in which a Client redeems an Endorsement
-      at a Moderator and, in return, obtains a Credential, without
-      revealing which Anchor granted the Endorsement.
+   *Redeem & Issue Flow:*  The flow in which a Client redeems an
+      Endorsement at a Moderator and, in return, obtains a Credential,
+      without revealing which Anchor granted the Endorsement.
 
    *Presentation Flow:*  The flow by which a Client proves possession of
       a Credential whose state satisfies a Predicate specified by the
@@ -330,7 +327,7 @@ Table of Contents
    *Policy:*  Rules used by a Moderator to evaluate presentations.
 
    *Anchor Set:*  The set of Anchors whose Endorsements a Moderator will
-      accept during Redemption.
+      accept during Redeem & Issue.
 
    *Anonymity Set:*  The set of Clients among which a given Client is
       indistinguishable during an interaction.  The strength of MoLE's
@@ -351,11 +348,12 @@ Table of Contents
 
    MoLE is composed of three distinct flows: Endorsement, in which a
    Client obtains an Endorsement signifying its trust relationship with
-   an Anchor; Redemption, in which a Client redeems an Endorsement from
-   an Anchor to obtain a Credential from a Moderator without revealing
-   which Anchor granted it; and Presentation, in which a Client uses a
-   Credential from a Moderator to prove that it is presently in good
-   standing with the Moderator in order to access a resource.
+   an Anchor; Redeem & Issue, in which a Client redeems an Endorsement
+   from an Anchor to obtain a Credential from a Moderator without
+   revealing which Anchor granted it; and Presentation, in which a
+   Client uses a Credential from a Moderator to prove that it is
+   presently in good standing with the Moderator in order to access a
+   resource.
 
    +--------+                    +-----------+               +--------+
    | Client |                    | Moderator |               | Anchor |
@@ -365,7 +363,7 @@ Table of Contents
        |<=========== Endorsement ================================>|
        |                               |                          |
        |<=========== Interaction =====>|
-       |<==== If needed: Redemption ==>|                          |
+       |<= If needed: Redeem & Issue =>|                          |
        |<========= Presentation ======>|                          |
        |                               |                          |
 
@@ -381,8 +379,8 @@ Table of Contents
 
    Later, when trying to access a resource, a Client may be prompted by
    a Moderator to present a Credential.  If the Client doesn't have a
-   Credential for this Moderator it will then engage in the Redemption
-   flow.  In this flow, the Client redeems an Endorsement from the
+   Credential for this Moderator it will then engage in the Redeem &
+   Issue flow.  In this flow, the Client redeems an Endorsement from the
    Moderator's Anchor Set and receives a Credential in return.
    Redeeming an Endorsement does not reveal which Anchor was used, only
    that it came from the Anchor Set.
@@ -426,8 +424,8 @@ Table of Contents
 
    3.  _Credential Issuances and Presentations are Unlinkable_ - If a
        Client engages in multiple presentations, then those
-       presentations are unlinkable to each other and to the Redemption
-       that produced the Credential.
+       presentations are unlinkable to each other and to the Redeem &
+       Issue flow that produced the Credential.
 
    A successful presentation tells the Moderator that the Client holds a
    Credential satisfying the Moderator's policy.  It does not reveal the
@@ -576,7 +574,7 @@ Table of Contents
    Endorsement protocol concurrently with many Clients, some of whom may
    abort or otherwise misbehave.
 
-4.4.2.  Redemption
+4.4.2.  Redeem & Issue
 
    +--------+                                +-----------+
    | Client |                                | Moderator |
@@ -589,23 +587,23 @@ Table of Contents
    CredentialFinalization                          |
        |                                           |
 
-                         Figure 3: MoLE Redemption
+                       Figure 3: MoLE Redeem & Issue
 
-   Redemption is likely to happen on-demand in response to a Moderator's
-   challenge for a Client to present a valid Credential.  The challenge
-   should contain enough information to identify the Moderator and the
-   Anchors whose Endorsements it will trust for Redemption.  If the
-   Client wishes to complete the presentation and has suitable
-   Endorsements, it will begin the Redemption flow.  In some
-   circumstances, the Moderator may not require any Anchors for
-   Redemption, i.e. it has some local means of establishing trust in
+   Redeem & Issue is likely to happen on-demand in response to a
+   Moderator's challenge for a Client to present a valid Credential.
+   The challenge should contain enough information to identify the
+   Moderator and the Anchors whose Endorsements it will trust for
+   redemption.  If the Client wishes to complete the presentation and
+   has suitable Endorsements, it will begin the Redeem & Issue flow.  In
+   some circumstances, the Moderator may not require any Anchors for
+   redemption, i.e. it has some local means of establishing trust in
    this case.
 
-   In order to maximize unlinkability, the Redemption and Presentation
-   flows can happen in isolated contexts, e.g. over distinct
-   communication channels with partitioned state.
+   In order to maximize unlinkability, the Redeem & Issue and
+   Presentation flows can happen in isolated contexts, e.g. over
+   distinct communication channels with partitioned state.
 
-   In Redemption, the Client redeems an Endorsement, proving to the
+   In Redeem & Issue, the Client redeems an Endorsement, proving to the
    Moderator that it holds a suitable Endorsement from an Anchor trusted
    by the Moderator without revealing which specific Anchor was used.
    In order to translate this into a tangible privacy property for
@@ -625,8 +623,8 @@ Table of Contents
    1.  Unlinkable Presentation.  A Client presenting a Credential
        reveals nothing beyond the result of the Moderator's predicate.
        Two successful presentations cannot be linked to one another, to
-       the Redemption session that produced the Credential, or to any
-       prior update, even if the Moderator records every transcript.
+       the Redeem & Issue session that produced the Credential, or to
+       any prior update, even if the Moderator records every transcript.
 
    2.  One-Time Use. A Moderator accepting a presented Credential will
        not accept the same Credential a second time.  Each successful
@@ -663,7 +661,7 @@ Table of Contents
    +---+----+                                +-----+-----+
        |                                           |
        |<--------- PresentationChallenge ----------+
-       |<===== If needed, Redemption =============>|
+       |<===== If needed, Redeem & Issue =========>|
        |                                           |
    CredentialPresentation                             |
        +----- Request+CredentialToken ------------>|
@@ -679,14 +677,14 @@ Table of Contents
    Challenge is from the Moderator via the Authorization Material.  The
    client will consult its stored Credentials and identify if it has a
    Credential for this Moderator.  If it doesn't, it will consider
-   triggering the Redemption flow described above.
+   triggering the Redeem & Issue flow described above.
 
    The challenge will identify a specific Predicate.  If the Client
    holds a Credential which satisfies the predicate it will perform the
    presentation.  When a Moderator credential is presented, the
    Moderator learns whether or not it satisfies the Moderator's
    predicate.  The presentation must not be linkable to past updates, or
-   to the Redemption that produced it.
+   to the Redeem & Issue flow that produced it.
 
    The Presentation is one-time.  The Client will not present it again.
    The Moderator may re-issue the Credential.  The Moderator may adjust
@@ -825,8 +823,8 @@ Table of Contents
 
    Anchor key compromise will enable an attacker to produce as many
    endorsement as they wish.  For Moderators which trust this Anchor,
-   attackers will be able to run the Redemption flow as many times as
-   they wish.  If any Moderator allocates some rate limited access to
+   attackers will be able to run the Redeem & Issue flow as many times
+   as they wish.  If any Moderator allocates some rate limited access to
    each initial Credential, this will enable the Attacker to bypass the
    rate limit.
 
@@ -862,12 +860,12 @@ Table of Contents
    presentation may submit responses which will certainly fail but cost
    server-side resources to verify.
 
-   The Redemption flow is particularly susceptible to DDOS as it is the
-   only flow which is triggered by the client.  Moderators should give
-   consideration to suitable protection mechanisms for this endpoint,
-   for example, using a client-side puzzle to ensure that clients spend
-   at least as much CPU as it costs servers to reject a faulty
-   Endorsement redemption.
+   The Redeem & Issue flow is particularly susceptible to DDOS as it is
+   the only flow which is triggered by the client.  Moderators should
+   give consideration to suitable protection mechanisms for this
+   endpoint, for example, using a client-side puzzle to ensure that
+   clients spend at least as much CPU as it costs servers to reject a
+   faulty Endorsement redemption.
 
    As the Endorsement flow is triggered by the Anchor in a context where
    it already trusts the user, it is less vulnerable to DDOS.
@@ -877,7 +875,7 @@ Table of Contents
 7.1.  Anonymity Sets and Minimum Thresholds
 
    Client anonymity sets depend on the total number of clients that
-   share the same configuration metadata.  During a Redemption flow,
+   share the same configuration metadata.  During a Redeem & Issue flow,
    this corresponds to the number of other Clients that possess valid
    Endorsements for the specified anchor pool.  During a Presentation
    flow, this corresponds to the number of other clients that possess
@@ -888,19 +886,19 @@ Table of Contents
    Vendors may allow Endorsement flows to succeed but program Clients to
    flag the resulting Endorsement as unusable until a threshold is met
    across the fleet of clients.  The Client can be programmed not to
-   redeem an Endorsement during Redemption unless at least one trusted
-   Anchor is of sufficient size.
+   redeem an Endorsement during Redeem & Issue unless at least one
+   trusted Anchor is of sufficient size.
 
    The same process may be applied to a Moderator's credential during
-   Redemption, ensuring that a minimum size set is reached before the
-   Client will present a Credential from a given Moderator.
+   Redeem & Issue, ensuring that a minimum size set is reached before
+   the Client will present a Credential from a given Moderator.
 
    TODO: Provide a stronger recommendation about which mitigation to
    apply.
 
 7.2.   Configuration Consistency and Partitioning Attacks
 
-   During Redemption, if Moderators can rotate their configuration
+   During Redeem & Issue, if Moderators can rotate their configuration
    material freely, they can enable the tracking of users, e.g. by
    restricting a user to a unique configuration which it can later
    detect.  For this reason, Client Vendors should ensure that their
@@ -925,29 +923,29 @@ Table of Contents
    specific mitigations.
 
    Timing side channels may also reduce the practical anonymity set.
-   For example, Redemption may be performed in response to a challenge
-   for a Presentation by a Moderator.  Based on the latency which the
-   Client takes to answer the Presentation Challenge and can likely
-   infer that the Client's presentation can be linked to just-issued
-   Credential.  Further, the Moderator can even control how long
-   Redemption takes in order to actively cut the anonymity set.  Clients
-   can reduce their vulnerability to this type of attack by imposing a
-   limit after which they will not attempt a presentation with a fresh
-   credential after Redemption.
+   For example, Redeem & Issue may be performed in response to a
+   challenge for a Presentation by a Moderator.  Based on the latency
+   which the Client takes to answer the Presentation Challenge and can
+   likely infer that the Client's presentation can be linked to just-
+   issued Credential.  Further, the Moderator can even control how long
+   Redeem & Issue takes in order to actively cut the anonymity set.
+   Clients can reduce their vulnerability to this type of attack by
+   imposing a limit after which they will not attempt a presentation
+   with a fresh credential after Redeem & Issue.
 
    Depending on the configuration of clients, other timing side channels
    may exist in the protocol.  For example, if the Client is programmed
    to fetch Anchor endorsements on-demand (rather than pro-actively
    provided by an Anchor), a similar timing side channel exists between
-   Endorsement and Redemption.  This timing side channel is particularly
-   severe as the Endorsement session may have context which identifies
-   the user or their device.  For this reason, deployments are
-   discouraged from fetching Endorsements in direct response to a
-   Redemption session.
+   Endorsement and Redeem & Issue.  This timing side channel is
+   particularly severe as the Endorsement session may have context which
+   identifies the user or their device.  For this reason, deployments
+   are discouraged from fetching Endorsements in direct response to a
+   Redeem & Issue session.
 
    Particular consideration should be given to designing flows in which
    Moderators provide all the information that Clients need during
-   Redemption and Presentation pro-actively, rather than requiring
+   Redeem & Issue and Presentation pro-actively, rather than requiring
    clients to interact with third parties, the Moderator or their
    Anchors in ways in which might lead to timing side channels.
 
