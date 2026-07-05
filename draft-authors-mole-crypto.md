@@ -29,6 +29,8 @@ author:
     email: john@example.com
 
 normative:
+  Hash2Curve: RFC9380
+  TLS13: RFC8446
 
 informative:
 

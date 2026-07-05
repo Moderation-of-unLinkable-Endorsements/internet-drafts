@@ -30,7 +30,9 @@ author:
 
 normative:
   HTTP: RFC9110
-  PROTOCOLS: I-D.draft-schlesinger-mole-protocols
+  PROTOCOLS: #I-D.draft-schlesinger-mole-protocols
+    title: MoLE Protocols
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html
   URI: RFC3986
   TLS13: RFC8446
 
