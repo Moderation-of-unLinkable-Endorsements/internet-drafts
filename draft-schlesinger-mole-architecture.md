@@ -436,7 +436,7 @@ Moderators may also Update Client's Credentials, typically as part of the Presen
 
 # Anchor Feedback
 
-TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measure per-anchor abuse rates.
+TODO: Discuss use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.
 
 # Deployment Considerations
 
@@ -444,13 +444,7 @@ TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measur
 
 Moderators seek a deployment where honest users are able to pass as many challenges as possible, whereas the number of presentations that malicious users can pass is minimized. The exact weighting between the risk of excluding honest users vs including malicious users is deployment specific.
 
-This guides how Moderator's should select suitable Anchors, seeking to cover their user base whilst minimizing the number of Endorsements that users hold for a given time period. Each Endorsment can be converted into an independent credential, so if a malicious user can get away with X queries before their credential is revoked and they have E endorsements then their total access is X * E.
-
-## Authorization Strategies
-
-Endorsements are associated with a list of Moderators which the Anchor has approved for them to be used with. In a small deployment, this might be a hardcoded list. In a larger deployment, this might be a public key and each Moderator presented a suitable signature from their trusted Anchors. Alternatively an open credential which could be used with any Moderator could be issued.
-
-Similarly, when a Moderator is challenging for a credential, the client needs to know it's a legitimate request. This might be because of a hardcoded credential like a domain name and then using TLS to authenticate the presentation request or might involve a public key and a signature over the challenge.
+This guides how Moderator's should select suitable Anchors, seeking to cover their user base whilst minimizing the number of Endorsements that users hold for a given time period. Each Endorsment can be converted into an independent credential, so if a malicious user can perform `X` queries before their credential is revoked and they have `E` endorsements then their total access is `X * E`.
 
 ## Discriminatory Treatment
 
