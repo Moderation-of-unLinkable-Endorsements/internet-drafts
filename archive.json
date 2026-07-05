@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-02T03:52:27.433198+00:00",
+  "timestamp": "2026-07-05T03:43:37.483501+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -173,15 +173,15 @@
       "id": "I_kwDOSX6krs8AAAABDjlMHQ",
       "title": "State management in the architecture",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/9",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Mole relies on 3 flows, each require the client to maintain and update state. It is out of the architecture at the moment, but seems important to fully evaluate security and privacy.\n\nWe should have a section to discuss it",
       "createdAt": "2026-05-27T15:32:18Z",
-      "updatedAt": "2026-05-27T15:32:18Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-04T17:50:10Z",
+      "closedAt": "2026-07-04T17:50:10Z",
       "comments": []
     },
     {
@@ -2467,25 +2467,35 @@
       "id": "PR_kwDOSX6krs7sTPLG",
       "title": "Rough work: Filling out the architecture doc",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/18",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "dennisjackson",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This is a first pass on filling out the rest of the architecture draft. It's still pretty rough, but throwing it up for visibility. Not too attached to any of the text, so feel free to provide early comments on anything that looks totally wrong or unnecessary. ",
       "createdAt": "2026-06-30T15:46:09Z",
-      "updatedAt": "2026-07-01T18:52:20Z",
+      "updatedAt": "2026-07-04T14:51:30Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "rough-work",
-      "headRefOid": "1c44e972a9d8ea1d2d59a182358fa394a3ee12d2",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
+      "headRefOid": "cee3a8d06739c590c85adc6a24c78b21aa6fbc2d",
+      "closedAt": "2026-07-04T14:51:23Z",
+      "mergedAt": "2026-07-04T14:51:23Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "d738a5d206a01f587aa64732005ff09466e438ea"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@dennisjackson marking ready for review, and likely merging by Saturday, July 4th in the evening",
+          "createdAt": "2026-07-03T12:36:12Z",
+          "updatedAt": "2026-07-03T12:36:12Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABElUNRA",
@@ -2684,6 +2694,128 @@
               "updatedAt": "2026-07-01T18:52:07Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABExRH8A",
+          "commit": {
+            "abbreviatedOid": "7de0eee"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-02T06:36:31Z",
+          "updatedAt": "2026-07-02T06:36:31Z",
+          "comments": [
+            {
+              "originalPosition": 79,
+              "body": "iirc, that one had limitation, and did not pass the last call. there are multiple ways to do rate limit (can be 0x0003, reverse flow, batched tokens), and each have specific characteristics which are not necessarily captured by the sentence",
+              "createdAt": "2026-07-02T06:36:31Z",
+              "updatedAt": "2026-07-02T06:36:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABExSj1g",
+          "commit": {
+            "abbreviatedOid": "1c44e97"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-02T06:41:30Z",
+          "updatedAt": "2026-07-02T06:41:30Z",
+          "comments": [
+            {
+              "originalPosition": 70,
+              "body": "good for me. very much something we can bikeshed",
+              "createdAt": "2026-07-02T06:41:30Z",
+              "updatedAt": "2026-07-02T06:41:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABExTFSw",
+          "commit": {
+            "abbreviatedOid": "1c44e97"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-02T06:43:17Z",
+          "updatedAt": "2026-07-02T06:43:18Z",
+          "comments": [
+            {
+              "originalPosition": 451,
+              "body": "maybe `Trust establishment`? I like `attestation` as it seems to be something that is done on the spot, rather than relationship which is pre-established.\n\nmight be nitpicking on the wording",
+              "createdAt": "2026-07-02T06:43:18Z",
+              "updatedAt": "2026-07-02T06:43:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABE8IdrQ",
+          "commit": {
+            "abbreviatedOid": "e8c3e21"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-03T14:25:19Z",
+          "updatedAt": "2026-07-03T14:43:18Z",
+          "comments": [
+            {
+              "originalPosition": 84,
+              "body": "Capitalize the e",
+              "createdAt": "2026-07-03T14:25:19Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 362,
+              "body": "Remove with",
+              "createdAt": "2026-07-03T14:32:11Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 437,
+              "body": "Not sure this line captures the resilience to poisoned anchors we want to eventually build.",
+              "createdAt": "2026-07-03T14:34:56Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 467,
+              "body": "Endorse decapitalized plz",
+              "createdAt": "2026-07-03T14:35:39Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 468,
+              "body": "Endorsements*",
+              "createdAt": "2026-07-03T14:35:52Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 502,
+              "body": "This paragraph is a bit confusing, could use rewording imo.",
+              "createdAt": "2026-07-03T14:37:47Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 517,
+              "body": "Strikes me that we don't have to require this.",
+              "createdAt": "2026-07-03T14:40:18Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            },
+            {
+              "originalPosition": 515,
+              "body": "Maybe we don't have to require this. Rate-limiting is a nicer requirement I feel.",
+              "createdAt": "2026-07-03T14:40:37Z",
+              "updatedAt": "2026-07-03T14:43:18Z"
+            }
+          ]
         }
       ]
     },
@@ -2763,6 +2895,90 @@
           "body": "i think it's safe to wait for #18 which also fixes these issue. that's a good change though",
           "createdAt": "2026-07-01T08:26:58Z",
           "updatedAt": "2026-07-01T08:26:58Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 21,
+      "id": "PR_kwDOSX6krs7t4wMs",
+      "title": "Terminology Fix for Endorsements and Credentials ",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/21",
+      "state": "OPEN",
+      "author": "dennisjackson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "dennisjackson"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "Previously the terminology was that Issuance and Presentation were both flows, but also Endorsements could be issued and presented which made some of the writing very confusing. \r\n\r\nThis PR changes the terminology (in bold) so that: \r\n\r\n * Endorsements are **granted** and **redeemed**. \r\n * Credentials are issued and presented.\r\n * The flows are Endorsement, **Redemption**, Presentation.",
+      "createdAt": "2026-07-04T15:53:10Z",
+      "updatedAt": "2026-07-04T16:03:12Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "d738a5d206a01f587aa64732005ff09466e438ea",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "terminology-change",
+      "headRefOid": "a963797351e5cd4ea8c48e99b7a285a8c6afb20c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Grant and redeem are indeed to better identify the anchor flow\r\nThis leaves credentials with issue and presentation.\r\n\r\nHowever, I'm unsure about redemption. Maybe \"redemption+issuance (RI step)\" given both are done at the same time?",
+          "createdAt": "2026-07-04T16:02:51Z",
+          "updatedAt": "2026-07-04T16:02:51Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 22,
+      "id": "PR_kwDOSX6krs7t402u",
+      "title": "Architecture cleanup",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/22",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "A few cleanup for the architecture drafts\r\n\r\nAlso specifies state a bit more. One open question is around discarding.",
+      "createdAt": "2026-07-04T15:59:46Z",
+      "updatedAt": "2026-07-04T17:50:12Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "d738a5d206a01f587aa64732005ff09466e438ea",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "architecture-cleanup",
+      "headRefOid": "806bfd2e601903c5dc2deb881f454b64d769dbc8",
+      "closedAt": "2026-07-04T17:50:09Z",
+      "mergedAt": "2026-07-04T17:50:09Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "8532fe301a6311993f869dd45560b6324f8b6ad4"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABE_heDw",
+          "commit": {
+            "abbreviatedOid": "806bfd2"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-04T17:34:27Z",
+          "updatedAt": "2026-07-04T17:34:27Z",
           "comments": []
         }
       ]
