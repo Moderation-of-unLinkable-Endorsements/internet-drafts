@@ -29,18 +29,23 @@ author:
     email: sgschlesinger@gmail.com
 
 normative:
-  TLS13: RFC8446
-  Hash2Curve: RFC9380
+  ACT: I-D.draft-schlesinger-cfrg-act
+  ARCHITECTURE: I-D.draft-schlesinger-mole-architecture
+  CRYPTO: I-D.draft-authors-mole-crypto
+  HTTP-TRANSPORT: I-D.draft-schlesinger-mole-http
+  LONGFELLOW: I-D.draft-google-cfrg-libzk
+  PRIVACYPASS-BATCHED: I-D.draft-ietf-privacypass-batched-tokens
+  PRIVACYPASS-PROTOCOLS: RFC9578
+  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
 
 informative:
-  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
   RFC9576:
 
 ...
 
 --- abstract
 
-TODO Abstract
+This document defines realisation of {{ARCHITECTURE}}, with two endorsements and two credentials protocols.
 
 
 --- middle
@@ -61,123 +66,133 @@ These are not specific to MoLE, but MoLE must constrain them.
 
 Unless otherwise specified, this document encodes protocol messages in TLS notation ({{Section 3 of TLS13}}). Moreover, all constants are in network byte order.
 
-# Protocols
+# Endorsement Protocols
 
-Beyond ACT (with some improvement), we'll need to specify the following protocol
+Endorsements is defined in {{Section X of ARCHITECTURE}}. It takes part in the
+Endorsement flow and the Redemption+Issue flow. Such a protocol is defined in
+three flows: Client to Anchor, Anchor to Client, Client to Moderator. This
+section present two protocols that achieve this.
 
-## Issuance Protocol for Issuer-unlinkable Privately Verifiable Tokens
+## Issuer-Hiding Anonyous Token {#ihat}
 
-Token type `0x0531`
+Vocabulary
 
-Configuration (these bits will probably differ for MoLE, and we should define the discovery we want)
+Anchor Public Key
+: pkI as defined in {{Section X of CRYPTO}}
 
-1. Issuer Request URL <-- issuer name is going to be th erequest URL. Name is a footgun meant for private deployment
-2. Issuer public key
-3. Challenge value
-4. Issuer set <-- magic crypto bits?
+Challenge
+: an opaque byte string. Might be provided by {{HTTP-TRANSPORT}}
 
-This token follws this flow with properties
+### Client to Anchor
 
-1. how do we build context to get the endorsement
-2. challenge?
-3. presentation context: does it need to be flexible?
-4. obtention of the issuer set from the origin: what information can the client validate to not reveal themselves
+The client creates a context as follow
 
-Note: this issuance protocol DOES NOT require a reverse flow, even if in MoLE it will use it to obtain a credential from an endorsement.
-
-Realisation: there is work to do something like https://eprint.iacr.org/2026/870.pdf but without pairing
-
-### Client to Issuer
-
-~~~tls
-struct CredentialRequest {
-  uint16_t token_type = 0x0531; /* Type something(something) */
-  uint8_t truncated_token_key_id; /* Allow for multiple keys per issuer */
-  ...
-}
+~~~
+client_context = SetupIHATClient("P256-SHA256", PKI)
 ~~~
 
-### Issuer to Client
+"P256-SHA256" corresponds to IHAT(P-256, SHA-256) defined in {{Section X of CRYPTO}}.
 
-~~~tls
-struct CredentialResponse {
-  opaque response
-}
-~~~
+... complete once the crypto is done.
 
-The client finalises the response into a Credential
+### Anchor to Client
 
-~~~tls
-struct Credential {
-  uint16_t token_type = 0x0531;
-  opaque cred
-}
-~~~
+Response of the anchor + finalisation, if any
 
-### Client to Origin
+### Client to Moderator
 
-The client knows the set of issuers it needs to present to. It presents the credential to obtain a token
+OR proof, possibly interactive
 
-~~~tls
-struct Token {
-  uint16_t token_type = 0x0531;
-  opaque token
-}
-~~~
+## Longfellow
 
-# Crypto Bits
+Builds on legacy credential. On the contrary to {{ihat}}, it favours compatibility with legacy credentials
+over using performant cryptography constructions.
 
-We define a two round protocol between an Anchor and Client to produce an endorsement, and then a half-round
-Credential generation step presuming the Client knows the Anchors the Issuer accepts. We let hash2curve be the
-Hash2Curve function from {{Hash2Curve}}, and H be hash function whose output length is sufficiently long.
+Fill with https://github.com/thibmeu/longfellow-zk/blob/hidden-issuer-poc/lib/circuits/mdoc/HIDDEN_ISSUER.md
+In short, we need a circuit
 
-The Endorsement is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
-private data gamma. The Anchor has a public key X and a private key x,
-and X = xG. The public form of a credential Zhat, Xhat, and a proof
-that Xhat = vG, Zhat = vY. Xhat = gamma X, and the client will prove
-it knows gamma such that Xhat is a power of one of the public keys of
-an Anchor the moderator trusts.
+### Client to Anchor
 
-## Issuance Step One: Statement and Commitment
+### Anchor to Client
 
-Client randomly selects scalars v and gamma, and sends Yprime = v Y to the anchor.
+### Client to Moderator
 
-The Anchor computes Zprime = x Yprime, selects three random scalars aprime, bprime, and tprime.
-It computes a commitment. It then computes T1prime = tprime Yprime, T2Prime = tprime G. It then transmits Zprime, Cprime,
-and T1prime and T2prime to the client.
+# Credentials Protocols
 
-## Issuance Step Two: Opening and Proof
+Credential is defined in {{Section X of ARCHITECTURE}}. It takes part in the
+Endorsement flow and the Redemption+Issue flow. Such a protocol is defined in
+four flows between the Client and the Moderator, two for the Issuance, and two for the "Presentation and update". 
+This section present three protocols that achieve this.
 
-The client now has to compute some proof elements and send a scalar to the server. The client
-lets Zhat = gamma v^-1 Z. It then picks alpha, a random nonzero scalar, beta, a random scalar,
-epsilon, a random nonzero scalar, and rho, a random scalar. The client computes C = alpha^-1 C' - beta H,
-T1 = epsilon ^ -1 v ^ -1 (T1prime - rho Yprime), T2 = epsilon ^ -1 (T2prime - rho G).
+## ACT {#credential-act}
 
-The client now computes e = H(Y, Zhat, T1, T2, C), and sends eprime = epsilon alpha^{-1} gamma e
-to the anchor
+Take the information from draft-schlesinger-privacypass-act
+It is very much an anonymous state machine.
 
-The anchor computes rprime = tprime + eprime aprime x and sends back rprime aprime and  bprime.
+### Issuance
 
-The client then checks Cprime = aprime G + bprime H, that aprime is invertable, and then computes
-a = alpha ^-1 aprime, b=alpha^-1 bprime - beta, r = epsilon ^ -1 (rprime - rho). The client then
-verifies Xhat, Zhat, m, e, a, b, r  are a valid endorsement as in the section below.
+### Presentation and Update
 
+## Privacy Pass with a Reverse Flow
 
-## Verifying such an endorsement
+Only one bit back and forth, leveraging the tokens defined in {{PRIVACYPASS-PROTOCOLS}}.
 
-A verifier gets Xhat, Zhat, m and e, a, b, r. The verifier computes Y=Hash2Curve(m), and then
-lets T1 = r Y - e a Zhat, T2 = rG - e a Xhat, C = a G + b H. It checks a is not zero and Y is
-not the identity and then checks e = H(Y, Zhat, T1, T2, C).
+Open question: ensure that the update can only be applied to the issuing state, and not transfered?
 
-## Connecting to the issuer
+### Issuance
 
-In addition to the above endorsement, the client must prove knowledge of a value gamma such that
-Xhat = gamma Xi for some i, where the Xi is the list of issuers trusted. This is a standard
-OR sigma proof, and we can use sigma stacking to compact the proof.
+Request a privacy pass token. The bits are essentially the same as privacy pass , except that
+they are base64url encoded when passed as an HTTP header like defined in {{HTTP-TRANSPORT}}.
+
+### Presentation and Update
+
+Using {{REVERSE-FLOW}} architecture. The moderator acts as joint initial and reverse issuer.
+We mandate that the presented and requested token use the same protocol and
+are associated to the same public key. This prevents leakage.
+
+### Moderator configuration
+
+supported algorithm + public key
+
+Open question: how to format this configuration? options are
+1. privacy pass like configuration
+2. a new type of configuration
+3. something closer to JWKS/JWP, not sure what is required there.
+
+## Budget Privacy Pass
+
+Leverages {{PRIVACYPASS-BATCHED}} along with {{REVERSE-FLOW}}.
+The moderator operates N issuer, each representing a power of 2.
+This is known to the client.
+
+Note: depending on your deployment constraints and the number of bits
+required in the encoding, {{credential-act}} may be better suited.
+
+### Issuance
+
+The client requests a token from the issuer with the highest value.
+
+### Presentation and Update
+
+The client present the token with the higest value, while it requests token for each of the other issuer.
+This include issuer with a higher value tan the one it has, in case of a positive update from the issuer.
+The moderator issues tokens that sum up to the update it wants to provide back to the client.
+
+### Moderator configuration
+
+Public key for each issuer, value of the issuer (possiby infered from the order), refund endpoint to exchange multiple
+small tokens against a bigger one.
+
+# Security Considerations
 
 # IANA Considerations
 
-This document has no IANA actions.
+We create two registries
+
+1. Endorsement protocols
+2. Credentials Protocols
+
+Initially populated with protocols presented in this draft.
 
 
 --- back
