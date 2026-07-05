@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 5 January 2027                                          Mozilla
+Expires: 6 January 2027                                          Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                             4 July 2026
+                                                             5 July 2026
 
 
                            MoLE Architecture
@@ -66,7 +66,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 5 January 2027.
+   This Internet-Draft will expire on 6 January 2027.
 
 Copyright Notice
 
@@ -524,17 +524,17 @@ Table of Contents
 
                          Figure 2: MoLE Endorsement
 
-   An Anchor will endorse a client according to it's own criteria for
+   An Anchor will endorse a client according to its own criteria for
    trust in the client.  This may be because of some kind of strong
    authentication like a login, weak authentication like a CAPTCHA or
    any other mechanism that the Anchor deems suitable.  Moderators will
-   choose whether to trust a specific Anchor on the basis of it's
+   choose whether to trust a specific Anchor on the basis of its
    criteria for endorsing users.
 
    In order to be useful, Anchors will need to constrain how many times
-   they will Endorse a given user.  This is because Endorsement's are
-   valuable to Clients and Moderators in sofar as they are scarce.  If
-   an Anchor gave out a very large number of Endorsements, this would
+   they will Endorse a given user.  This is because Endorsements are
+   valuable to Clients and Moderators insofar as they are scarce.  If an
+   Anchor gave out a very large number of Endorsements, this would
    reduce the effectiveness of rate limiting applied by Moderators.
 
    Endorsement is likely to be triggered by the Anchor, with the Client
@@ -743,20 +743,20 @@ Table of Contents
 5.3.  Discriminatory Treatment
 
    In general servers already have the ability to deploy access control
-   mechanisms to protect resources under their control.  MoLe does not
+   mechanisms to protect resources under their control.  MoLE does not
    change this but does provide a new privacy preserving access control
    mechanism.
 
-   In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to
-   support a diverse range of attestors in order to reduce the
-   possibility of discriminator treatment by token verifiers.  However,
-   arranging many attestors to agree to use a single issuer is
+   In Section 5.1 of [RFC9576], Privacy Pass Issuers were encouraged to
+   support a diverse range of attesters in order to reduce the
+   possibility of discriminatory treatment by token verifiers.  However,
+   arranging many attesters to agree to use a single issuer is
    challenging.  It requires coordinating changes in the trusted
-   attestors with each downstream verifier.  If downstream verifiers
+   attesters with each downstream verifier.  If downstream verifiers
    have differing token value requirements, this creates friction which
    leads to partitioning by issuer which reduces client privacy.  There
-   is also little incentive for high value attestors to share fate with
-   low value attestors.
+   is also little incentive for high value attesters to share fate with
+   low value attesters.
 
    The use of Anchors in MoLE and support for multiple Anchors mitigates
    this issue.  Rather than requiring Issuers to coordinate with their
@@ -775,7 +775,7 @@ Table of Contents
 
 5.4.   Centralization
 
-   RFC XXXX, Section XX.X, identifies Centralization as a major risk
+   Section 5.2 of [RFC9576] identifies Centralization as a major risk
    from Privacy Pass, in large part due to the motivation for sharing
    Issuers as described in the previous section.  MoLE aims to avoid the
    same centralization risk through a number of mechanisms.
@@ -786,10 +786,10 @@ Table of Contents
    mechanism, only parties which access to a scarce resource could also
    be effective Moderators, which would encourage centralization.
 
-   MoLe allows each Moderator to make an independent decision about
+   MoLE allows each Moderator to make an independent decision about
    which anchors to trust rather than requiring shared Issuers to be
    established and coordinated.  The dynamic rate limiting supported by
-   MoLe enables lower-accuracy Anchors to be used than could otherwise
+   MoLE enables lower-accuracy Anchors to be used than could otherwise
    be supported.  The Feedback Mechanism also encourages experimentation
    with new Anchors by providing Moderators with insights into Anchor
    quality.
@@ -802,7 +802,7 @@ Table of Contents
 
 5.5.  Deployment in a Web Context
 
-   In a Web setting, the MoLe architecture may be deployed in several
+   In a Web setting, the MoLE architecture may be deployed in several
    different configurations.  For example, the Moderator could be
    deployed in front of a site, mediating access to protected resources
    directly, or it could be deployed as an independent service which the
@@ -812,7 +812,7 @@ Table of Contents
 
    Many browsers limit the flow of information between distinct top-
    level origins, for example by partitioning cookies and other state.
-   In a web context, MoLe endorsements and credentials may be used
+   In a web context, MoLE endorsements and credentials may be used
    without partitioning to enable a limited form of cross-site
    information transfer.  However, user-agents must employ suitable
    safeguards to ensure that the information flow is limited in line
@@ -836,22 +836,24 @@ Table of Contents
 
 6.2.   State Management
 
-   MoLe requires Anchors and Moderators to maintain state in order to
-   uphold it's security properties.  Anchors which grant Endorsements on
-   the basis of some long term account will need to maintain state in
-   order to record when a user has been granted an Endorsement.
-   Moderators require state in order to prevent the double-spend of
-   Endorsements and Credentials.
+   MoLE requires all parties to maintain state in order to uphold its
+   security and privacy properties.
 
-   MoLe requires Clients to maintain state in order to benefit from the
-   system.  It also requires the timely deletion of state in order to
-   maintain it's privacy properties.  Firstly, clients must maintain
-   state for their Endorsements and Credentials in order to benefit from
-   the system.  Secondly, clients must ensure that once an Endorsement
-   has been redeemed or a Credential presented, it is deleted or
-   otherwise rendered incapable of being used again.  If a Client
-   undergoes state reset, it compromise the privacy properties of the
-   system.
+   *Anchors* which grant Endorsements on the basis of some long term
+   account will need to maintain state in order to record when a user
+   has been granted an Endorsement (see Section 5.1).  Losing this state
+   means over-granting, but not a privacy loss.
+
+   *Moderators* require state in order to prevent the double-spend of
+   Endorsements and Credentials.  State should be bounded to uphold
+   Section 4.2.
+
+   *Clients* store their tokens and MUST burn them once redeemed or
+   presented (see Section 7.4).  Ensuring that they do no replay state
+   is their responsibility, as it puts them in control of the
+   Section 4.2.  If a Client is unsure that its state is valid SHOULD
+   discard the affected tokens.  This might affect their availability,
+   but still uphold privacy and security.
 
 6.3.  DDOS Mitigations
 
@@ -876,7 +878,7 @@ Table of Contents
 
    Client anonymity sets depend on the total number of clients that
    share the same configuration metadata.  During a Redemption flow,
-   this corresponds to the number of other Clients that posess valid
+   this corresponds to the number of other Clients that possess valid
    Endorsements for the specified anchor pool.  During a Presentation
    flow, this corresponds to the number of other clients that possess
    valid Credentials for the specified Anchor pool.
@@ -937,7 +939,7 @@ Table of Contents
    may exist in the protocol.  For example, if the Client is programmed
    to fetch Anchor endorsements on-demand (rather than pro-actively
    provided by an Anchor), a similar timing side channel exists between
-   Endorsement and Redemption.  This timing side channel is particuarly
+   Endorsement and Redemption.  This timing side channel is particularly
    severe as the Endorsement session may have context which identifies
    the user or their device.  For this reason, deployments are
    discouraged from fetching Endorsements in direct response to a
@@ -953,10 +955,10 @@ Table of Contents
 
    Credentials can only be used a single time.  Consider a malicious
    Moderator which begins a presentation with a Client in one context.
-   From the moment the Client beings to present their credential, they
+   From the moment the Client begins to present their credential, they
    must mark it as burned and cannot use it in another session.
 
-   If the Moderator simultanousely issues a challenge for a presentation
+   If the Moderator simultaneously issues a challenge for a presentation
    in a different session, the Moderator can conclude that the Client
    cannot also answer that presentation (assuming it has a single
    Credential).  A similar pattern holds for Updates.  A Credential
@@ -991,7 +993,7 @@ Table of Contents
    they'll make in any given context.  A context is determined by the
    boundary of information flow.  For example, in a web context, a
    context is governed not only by the top level origin but also carries
-   on through navigation's to different sites as bounc tracking or use
+   on through navigations to different sites as bounce tracking or use
    of tracking URLs can enable information to cross to new pages.
 
    Multiple updates are fine as long as the Updates can never fail.

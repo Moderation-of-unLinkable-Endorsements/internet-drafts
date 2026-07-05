@@ -1055,7 +1055,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 5 January 2027</td>
+<td class="center">Expires 6 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-architecture-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-04" class="published">4 July 2026</time>
+<time datetime="2026-07-05" class="published">5 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-05">5 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-06">6 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1128,7 +1128,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 5 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1779,12 +1779,12 @@ Anchor in its Anchor Set provides no Anchor-hiding.<a href="#section-4.2.1-5" cl
 <a href="#name-mole-endorsement" class="selfRef">MoLE Endorsement</a>
             </figcaption></figure>
 </div>
-<p id="section-4.4.1-2">An Anchor will endorse a client according to it's own criteria for trust in the client.
+<p id="section-4.4.1-2">An Anchor will endorse a client according to its own criteria for trust in the client.
 This may be because of some kind of strong authentication like a login, weak authentication
 like a CAPTCHA or any other mechanism that the Anchor deems suitable. Moderators will choose
-whether to trust a specific Anchor on the basis of it's criteria for endorsing users.<a href="#section-4.4.1-2" class="pilcrow">¶</a></p>
+whether to trust a specific Anchor on the basis of its criteria for endorsing users.<a href="#section-4.4.1-2" class="pilcrow">¶</a></p>
 <p id="section-4.4.1-3">In order to be useful, Anchors will need to constrain how many times they will Endorse a given user.
-This is because Endorsement's are valuable to Clients and Moderators in sofar as they are scarce. If
+This is because Endorsements are valuable to Clients and Moderators insofar as they are scarce. If
 an Anchor gave out a very large number of Endorsements, this would reduce the effectiveness of rate limiting
 applied by Moderators.<a href="#section-4.4.1-3" class="pilcrow">¶</a></p>
 <p id="section-4.4.1-4">Endorsement is likely to be triggered by the Anchor, with the Client storing the resulting
@@ -1992,7 +1992,7 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
       <h2 id="name-deployment-considerations">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-deployment-considerations" class="section-name selfRef">Deployment Considerations</a>
       </h2>
-<div id="anchor-selection-and-policy">
+<div id="anchor-policy">
 <section id="section-5.1">
         <h3 id="name-anchor-selection-and-policy">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-anchor-selection-and-policy" class="section-name selfRef">Anchor Selection and Policy</a>
@@ -2015,8 +2015,8 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-discriminatory-treatment">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-discriminatory-treatment" class="section-name selfRef">Discriminatory Treatment</a>
         </h3>
-<p id="section-5.3-1">In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLe does not change this but does provide a new privacy preserving access control mechanism.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">In RFC XXXX, Section XX.X, Privacy Pass Issuers were encouraged to support a diverse range of attestors in order to reduce the possibility of discriminator treatment by token verifiers. However, arranging many attestors to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attestors with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attestors to share fate with low value attestors.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-1">In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLE does not change this but does provide a new privacy preserving access control mechanism.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">In <span><a href="https://rfc-editor.org/rfc/rfc9576#section-5.1" class="relref">Section 5.1</a> of [<a href="#RFC9576" class="cite xref">RFC9576</a>]</span>, Privacy Pass Issuers were encouraged to support a diverse range of attesters in order to reduce the possibility of discriminatory treatment by token verifiers. However, arranging many attesters to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attesters with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attesters to share fate with low value attesters.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
 <p id="section-5.3-3">The use of Anchors in MoLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <p id="section-5.3-4">Further, the use of Anchor-Blinding prevents this from being a privacy risk for Clients, since even if Anchors are very fine grained and specific to a particular attestation type, the Moderator does not learn which Anchor was used and so cannot discriminate on this basis. This relies on the Moderator's Anchor set being large and not being partitioned on something specific to the client, which is discussed further in the Privacy Considerations section.<a href="#section-5.3-4" class="pilcrow">¶</a></p>
 </section>
@@ -2026,9 +2026,9 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-centralization">
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-centralization" class="section-name selfRef">Centralization</a>
         </h3>
-<p id="section-5.4-1">RFC XXXX, Section XX.X, identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-1"><span><a href="https://rfc-editor.org/rfc/rfc9576#section-5.2" class="relref">Section 5.2</a> of [<a href="#RFC9576" class="cite xref">RFC9576</a>]</span> identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-<p id="section-5.4-3">MoLe allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLe enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-3">MoLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLE enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
 <p id="section-5.4-4">However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2037,8 +2037,8 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-deployment-in-a-web-context">
 <a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-deployment-in-a-web-context" class="section-name selfRef">Deployment in a Web Context</a>
         </h3>
-<p id="section-5.5-1">In a Web setting, the MoLe architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
-<p id="section-5.5-2">Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLe endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+<p id="section-5.5-1">In a Web setting, the MoLE architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+<p id="section-5.5-2">Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLE endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.<a href="#section-5.5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2062,8 +2062,19 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-state-management">
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-state-management" class="section-name selfRef">State Management</a>
         </h3>
-<p id="section-6.2-1">MoLe requires Anchors and Moderators to maintain state in order to uphold it's security properties. Anchors which grant Endorsements on the basis of some long term account will need to maintain state in order to record when a user has been granted an Endorsement. Moderators require state in order to prevent the double-spend of Endorsements and Credentials.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2-2">MoLe requires Clients to maintain state in order to benefit from the system. It also requires the timely deletion of state in order to maintain it's privacy properties. Firstly, clients must maintain state for their Endorsements and Credentials in order to benefit from the system. Secondly, clients must ensure that once an Endorsement has been redeemed or a Credential presented, it is deleted or otherwise rendered incapable of being used again. If a Client undergoes state reset, it compromise the privacy properties of the system.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-1">MoLE requires all parties to maintain state in order to uphold its security and
+privacy properties.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2"><strong>Anchors</strong> which grant Endorsements on the basis of some long term account
+will need to maintain state in order to record when a user has been granted an
+Endorsement (see <a href="#anchor-policy" class="auto internal xref">Section 5.1</a>). Losing this state means over-granting,
+but not a privacy loss.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3"><strong>Moderators</strong> require state in order to prevent the double-spend of
+Endorsements and Credentials. State should be bounded to uphold <a href="#privacy-properties" class="auto internal xref">Section 4.2</a>.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4"><strong>Clients</strong> store their tokens and <span class="bcp14">MUST</span> burn them once redeemed or presented (see
+<a href="#concurrent-contexts" class="auto internal xref">Section 7.4</a>). Ensuring that they do no replay state is their responsibility,
+as it puts them in control of the <a href="#privacy-properties" class="auto internal xref">Section 4.2</a>. If a Client is unsure
+that its state is valid <span class="bcp14">SHOULD</span> discard the affected tokens. This might affect
+their availability, but still uphold privacy and security.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ddos-mitigations">
@@ -2088,7 +2099,7 @@ the update request after getting them.<a href="#section-4.4.3-6" class="pilcrow"
         <h3 id="name-anonymity-sets-and-minimum-">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-anonymity-sets-and-minimum-" class="section-name selfRef">Anonymity Sets and Minimum Thresholds</a>
         </h3>
-<p id="section-7.1-1">Client anonymity sets depend on the total number of clients that share the same configuration metadata. During a Redemption flow, this corresponds to the number of other Clients that posess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-1">Client anonymity sets depend on the total number of clients that share the same configuration metadata. During a Redemption flow, this corresponds to the number of other Clients that possess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <p id="section-7.1-2">Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to redeem an Endorsement during Redemption unless at least one trusted Anchor is of sufficient size.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">The same process may be applied to a Moderator's credential during Redemption, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
 <p id="section-7.1-4">TODO: Provide a stronger recommendation about which mitigation to apply.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
@@ -2114,17 +2125,17 @@ similar properties.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-7.3-1">MoLE does not address all channels that can identify Clients. For example, side channels may reveal information about the user's Client, associated user-agent, hardware configuration, network address or similar information which can be used to cut the user's practical anonymity set. This type of side channel exists largely outside of the architecture's deployment and needs deployment-specific mitigations.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
 <p id="section-7.3-2">Timing side channels may also reduce the practical anonymity set. For example, Redemption may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long Redemption takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after Redemption.<a href="#section-7.3-2" class="pilcrow">¶</a></p>
-<p id="section-7.3-3">Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Redemption. This timing side channel is particuarly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Redemption session.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
+<p id="section-7.3-3">Depending on the configuration of clients, other timing side channels may exist in the protocol. For example, if the Client is programmed to fetch Anchor endorsements on-demand (rather than pro-actively provided by an Anchor), a similar timing side channel exists between Endorsement and Redemption. This timing side channel is particularly severe as the Endorsement session may have context which identifies the user or their device. For this reason, deployments are discouraged from fetching Endorsements in direct response to a Redemption session.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
 <p id="section-7.3-4">Particular consideration should be given to designing flows in which Moderators provide all the information that Clients need during Redemption and Presentation pro-actively, rather than requiring clients to interact with third parties, the Moderator or their Anchors in ways in which might lead to timing side channels.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="multiple-presentations-in-concurrent-contexts">
+<div id="concurrent-contexts">
 <section id="section-7.4">
         <h3 id="name-multiple-presentations-in-c">
 <a href="#section-7.4" class="section-number selfRef">7.4. </a><a href="#name-multiple-presentations-in-c" class="section-name selfRef">Multiple Presentations in Concurrent Contexts</a>
         </h3>
-<p id="section-7.4-1">Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client beings to present their credential, they must mark it as burned and cannot use it in another session.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
-<p id="section-7.4-2">If the Moderator simultanousely issues a challenge for a presentation in a different session, the Moderator can conclude that the Client cannot also answer that presentation (assuming it has a single Credential). A similar pattern holds for Updates. A Credential being Updated cannot be Updated or Presented in any other session.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
+<p id="section-7.4-1">Credentials can only be used a single time. Consider a malicious Moderator which begins a presentation with a Client in one context. From the moment the Client begins to present their credential, they must mark it as burned and cannot use it in another session.<a href="#section-7.4-1" class="pilcrow">¶</a></p>
+<p id="section-7.4-2">If the Moderator simultaneously issues a challenge for a presentation in a different session, the Moderator can conclude that the Client cannot also answer that presentation (assuming it has a single Credential). A similar pattern holds for Updates. A Credential being Updated cannot be Updated or Presented in any other session.<a href="#section-7.4-2" class="pilcrow">¶</a></p>
 <p id="section-7.4-3">In order to avoid this behavior being exploited for a timing side channel. E.g. an attacker holds an Update on one client and challenges for Updates in other sessions in order to link two sessions. The client must only never offer the same Credential in concurrent contexts. That is, once a Credential has been used in one context, it must remain locked to that context for a period of a time.<a href="#section-7.4-3" class="pilcrow">¶</a></p>
 <p id="section-7.4-4">Alt: Destroy credentials for a Moderator if you ever can't present because of concurrency issues?<a href="#section-7.4-4" class="pilcrow">¶</a></p>
 </section>
@@ -2136,7 +2147,7 @@ similar properties.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
         </h3>
 <p id="section-7.5-1">Every successful presentation of a Credential reveals at least one bit of information about a client. Answering Multiple presentations for the same or different moderators within one context can lead to greater inferences about the Client.<a href="#section-7.5-1" class="pilcrow">¶</a></p>
 <p id="section-7.5-2">For example, consider a Moderator that assigns each user a unique integer in their credential, a Presentation Predictate which checks the integer is &gt; 0 and an Update predicate which reduces the integer by 1. If the Moderator can repeatedly issue Presentations and Updates, it can recover each user's unique integer in a given context, allowing their sessions to be linked.<a href="#section-7.5-2" class="pilcrow">¶</a></p>
-<p id="section-7.5-3">Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigation's to different sites as bounc tracking or use of tracking URLs can enable information to cross to new pages.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
+<p id="section-7.5-3">Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigations to different sites as bounce tracking or use of tracking URLs can enable information to cross to new pages.<a href="#section-7.5-3" class="pilcrow">¶</a></p>
 <p id="section-7.5-4">Multiple updates are fine as long as the Updates can never fail.<a href="#section-7.5-4" class="pilcrow">¶</a></p>
 </section>
 </div>
