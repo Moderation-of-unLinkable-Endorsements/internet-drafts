@@ -131,29 +131,32 @@ The Moderator can then go on to adjust the Client's Credential in response to th
 ## User Agents Acting Under Delegation {#uc-agents}
 
 A user delegates some of their interaction with a site to an automated agent
-running in, or alongside, their browser. Such an agent is a user agent: it acts
-under delegation from a user who could otherwise have driven the browser
-themselves. Sites that lack a richer signal commonly treat the appearance of
-automation as grounds for friction or denial of service. This blocks delegated
-browsing as a side effect of resisting unwanted automation.
+running in, or alongside, their browser. Sites that lack a richer signal
+commonly treat the appearance of automation as grounds for friction or denial
+of service, blocking delegated browsing as a side effect of resisting unwanted
+automation.
 
-In this use case, the user agent presents a Credential on the user's
-behalf. The site admits the request based on the user's standing without the
-user agent surfacing a stable identity or correlatable state. From the
-Credential alone, the Moderator and the site cannot distinguish presentations
-driven by the agent from presentations driven by the user directly.
-Distinguishability via request content, timing, or rate is the responsibility
-of the user agent and is not addressed by the Credential.
+Here the agent presents a Credential on the user's behalf, and the site admits
+the request based on the user's standing without the agent surfacing a stable
+identity or correlatable state. From the Credential alone, the Moderator and
+site cannot tell agent-driven presentations from the user's own;
+distinguishability via request content, timing, or rate is the user agent's
+responsibility, not the Credential's.
 
-When delegated agent behaviour violates a Moderator's policy, the Moderator may
-update state bound to the user's Credential. As a result, the user bears the policy consequences for the behaviour of the delegated agent. However, the delegated agent's actions remain unlinkable to other sessions and to the user's own sessions, and the user's identity is not revealed to the site.
+When delegated behaviour violates policy, the Moderator may update state bound
+to the user's Credential, so the user bears the consequences for the agent's
+actions --- yet those actions remain unlinkable to other sessions and to the
+user's own, and the user's identity is not revealed to the site.
 
-Alternatively, delegated agents may use a distinct pool of Anchors and Credentials from
-the user's traditional user agent. This configuration enables sites and Moderators to differentiate
-between traditional user agents and delegated user agents and prevents the consequences of
-misbehaviour in one context from propagating to the other. User agents not acting under delegation from a user --- for example, autonomous crawlers and non-browser automation --- could also be served with this architecture.
+Alternatively,
+delegated agents may draw on a distinct pool of Anchors and Credentials,
+letting sites and Moderators differentiate them from traditional user agents. The
+same architecture can serve automation not acting under delegation, such as
+autonomous crawlers.
 
-In all configurations, clients enjoy strong privacy protections from sites and Moderators, whilst sites and Moderators enjoy strong protections from abusive clients mounting volumetric attacks.
+In all configurations, clients enjoy strong privacy protections from sites and
+Moderators, while sites and Moderators are protected from abusive clients
+mounting volumetric attacks.
 
 ## Private Access Control {#uc-access}
 
