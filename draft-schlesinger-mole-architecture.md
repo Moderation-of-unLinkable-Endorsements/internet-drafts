@@ -54,7 +54,7 @@ informative:
 
 Moderation of unLinkable Endorsements (MoLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access.
 
-MoLE minimizes the information a client discloses when trust is bootstrapped and limits the signals by which a client can be tracked as it interacts with the system. In particular, a client's interactions are unlinkable to one another, and the endorsing Anchor for a client is hidden among the set of Anchors a Moderator trusts. These properties are designed to hold even when Anchors and Moderators collude. MoLE targets open deployments, in which Moderators and Anchors set their policies independently and need not coordinate.
+MoLE targets open deployments, in which independent parties may be responsible for access control and for vouching for clients, whilst maintaining strong privacy protections for clients. These protections are designed to hold even if participants in the ecosystem collude or otherwise misbehave.
 
 This document specifies the roles, the information flows between them, the privacy and security requirements, and deployment considerations.
 
@@ -62,21 +62,13 @@ This document specifies the roles, the information flows between them, the priva
 
 # Introduction
 
-Moderation of unLinkable Endorsements (MoLE) is an architecture that allows a
-party performing access control to efficiently bootstrap trust in a client from
-a third party that already trusts it, and then to adjust that trust over time in
-response to the client's behaviour. It does so while minimizing the information
-the client discloses when trust is bootstrapped and reducing the signals by
-which the client can be tracked as it interacts with the system. MoLE targets
-open deployments, in which participants need not coordinate and may hold
-independent views of a client's trustworthiness and of one another's
-trustworthiness.
-
-Traditional approaches to this problem rely on long-term identifiers such as
+Traditional approaches to access control rely on long-term identifiers such as
 user IDs or cookies, which allow clients to be tracked as they interact with the
 system. Newer approaches like Privacy Pass {{RFC9576}} enable access control
-without identification, but do not support a privacy-preserving mechanism for
-bootstrapping trust and cannot adjust trust in clients dynamically over time.
+without identification, but they provide no privacy-preserving way to bootstrap
+trust in a client and cannot adjust that trust dynamically over time.
+
+MoLE aims to address these gaps and enable privacy-preserving access control in an open ecosystem. This means supporting a deployment where clients are trying to access resources from multiple independent services, each performing independent access control and potentially relying on different third parties to vouch for the trustworthiness of clients. Building a system which can support both openness and privacy is a key requirement and differentiator of MoLE.
 
 MoLE has three distinct roles. Clients seek to access resources protected by
 Moderators, who set and enforce access control policy. A Moderator may have no
@@ -85,9 +77,9 @@ a relationship with some Clients, to vouch for them. A given Moderator may trust
 multiple Anchors in order to cover more of its user base. An Anchor may vouch for
 Clients that a Moderator deems untrustworthy; the Moderator can mitigate this
 either by withdrawing trust in those specific Clients or by withdrawing trust in
-the Anchor entirely.
+the Anchor.
 
-At a high level, MoLE relies on three distinct flows: Endorsement, Redeem & Issue, and
+These roles interact through three distinct flows: Endorsement, Redeem & Issue, and
 Presentation. In Endorsement, an Anchor grants a Client an Endorsement, which
 conveys the Anchor's trust in the Client to other parties. In Redeem & Issue, a Client
 redeems an Endorsement at a Moderator and receives a Credential, allowing the
@@ -96,21 +88,22 @@ presents a Credential to a Moderator, allowing the Moderator to make an access
 control decision and to adjust its level of trust in the Client over time,
 including by dynamically rate-limiting access.
 
-Critically, redeeming an Endorsement does not reveal the granting Anchor, only
-that it was drawn from the Moderator's Anchor Set. This avoids
-leaking information about the Client, such as which Anchor's policy it satisfies.
-Further, a Client's interactions across Redeem & Issue and Presentation are unlinkable,
-preventing Anchors and Moderators from tracking Clients. These privacy properties
-are designed to hold even when Anchors and Moderators collude.
+These flows are designed to protect the Client's privacy. Redeeming an
+Endorsement does not reveal the granting Anchor, only that it was drawn from the
+Moderator's Anchor Set, so it does not leak information about the Client such as
+which Anchor's policy the Client satisfies. In addition, a Client's interactions
+across Endorsement, Redeem & Issue and Presentation are unlinkable, preventing Anchors and
+Moderators from tracking Clients. These privacy properties are designed to hold
+even when Anchors and Moderators collude.
 
 This document describes the requirements for these flows and how they interact,
 as well as the anticipated deployment model.
 
 # Use Cases {#use-cases}
 
-MoLE is intended to be deployed on the web, but is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MoLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
+MoLE is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MoLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
 
-MoLE targets an open system where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.
+MoLE targets an open system like the web where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.
 
 ## Reduced-Friction Challenges {#uc-friction}
 
