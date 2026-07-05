@@ -231,16 +231,7 @@ The following terms are used throughout this document:
   interaction. The strength of MoLE's unlinkability and Anchor-hiding properties
   depends on the size of this set.
 
-# Architecture {#architecture}
-
-The MoLE architecture orchestrates trust relationships and
-information flows between three entities: Client, Anchor, and Moderator.
-These entities have a limited exchange of information that allows for dynamic
-rate-limiting, bootstrapped from an Anchor's existing trust, in an open ecosystem. This
-section details the information flows and trust relationships between these
-entities along with requirements for the underlying protocols and APIs.
-
-## Overview
+# Overview
 
 MoLE is composed of three distinct flows:
 Endorsement, in which a Client obtains an Endorsement signifying
@@ -283,9 +274,7 @@ Finally, the Client can present the Credential to the Moderator, along with a cr
 query the state of the Credential and receive a boolean value indicating whether the presented Credential meets the
 Moderator's chosen predicate. The Moderator can also update the state of the Credential, e.g. to increase or decrease access, but this process does not reveal any further information about the state of the Credential. Depending on the result of the applied predicate, the Moderator can make a decision about access control to the protected resource.
 
-## Privacy Goals and Threat Model {#privacy-properties}
-
-### Goals
+# Privacy Goals and Threat Model {#privacy-properties}
 
 MoLE deployments aim to provide three privacy properties for Clients:
 
@@ -311,8 +300,6 @@ Anchor in its Anchor Set provides no Anchor-hiding.
 
 Further considerations for maximizing the size of these sets are set out in the Privacy Considerations section.
 
-### Threat Model
-
 MoLE's privacy properties are intended to hold in the face of strong attackers who:
 
 * May act in the role of Anchor, Moderator, or Client.
@@ -327,9 +314,7 @@ Some attackers may exploit information not directly revealed by the protocol, fo
 
 These side channels, which depend on details specific to each deployment, may compromise the privacy properties of MoLE and are discussed further in the Privacy Considerations.
 
-## Security Goals and Threat Model
-
-### Goals
+# Security Goals and Threat Model
 
 MoLE's security properties are intended for Moderators. Moderators can be assured:
 
@@ -338,8 +323,6 @@ MoLE's security properties are intended for Moderators. Moderators can be assure
 
 Collectively, these two properties allow Moderators to dynamically rate-limit access to the population of Anchor-endorsed Clients. If Endorsements could be redeemed, or Credentials presented, multiple times, it would allow malicious Clients to obtain additional Credentials which could be used to bypass rate limits.
 
-### Threat Model
-
 MoLE's security properties are intended to hold in the face of coordinated attackers who:
 - Can control a number of Clients and deviate from the protocol.
 - Cannot violate the endorsement criteria of a Moderator's trusted Anchors but may control other Anchors.
@@ -347,9 +330,9 @@ MoLE's security properties are intended to hold in the face of coordinated attac
 
 MoLE considers a CRQC for its privacy properties like Anchor-hiding and unlinkability, because a CRQC deployed in the future could be used to analyse protocol transcripts recorded today and so identify Clients. By contrast, MoLE's security properties hold until an attacker gains access to a CRQC; once they do, only future protocol sessions are affected.
 
-## Flows
+# Flows
 
-### Endorsement
+## Endorsement
 
 ~~~ aasvg
 +--------+                 +--------+
@@ -374,7 +357,7 @@ This is because Endorsements are valuable to Clients and Moderators insofar as t
 an Anchor gave out a very large number of Endorsements, this would reduce the effectiveness of rate limiting
 applied by Moderators.
 
-Endorsement is likely to be triggered by the Anchor, with the Client storing the resulting
+Endorsement is typically triggered by the Anchor, with the Client storing the resulting
 Endorsement. However, in some deployments it may be requested pro-actively by the Client.
 
 Anchors furnish each Endorsement with the necessary metadata to identify the Anchor that used it and for the Client to evaluate whether a given Moderator can consume that Endorsement. This metadata may enumerate specific Moderators (in a small deployment) or identify authentication material like a public key which can be used later to evaluate whether a given Moderator is authorized.
@@ -389,7 +372,7 @@ The specific properties of the Endorsement vary based on the exact protocol used
 
 The Endorsement flow must not allow malicious clients to forge tokens offline or otherwise obtain further valid Endorsements without interacting with the Anchor directly. It must be safe to run the Endorsement protocol concurrently with many Clients, some of whom may abort or otherwise misbehave.
 
-### Redeem & Issue
+## Redeem & Issue
 
 ~~~ aasvg
 +--------+                                +-----------+
@@ -428,7 +411,7 @@ The properties of the Credential issued by the Moderator will vary depending on 
 1. One-More Unforgeability. Even a dishonest Client cannot forge a Credential or derive additional valid Credentials from those it holds. A Client issued some number of Credentials cannot produce more valid presentations than it was issued, ensuring each accepted presentation corresponds to exactly one Credential the Moderator issued.
 1. Authorization Material. Used by the Client to determine whether a presentation challenge is genuine. This is necessary to prevent a party other than the Moderator 'burning' the Client's Credential.
 
-### Presentation and Updates
+## Presentation and Updates
 
 ~~~ aasvg
 +--------+                                +-----------+
@@ -474,7 +457,7 @@ the update request after getting them.
 
 TODO: Updates are Predicates which are true.
 
-## Anchor Feedback
+# Anchor Feedback
 
 TODO: Discuss use of Prio in Endorsements which feeds into Credentials to measure per-anchor abuse rates.
 
