@@ -255,8 +255,7 @@ presently in good standing with the Moderator in order to access a resource.
 During Endorsement, a Client interacts with an Anchor with which it has a
 trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
 of strong authentication, e.g. a login, or may be relatively weak, e.g. based on solving a
-CAPTCHA. The Anchor grants the Client an Endorsement to signify this trust relationship.
-Clients may accrue multiple Endorsements from the same or different Anchors.
+CAPTCHA. The Anchor grants the Client one or more Endorsements to signify this trust relationship.
 
 Later, when trying to access a resource, a Client may be prompted by a Moderator to present
 a Credential. If the Client doesn't have a Credential for this Moderator it will then engage in the
@@ -264,7 +263,7 @@ Redeem & Issue flow. In this flow, the Client redeems an Endorsement from the Mo
 Anchor Set and receives a Credential in return. Redeeming an Endorsement does not reveal which
 Anchor was used, only that it came from the Anchor Set.
 
-Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that Endorsement in their system. This property prevents abusive Clients from constantly resetting their state to receive an initial Credential from the Moderator in order to bypass rate limits.
+Once a Moderator has accepted a specific Endorsement, the Moderator can prevent a second use of that Endorsement in their system. This property prevents abusive Clients from constantly resetting their state to receive a fresh Credential from the Moderator in order to bypass rate limits.
 
 Finally, the Client can present the Credential to the Moderator, along with a credential update request. This presentation enables the Moderator to
 query the state of the Credential and receive a boolean value indicating whether the presented Credential meets the
@@ -343,6 +342,8 @@ EndorsementFinalization        |
 ~~~
 {: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
 
+The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling it's trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.
+
 An Anchor will endorse a client according to its own criteria for trust in the client.
 This may be because of some kind of strong authentication like a login, weak authentication
 like a CAPTCHA or any other mechanism that the Anchor deems suitable. Moderators will choose
@@ -353,20 +354,16 @@ This is because Endorsements are valuable to Clients and Moderators insofar as t
 an Anchor gave out a very large number of Endorsements, this would reduce the effectiveness of rate limiting
 applied by Moderators.
 
-Endorsement is typically triggered by the Anchor, with the Client storing the resulting
-Endorsement. However, in some deployments it may be requested pro-actively by the Client.
-
 Anchors furnish each Endorsement with the necessary metadata to identify the Anchor that used it and for the Client to evaluate whether a given Moderator can consume that Endorsement. This metadata may enumerate specific Moderators (in a small deployment) or identify authentication material like a public key which can be used later to evaluate whether a given Moderator is authorized.
 
 The specific properties of the Endorsement vary based on the exact protocol used. Important properties are described below:
 
-1. The Endorsement is publicly verifiable. That is, any party can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.
-1. The Endorsement supports blind redemption. A Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of trusted Anchors.
-1. Unlinkable Redemption. Even if the Anchor colludes with another party at which the Endorsement is redeemed, they can't link the redemption to the grant session.
-1. The Endorsement supports expiry. A Client redeeming the Endorsement can prove that the Endorsement was granted within a particular time period.
-1. The Endorsement supports one-time use. A Moderator accepting a redeemed Endorsement will not accept it a second time.
-
-The Endorsement flow must not allow malicious clients to forge tokens offline or otherwise obtain further valid Endorsements without interacting with the Anchor directly. It must be safe to run the Endorsement protocol concurrently with many Clients, some of whom may abort or otherwise misbehave.
+1. Public Verification: any party can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.
+1. Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of trusted Anchors.
+1. Unlinkable Redemption: even if the Anchor colludes with another party at which the Endorsement is redeemed, they can't link the redemption to the session in which it was granted.
+1. Expiry:  A Client redeeming the Endorsement can prove that the Endorsement was granted within a particular time period.
+1. One-Time-Use: A Moderator can prevent the redemption of the same Endorsement twice.
+1. One-More Unforgability: A Client granted an Endorsement cannot forge an another valid Endorsement.
 
 ## Redeem & Issue
 
@@ -384,14 +381,13 @@ CredentialFinalization                          |
 ~~~
 {: #fig-mole-architecture-issuance title="MoLE Redeem & Issue"}
 
+The Redeem and Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.
+
 Redeem & Issue is likely to happen on-demand in response to a Moderator's challenge for a
 Client to present a valid Credential. The challenge should contain enough information
 to identify the Moderator and the Anchors whose Endorsements it will trust for redemption.
 If the Client wishes to complete the presentation and has suitable Endorsements, it will
 begin the Redeem & Issue flow. In some circumstances, the Moderator may not require any Anchors for redemption, i.e. it has some local means of establishing trust in this case.
-
-In order to maximize unlinkability, the Redeem & Issue and Presentation flows can happen in isolated
-contexts, e.g. over distinct communication channels with partitioned state.
 
 In Redeem & Issue, the Client redeems an Endorsement, proving to the Moderator that it holds a suitable Endorsement from an
 Anchor trusted by the Moderator without revealing which specific Anchor was used. In order to translate this into a tangible privacy property for clients, the see the Privacy Considerations section for a discussion around anonymity sets and maximizing them. The redemption must be unlinkable to the grant of the Endorsement so that even if the Anchor and Moderator collude they can't link the two sessions.
@@ -400,12 +396,9 @@ Further, the redemption of the Endorsement must ensure that even in the presence
 
 The properties of the Credential issued by the Moderator will vary depending on the exact protocol used. However, they must support:
 
-1. Unlinkable Presentation. A Client presenting a Credential reveals nothing beyond the result of the Moderator's predicate. Two successful presentations cannot be linked to one another, to the Redeem & Issue session that produced the Credential, or to any prior update, even if the Moderator records every transcript.
-1. One-Time Use. A Moderator accepting a presented Credential will not accept the same Credential a second time. Each successful presentation yields a freshly issued Credential carrying the updated state, so a Client cannot replay a Credential or present a version whose state has since been updated.
-1. Predicate Testing. The Moderator can evaluate a predicate against the Credential's hidden state and learns only whether the state satisfies the predicate, not the state itself nor any other information about the Credential.
-1. Private Verifiability. Unlike an Endorsement, a Credential is not publicly verifiable. Only the issuing Moderator, using its secret key material, can verify a presented Credential and apply updates to it.
-1. One-More Unforgeability. Even a dishonest Client cannot forge a Credential or derive additional valid Credentials from those it holds. A Client issued some number of Credentials cannot produce more valid presentations than it was issued, ensuring each accepted presentation corresponds to exactly one Credential the Moderator issued.
-1. Authorization Material. Used by the Client to determine whether a presentation challenge is genuine. This is necessary to prevent a party other than the Moderator 'burning' the Client's Credential.
+1. Unlinkable Presentation: A Client presenting a Credential reveals nothing beyond the result of the Moderator's predicate. Two successful presentations cannot be linked to one another, to the Redeem & Issue session that produced the Credential, or to any prior update, even if the Moderator records every transcript.
+1. One-More Unforgeability: Even a dishonest Client cannot forge a Credential or derive additional valid Credentials from those it holds.
+1. Rate Limiting: The Credential enables the Moderator to apply a rate limiting policy to the client which may be dynamically adjusted.
 
 ## Presentation and Updates
 
@@ -426,32 +419,20 @@ CredentialFinalization                          |
 ~~~
 {: #fig-mole-architecture-presentation title="MoLE Presentation"}
 
-
-A Presentation is triggered by the Moderator challenging the Client to present a valid Credential.
-The Client will check that the Challenge is from the Moderator via the Authorization Material.
+Moderators trigger Presentations when they want to perform an access control check.
 The client will consult its stored Credentials and identify if it has a Credential for this Moderator.
-If it doesn't, it will consider triggering the Redeem & Issue flow described above.
+If it doesn't, it will consider triggering the Redeem & Issue flow described above. The Client must never
+present a Credential to a party other than the issuing Moderator to avoid spending the Credential unnecessarily.
 
-The challenge will identify a specific Predicate.
-If the Client holds a Credential which satisfies the predicate it will perform the presentation.
 When a Moderator credential is presented, the Moderator learns
-whether or not it satisfies the Moderator's predicate. The presentation
+whether or not it satisfies the Moderator's policy. The presentation
 must not be linkable to past updates, or to the Redeem & Issue flow that produced it.
 
-The Presentation is one-time. The Client will not present it again.
-The Moderator may re-issue the Credential.
-The Moderator may adjust the Credential.
+After the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client previously presented.
 
-Credential updates must demonstrate that they are applied to the same
-credential as was initially presented. This prevents attacks where an
-attacker with two credentials shows one, and applies updates only
-to the other.
+To satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in the Privacy Considerations.
 
-Credential updates have to be applied before access to resources that
-an origin may gate or rate limit, so that Clients do not simply ignore
-the update request after getting them.
-
-TODO: Updates are Predicates which are true.
+Moderators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may modify the Client's credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not reveal information about the previous state of the Credential, then it may be performed multiple times within a context.
 
 # Anchor Feedback
 
