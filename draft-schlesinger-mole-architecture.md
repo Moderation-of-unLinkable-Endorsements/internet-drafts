@@ -513,11 +513,7 @@ As the Endorsement flow is triggered by the Anchor in a context where it already
 
 Client anonymity sets depend on the total number of clients that share the same configuration metadata. During a Redeem & Issue flow, this corresponds to the number of other Clients that possess valid Endorsements for the specified anchor pool. During a Presentation flow, this corresponds to the number of other clients that possess valid Credentials for the specified Anchor pool.
 
-Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The Client can be programmed not to redeem an Endorsement during Redeem & Issue unless at least one trusted Anchor is of sufficient size.
-
-The same process may be applied to a Moderator's credential during Redeem & Issue, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.
-
-TODO: Provide a stronger recommendation about which mitigation to apply.
+Client Vendors may act to limit the use of Anchors or Moderators where the total anonymity size is too low. For example, the Client Vendors may allow Endorsement flows to succeed but program Clients to flag the resulting Endorsement as unusable until a threshold is met across the fleet of clients. The same process may be applied to a Moderator's credential during Redeem & Issue, ensuring that a minimum size set is reached before the Client will present a Credential from a given Moderator.
 
 ## Configuration Consistency and Partitioning Attacks
 
@@ -525,10 +521,9 @@ During Redeem & Issue, if Moderators can rotate their configuration material fre
 
 Deployments should make configuration material consistent across
 Clients and resistant to split views. A deployment can use a
-{{CONSISTENCY-MIRROR}}, {{KEYTRANS}}, {{SCITT}}, or another mechanism with
-similar properties.
+{{CONSISTENCY-MIRROR}}, {{KEYTRANS}}, {{SCITT}}, or another mechanism which provides similar global consistency properties.
 
-TODO: Client-local consistent information vs Globally consistent configuration.
+It maybe that some deployments are comfortable with a weaker form of consistency where Clients manage configurations locally and limit how often they tolerate updates to it. This cannot entirely eliminate partitioning attacks but can make them less effective in practice.
 
 ## Side Channels
 
@@ -548,17 +543,13 @@ If the Moderator simultaneously issues a challenge for a presentation in a diffe
 
 In order to avoid this behavior being exploited for a timing side channel. E.g. an attacker holds an Update on one client and challenges for Updates in other sessions in order to link two sessions. The client must only never offer the same Credential in concurrent contexts. That is, once a Credential has been used in one context, it must remain locked to that context for a period of a time.
 
-Alt: Destroy credentials for a Moderator if you ever can't present because of concurrency issues?
-
 ## Multiple Presentations in the Same Context
 
 Every successful presentation of a Credential reveals at least one bit of information about a client. Answering Multiple presentations for the same or different moderators within one context can lead to greater inferences about the Client.
 
-For example, consider a Moderator that assigns each user a unique integer in their credential, a Presentation Predictate which checks the integer is > 0 and an Update predicate which reduces the integer by 1. If the Moderator can repeatedly issue Presentations and Updates, it can recover each user's unique integer in a given context, allowing their sessions to be linked.
+For example, consider a Credential Instantiation where the Moderator assigns each user a unique integer in their credential, a Presentation operation which checks the integer is > 0 and an Update operation which reduces the integer by 1. If the Moderator can repeatedly issue Presentations and Updates, it can recover each user's unique integer in a given context, allowing their sessions to be linked.
 
 Consequently, the Clients should limit the number of presentations they'll make in any given context. A context is determined by the boundary of information flow. For example, in a web context, a context is governed not only by the top level origin but also carries on through navigations to different sites as bounce tracking or use of tracking URLs can enable information to cross to new pages.
-
-Multiple updates are fine as long as the Updates can never fail.
 
 # IANA Considerations
 
