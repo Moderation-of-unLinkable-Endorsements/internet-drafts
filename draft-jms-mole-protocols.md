@@ -20,9 +20,17 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html"
 
 author:
+ -
+    fullname: Samuel Schlesinger
+    organization: Google LLC
+    email: sgschlesinger@gmail.com
+ -
+    fullname: Dennis Jackson
+    organization: Mozilla
+    email: ietf@dennis-jackson.uk
  -
     fullname: Thibault Meunier
     organization: Cloudflare
@@ -32,13 +40,13 @@ normative:
   ACT: I-D.draft-schlesinger-cfrg-act
   ARCHITECTURE: #I-D.draft-schlesinger-mole-architecture
     title: MoLE Architecture
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-architecture.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-architecture.html
   CRYPTO: #I-D.draft-authors-mole-crypto
     title: MoLE Cryptography
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html
   HTTP-TRANSPORT: #I-D.draft-schlesinger-mole-http-transport
     title: MoLE HTTP Transport
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-http-transport.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-http-transport.html
   LONGFELLOW: I-D.draft-google-cfrg-libzk
   PRIVACYPASS-AUTH: RFC9577
   PRIVACYPASS-BATCHED: I-D.draft-ietf-privacypass-batched-tokens

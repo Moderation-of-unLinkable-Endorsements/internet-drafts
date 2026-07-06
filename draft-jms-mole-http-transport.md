@@ -20,9 +20,17 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-http-transport.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-http-transport.html"
 
 author:
+ -
+    fullname: Samuel Schlesinger
+    organization: Google LLC
+    email: sgschlesinger@gmail.com
+ -
+    fullname: Dennis Jackson
+    organization: Mozilla
+    email: ietf@dennis-jackson.uk
  -
     fullname: Thibault Meunier
     organization: Cloudflare
@@ -30,9 +38,9 @@ author:
 
 normative:
   HTTP: RFC9110
-  PROTOCOLS: #I-D.draft-schlesinger-mole-protocols
+  PROTOCOLS: #I-D.draft-jms-mole-protocols
     title: MoLE Protocols
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html
   URI: RFC3986
   TLS13: RFC8446
 
