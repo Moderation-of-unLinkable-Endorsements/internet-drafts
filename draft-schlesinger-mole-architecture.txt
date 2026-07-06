@@ -5,13 +5,13 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 6 January 2027                                          Mozilla
+Expires: 7 January 2027                                          Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                             5 July 2026
+                                                             6 July 2026
 
 
-                           MoLE Architecture
+       Moderation of unLinkable Endorsements (MoLE) Architecture
                draft-schlesinger-mole-architecture-latest
 
 Abstract
@@ -66,7 +66,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 January 2027.
+   This Internet-Draft will expire on 7 January 2027.
 
 Copyright Notice
 
@@ -355,19 +355,30 @@ Table of Contents
    presently in good standing with the Moderator in order to access a
    resource.
 
-   +--------+                    +-----------+               +--------+
-   | Client |                    | Moderator |               | Anchor |
-   +---+----+                    +-----+-----+               +----+---+
-       |                               |                          |
-       |<=========== Interaction ================================>|
-       |<=========== Endorsement ================================>|
-       |                               |                          |
-       |<=========== Interaction =====>|
-       |<= If needed: Redeem & Issue =>|                          |
-       |<========= Presentation ======>|                          |
-       |                               |                          |
+   +--------+            +--------+              +-----------+
+   | Anchor |            | Client |              | Moderator |
+   +---+----+            +---+----+              +-----+-----+
+       |                     |                         |
+       |<~~~ Interaction ~~~>|                         |
+       |                     |                         |
+       +==== Endorsement ===>|                         |
+       |                     |                         |
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       |                     |                         |
+       |                     |<~~~~~ Interaction ~~~~~>|
+       |                     |                         |
+       |                +---- (If needed) -----------------.
+       |                |    |                         |    |
+       |                |    +------ Endorsement ----->|    |
+       |                |    |                         |    |
+       |                |    |<----- Credential -------+    |
+       |                |    |                         |    |
+       |                 `---------------------------------'
+       |                     |                         |
+       |                     +====== Presentation ====>|
+       |                     |                         |
 
-                        Figure 1: MoLE Architecture
+                    Figure 1: MoLE Architecture Overview
 
    During Endorsement, a Client interacts with an Anchor with which it
    has a trust relationship.  The nature of the trust relationship is
