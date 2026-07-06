@@ -133,9 +133,6 @@ The value 0x0000 is reserved in both registries and MUST NOT appear on the
 wire. Endorsement type 0x0001 means the Moderator establishes trust in the
 Client on its own, and no Endorsement is redeemed.
 
-TODO: decide whether Moderator trust establishment (0x0001) is allowed in
-production deployments or only for testing.
-
 ## Greasing {#greasing}
 
 In order to prevent Moderators from becoming incompatible with future
@@ -175,6 +172,14 @@ Each protocol in this document states where `challenge_digest` enters its
 messages. A verifier MUST reject a redemption or presentation bound to a
 different challenge. This prevents a message captured in one context from
 being replayed in another.
+
+In the endorsement protocols, the presentation is a proof generated at
+redemption time, and `challenge_digest` is an input to that proof: it
+enters the proof transcript in IHAT and the public inputs in Longfellow.
+A proof produced for one challenge does not verify under another.
+Challenge binding is separate from the nullifier. The nullifier is a PRF
+output over a credential-bound secret and the epoch; it limits a Client
+to one presentation per epoch.
 
 # Endorsement Protocols {#endorsement-protocols}
 
@@ -237,8 +242,8 @@ carried in the `endorsement_presentation` field of a `CredentialRequest`
 
 Endorsement type: 0x0002.
 
-TODO: IHAT is a placeholder name. Ask Watson, who is writing {{CRYPTO}},
-what the scheme is called there and align.
+TODO: IHAT is a placeholder name. Once we have a first version for {{CRYPTO}},
+we would align.
 
 IHAT is a pairing-free, issuer-hiding endorsement scheme over P-256. The
 Anchor blindly signs a Client-chosen nullifier. The Client later proves,
@@ -318,6 +323,10 @@ struct {
 } Presentation;
 ~~~
 
+`Present` MUST bind `challenge_digest` into the proof transcript, and
+`Verify` MUST fail when given any other `challenge_digest`. This is a
+requirement on {{CRYPTO}}.
+
 The Moderator runs `Verify(presentation, keys, challenge_digest)`
 ({{CRYPTO}}), which exposes `nf` and `endorsement_context`, and
 additionally checks that:
@@ -332,12 +341,12 @@ issuance. The Endorsement is spent: redeeming it again MUST fail check 2.
 
 Endorsement type: 0x0003.
 
-Where IHAT requires Anchors to run new cryptography, this protocol reuses
-credentials Clients already hold, such as mdocs. The Client proves in zero
-knowledge, using the scheme of {{LONGFELLOW}}, that it holds a valid
-credential from one of an accepted set of issuers, without revealing which
-issuer or any credential attribute. An experimental circuit is described in
-{{HIDDEN-ISSUER-CIRCUIT}}.
+Where IHAT requires Anchors to run new cryptography, this protocol preserves
+backward compatibility with credentials Clients may hold, such as mdocs.
+The Client proves in zero knowledge, using the scheme of {{LONGFELLOW}}, that it
+holds a valid credential from one of an accepted set of issuers, without
+revealing which issuer or any credential attribute. An experimental circuit is
+described in {{HIDDEN-ISSUER-CIRCUIT}}.
 
 There is no grant exchange in this protocol. The Client obtains its
 credential from the Anchor out of band, through whatever legacy issuance
@@ -377,20 +386,24 @@ struct {
 ~~~
 
 The public inputs to the proof are the accepted issuer set, the epoch, the
-nullifier, and `challenge_digest` ({{challenge-binding}}). The Moderator
+nullifier, and `challenge_digest` ({{challenge-binding}}). A proof is
+valid only for its exact public inputs, so a presentation bound to a
+different challenge fails verification. The Moderator
 verifies the proof using the verifier of {{LONGFELLOW}}, then applies the
 same epoch and nullifier-freshness checks as IHAT redemption.
 
 ### Differences from IHAT
 
-The Anchor does not participate in MoLE and need not know it exists. As a
-consequence, the Anchor cannot limit how many Endorsements a Client
-obtains. Scarcity comes only from the one-nullifier-per-epoch rule.
-Deployments that need Anchor-controlled scarcity should prefer IHAT.
+While Longfellow does not require the Anchor to actively participate in MoLE,
+it is preferred to guarantee and control scarcity. Otherwise, the number of
+Endorsements that can be obtained by a given Client is unbounded.
+Scarcity comes both from the participation of the Anchor, and from the
+one-nullifier-per-epoch rule. Deployments without an aware Anchor remain
+possible, but lose Anchor-controlled scarcity.
 
 The required circuit properties, in particular sound nullifier derivation
 from a credential-bound secret, are stated here as requirements on the
-circuit. {{HIDDEN-ISSUER-CIRCUIT}} is one candidate.
+circuit. {{HIDDEN-ISSUER-CIRCUIT}} is one candidate that could be refined.
 
 # Credential Protocols {#credential-protocols}
 
@@ -569,15 +582,6 @@ If the Moderator's policy allows continued access, it returns an `Update`.
 If not, it returns an empty update and the Client is out of credentials.
 
 ### Limitations
-
-This protocol does not bind the update to the presented credential. Token
-issuance is blind, so a Client holding two tokens can present one and
-direct every update to the other. {{ARCHITECTURE}} requires that updates
-provably apply to the presented credential. This protocol relaxes that
-requirement in exchange for running on deployed Privacy Pass code. The
-consequence is that negative updates (revocation by withholding) only work
-against Clients that hold a single credential, which the Moderator cannot
-verify. See {{security-considerations}}.
 
 TODO: define a device binding mechanism, issuing tokens bound to a Client
 key so that presentation requires proof of possession. This would restore
