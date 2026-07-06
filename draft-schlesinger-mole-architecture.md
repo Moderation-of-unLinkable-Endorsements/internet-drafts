@@ -1,5 +1,5 @@
 ---
-title: "MoLE Architecture"
+title: "Moderation of unLinkable Endorsements (MoLE) Architecture"
 abbrev: "MoLE Architecture"
 category: info
 
@@ -251,19 +251,31 @@ a Credential from a Moderator to prove that it is
 presently in good standing with the Moderator in order to access a resource.
 
 ~~~ aasvg
-+--------+                    +-----------+               +--------+
-| Client |                    | Moderator |               | Anchor |
-+---+----+                    +-----+-----+               +----+---+
-    |                               |                          |
-    |<=========== Interaction ================================>|
-    |<=========== Endorsement ================================>|
-    |                               |                          |
-    |<=========== Interaction =====>|
-    |<= If needed: Redeem & Issue =>|                          |
-    |<========= Presentation ======>|                          |
-    |                               |                          |
++--------+            +--------+              +-----------+
+| Anchor |            | Client |              | Moderator |
++---+----+            +---+----+              +-----+-----+
+    |                     |                         |
+    |<~~~ Interaction ~~~>|                         |
+    |                     |                         |
+    +==== Endorsement ===>|                         |
+    |                     |                         |
+ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    |                     |                         |
+    |                     |<~~~~~ Interaction ~~~~~>|
+    |                     |                         |
+    |                +---- (If needed) -----------------.
+    |                |    |                         |    |
+    |                |    +------ Endorsement ----->|    |
+    |                |    |                         |    |
+    |                |    |<----- Credential -------+    |
+    |                |    |                         |    |
+    |                 `---------------------------------'
+    |                     |                         |
+    |                     +====== Presentation ====>|
+    |                     |                         |
 ~~~
-{: #fig-mole-architecture title="MoLE Architecture"}
+{: #fig-mole-architecture title="MoLE Architecture Overview" \
+   artwork-svg-options="arrow=line"}
 
 During Endorsement, a Client interacts with an Anchor with which it has a
 trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
