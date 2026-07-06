@@ -1706,7 +1706,7 @@ Anchor in its Anchor Set provides no Anchor-hiding.<a href="#section-5-5" class=
 <a href="#name-mole-endorsement" class="selfRef">MoLE Endorsement</a>
           </figcaption></figure>
 </div>
-<p id="section-7.1-2">The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling it's trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling its trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
 <p id="section-7.1-3">An Anchor will endorse a client according to its own criteria for trust in the client.
 This may be because of some kind of strong authentication like a login, weak authentication
 like a CAPTCHA or any other mechanism that the Anchor deems suitable. Moderators will choose
@@ -1719,10 +1719,10 @@ applied by Moderators.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 <p id="section-7.1-6">The specific properties of the Endorsement vary based on the exact protocol used. Important properties are described below:<a href="#section-7.1-6" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-7.1-7">
 <li id="section-7.1-7.1">
-            <p id="section-7.1-7.1.1">Public Verification: any party can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.<a href="#section-7.1-7.1.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-7.1.1">Public Verifiability: any party with knowledge of the Anchor can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.<a href="#section-7.1-7.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.1-7.2">
-            <p id="section-7.1-7.2.1">Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of trusted Anchors.<a href="#section-7.1-7.2.1" class="pilcrow">¶</a></p>
+            <p id="section-7.1-7.2.1">Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of Anchors trusted by a Moderator.<a href="#section-7.1-7.2.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-7.1-7.3">
             <p id="section-7.1-7.3.1">Unlinkable Redemption: even if the Anchor colludes with another party at which the Endorsement is redeemed, they can't link the redemption to the session in which it was granted.<a href="#section-7.1-7.3.1" class="pilcrow">¶</a></p>
@@ -1790,7 +1790,7 @@ applied by Moderators.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
 <a href="#name-mole-redeem-issue" class="selfRef">MoLE Redeem &amp; Issue</a>
           </figcaption></figure>
 </div>
-<p id="section-7.2-2">The Redeem and Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The Redeem &amp; Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
 <p id="section-7.2-3">Redeem &amp; Issue is likely to happen on-demand in response to a Moderator's challenge for a
 Client to present a valid Credential. The challenge should contain enough information
 to identify the Moderator and the Anchors whose Endorsements it will trust for redemption.
