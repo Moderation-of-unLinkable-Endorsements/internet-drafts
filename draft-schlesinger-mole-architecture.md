@@ -89,11 +89,11 @@ control decision and to adjust its level of trust in the Client over time,
 including by dynamically rate-limiting access.
 
 These flows are designed to protect the Client's privacy. Redeeming an
-Endorsement does not reveal the granting Anchor, only that it was drawn from the
+Endorsement does not reveal the granting Anchor, only that it is a member of the
 Moderator's Anchor Set, so it does not leak information about the Client such as
 which Anchor's policy the Client satisfies. In addition, a Client's interactions
 across Endorsement, Redeem & Issue and Presentation are unlinkable, preventing Anchors and
-Moderators from tracking Clients. These privacy properties are designed to hold
+Moderators from tracking Clients through their participation in the system. These privacy properties are designed to hold
 even when Anchors and Moderators collude.
 
 This document describes the requirements for these flows and how they interact,
@@ -149,7 +149,7 @@ actions --- yet those actions remain unlinkable to other sessions and to the
 user's own, and the user's identity is not revealed to the site.
 
 Alternatively,
-delegated agents may draw on a distinct pool of Anchors and Credentials,
+delegated agents may rely on a distinct pool of Anchors and Credentials,
 letting sites and Moderators differentiate them from traditional user agents. The
 same architecture can serve automation not acting under delegation, such as
 autonomous crawlers.
@@ -428,11 +428,11 @@ When a Moderator credential is presented, the Moderator learns
 whether or not it satisfies the Moderator's policy. The presentation
 must not be linkable to past updates, or to the Redeem & Issue flow that produced it.
 
-After the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client previously presented.
+After the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client presented.
 
-To satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in the Privacy Considerations.
+To satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in the {{privacy-considerations}}.
 
-Moderators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may modify the Client's credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not reveal information about the previous state of the Credential, then it may be performed multiple times within a context.
+Moderators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may allow the Client to modify its credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not reveal information about the previous state of the Credential, then it may be performed multiple times within a context.
 
 # Anchor Feedback
 
