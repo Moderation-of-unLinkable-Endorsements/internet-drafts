@@ -3,7 +3,7 @@ title: "MoLE HTTP Transport"
 abbrev: "MoLE HTTP Transport"
 category: info
 
-docname: draft-schlesinger-mole-http-transport-latest
+docname: draft-jms-mole-http-transport-latest
 submissiontype: IETF
 number:
 date:

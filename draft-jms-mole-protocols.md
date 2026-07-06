@@ -3,7 +3,7 @@ title: "MoLE Protocols"
 abbrev: "MoLE Protocols"
 category: info
 
-docname: draft-schlesinger-mole-protocols-latest
+docname: draft-jms-mole-protocols-latest
 submissiontype: IETF
 number:
 date:

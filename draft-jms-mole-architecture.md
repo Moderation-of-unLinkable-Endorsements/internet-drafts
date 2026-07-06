@@ -3,7 +3,7 @@ title: "Moderation of unLinkable Endorsements (MoLE) Architecture"
 abbrev: "MoLE Architecture"
 category: info
 
-docname: draft-schlesinger-mole-architecture-latest
+docname: draft-jms-mole-architecture-latest
 submissiontype: IETF
 number:
 date:
