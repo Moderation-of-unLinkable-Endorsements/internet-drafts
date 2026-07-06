@@ -820,23 +820,23 @@ type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
 0x0002 (IHAT).
 
 ~~~ aasvg
-+--------+     +--------+     +-----------+
-| Client |     | Anchor |     | Moderator |
-+---+----+     +---+----+     +-----+-----+
-    |              |                |
-    +--------------|--- request --->|
-    |<-------------|-- challenge ---+
-    +- exchange 1 >|                |
-    |< response 1 -+                |
-    +- exchange 2 >|                |
-    |< response 2 -+                |
-Finalize           |                |
-    +--------------|--- redeem ---->|
-    |<-------------|--- credential -+
-Finalize           |                |
-    +--------------|--- present --->|
-    |<-------------|- ok + update --+
-    |              |                |
++--------+         +--------+      +-----------+
+| Client |         | Anchor |      | Moderator |
++---+----+         +---+----+      +-----+-----+
+    |                  |                 |
+    +------------------|---- request --->|
+    |<-----------------|--- challenge ---+
+    +--- exchange 1 -->|                 |
+    |<-- response 1 ---+                 |
+    +--- exchange 2 -->|                 |
+    |<-- response 2 ---+                 |
+Finalize               |                 |
+    +------------------|---- redeem ---->|
+    |<-----------------|---- credential -+
+Finalize               |                 |
+    +------------------|---- present --->|
+    |<-----------------|-- ok + update --+
+    |                  |                 |
 ~~~
 {: #fig-example title="Complete exchange"}
 
