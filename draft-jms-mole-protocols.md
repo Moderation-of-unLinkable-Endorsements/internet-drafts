@@ -38,15 +38,11 @@ author:
 
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act
-  ARCHITECTURE: #I-D.draft-schlesinger-mole-architecture
-    title: MoLE Architecture
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-architecture.html
+  ARCHITECTURE: I-D.draft-jms-mole-architecture
   CRYPTO: #I-D.draft-authors-mole-crypto
     title: MoLE Cryptography
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html
-  HTTP-TRANSPORT: #I-D.draft-schlesinger-mole-http-transport
-    title: MoLE HTTP Transport
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-http-transport.html
+  HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   LONGFELLOW: I-D.draft-google-cfrg-libzk
   PRIVACYPASS-AUTH: RFC9577
   PRIVACYPASS-BATCHED: I-D.draft-ietf-privacypass-batched-tokens
