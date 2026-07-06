@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>MoLE Protocols</title>
-<meta content="Samuel Schlesinger" name="author">
+<title>MoLE Cryptography</title>
+<meta content="John Doe" name="author">
 <meta content="
        TODO Abstract 
     " name="description">
@@ -14,7 +14,7 @@
 <meta content="endorsement" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
-<meta content="draft-schlesinger-mole-protocols-latest" name="ietf.draft">
+<meta content="draft-authors-mole-crypto-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.0
     Python 3.14.5
@@ -30,7 +30,7 @@
     requests 2.33.1
     wcwidth 0.8.2
 -->
-<link href="draft-schlesinger-mole-protocols.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-authors-mole-crypto.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1046,11 +1046,11 @@ svg {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">MoLE Protocols</td>
+<td class="center">MoLE Cryptography</td>
 <td class="right">July 2026</td>
 </tr></thead>
 <tfoot><tr>
-<td class="left">Schlesinger</td>
+<td class="left">Doe</td>
 <td class="center">Expires 7 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
@@ -1061,7 +1061,7 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-schlesinger-mole-protocols-latest</dd>
+<dd class="internet-draft">draft-authors-mole-crypto-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-07-06" class="published">6 July 2026</time>
@@ -1073,13 +1073,13 @@ svg {
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
-      <div class="author-name">S. Schlesinger</div>
-<div class="org">Google LLC</div>
+      <div class="author-name">J. Doe</div>
+<div class="org">ACME</div>
 </div>
 </dd>
 </dl>
 </div>
-<h1 id="title">MoLE Protocols</h1>
+<h1 id="title">MoLE Cryptography</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">TODO Abstract<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1090,8 +1090,8 @@ svg {
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-schlesinger-mole-protocols/">https://datatracker.ietf.org/doc/draft-schlesinger-mole-protocols/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-crypto/">https://datatracker.ietf.org/doc/draft-authors-mole-crypto/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1150,60 +1150,33 @@ svg {
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-protocols" class="internal xref">Protocols</a></p>
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-crypto-bits" class="internal xref">Crypto Bits</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
-                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-issuance-protocol-for-issue" class="internal xref">Issuance Protocol for Issuer-unlinkable Privately Verifiable Tokens</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.1">
-                    <p id="section-toc.1-1.3.2.1.2.1.1" class="keepWithNext"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-client-to-issuer" class="internal xref">Client to Issuer</a></p>
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-issuance-step-one-statement" class="internal xref">Issuance Step One: Statement and Commitment</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.2">
-                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-issuer-to-client" class="internal xref">Issuer to Client</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-issuance-step-two-opening-a" class="internal xref">Issuance Step Two: Opening and Proof</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.3">
-                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-client-to-origin" class="internal xref">Client to Origin</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-verifying-such-an-endorseme" class="internal xref">Verifying such an endorsement</a></p>
 </li>
-                </ul>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-connecting-to-the-issuer" class="internal xref">Connecting to the issuer</a></p>
 </li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-crypto-bits" class="internal xref">Crypto Bits</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-issuance-step-one-statement" class="internal xref">Issuance Step One: Statement and Commitment</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-issuance-step-two-opening-a" class="internal xref">Issuance Step Two: Opening and Proof</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
-                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-verifying-such-an-endorseme" class="internal xref">Verifying such an endorsement</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
-                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-connecting-to-the-issuer" class="internal xref">Connecting to the issuer</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-references" class="internal xref">References</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
-</li>
-            </ul>
+            <p id="section-toc.1-1.6.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
 </li>
         </ul>
 </nav>
@@ -1214,11 +1187,7 @@ svg {
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">In this document, we'll register all the token type that privacy pass is lacking and that we need.
-I suspect this is likely to lead to another registry, but maybe not needed.<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">We will NOT use the vocabulary from <span>[<a href="#RFC9576" class="cite xref">RFC9576</a>]</span> but rather use <span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span> vocabulary
-We indeed need to use credentialRequest/response and distinguish finalisation from presentation.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">These are not specific to MoLE, but MoLE must constrain them.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-1">TODO<a href="#section-1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1233,228 +1202,101 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-2-2">Unless otherwise specified, this document encodes protocol messages in TLS notation (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte order.<a href="#section-2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="protocols">
-<section id="section-3">
-      <h2 id="name-protocols">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocols" class="section-name selfRef">Protocols</a>
-      </h2>
-<p id="section-3-1">Beyond ACT (with some improvement), we'll need to specify the following protocol<a href="#section-3-1" class="pilcrow">¶</a></p>
-<div id="issuance-protocol-for-issuer-unlinkable-privately-verifiable-tokens">
-<section id="section-3.1">
-        <h3 id="name-issuance-protocol-for-issue">
-<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-issuance-protocol-for-issue" class="section-name selfRef">Issuance Protocol for Issuer-unlinkable Privately Verifiable Tokens</a>
-        </h3>
-<p id="section-3.1-1">Token type <code>0x0531</code><a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">Configuration (these bits will probably differ for MoLE, and we should define the discovery we want)<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.1-3">
-<li id="section-3.1-3.1">
-            <p id="section-3.1-3.1.1">Issuer Request URL &lt;-- issuer name is going to be th erequest URL. Name is a footgun meant for private deployment<a href="#section-3.1-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-3.2">
-            <p id="section-3.1-3.2.1">Issuer public key<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-3.3">
-            <p id="section-3.1-3.3.1">Challenge value<a href="#section-3.1-3.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-3.4">
-            <p id="section-3.1-3.4.1">Issuer set &lt;-- magic crypto bits?<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-3.1-4">This token follws this flow with properties<a href="#section-3.1-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-3.1-5">
-<li id="section-3.1-5.1">
-            <p id="section-3.1-5.1.1">how do we build context to get the endorsement<a href="#section-3.1-5.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-5.2">
-            <p id="section-3.1-5.2.1">challenge?<a href="#section-3.1-5.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-5.3">
-            <p id="section-3.1-5.3.1">presentation context: does it need to be flexible?<a href="#section-3.1-5.3.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-3.1-5.4">
-            <p id="section-3.1-5.4.1">obtention of the issuer set from the origin: what information can the client validate to not reveal themselves<a href="#section-3.1-5.4.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-3.1-6">Note: this issuance protocol DOES NOT require a reverse flow, even if in MoLE it will use it to obtain a credential from an endorsement.<a href="#section-3.1-6" class="pilcrow">¶</a></p>
-<p id="section-3.1-7">Realisation: there is work to do something like https://eprint.iacr.org/2026/870.pdf but without pairing<a href="#section-3.1-7" class="pilcrow">¶</a></p>
-<div id="client-to-issuer">
-<section id="section-3.1.1">
-          <h4 id="name-client-to-issuer">
-<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-client-to-issuer" class="section-name selfRef">Client to Issuer</a>
-          </h4>
-<div class="lang-tls sourcecode" id="section-3.1.1-1">
-<pre>
-struct CredentialRequest {
-  uint16_t token_type = 0x0531; /* Type something(something) */
-  uint8_t truncated_token_key_id; /* Allow for multiple keys per issuer */
-  ...
-}
-</pre><a href="#section-3.1.1-1" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-<div id="issuer-to-client">
-<section id="section-3.1.2">
-          <h4 id="name-issuer-to-client">
-<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-issuer-to-client" class="section-name selfRef">Issuer to Client</a>
-          </h4>
-<div class="lang-tls sourcecode" id="section-3.1.2-1">
-<pre>
-struct CredentialResponse {
-  opaque response
-}
-</pre><a href="#section-3.1.2-1" class="pilcrow">¶</a>
-</div>
-<p id="section-3.1.2-2">The client finalises the response into a Credential<a href="#section-3.1.2-2" class="pilcrow">¶</a></p>
-<div class="lang-tls sourcecode" id="section-3.1.2-3">
-<pre>
-struct Credential {
-  uint16_t token_type = 0x0531;
-  opaque cred
-}
-</pre><a href="#section-3.1.2-3" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-<div id="client-to-origin">
-<section id="section-3.1.3">
-          <h4 id="name-client-to-origin">
-<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-client-to-origin" class="section-name selfRef">Client to Origin</a>
-          </h4>
-<p id="section-3.1.3-1">The client knows the set of issuers it needs to present to. It presents the credential to obtain a token<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
-<div class="lang-tls sourcecode" id="section-3.1.3-2">
-<pre>
-struct Token {
-  uint16_t token_type = 0x0531;
-  opaque token
-}
-</pre><a href="#section-3.1.3-2" class="pilcrow">¶</a>
-</div>
-</section>
-</div>
-</section>
-</div>
-</section>
-</div>
 <div id="crypto-bits">
-<section id="section-4">
+<section id="section-3">
       <h2 id="name-crypto-bits">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-crypto-bits" class="section-name selfRef">Crypto Bits</a>
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-crypto-bits" class="section-name selfRef">Crypto Bits</a>
       </h2>
-<p id="section-4-1">We define a two round protocol between an Anchor and Client to produce an endorsement, and then a half-round
+<p id="section-3-1">We define a two round protocol between an Anchor and Client to produce an endorsement, and then a half-round
 Credential generation step presuming the Client knows the Anchors the Issuer accepts. We let hash2curve be the
-Hash2Curve function from <span>[<a href="#Hash2Curve" class="cite xref">Hash2Curve</a>]</span>, and H be hash function whose output length is sufficiently long.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">The Endorsement is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
+Hash2Curve function from <span>[<a href="#Hash2Curve" class="cite xref">Hash2Curve</a>]</span>, and H be hash function whose output length is sufficiently long.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-2">The Endorsement is a structure with m, Y=Hash2Curve(m), Zhat, Xhat and
 private data gamma. The Anchor has a public key X and a private key x,
 and X = xG. The public form of a credential Zhat, Xhat, and a proof
 that Xhat = vG, Zhat = vY. Xhat = gamma X, and the client will prove
 it knows gamma such that Xhat is a power of one of the public keys of
-an Anchor the moderator trusts.<a href="#section-4-2" class="pilcrow">¶</a></p>
+an Anchor the moderator trusts.<a href="#section-3-2" class="pilcrow">¶</a></p>
 <div id="issuance-step-one-statement-and-commitment">
-<section id="section-4.1">
+<section id="section-3.1">
         <h3 id="name-issuance-step-one-statement">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-issuance-step-one-statement" class="section-name selfRef">Issuance Step One: Statement and Commitment</a>
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-issuance-step-one-statement" class="section-name selfRef">Issuance Step One: Statement and Commitment</a>
         </h3>
-<p id="section-4.1-1">Client randomly selects scalars v and gamma, and sends Yprime = v Y to the anchor.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">The Anchor computes Zprime = x Yprime, selects three random scalars aprime, bprime, and tprime.
+<p id="section-3.1-1">Client randomly selects scalars v and gamma, and sends Yprime = v Y to the anchor.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">The Anchor computes Zprime = x Yprime, selects three random scalars aprime, bprime, and tprime.
 It computes a commitment. It then computes T1prime = tprime Yprime, T2Prime = tprime G. It then transmits Zprime, Cprime,
-and T1prime and T2prime to the client.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+and T1prime and T2prime to the client.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="issuance-step-two-opening-and-proof">
-<section id="section-4.2">
+<section id="section-3.2">
         <h3 id="name-issuance-step-two-opening-a">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-issuance-step-two-opening-a" class="section-name selfRef">Issuance Step Two: Opening and Proof</a>
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-issuance-step-two-opening-a" class="section-name selfRef">Issuance Step Two: Opening and Proof</a>
         </h3>
-<p id="section-4.2-1">The client now has to compute some proof elements and send a scalar to the server. The client
+<p id="section-3.2-1">The client now has to compute some proof elements and send a scalar to the server. The client
 lets Zhat = gamma v^-1 Z. It then picks alpha, a random nonzero scalar, beta, a random scalar,
 epsilon, a random nonzero scalar, and rho, a random scalar. The client computes C = alpha^-1 C' - beta H,
-T1 = epsilon ^ -1 v ^ -1 (T1prime - rho Yprime), T2 = epsilon ^ -1 (T2prime - rho G).<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">The client now computes e = H(Y, Zhat, T1, T2, C), and sends eprime = epsilon alpha^{-1} gamma e
-to the anchor<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">The anchor computes rprime = tprime + eprime aprime x and sends back rprime aprime and  bprime.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">The client then checks Cprime = aprime G + bprime H, that aprime is invertable, and then computes
+T1 = epsilon ^ -1 v ^ -1 (T1prime - rho Yprime), T2 = epsilon ^ -1 (T2prime - rho G).<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The client now computes e = H(Y, Zhat, T1, T2, C), and sends eprime = epsilon alpha^{-1} gamma e
+to the anchor<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">The anchor computes rprime = tprime + eprime aprime x and sends back rprime aprime and  bprime.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-4">The client then checks Cprime = aprime G + bprime H, that aprime is invertable, and then computes
 a = alpha ^-1 aprime, b=alpha^-1 bprime - beta, r = epsilon ^ -1 (rprime - rho). The client then
-verifies Xhat, Zhat, m, e, a, b, r  are a valid endorsement as in the section below.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+verifies Xhat, Zhat, m, e, a, b, r  are a valid endorsement as in the section below.<a href="#section-3.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="verifying-such-an-endorsement">
-<section id="section-4.3">
+<section id="section-3.3">
         <h3 id="name-verifying-such-an-endorseme">
-<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-verifying-such-an-endorseme" class="section-name selfRef">Verifying such an endorsement</a>
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-verifying-such-an-endorseme" class="section-name selfRef">Verifying such an endorsement</a>
         </h3>
-<p id="section-4.3-1">A verifier gets Xhat, Zhat, m and e, a, b, r. The verifier computes Y=Hash2Curve(m), and then
+<p id="section-3.3-1">A verifier gets Xhat, Zhat, m and e, a, b, r. The verifier computes Y=Hash2Curve(m), and then
 lets T1 = r Y - e a Zhat, T2 = rG - e a Xhat, C = a G + b H. It checks a is not zero and Y is
-not the identity and then checks e = H(Y, Zhat, T1, T2, C).<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+not the identity and then checks e = H(Y, Zhat, T1, T2, C).<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="connecting-to-the-issuer">
-<section id="section-4.4">
+<section id="section-3.4">
         <h3 id="name-connecting-to-the-issuer">
-<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-connecting-to-the-issuer" class="section-name selfRef">Connecting to the issuer</a>
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-connecting-to-the-issuer" class="section-name selfRef">Connecting to the issuer</a>
         </h3>
-<p id="section-4.4-1">In addition to the above endorsement, the client must prove knowledge of a value gamma such that
+<p id="section-3.4-1">In addition to the above endorsement, the client must prove knowledge of a value gamma such that
 Xhat = gamma Xi for some i, where the Xi is the list of issuers trusted. This is a standard
-OR sigma proof, and we can use sigma stacking to compact the proof.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+OR sigma proof, and we can use sigma stacking to compact the proof.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-5">
+<section id="section-4">
       <h2 id="name-iana-considerations">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-5-1">This document has no IANA actions.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-4-1">This document has no IANA actions.<a href="#section-4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="sec-combined-references">
-<section id="section-6">
-      <h2 id="name-references">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-references" class="section-name selfRef">References</a>
-      </h2>
 <div id="sec-normative-references">
-<section id="section-6.1">
-        <h3 id="name-normative-references">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
-        </h3>
+<section id="section-5">
+      <h2 id="name-normative-references">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+      </h2>
 <dl class="references">
 <dt id="Hash2Curve">[Hash2Curve]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-        <dd>
+      <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="TLS13">[TLS13]</dt>
-      <dd>
+    <dd>
 <span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
-</section>
-</div>
-<div id="sec-informative-references">
-<section id="section-6.2">
-        <h3 id="name-informative-references">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
-        </h3>
-<dl class="references">
-<dt id="REVERSE-FLOW">[REVERSE-FLOW]</dt>
-        <dd>
-<span class="refAuthor">Meunier, T.</span>, <span class="refTitle">"Privacy Pass Reverse Flow"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-meunier-privacypass-reverse-flow-05</span>, <time datetime="2026-06-18" class="refDate">18 June 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-05">https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-05</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC9576">[RFC9576]</dt>
-      <dd>
-<span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Iyengar, J.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass Architecture"</span>, <span class="seriesInfo">RFC 9576</span>, <span class="seriesInfo">DOI 10.17487/RFC9576</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9576">https://www.rfc-editor.org/rfc/rfc9576</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-</dl>
-</section>
-</div>
 </section>
 </div>
 <div id="acknowledgments">
@@ -1471,11 +1313,11 @@ OR sigma proof, and we can use sigma stacking to compact the proof.<a href="#sec
 <a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
       </h2>
 <address class="vcard">
-        <div dir="auto" class="left"><span class="fn nameRole">Samuel Schlesinger</span></div>
-<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+        <div dir="auto" class="left"><span class="fn nameRole">John Doe</span></div>
+<div dir="auto" class="left"><span class="org">ACME</span></div>
 <div class="email">
 <span>Email:</span>
-<a href="mailto:sgschlesinger@gmail.com" class="email">sgschlesinger@gmail.com</a>
+<a href="mailto:john@example.com" class="email">john@example.com</a>
 </div>
 </address>
 </section>

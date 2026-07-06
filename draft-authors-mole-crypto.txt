@@ -2,14 +2,14 @@
 
 
 
-Network Working Group                                     S. Schlesinger
-Internet-Draft                                                Google LLC
+Network Working Group                                             J. Doe
+Internet-Draft                                                      ACME
 Intended status: Informational                               6 July 2026
 Expires: 7 January 2027
 
 
-                             MoLE Protocols
-                draft-schlesinger-mole-protocols-latest
+                           MoLE Cryptography
+                    draft-authors-mole-crypto-latest
 
 Abstract
 
@@ -20,10 +20,9 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at https://moderation-
-   of-unlinkable-endorsements.github.io/internet-drafts/draft-
-   schlesinger-mole-protocols.html.  Status information for this
-   document may be found at https://datatracker.ietf.org/doc/draft-
-   schlesinger-mole-protocols/.
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-cryptography.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-crypto/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -64,35 +63,19 @@ Table of Contents
 
    1.  Introduction
    2.  Conventions and Definitions
-   3.  Protocols
-     3.1.  Issuance Protocol for Issuer-unlinkable Privately
-           Verifiable Tokens
-       3.1.1.  Client to Issuer
-       3.1.2.  Issuer to Client
-       3.1.3.  Client to Origin
-   4.  Crypto Bits
-     4.1.  Issuance Step One: Statement and Commitment
-     4.2.  Issuance Step Two: Opening and Proof
-     4.3.  Verifying such an endorsement
-     4.4.  Connecting to the issuer
-   5.  IANA Considerations
-   6.  References
-     6.1.  Normative References
-     6.2.  Informative References
+   3.  Crypto Bits
+     3.1.  Issuance Step One: Statement and Commitment
+     3.2.  Issuance Step Two: Opening and Proof
+     3.3.  Verifying such an endorsement
+     3.4.  Connecting to the issuer
+   4.  IANA Considerations
+   5.  Normative References
    Acknowledgments
    Author's Address
 
 1.  Introduction
 
-   In this document, we'll register all the token type that privacy pass
-   is lacking and that we need.  I suspect this is likely to lead to
-   another registry, but maybe not needed.
-
-   We will NOT use the vocabulary from [RFC9576] but rather use
-   [REVERSE-FLOW] vocabulary We indeed need to use credentialRequest/
-   response and distinguish finalisation from presentation.
-
-   These are not specific to MoLE, but MoLE must constrain them.
+   TODO
 
 2.  Conventions and Definitions
 
@@ -106,77 +89,7 @@ Table of Contents
    in TLS notation (Section 3 of [TLS13]).  Moreover, all constants are
    in network byte order.
 
-3.  Protocols
-
-   Beyond ACT (with some improvement), we'll need to specify the
-   following protocol
-
-3.1.  Issuance Protocol for Issuer-unlinkable Privately Verifiable
-      Tokens
-
-   Token type 0x0531
-
-   Configuration (these bits will probably differ for MoLE, and we
-   should define the discovery we want)
-
-   1.  Issuer Request URL <-- issuer name is going to be th erequest
-       URL.  Name is a footgun meant for private deployment
-
-   2.  Issuer public key
-
-   3.  Challenge value
-
-   4.  Issuer set <-- magic crypto bits?
-
-   This token follws this flow with properties
-
-   1.  how do we build context to get the endorsement
-
-   2.  challenge?
-
-   3.  presentation context: does it need to be flexible?
-
-   4.  obtention of the issuer set from the origin: what information can
-       the client validate to not reveal themselves
-
-   Note: this issuance protocol DOES NOT require a reverse flow, even if
-   in MoLE it will use it to obtain a credential from an endorsement.
-
-   Realisation: there is work to do something like
-   https://eprint.iacr.org/2026/870.pdf but without pairing
-
-3.1.1.  Client to Issuer
-
-   struct CredentialRequest {
-     uint16_t token_type = 0x0531; /* Type something(something) */
-     uint8_t truncated_token_key_id; /* Allow for multiple keys per issuer */
-     ...
-   }
-
-3.1.2.  Issuer to Client
-
-   struct CredentialResponse {
-     opaque response
-   }
-
-   The client finalises the response into a Credential
-
-   struct Credential {
-     uint16_t token_type = 0x0531;
-     opaque cred
-   }
-
-3.1.3.  Client to Origin
-
-   The client knows the set of issuers it needs to present to.  It
-   presents the credential to obtain a token
-
-   struct Token {
-     uint16_t token_type = 0x0531;
-     opaque token
-   }
-
-4.  Crypto Bits
+3.  Crypto Bits
 
    We define a two round protocol between an Anchor and Client to
    produce an endorsement, and then a half-round Credential generation
@@ -191,7 +104,7 @@ Table of Contents
    prove it knows gamma such that Xhat is a power of one of the public
    keys of an Anchor the moderator trusts.
 
-4.1.  Issuance Step One: Statement and Commitment
+3.1.  Issuance Step One: Statement and Commitment
 
    Client randomly selects scalars v and gamma, and sends Yprime = v Y
    to the anchor.
@@ -201,7 +114,7 @@ Table of Contents
    computes T1prime = tprime Yprime, T2Prime = tprime G.  It then
    transmits Zprime, Cprime, and T1prime and T2prime to the client.
 
-4.2.  Issuance Step Two: Opening and Proof
+3.2.  Issuance Step Two: Opening and Proof
 
    The client now has to compute some proof elements and send a scalar
    to the server.  The client lets Zhat = gamma v^-1 Z.  It then picks
@@ -222,27 +135,25 @@ Table of Contents
    Xhat, Zhat, m, e, a, b, r are a valid endorsement as in the section
    below.
 
-4.3.  Verifying such an endorsement
+3.3.  Verifying such an endorsement
 
    A verifier gets Xhat, Zhat, m and e, a, b, r.  The verifier computes
    Y=Hash2Curve(m), and then lets T1 = r Y - e a Zhat, T2 = rG - e a
    Xhat, C = a G + b H.  It checks a is not zero and Y is not the
    identity and then checks e = H(Y, Zhat, T1, T2, C).
 
-4.4.  Connecting to the issuer
+3.4.  Connecting to the issuer
 
    In addition to the above endorsement, the client must prove knowledge
    of a value gamma such that Xhat = gamma Xi for some i, where the Xi
    is the list of issuers trusted.  This is a standard OR sigma proof,
    and we can use sigma stacking to compact the proof.
 
-5.  IANA Considerations
+4.  IANA Considerations
 
    This document has no IANA actions.
 
-6.  References
-
-6.1.  Normative References
+5.  Normative References
 
    [Hash2Curve]
               Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
@@ -263,25 +174,12 @@ Table of Contents
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
 
-6.2.  Informative References
-
-   [REVERSE-FLOW]
-              Meunier, T., "Privacy Pass Reverse Flow", Work in
-              Progress, Internet-Draft, draft-meunier-privacypass-
-              reverse-flow-05, 18 June 2026,
-              <https://datatracker.ietf.org/doc/html/draft-meunier-
-              privacypass-reverse-flow-05>.
-
-   [RFC9576]  Davidson, A., Iyengar, J., and C. A. Wood, "The Privacy
-              Pass Architecture", RFC 9576, DOI 10.17487/RFC9576, June
-              2024, <https://www.rfc-editor.org/rfc/rfc9576>.
-
 Acknowledgments
 
    TODO acknowledge.
 
 Author's Address
 
-   Samuel Schlesinger
-   Google LLC
-   Email: sgschlesinger@gmail.com
+   John Doe
+   ACME
+   Email: john@example.com
