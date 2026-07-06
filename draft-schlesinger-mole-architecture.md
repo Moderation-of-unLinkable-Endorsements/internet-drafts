@@ -274,8 +274,7 @@ presently in good standing with the Moderator in order to access a resource.
     |                     +====== Presentation ====>|
     |                     |                         |
 ~~~
-{: #fig-mole-architecture title="MoLE Architecture Overview" \
-   artwork-svg-options="arrow=line"}
+{: #fig-mole-architecture title="MoLE Architecture Overview"}
 
 During Endorsement, a Client interacts with an Anchor with which it has a
 trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
