@@ -40,7 +40,7 @@ normative:
   HTTP: RFC9110
   PROTOCOLS: #I-D.draft-jms-mole-protocols
     title: MoLE Protocols
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html
+    target: https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/
   URI: RFC3986
   TLS13: RFC8446
 
