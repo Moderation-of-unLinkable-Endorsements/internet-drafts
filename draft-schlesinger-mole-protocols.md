@@ -507,8 +507,10 @@ struct {
 ~~~
 
 The `spend_proof` and `refund` fields are defined in {{ACT}}. The
-Moderator verifies the spend proof, learns only the predicate result, and
-returns the refund. The Client finalizes the refund into its new
+Moderator verifies the spend proof and learns whether the Credential's
+hidden state satisfies the challenged predicate. For range-style
+predicates, this necessarily reveals the public bound being tested, but
+not the hidden state value. The Client finalizes the refund into its new
 Credential. ACT guarantees the refund applies to the state that was
 presented.
 
@@ -516,6 +518,9 @@ TODO: the exact mapping between the spend and refund operations of {{ACT}}
 and MoLE's predicate and update is not settled. In particular, `Challenge`
 for this type must express the predicate and the charged amount, and its
 contents are not yet defined.
+
+The `Challenge` for this type therefore needs to identify the predicate,
+including any public bound, and the update to apply.
 
 ## Privacy Pass with a Reverse Flow {#credential-reverse}
 
@@ -591,9 +596,13 @@ it wants, and the sum of their denominations is the amount spent. The
 Moderator returns change and any policy adjustment as freshly issued
 tokens through the reverse flow, summing to the intended new balance.
 
-A presentation reveals that the Client can spend the presented amount.
-That is the predicate the Moderator evaluates, and it is the same
-disclosure an ACT predicate makes. No additional state leaks beyond it.
+A presentation reveals that the Client can spend the challenged amount. If
+the protocol presents exactly one token for that amount, and balance
+management remains Client-local, this is the same disclosure as an ACT
+predicate over that amount: the Moderator learns the predicate result, not
+the Client's remaining balance. Deployments that allow multiple tokens,
+variable denominations, or observable change shapes need padding or another
+mitigation.
 
 ### Redeem & Issue
 
@@ -700,8 +709,9 @@ TODO. The list to cover:
 
 # IANA Considerations {#iana}
 
-This document establishes two registries under a new "MoLE" group, both
-with a Specification Required policy.
+This document sketches two candidate registries under a future "MoLE"
+group. The values below are candidate values for discussion in this -00
+draft and are not stable assignments.
 
 A registration MUST define the per-type structures its flow requires:
 `Challenge` and `Presentation` for endorsement types
@@ -720,7 +730,7 @@ or presentation binds `challenge_digest` ({{challenge-binding}}).
 | 0x0002          | IHAT                          | {{ihat}}       |
 | 0x0003          | Longfellow                    | {{longfellow}} |
 | 0xFF00 - 0xFFFF | Reserved for testing          | this document  |
-{: #endorsement-types title="MoLE Endorsement Types"}
+{: #endorsement-types title="Candidate MoLE Endorsement Type Values"}
 
 The registration template contains:
 
@@ -731,6 +741,8 @@ The registration template contains:
 * Publicly Verifiable: Whether the Endorsement can be verified without
   Anchor secret key material.
 * Reference: Where the protocol is defined.
+
+The following initial registrations are candidates only.
 
 ### IHAT {#iana-ihat}
 
@@ -758,7 +770,7 @@ The registration template contains:
 | 0x0003          | Budget Privacy Pass        | {{credential-budget}} |
 | 0x0A0A, 0x1A1A, ..., 0xFAFA | Reserved for greasing | {{greasing}} |
 | 0xFF00 - 0xFFFF | Reserved for testing       | this document         |
-{: #credential-types title="MoLE Credential Types"}
+{: #credential-types title="Candidate MoLE Credential Type Values"}
 
 The registration template contains:
 
