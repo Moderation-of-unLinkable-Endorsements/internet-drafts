@@ -1,9 +1,9 @@
 ---
-title: "MoLE Protocols"
-abbrev: "MoLE Protocols"
+title: "MoLE Cryptography"
+abbrev: "MoLE Cryptography"
 category: info
 
-docname: draft-schlesinger-mole-protocols-latest
+docname: draft-authors-mole-crypto-latest
 submissiontype: IETF
 number:
 date:
@@ -20,21 +20,19 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-protocols.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html"
 
 author:
  -
-    fullname: Samuel Schlesinger
-    organization: Google LLC
-    email: sgschlesinger@gmail.com
+    fullname: John Doe
+    organization: ACME
+    email: john@example.com
 
 normative:
-  TLS13: RFC8446
   Hash2Curve: RFC9380
+  TLS13: RFC8446
 
 informative:
-  REVERSE-FLOW: I-D.draft-meunier-privacypass-reverse-flow
-  RFC9576:
 
 ...
 
@@ -47,83 +45,13 @@ TODO Abstract
 
 # Introduction
 
-In this document, we'll register all the token type that privacy pass is lacking and that we need.
-I suspect this is likely to lead to another registry, but maybe not needed.
-
-We will NOT use the vocabulary from {{RFC9576}} but rather use {{REVERSE-FLOW}} vocabulary
-We indeed need to use credentialRequest/response and distinguish finalisation from presentation.
-
-These are not specific to MoLE, but MoLE must constrain them.
+TODO
 
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
 
 Unless otherwise specified, this document encodes protocol messages in TLS notation ({{Section 3 of TLS13}}). Moreover, all constants are in network byte order.
-
-# Protocols
-
-Beyond ACT (with some improvement), we'll need to specify the following protocol
-
-## Issuance Protocol for Issuer-unlinkable Privately Verifiable Tokens
-
-Token type `0x0531`
-
-Configuration (these bits will probably differ for MoLE, and we should define the discovery we want)
-
-1. Issuer Request URL <-- issuer name is going to be th erequest URL. Name is a footgun meant for private deployment
-2. Issuer public key
-3. Challenge value
-4. Issuer set <-- magic crypto bits?
-
-This token follws this flow with properties
-
-1. how do we build context to get the endorsement
-2. challenge?
-3. presentation context: does it need to be flexible?
-4. obtention of the issuer set from the origin: what information can the client validate to not reveal themselves
-
-Note: this issuance protocol DOES NOT require a reverse flow, even if in MoLE it will use it to obtain a credential from an endorsement.
-
-Realisation: there is work to do something like https://eprint.iacr.org/2026/870.pdf but without pairing
-
-### Client to Issuer
-
-~~~tls
-struct CredentialRequest {
-  uint16_t token_type = 0x0531; /* Type something(something) */
-  uint8_t truncated_token_key_id; /* Allow for multiple keys per issuer */
-  ...
-}
-~~~
-
-### Issuer to Client
-
-~~~tls
-struct CredentialResponse {
-  opaque response
-}
-~~~
-
-The client finalises the response into a Credential
-
-~~~tls
-struct Credential {
-  uint16_t token_type = 0x0531;
-  opaque cred
-}
-~~~
-
-### Client to Origin
-
-The client knows the set of issuers it needs to present to. It presents the credential to obtain a token
-
-~~~tls
-struct Token {
-  uint16_t token_type = 0x0531;
-  opaque token
-}
-~~~
 
 # Crypto Bits
 

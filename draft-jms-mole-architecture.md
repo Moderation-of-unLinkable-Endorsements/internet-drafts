@@ -3,7 +3,7 @@ title: "Moderation of unLinkable Endorsements (MoLE) Architecture"
 abbrev: "MoLE Architecture"
 category: info
 
-docname: draft-schlesinger-mole-architecture-latest
+docname: draft-jms-mole-architecture-latest
 submissiontype: IETF
 number:
 date:
@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-architecture.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-architecture.html"
 
 author:
  -
