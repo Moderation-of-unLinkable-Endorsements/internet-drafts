@@ -342,7 +342,7 @@ EndorsementFinalization        |
 ~~~
 {: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
 
-The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling it's trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.
+The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling its trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.
 
 An Anchor will endorse a client according to its own criteria for trust in the client.
 This may be because of some kind of strong authentication like a login, weak authentication
@@ -358,8 +358,8 @@ Anchors furnish each Endorsement with the necessary metadata to identify the Anc
 
 The specific properties of the Endorsement vary based on the exact protocol used. Important properties are described below:
 
-1. Public Verification: any party can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.
-1. Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of trusted Anchors.
+1. Public Verifiability: any party with knowledge of the Anchor can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.
+1. Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of Anchors trusted by a Moderator.
 1. Unlinkable Redemption: even if the Anchor colludes with another party at which the Endorsement is redeemed, they can't link the redemption to the session in which it was granted.
 1. Expiry:  A Client redeeming the Endorsement can prove that the Endorsement was granted within a particular time period.
 1. One-Time-Use: A Moderator can prevent the redemption of the same Endorsement twice.
@@ -381,7 +381,7 @@ CredentialFinalization                          |
 ~~~
 {: #fig-mole-architecture-issuance title="MoLE Redeem & Issue"}
 
-The Redeem and Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.
+The Redeem & Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.
 
 Redeem & Issue is likely to happen on-demand in response to a Moderator's challenge for a
 Client to present a valid Credential. The challenge should contain enough information
