@@ -1055,7 +1055,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 6 January 2027</td>
+<td class="center">Expires 7 January 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-schlesinger-mole-architecture-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-07-05" class="published">5 July 2026</time>
+<time datetime="2026-07-06" class="published">6 July 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-01-06">6 January 2027</time></dd>
+<dd class="expires"><time datetime="2027-01-07">7 January 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1128,7 +1128,7 @@ svg {
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 January 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1306,11 +1306,11 @@ presents a Credential to a Moderator, allowing the Moderator to make an access
 control decision and to adjust its level of trust in the Client over time,
 including by dynamically rate-limiting access.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <p id="section-1-5">These flows are designed to protect the Client's privacy. Redeeming an
-Endorsement does not reveal the granting Anchor, only that it was drawn from the
+Endorsement does not reveal the granting Anchor, only that it is a member of the
 Moderator's Anchor Set, so it does not leak information about the Client such as
 which Anchor's policy the Client satisfies. In addition, a Client's interactions
 across Endorsement, Redeem &amp; Issue and Presentation are unlinkable, preventing Anchors and
-Moderators from tracking Clients. These privacy properties are designed to hold
+Moderators from tracking Clients through their participation in the system. These privacy properties are designed to hold
 even when Anchors and Moderators collude.<a href="#section-1-5" class="pilcrow">¶</a></p>
 <p id="section-1-6">This document describes the requirements for these flows and how they interact,
 as well as the anticipated deployment model.<a href="#section-1-6" class="pilcrow">¶</a></p>
@@ -1369,7 +1369,7 @@ to the user's Credential, so the user bears the consequences for the agent's
 actions --- yet those actions remain unlinkable to other sessions and to the
 user's own, and the user's identity is not revealed to the site.<a href="#section-2.2-3" class="pilcrow">¶</a></p>
 <p id="section-2.2-4">Alternatively,
-delegated agents may draw on a distinct pool of Anchors and Credentials,
+delegated agents may rely on a distinct pool of Anchors and Credentials,
 letting sites and Moderators differentiate them from traditional user agents. The
 same architecture can serve automation not acting under delegation, such as
 autonomous crawlers.<a href="#section-2.2-4" class="pilcrow">¶</a></p>
@@ -1880,9 +1880,9 @@ present a Credential to a party other than the issuing Moderator to avoid spendi
 <p id="section-7.3-3">When a Moderator credential is presented, the Moderator learns
 whether or not it satisfies the Moderator's policy. The presentation
 must not be linkable to past updates, or to the Redeem &amp; Issue flow that produced it.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
-<p id="section-7.3-4">After the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client previously presented.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
-<p id="section-7.3-5">To satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in the Privacy Considerations.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
-<p id="section-7.3-6">Moderators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may modify the Client's credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not reveal information about the previous state of the Credential, then it may be performed multiple times within a context.<a href="#section-7.3-6" class="pilcrow">¶</a></p>
+<p id="section-7.3-4">After the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client presented.<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+<p id="section-7.3-5">To satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in the <a href="#privacy-considerations" class="auto internal xref">Section 11</a>.<a href="#section-7.3-5" class="pilcrow">¶</a></p>
+<p id="section-7.3-6">Moderators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may allow the Client to modify its credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not reveal information about the previous state of the Credential, then it may be performed multiple times within a context.<a href="#section-7.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
