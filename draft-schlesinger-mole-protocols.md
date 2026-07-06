@@ -559,8 +559,8 @@ Moderator public key. Anything else partitions Clients and leaks state.
 
 ### Presentation and Update
 
-`Challenge` is empty for this type. Binding comes from the `Token`
-structure below.
+`Challenge` is empty for this type. The challenge octets, and therefore
+`challenge_digest`, are constant for a given Moderator configuration.
 
 ~~~ tls-presentation
 struct {
@@ -574,9 +574,13 @@ struct {
 ~~~
 
 The `token` field carries a `Token` as defined in {{PRIVACYPASS-AUTH}}.
-Challenge binding comes from the `Token` structure itself: its
-`challenge_digest` field MUST equal the digest of the Moderator's
-challenge ({{challenge-binding}}).
+Its `challenge_digest` field is fixed when the token is issued, one
+exchange before it is presented, and MUST equal the Moderator's constant
+`challenge_digest` ({{challenge-binding}}). This binds the token to the
+Moderator, not to the exchange that presents it. Anti-replay therefore
+does not come from challenge binding: it comes from the token being
+single-use. The Moderator MUST reject a token whose nonce it has already
+seen.
 
 If the Moderator's policy allows continued access, it returns an `Update`.
 If not, it returns an empty update and the Client is out of credentials.
