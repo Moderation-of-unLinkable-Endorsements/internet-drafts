@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-05T03:43:37.483501+00:00",
+  "timestamp": "2026-07-07T03:42:01.923518+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -266,6 +266,22 @@
           "updatedAt": "2026-06-18T07:06:26Z"
         }
       ]
+    },
+    {
+      "number": 28,
+      "id": "I_kwDOSX6krs8AAAABH4BOOw",
+      "title": "Should moderator identity be included in the nullifier",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/28",
+      "state": "OPEN",
+      "author": "ekr",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "I've been reviewing the Longfellow mechanism (Section 4.2 of -protocol) and it seems like the nullifier just includes the epoch. As I've discussed with a few of you for Webbotauth, I think it's going to be desirable to sometimes use the same Endorsement with multiple Moderators, because we're leaning less on scarcity and more on the validation of the client. If I'm reading the description correctly, this will currently result in linkability. I think this can be readily addressed by including the identity of the Moderator in the computation of the nullifier, along with the epoch. Presumably we could have both Endorsements that allow this and forbid it, as desired.\n\n\n\n\n",
+      "createdAt": "2026-07-06T22:10:42Z",
+      "updatedAt": "2026-07-06T22:10:42Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -2824,25 +2840,33 @@
       "id": "PR_kwDOSX6krs7sk6NP",
       "title": "Mention credential update request for the credential presentation",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/19",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cryptphil",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "Minor addition to mention that a Client may include a credential update request to the credential presentation to a Site. \r\nIf the moderator credential is represented by a batch of Privacy Pass tokens (or similar one-show tokens), this credential update request could consist of the `IssuanceMessage` for n new tokens.",
       "createdAt": "2026-07-01T08:10:37Z",
-      "updatedAt": "2026-07-01T08:32:03Z",
+      "updatedAt": "2026-07-06T09:04:00Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
       "headRepository": "cryptphil/internet-drafts",
       "headRefName": "add-credential-update-request",
       "headRefOid": "1e05fdf87e28b04a1fe6107c05db3ad816237445",
-      "closedAt": null,
+      "closedAt": "2026-07-06T09:04:00Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "also added in #18 \r\n",
+          "createdAt": "2026-07-06T09:04:00Z",
+          "updatedAt": "2026-07-06T09:04:00Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABEptMjQ",
@@ -2864,25 +2888,33 @@
       "id": "PR_kwDOSX6krs7sk76w",
       "title": "Fix some typos",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/20",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cryptphil",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "This PR fixes three small typos.",
       "createdAt": "2026-07-01T08:11:42Z",
-      "updatedAt": "2026-07-01T08:26:58Z",
+      "updatedAt": "2026-07-06T09:02:34Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "863f2a4450c8cee0911b9f47c0c298247d23eef9",
       "headRepository": "cryptphil/internet-drafts",
       "headRefName": "minor-typos",
       "headRefOid": "6b0dbac53a7c7794e5053affe4df124e70bb0045",
-      "closedAt": null,
+      "closedAt": "2026-07-06T09:02:33Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "addressed with #18 ",
+          "createdAt": "2026-07-06T09:02:33Z",
+          "updatedAt": "2026-07-06T09:02:33Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABEprAuQ",
@@ -2904,7 +2936,7 @@
       "id": "PR_kwDOSX6krs7t4wMs",
       "title": "Terminology Fix for Endorsements and Credentials ",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/21",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "dennisjackson",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -2915,17 +2947,19 @@
       ],
       "body": "Previously the terminology was that Issuance and Presentation were both flows, but also Endorsements could be issued and presented which made some of the writing very confusing. \r\n\r\nThis PR changes the terminology (in bold) so that: \r\n\r\n * Endorsements are **granted** and **redeemed**. \r\n * Credentials are issued and presented.\r\n * The flows are Endorsement, **Redemption**, Presentation.",
       "createdAt": "2026-07-04T15:53:10Z",
-      "updatedAt": "2026-07-04T16:03:12Z",
+      "updatedAt": "2026-07-06T16:17:24Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "d738a5d206a01f587aa64732005ff09466e438ea",
+      "baseRefOid": "8532fe301a6311993f869dd45560b6324f8b6ad4",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "terminology-change",
-      "headRefOid": "a963797351e5cd4ea8c48e99b7a285a8c6afb20c",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "5e026564b779389cb8775d26ac6e7f0ed3b63524",
+      "closedAt": "2026-07-05T13:25:36Z",
+      "mergedAt": "2026-07-05T13:25:36Z",
+      "mergedBy": "dennisjackson",
+      "mergeCommit": {
+        "oid": "6c1e02d6885e161dd17859f7534d7828c8febeab"
+      },
       "comments": [
         {
           "author": "thibmeu",
@@ -2933,9 +2967,37 @@
           "body": "Grant and redeem are indeed to better identify the anchor flow\r\nThis leaves credentials with issue and presentation.\r\n\r\nHowever, I'm unsure about redemption. Maybe \"redemption+issuance (RI step)\" given both are done at the same time?",
           "createdAt": "2026-07-04T16:02:51Z",
           "updatedAt": "2026-07-04T16:02:51Z"
+        },
+        {
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Grant and redeem are indeed to better identify the anchor flow This leaves credentials with issue and presentation.\r\n> \r\n> However, I'm unsure about redemption. Maybe \"redemption+issuance (RI step)\" given both are done at the same time?\r\n\r\nRebased on top of your changes. I'm ok with something like \"Redeem  & Issue\". Other idea I have is 'Transfer flow' to keep it to one idea. ",
+          "createdAt": "2026-07-05T12:35:17Z",
+          "updatedAt": "2026-07-05T12:35:17Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFAyu0g",
+          "commit": {
+            "abbreviatedOid": "26c571c"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I like \"Redeem and Issue\". \"Transfer\" is also nice. Alternatives are \"Exchange\", or \"Swap\". Having two words is not too bad for now, given there are indeed two substep.\n\n\nApproving the PR as it mostly work. If we keep redemption, it's worth openning a new issue to discuss and iterate on the naming",
+          "createdAt": "2026-07-05T12:51:53Z",
+          "updatedAt": "2026-07-05T12:54:25Z",
+          "comments": [
+            {
+              "originalPosition": 76,
+              "body": "nits for later: we could reference the dedicated sectoins",
+              "createdAt": "2026-07-05T12:51:53Z",
+              "updatedAt": "2026-07-05T12:54:25Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 22,
@@ -2979,6 +3041,729 @@
           "body": "",
           "createdAt": "2026-07-04T17:34:27Z",
           "updatedAt": "2026-07-04T17:34:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 23,
+      "id": "PR_kwDOSX6krs7uEc7U",
+      "title": "protocols: specify the endorsement and credential protocols",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/23",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "> [!WARNING]\r\n> This change is rather large, because the drafts were mostly empty. I think having a high level about the compositions, then individual protocols (endorsement/credential) would be useful. If that helps, happy to push this commit as its own branch on the main github repository, so that it is rendered by github actions. The PR is meant to provide a more concrete set of discussion, and text mentions that the set of protocols is subject to change at the time of writting.\r\n\r\nStart specifying protocols to give a more concrete hook of MoLE.\r\n\r\nThis commit adds:\r\n1. One section per protocol with its type value, configuration, messages, and behavior,\r\n2. Two endorsement protocols (IHAT, a placeholder name pending the crypto draft, and Longfellow over legacy credentials),\r\n3. Three credential protocols (ACT, Privacy Pass with a reverse flow, budget Privacy Pass construction).\r\n\r\nDesign decisions worth knowing about:\r\n\r\n- Generic envelopes, per-type structures. Every endorsement type defines `Challenge` and `Presentation`. Every credential type defines `Challenge`, `IssuanceRequest`, `IssuanceResponse`, `PresentationAndUpdate`, and `Update`. The http-transport have been updated accordingly (as that draft defined these names initially).\r\n- Redeem & Issue is an authorization, so it uses the Mole auth scheme like presentation does. `Mole-Credential` is the single response header: `response=` for issuance, `update=` after a presentation. Is this the right move: TBD,\r\n- Anchor interactions are left to the protocols draft, which uses POST,\r\n- Challenge binding is clarified. It hashes the decoded challenge octets, and not the base64url ASCII header,\r\n- Clients grease with reserved `0x?A?A` credential types so Moderators keep handling unknown types and absent presentations,\r\n- Two registries: one for endorsement, one for credentials,\r\n- Remove `Site` from the HTTP transport draft.\r\n\r\nKey rotation and discovery, privacy considerations, and security considerations are mostly left as TODO.\r\n\r\nThere is a full example in the appendix.\r\n\r\nThe crypto bits that were in the previous protocol draft have been split to a `-crypto` draft.\r\n\r\nNote: I still have not added authors beyond myself to the `http-transport` and `-protocols` draft, mostly to request consent. @dennisjackson @SamuelSchlesinger you can just say yes and we'll do that before any publication",
+      "createdAt": "2026-07-05T16:22:07Z",
+      "updatedAt": "2026-07-06T16:02:07Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "02f7b445cf611f8046f1201383b061154a832d53",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "protocols-fill",
+      "headRefOid": "a74ff8450cb76cddf9db1bb2f368f20382b9919f",
+      "closedAt": "2026-07-06T16:02:03Z",
+      "mergedAt": "2026-07-06T16:02:03Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "cd8ac5f63f2c87c1599e1baa5441726dce6885a3"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "rather large rebase, apologies for all the commits",
+          "createdAt": "2026-07-06T15:50:50Z",
+          "updatedAt": "2026-07-06T15:50:50Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFBwjRQ",
+          "commit": {
+            "abbreviatedOid": "fbbbb4d"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T01:04:53Z",
+          "updatedAt": "2026-07-06T01:05:00Z",
+          "comments": [
+            {
+              "originalPosition": 897,
+              "body": "Very short lines like this cause aasvg to not detect a line.  You need at least two line segments.  Make this one wider.",
+              "createdAt": "2026-07-06T01:04:54Z",
+              "updatedAt": "2026-07-06T01:05:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFCednw",
+          "commit": {
+            "abbreviatedOid": "fbbbb4d"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T05:35:41Z",
+          "updatedAt": "2026-07-06T05:35:41Z",
+          "comments": [
+            {
+              "originalPosition": 897,
+              "body": "indeed. updated.",
+              "createdAt": "2026-07-06T05:35:41Z",
+              "updatedAt": "2026-07-06T05:35:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFFf7hA",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "LGTM - A few questions and clarifications below. A lot of which are to do with how the presentation binding gets used or why it's necessary. ",
+          "createdAt": "2026-07-06T13:26:52Z",
+          "updatedAt": "2026-07-06T13:46:16Z",
+          "comments": [
+            {
+              "originalPosition": 135,
+              "body": "It seems useful to leave it in. ",
+              "createdAt": "2026-07-06T13:26:52Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 178,
+              "body": "I'm bit confused for how this works for some of the token types. Unless there's a PRF, I don't see where to bind this in. ",
+              "createdAt": "2026-07-06T13:35:26Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 381,
+              "body": "Maybe rephrase as backwards compatible with existing practices? ",
+              "createdAt": "2026-07-06T13:38:05Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 420,
+              "body": "Nice, sorry didn't see this before I went and looked at the link to the circuit",
+              "createdAt": "2026-07-06T13:38:53Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 431,
+              "body": "How does the challenge_digest work? ",
+              "createdAt": "2026-07-06T13:40:11Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 440,
+              "body": "I think it would be better to say that the Anchor should be aware. A logical place to trigger this is in the context of a website with purely client side javascript. This also means that scarcity is possible. The ability to do it via adversarial interop is worth mentioning but shouldn't be the focus IMO. ",
+              "createdAt": "2026-07-06T13:41:37Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 647,
+              "body": "In the context of a single bit, does this matter? Aren't the two tokens fungible? ",
+              "createdAt": "2026-07-06T13:44:35Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            },
+            {
+              "originalPosition": 651,
+              "body": "Only if you trust the client?",
+              "createdAt": "2026-07-06T13:45:04Z",
+              "updatedAt": "2026-07-06T13:46:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFFwDIA",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T13:59:05Z",
+          "updatedAt": "2026-07-06T13:59:05Z",
+          "comments": [
+            {
+              "originalPosition": 135,
+              "body": "todo removed",
+              "createdAt": "2026-07-06T13:59:05Z",
+              "updatedAt": "2026-07-06T13:59:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFF0n4Q",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T14:08:32Z",
+          "updatedAt": "2026-07-06T14:08:33Z",
+          "comments": [
+            {
+              "originalPosition": 651,
+              "body": "yes, that's a pre-requisite here. there are different level of trust though, therefore the todo",
+              "createdAt": "2026-07-06T14:08:33Z",
+              "updatedAt": "2026-07-06T14:08:33Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFF2Xeg",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T14:11:55Z",
+          "updatedAt": "2026-07-06T14:11:56Z",
+          "comments": [
+            {
+              "originalPosition": 647,
+              "body": "this is part of the requirement you recently removed from the architecture that updates should be applied to the same credential. given that it's been removed, i'll remove that paragraph and leave the TODO",
+              "createdAt": "2026-07-06T14:11:56Z",
+              "updatedAt": "2026-07-06T14:11:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFF4naQ",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T14:16:12Z",
+          "updatedAt": "2026-07-06T14:16:12Z",
+          "comments": [
+            {
+              "originalPosition": 440,
+              "body": "that would help indeed. updating the text",
+              "createdAt": "2026-07-06T14:16:12Z",
+              "updatedAt": "2026-07-06T14:16:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFGRtfA",
+          "commit": {
+            "abbreviatedOid": "cbd344f"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T15:03:47Z",
+          "updatedAt": "2026-07-06T15:03:47Z",
+          "comments": [
+            {
+              "originalPosition": 431,
+              "body": "challenge_digest is a public input",
+              "createdAt": "2026-07-06T15:03:47Z",
+              "updatedAt": "2026-07-06T15:03:47Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 24,
+      "id": "PR_kwDOSX6krs7uH3QK",
+      "title": "Architecture Doc Fixes",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/24",
+      "state": "MERGED",
+      "author": "dennisjackson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "dennisjackson"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "",
+      "createdAt": "2026-07-05T22:42:44Z",
+      "updatedAt": "2026-07-06T16:17:22Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6c1e02d6885e161dd17859f7534d7828c8febeab",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "second-half-overhaul",
+      "headRefOid": "9b03c9786931c0ea41e18a59a0e55435fa960d1a",
+      "closedAt": "2026-07-06T11:22:09Z",
+      "mergedAt": "2026-07-06T11:22:09Z",
+      "mergedBy": "dennisjackson",
+      "mergeCommit": {
+        "oid": "02f7b445cf611f8046f1201383b061154a832d53"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFCq_Dw",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "overall a good change. the main question I have is wrt prevention of burning tokens, which I feel should be a property that is upheld by the architecture.\n\nmultiple word tweaking, feel free to accept/rejet here",
+          "createdAt": "2026-07-06T06:22:40Z",
+          "updatedAt": "2026-07-06T07:00:14Z",
+          "comments": [
+            {
+              "originalPosition": 59,
+              "body": "nit: i understand `was drawn` as something that the client knows ahead of time and at random. suggesting `is part of` given that's the property we are after.\n\n```suggestion\nEndorsement does not reveal the granting Anchor, only that it is part of the\n```",
+              "createdAt": "2026-07-06T06:22:40Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 63,
+              "body": "```suggestion\nModerators from tracking Clients based on MoLE interactions. These privacy properties are designed to hold\n```",
+              "createdAt": "2026-07-06T06:23:23Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 111,
+              "body": "observatory comment: this section is the first one we discuss `agent`, while there are indeed agent in the previous section as well. What changes are control given to the user and autonomy (agency?) of such software",
+              "createdAt": "2026-07-06T06:26:48Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 124,
+              "body": "```suggestion\ndelegated agents may rely on a distinct pool of Anchors and Credentials,\n```",
+              "createdAt": "2026-07-06T06:28:30Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 131,
+              "body": "```suggestion\nModerators, while sites and Moderators are protected from clients that participate in MoLE which\ntraffic does not satisfy a site policy, because it is perceived as abusive, or stressing sites resources with volume.\n```\n\nsmall precision: this applies to client that enroll into the scheme, and which traffic is perceived as abusive. It's not per say abusive clients, and it's also beyond volumetric attacks i'd say",
+              "createdAt": "2026-07-06T06:33:01Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 149,
+              "body": "```suggestion\n# Architecture overview\n```\n\nreads better for me. can be ignored",
+              "createdAt": "2026-07-06T06:33:52Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 226,
+              "body": "```suggestion\nThe Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling it acknowledges the client matches a set of criteria it defined. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.\n```\n\ntrust is a bit broad here. making a proposal. feel free to reject (there is a nit on `it's ->its` as well)",
+              "createdAt": "2026-07-06T06:36:26Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 247,
+              "body": "```suggestion\n1. Public Verifiability: any party with knowledge of the Anchor can verify that the Endorsement is valid without needing access to secret key material held by the Anchor.\n```\n\nis this any party with knowledge of the anchor, or should there be discoverability considerations? I feel the later is out of scope",
+              "createdAt": "2026-07-06T06:37:53Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 248,
+              "body": "```suggestion\n1. Blind Redemption: a Client redeeming the Endorsement does not reveal any information other than that the Endorsement is from one of a set of Anchors trusted by a Moderator.\n```",
+              "createdAt": "2026-07-06T06:38:39Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 265,
+              "body": "```suggestion\nThe Redeem & Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.\n```\n\nnits: consistency with the section title",
+              "createdAt": "2026-07-06T06:40:14Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 288,
+              "body": "I think we should still have a property that prevents malicious sites/Moderators from draining Endorsements of a Client.\n\nThis is a deployment consideration, but an important property of the flow imo",
+              "createdAt": "2026-07-06T06:43:30Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 326,
+              "body": "```suggestion\nAfter the presentation, the Moderator may provide a new Credential to the Client, which might be based on fresh state or derived from the Credential that the Client presented.\n```",
+              "createdAt": "2026-07-06T06:44:25Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 325,
+              "body": "i like the deletion of this property (especially as it came up a few times in #23)\nworth noting that this is still something that deployments may want to enforce",
+              "createdAt": "2026-07-06T06:45:30Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 331,
+              "body": "```suggestion\nTo satisfy privacy requirements, Clients are limited in the number of Presentations they can satisfy within a particular context. This is discussed further in {{privacy-considerations}}.\n```\n\nnit",
+              "createdAt": "2026-07-06T06:46:34Z",
+              "updatedAt": "2026-07-06T07:00:14Z"
+            },
+            {
+              "originalPosition": 334,
+              "body": "```suggestion\nModerators may also Update Client's Credentials, typically as part of the Presentation flow. The Update may allow the Client to modify its credential, or provide an additional Credential. This process must satisfy similar requirements to Credential issuance for unlinkability. Provided that the Update process does not lead future presentations to reveal information about the previous state of the Credential, then it may be performed multiple times within a context.\n```\n\nthe update is always applied by the client and relevant for future presentation. it's not the update itself that reveal information, especially as it is known to the moderator",
+              "createdAt": "2026-07-06T06:48:47Z",
+              "updatedAt": "2026-07-06T07:00:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEjeSA",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:13:52Z",
+          "updatedAt": "2026-07-06T11:13:52Z",
+          "comments": [
+            {
+              "originalPosition": 131,
+              "body": "Depending on the configuration, it could be argued to prevent volumetric attacks from non-MoLE clients. I think I'd prefer to leave it as a specific claim about what it can do because it's about this use case rather than the precise capabilities of the system. ",
+              "createdAt": "2026-07-06T11:13:52Z",
+              "updatedAt": "2026-07-06T11:13:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEj2PQ",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:14:53Z",
+          "updatedAt": "2026-07-06T11:14:53Z",
+          "comments": [
+            {
+              "originalPosition": 288,
+              "body": "I moved that to the Presentation flow: \r\n\r\n> The Client must never present a Credential to a party other than the issuing Moderator to avoid spending the Credential unnecessarily.",
+              "createdAt": "2026-07-06T11:14:53Z",
+              "updatedAt": "2026-07-06T11:14:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEkzew",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:17:31Z",
+          "updatedAt": "2026-07-06T11:17:31Z",
+          "comments": [
+            {
+              "originalPosition": 334,
+              "body": "Changed the first half but I think second half is actually about whether the update reveals information. It's possible to design an Update system which does accidentally leak information. ",
+              "createdAt": "2026-07-06T11:17:31Z",
+              "updatedAt": "2026-07-06T11:17:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEmGxg",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:21:10Z",
+          "updatedAt": "2026-07-06T11:21:10Z",
+          "comments": [
+            {
+              "originalPosition": 226,
+              "body": "I think trust still works here fwiw, even if it is a very weak form of trust",
+              "createdAt": "2026-07-06T11:21:10Z",
+              "updatedAt": "2026-07-06T11:21:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEmSKg",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:21:38Z",
+          "updatedAt": "2026-07-06T11:21:38Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "Not sure I follow the question sorry",
+              "createdAt": "2026-07-06T11:21:38Z",
+              "updatedAt": "2026-07-06T11:21:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEtZrA",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:38:30Z",
+          "updatedAt": "2026-07-06T11:38:30Z",
+          "comments": [
+            {
+              "originalPosition": 288,
+              "body": "my bad reading the refactor. thanks!",
+              "createdAt": "2026-07-06T11:38:30Z",
+              "updatedAt": "2026-07-06T11:38:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFEuTug",
+          "commit": {
+            "abbreviatedOid": "96d0193"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T11:40:59Z",
+          "updatedAt": "2026-07-06T11:41:00Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "the point is mostly that this section with on-behalf/automated client is the first section that uses the word `agent`. the same would apply to the previous section, given the user intent is always mediated through an agent, should it be a \"traditional\" browser, or more independant ones like AI assistants",
+              "createdAt": "2026-07-06T11:40:59Z",
+              "updatedAt": "2026-07-06T11:41:00Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 25,
+      "id": "PR_kwDOSX6krs7uP3s7",
+      "title": "Tidy up the diagram",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/25",
+      "state": "MERGED",
+      "author": "martinthomson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "I think that I prefer this one, but I need to poke it with a couple of tweaks, because your version of xml2rfc will choke on this one.",
+      "createdAt": "2026-07-06T08:16:44Z",
+      "updatedAt": "2026-07-06T11:42:10Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6c1e02d6885e161dd17859f7534d7828c8febeab",
+      "headRepository": "martinthomson/mole-drafts",
+      "headRefName": "tidy",
+      "headRefOid": "83677d06d8b43764e48ce4734711c6fa5a876dab",
+      "closedAt": "2026-07-06T08:58:51Z",
+      "mergedAt": "2026-07-06T08:58:51Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "73777ffc9dc38f47fe5d9f33a25c9e8968881788"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "merging as is. we can add fanciness later down the line",
+          "createdAt": "2026-07-06T08:58:48Z",
+          "updatedAt": "2026-07-06T08:58:48Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'll get you a nicer version once xml2rfc has been updated to allow for more fancy SVG.",
+          "createdAt": "2026-07-06T11:42:10Z",
+          "updatedAt": "2026-07-06T11:42:10Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFDYXbQ",
+          "commit": {
+            "abbreviatedOid": "83677d0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "looks better indeed. ",
+          "createdAt": "2026-07-06T08:21:11Z",
+          "updatedAt": "2026-07-06T08:23:15Z",
+          "comments": [
+            {
+              "originalPosition": 3,
+              "body": "good call on the clear title",
+              "createdAt": "2026-07-06T08:21:11Z",
+              "updatedAt": "2026-07-06T08:23:15Z"
+            },
+            {
+              "originalPosition": 10,
+              "body": "rendered\n\n<img width=\"1500\" height=\"1150\" alt=\"Image\" src=\"https://github.com/user-attachments/assets/66587fc9-6d4a-4d88-b144-7f8786f11e8f\" />",
+              "createdAt": "2026-07-06T08:22:10Z",
+              "updatedAt": "2026-07-06T08:23:15Z"
+            },
+            {
+              "originalPosition": 36,
+              "body": "nits for the future: I feel having both `Endorsement+CredentialRequest` helps, but that's something that is detailed in the below sections",
+              "createdAt": "2026-07-06T08:23:06Z",
+              "updatedAt": "2026-07-06T08:23:15Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFDZhcw",
+          "commit": {
+            "abbreviatedOid": "83677d0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-06T08:23:50Z",
+          "updatedAt": "2026-07-06T08:23:51Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "this is with aasvg 0.4.3, i did not check xml2rfc compatibility",
+              "createdAt": "2026-07-06T08:23:50Z",
+              "updatedAt": "2026-07-06T08:24:31Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 26,
+      "id": "PR_kwDOSX6krs7ucVsE",
+      "title": "http-transport: update link to protocols draft future datatracker page",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/26",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "documentation"
+      ],
+      "body": "future link for the protocols draft, so that I can publish HTTP transport now",
+      "createdAt": "2026-07-06T16:26:14Z",
+      "updatedAt": "2026-07-06T16:27:43Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "cd8ac5f63f2c87c1599e1baa5441726dce6885a3",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "update-transport-link",
+      "headRefOid": "18c489ac93c777da5404797b762f9007a684a4fd",
+      "closedAt": "2026-07-06T16:27:34Z",
+      "mergedAt": "2026-07-06T16:27:34Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "ec1e34371ecdb4c49d03971c17b4bc3e1e93a5d5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFG8_5Q",
+          "commit": {
+            "abbreviatedOid": "18c489a"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-06T16:27:08Z",
+          "updatedAt": "2026-07-06T16:27:08Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFG9CIg",
+          "commit": {
+            "abbreviatedOid": "18c489a"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-06T16:27:13Z",
+          "updatedAt": "2026-07-06T16:27:13Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 27,
+      "id": "PR_kwDOSX6krs7uc6vl",
+      "title": "protocols: update link to published individual drafts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/27",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "documentation"
+      ],
+      "body": "update readme while at it",
+      "createdAt": "2026-07-06T16:49:10Z",
+      "updatedAt": "2026-07-06T16:49:51Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "ec1e34371ecdb4c49d03971c17b4bc3e1e93a5d5",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "update-protocol-individual-draft-links",
+      "headRefOid": "4360065647f235a95955051fa75d43d0e6f6738e",
+      "closedAt": "2026-07-06T16:49:44Z",
+      "mergedAt": "2026-07-06T16:49:44Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "1fa0b45f5114826c40f54354e0bd0e93c2d92384"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABFHHnFw",
+          "commit": {
+            "abbreviatedOid": "4360065"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-06T16:49:33Z",
+          "updatedAt": "2026-07-06T16:49:33Z",
           "comments": []
         }
       ]
