@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-07T03:42:01.923518+00:00",
+  "timestamp": "2026-07-09T03:35:29.560807+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -14,19 +14,9 @@
       "color": "0075ca"
     },
     {
-      "name": "duplicate",
-      "description": "This issue or pull request already exists",
-      "color": "cfd3d7"
-    },
-    {
       "name": "enhancement",
       "description": "New feature or request",
       "color": "a2eeef"
-    },
-    {
-      "name": "good first issue",
-      "description": "Good for newcomers",
-      "color": "7057ff"
     },
     {
       "name": "help wanted",
@@ -34,19 +24,29 @@
       "color": "008672"
     },
     {
-      "name": "invalid",
-      "description": "This doesn't seem right",
-      "color": "e4e669"
-    },
-    {
       "name": "question",
       "description": "Further information is requested",
       "color": "d876e3"
     },
     {
-      "name": "wontfix",
-      "description": "This will not be worked on",
-      "color": "ffffff"
+      "name": "crypto",
+      "description": "",
+      "color": "0bc2d9"
+    },
+    {
+      "name": "architecture",
+      "description": "",
+      "color": "5425de"
+    },
+    {
+      "name": "http-transport",
+      "description": "",
+      "color": "91fe08"
+    },
+    {
+      "name": "protocols",
+      "description": "",
+      "color": "870ff9"
     }
   ],
   "issues": [
@@ -238,10 +238,12 @@
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "architecture"
+      ],
       "body": "In MOLE we want abstractly clients to update their endorsements. However, the way we implement this is by having them reveal identifiers for an issued thing, and then getting back another issued thing. Right now our terminology mixes these levels, using credential for both. I'd like to differentiate between the cryptographic artifact and the state that is being managed",
       "createdAt": "2026-06-01T17:40:36Z",
-      "updatedAt": "2026-06-18T07:06:26Z",
+      "updatedAt": "2026-07-08T07:38:52Z",
       "closedAt": null,
       "comments": [
         {
@@ -276,10 +278,146 @@
       "author": "ekr",
       "authorAssociation": "NONE",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "protocols"
+      ],
       "body": "I've been reviewing the Longfellow mechanism (Section 4.2 of -protocol) and it seems like the nullifier just includes the epoch. As I've discussed with a few of you for Webbotauth, I think it's going to be desirable to sometimes use the same Endorsement with multiple Moderators, because we're leaning less on scarcity and more on the validation of the client. If I'm reading the description correctly, this will currently result in linkability. I think this can be readily addressed by including the identity of the Moderator in the computation of the nullifier, along with the epoch. Presumably we could have both Endorsements that allow this and forbid it, as desired.\n\n\n\n\n",
       "createdAt": "2026-07-06T22:10:42Z",
-      "updatedAt": "2026-07-06T22:10:42Z",
+      "updatedAt": "2026-07-08T07:39:07Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think this is right for Longfellow.\nLongfellow in [section 4.2](https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00#name-longfellow) gives you a per epoch and global nullifier. I agree that we could derive a nullifier per moderator. This is probably desireable to support late binding of the endorsement to specific moderators.\n\nHowever, that does not apply directly to IHAT, which requires the nullifier to be known at the time of endorsement. This implies that it cannot rely on the client knowing the moderator \"identity\" which is only known at the \"Redeem & Issue\" phase, possibly further down the line.\n\nSo to your suggestion\n1. Longfellow could work in both modes,\n2. IHAT would be restricted to a global nullifier and one-time use. Issuance and verification are orders of magnitude faster and smaller than with Longfellow, at the cost of more RTT and no late binding.\n\nFor IHAT, i'd double check with someone closer to the crypto work.",
+          "createdAt": "2026-07-07T08:47:35Z",
+          "updatedAt": "2026-07-07T08:47:35Z"
+        }
+      ]
+    },
+    {
+      "number": 29,
+      "id": "I_kwDOSX6krs8AAAABH9ty8w",
+      "title": "Clarify the definition of Context",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/29",
+      "state": "OPEN",
+      "author": "dennisjackson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "architecture"
+      ],
+      "body": "* Add it to our terminology list \n* Clarify that's it's scoped to linkable interactions (e.g. because they happen in the same TLS connection, or share cookies, or other identities) ",
+      "createdAt": "2026-07-07T14:25:40Z",
+      "updatedAt": "2026-07-08T07:39:21Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 30,
+      "id": "I_kwDOSX6krs8AAAABIDY--g",
+      "title": "Design for a feedback system",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/30",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "architecture"
+      ],
+      "body": "> Discuss use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.\n\nThere has been discussion in https://github.com/antifraudcg/pact/issues/5",
+      "createdAt": "2026-07-08T07:41:09Z",
+      "updatedAt": "2026-07-08T07:41:09Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 31,
+      "id": "I_kwDOSX6krs8AAAABIDZsrA",
+      "title": "Initial cryptographic construction draft",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/31",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "`-protocols` draft has been split into `-protocols` that leverage cryptography and `-crypto` that would define necessary cryptography building blocks.\n\nA first version has to be written. If there are following todos, they can be opened with `crypto` tag for discussion.",
+      "createdAt": "2026-07-08T07:42:57Z",
+      "updatedAt": "2026-07-08T07:42:57Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 32,
+      "id": "I_kwDOSX6krs8AAAABIDaCkA",
+      "title": "Write introduction for http-transport",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/32",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "http-transport"
+      ],
+      "body": "Left as TODO for now. Probably rather short but would need to motivate the need. https://github.com/antifraudcg/pact seems to be a clear need at minimum.",
+      "createdAt": "2026-07-08T07:43:52Z",
+      "updatedAt": "2026-07-08T07:43:52Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 33,
+      "id": "I_kwDOSX6krs8AAAABIDahPg",
+      "title": "Define `request_context` for http-transport",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/33",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "http-transport"
+      ],
+      "body": "This is left as a future work as it relies on #29 among others.",
+      "createdAt": "2026-07-08T07:44:57Z",
+      "updatedAt": "2026-07-08T07:44:57Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 34,
+      "id": "I_kwDOSX6krs8AAAABIDbGbQ",
+      "title": "Consideration for header size in http-transport",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/34",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "http-transport"
+      ],
+      "body": "HTTP transport leverages HTTP header fields. There might be denployment constraints on their size, for most of the flows (redeem&issue, presentation&update)\n\nWe have to add considerations around that",
+      "createdAt": "2026-07-08T07:46:13Z",
+      "updatedAt": "2026-07-08T07:46:13Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 35,
+      "id": "I_kwDOSX6krs8AAAABIDbjsg",
+      "title": "Key rotation and discovery",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/35",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Left as a TODO for now in the protocols draft.\n\nThis would be informed by deployment considerations. Might even be left as out-of-scope, but with clear motivations.",
+      "createdAt": "2026-07-08T07:47:20Z",
+      "updatedAt": "2026-07-08T07:47:20Z",
       "closedAt": null,
       "comments": []
     }
