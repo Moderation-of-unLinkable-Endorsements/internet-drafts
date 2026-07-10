@@ -298,9 +298,17 @@ NOT retry with the same state.
 The Anchor learns neither `nf` nor the final Endorsement, so it cannot
 recognize the Endorsement when it is later redeemed.
 
-TODO: the two exchanges must be correlated, since the Anchor holds state
-between them. Either {{CRYPTO}} adds a session identifier to its messages
-or this document mandates connection reuse.
+The Anchor holds per-issuance state between the two exchanges, so they
+must be correlated. The grant bodies carry a session identifier at the
+endorsement-protocol layer: the Anchor returns an opaque `session_id` in
+its first response, and the Client echoes it in its second request. The
+identifier is single-use: the Anchor MUST forget the associated state
+after answering the second exchange, and SHOULD expire unanswered
+sessions. Correlating the two exchanges reveals nothing new to the
+Anchor — the grant is already one authenticated session with the Client.
+Connection reuse was considered and rejected as the correlation
+mechanism: HTTP/2 multiplexing, intermediaries, and connection racing all
+break the one-grant-per-connection assumption.
 
 ### Redemption
 
@@ -485,8 +493,27 @@ that was presented.
 
 ### Configuration
 
-The Moderator publishes its ACT public key and the predicate description
+The Moderator publishes its ACT public key, the domain separator its ACT
+parameters are constructed from, and the predicate amounts
 ({{key-rotation}}).
+
+Every token is bound at issuance to an ACT *request context* scalar, and
+every spend proof reveals that scalar. The request context MUST therefore
+be a policy-wide constant, never a per-Client or per-request value: a
+distinctive request context links each presentation back to the
+Redeem & Issue that produced the token. Both parties derive it from
+public configuration:
+
+~~~
+ctx = HashToScalar("MoLE-ACT:request-context:v1" ||
+                   len(policy_context) || policy_context ||
+                   len(epoch) || epoch)
+~~~
+
+where `len(x)` is a 64-bit length prefix and `HashToScalar` is a uniform
+hash to the ACT scalar field. The Moderator MUST reject a spend proof
+revealing any other request context; this scopes Credentials to a policy
+and epoch without partitioning Clients.
 
 ### Redeem & Issue
 
@@ -531,13 +558,43 @@ not the hidden state value. The Client finalizes the refund into its new
 Credential. ACT guarantees the refund applies to the state that was
 presented.
 
-TODO: the exact mapping between the spend and refund operations of {{ACT}}
-and MoLE's predicate and update is not settled. In particular, `Challenge`
-for this type must express the predicate and the charged amount, and its
-contents are not yet defined.
+The `Challenge` for this type expresses the predicate through the two
+public amounts of an ACT spend:
 
-The `Challenge` for this type therefore needs to identify the predicate,
-including any public bound, and the update to apply.
+~~~ tls-presentation
+struct {
+  opaque policy_context<V>;
+  uint64 charge;   /* the ACT spend amount s */
+  uint64 topup;    /* the Moderator-authorized top-up a, normally 0 */
+} Challenge;
+~~~
+
+The mapping to {{ACT}} is:
+
+* MoLE's predicate is the ACT spend with public amounts `s = charge` and
+  `a = topup`. A verifying spend proof states exactly that the hidden
+  balance satisfies `c - s + a >= 0`; that one bit is what the Moderator
+  learns.
+* MoLE's update is the ACT refund `t`, chosen by the Moderator in
+  `[0, max(0, s - a)]`. The replacement Credential's hidden balance is
+  `c - s + a + t`. Setting `t = s` sustains access indefinitely, `t = 0`
+  consumes the initial grant one presentation at a time, and values
+  between are the dynamic rate-limiting lever of {{ARCHITECTURE}}.
+
+The Moderator MUST check that the spend proof's revealed amounts equal
+the challenged `charge` and `topup`, and that its revealed request
+context is the policy's derived `ctx`. `charge` and `topup` are
+policy-wide constants: varying them per Client partitions the anonymity
+set, exactly as for the `amount` of {{credential-budget}}.
+
+Challenge binding for this type is by declaration, not by proof input:
+the `challenge_digest` field of `PresentationAndUpdate` is checked for
+equality with the digest of the Moderator's current challenge, but the
+ACT spend transcript does not absorb it. Anti-replay comes from the spend
+nullifier being single-use, as in {{credential-reverse}}. Extending
+{{ACT}} with an associated-data input to the spend transcript would
+upgrade this to the binding strength of IHAT redemption and is left as an
+improvement to that document.
 
 ## Privacy Pass with a Reverse Flow {#credential-reverse}
 
@@ -663,14 +720,32 @@ balances.
 
 # Key Rotation and Discovery {#key-rotation}
 
-TODO.
-
 Anchors and Moderators each publish a configuration that Clients fetch
 before running any flow. It contains their endpoints, supported endorsement
 and credential types, public keys, and, for Moderators, the accepted Anchor
 set for each policy. The order of the accepted set is normative: IHAT
 OR proofs and Longfellow issuer sets match elements by position, so all
 parties must see the same order.
+
+The first instantiation makes this concrete with Privacy Pass-style JSON
+directories at well-known paths, offered here as a strawman:
+
+* Anchors serve `/.well-known/mole-anchor`: for each supported
+  endorsement type, the Anchor public key, the current
+  `endorsement-context` (epoch), and the grant endpoint.
+* Moderators serve `/.well-known/mole-moderator`: for each policy, the
+  `policy-context`, the credential type with its key material (for ACT,
+  the public key and the domain separator its parameters are built
+  from), the issuance amounts (`initial-credits`, `charge`), the
+  accepted endorsement type, the accepted Anchor keys in normative
+  order, and the accepted `endorsement-context`.
+
+Implementation notes on this format: a Moderator must republish whenever
+an Anchor in its set rotates; the Anchors in one accepted set must agree
+on the epoch, and a Moderator should refuse to operate otherwise; and the
+directory is precisely the material any consistency mechanism
+({{ARCHITECTURE}}) must cover, since every field in it partitions Clients
+if served inconsistently.
 
 Endorsements live in epochs. The `endorsement_context` of IHAT and the
 epoch of Longfellow name the epoch an Endorsement is granted in, which is

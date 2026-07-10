@@ -145,6 +145,10 @@ POST.
 A challenge names a single endorsement or credential type. To offer a
 choice, a server sends multiple `Mole` challenges; the Client picks one it
 supports and MUST ignore challenges whose type it does not recognize.
+Servers SHOULD send each challenge in its own `WWW-Authenticate` field:
+comma-joining several challenges in one field is valid HTTP but
+error-prone to parse, since auth-params are themselves comma-separated.
+Clients MUST accept both forms.
 
 All base64url values in this document are encoded without padding
 ({{BASE64}}).
@@ -254,6 +258,12 @@ The Moderator returns the `CredentialResponse` ({{PROTOCOLS}}) in the
 ~~~
 Mole-Credential: response="<credential-response>"
 ~~~
+
+A successful Redeem & Issue does not itself grant access: the response
+status remains `401` and carries the Moderator's unchanged challenges
+alongside the `Mole-Credential` header. The Client now holds a Credential
+but has not presented one; it answers the challenge in a following
+request.
 
 ## Presentation
 
