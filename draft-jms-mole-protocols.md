@@ -564,8 +564,8 @@ public amounts of an ACT spend:
 ~~~ tls-presentation
 struct {
   opaque policy_context<V>;
-  uint64 charge;   /* the ACT spend amount s */
-  uint64 topup;    /* the Moderator-authorized top-up a, normally 0 */
+  uint64 charge;  /* the ACT spend amount s */
+  uint64 topup;   /* the Moderator-authorized top-up a; normally 0 */
 } Challenge;
 ~~~
 
