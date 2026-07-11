@@ -177,16 +177,20 @@ settled (open TODO in the transport draft), state this state-keeping
 consequence explicitly, and recommend deterministic challenges for
 deployments that do not need per-request binding.
 
-## 10. ACT proofs overflow default thread stacks
+## 10. ACT proofs overflow default thread stacks (mostly a D = 80 artifact)
 
-**Found**: ACT spend proof generation and verification (the 80-digit
-ternary range proof) overflow the default 2 MiB stacks of tokio worker
-threads and Rust test threads. The instantiation sizes its runtime threads
-to 16 MiB.
+**Found**: ACT spend proof generation and verification overflowed the
+default 2 MiB stacks of tokio worker threads and Rust test threads,
+forcing the instantiation to size its runtime threads to 16 MiB.
+
+**Corrected diagnosis (see 15)**: the pressure is proportional to the
+digit count D. At D = 8, release builds fit the default stacks with no
+accommodation; only unoptimized debug builds still want headroom
+(~4 MiB) from frame bloat under the async call depth.
 
 **Recommendation**: implementation-considerations feedback for draft-act
-(and the `anonymous-credit-tokens` crate): either document the stack
-requirement or move the digit-decomposition working set to the heap.
+(and the `anonymous-credit-tokens` crate): note that stack use scales
+with D, or move the digit-decomposition working set to the heap.
 
 ## 11. Endorsements are not durable client state yet
 
@@ -237,3 +241,26 @@ first-party endpoint. Also worth stating: the Client takes the
 `endorsement_context` from the Anchor's configuration; an Anchor MUST
 refuse to sign under any other context, or Clients could mint endorsements
 into past or future epochs.
+
+## 15. ACT's balance digit count D is a policy parameter, and the default was 10x too big
+
+**Found**: draft-act defines the digit count D as a deployment parameter
+(`D <= MAX_DIGITS = 80`), but the reference crate pinned `D = 80` — the
+largest value whose balance range fits a `u128` — making every spend
+proof carry an ~127-bit range proof. Measured on the wire: a spend proof
+is `192 * D + 450` bytes, so a MoLE presentation was a **21,174-byte**
+base64url `Authorization` header at D = 80, beyond common intermediary
+header limits (nginx and Apache default to 8 KB). This was the real
+cause of finding 1's deployment worry and most of finding 10's stack
+pressure.
+
+**Resolution**: the instantiation now runs D = 8 (balances in
+`[0, 6561)`, ample for rate-limiting policies): the presentation header
+is 2,742 bytes and release builds fit default thread stacks. Because D
+fixes the proof size on the wire, it MUST be policy-wide: the Moderator
+directory publishes `act-balance-digits`, Clients refuse mismatches, and
+a per-client D would be a partitioning vector exactly like `charge`.
+Resolved in this branch (protocols, ACT configuration); the remaining
+upstream item is making D a const generic in `anonymous-credit-tokens`
+(branch `d8` fixes it at 8) and stating the header-size consequence in
+draft-act's implementation considerations.

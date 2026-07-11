@@ -494,8 +494,17 @@ that was presented.
 ### Configuration
 
 The Moderator publishes its ACT public key, the domain separator its ACT
-parameters are constructed from, and the predicate amounts
-({{key-rotation}}).
+parameters are constructed from, the predicate amounts, and the balance
+digit count `D` of {{ACT}} ({{key-rotation}}).
+
+`D` deserves care: it bounds balances to `[0, 3^D)` and fixes the spend
+proof at `192 * D + 450` bytes on the wire, so it MUST be uniform across
+all Clients under a policy — a per-Client `D` changes observable message
+sizes and partitions the anonymity set. Deployments SHOULD choose the
+smallest `D` their balances need: rate-limiting policies rarely need
+more than `D = 8` (balances below 6561), which keeps a presentation
+under 3 KB of header; the specification maximum `D = 80` produces
+presentations over 21 KB, beyond common HTTP header limits.
 
 Every token is bound at issuance to an ACT *request context* scalar, and
 every spend proof reveals that scalar. The request context MUST therefore
