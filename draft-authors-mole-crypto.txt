@@ -4,8 +4,8 @@
 
 Network Working Group                                             J. Doe
 Internet-Draft                                                      ACME
-Intended status: Informational                               6 July 2026
-Expires: 7 January 2027
+Intended status: Informational                              15 July 2026
+Expires: 16 January 2027
 
 
                            MoLE Cryptography
@@ -13,7 +13,8 @@ Expires: 7 January 2027
 
 Abstract
 
-   TODO Abstract
+   This document defines an issuer hiding anonymous token schemes and
+   how to use it for generating endorsements in MOLE.
 
 About This Document
 
@@ -43,7 +44,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 January 2027.
+   This Internet-Draft will expire on 16 January 2027.
 
 Copyright Notice
 
@@ -75,7 +76,12 @@ Table of Contents
 
 1.  Introduction
 
-   TODO
+   MOLE Endorsements have a number of constraints imposed by the
+   architecture [ARCH].  They must hide which anchor was used by the
+   client, must be publicly verifiable, and unlinkable by the anchor.
+   Existing systems do not meet all of these needs.  This document
+   defines such a system and algorithms for issuing an Endorsement,
+   presenting it, and validating a presentation.
 
 2.  Conventions and Definitions
 
@@ -112,7 +118,9 @@ Table of Contents
    The Anchor computes Zprime = x Yprime, selects three random scalars
    aprime, bprime, and tprime.  It computes a commitment.  It then
    computes T1prime = tprime Yprime, T2Prime = tprime G.  It then
-   transmits Zprime, Cprime, and T1prime and T2prime to the client.
+   transmits Zprime, Cprime, and T1prime and T2prime to the client.  The
+   anchor also sends a proof in the manner of [DLEQ] section 2.2.8 that
+   Zprime is computed correctly, that is DLEQ(G, Yprime, X, Zprime).
 
 3.2.  Issuance Step Two: Opening and Proof
 
@@ -154,6 +162,17 @@ Table of Contents
    This document has no IANA actions.
 
 5.  Normative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [DLEQ]     Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-02>.
 
    [Hash2Curve]
               Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
