@@ -31,6 +31,8 @@ author:
 normative:
   Hash2Curve: RFC9380
   TLS13: RFC8446
+  DLEQ: I-D.draft-irtf-cfrg-sigma-protocols
+  ARCH: I-D.draft-jms-mole-architecture
 
 informative:
 
@@ -38,14 +40,18 @@ informative:
 
 --- abstract
 
-TODO Abstract
+This document defines an issuer hiding anonymous token schemes and how to use it for generating endorsements in MOLE.
 
 
 --- middle
 
 # Introduction
 
-TODO
+MOLE Endorsements have a number of constraints imposed by the
+architecture {{ARCH}}. They must hide which anchor was used by the
+client, must be publicly verifiable, and unlinkable by the anchor. Existing systems do not
+meet all of these needs. This document defines such a system and algorithms for issuing an
+Endorsement, presenting it, and validating a presentation.
 
 # Conventions and Definitions
 
@@ -72,7 +78,8 @@ Client randomly selects scalars v and gamma, and sends Yprime = v Y to the ancho
 
 The Anchor computes Zprime = x Yprime, selects three random scalars aprime, bprime, and tprime.
 It computes a commitment. It then computes T1prime = tprime Yprime, T2Prime = tprime G. It then transmits Zprime, Cprime,
-and T1prime and T2prime to the client.
+and T1prime and T2prime to the client. The anchor also sends a proof in the manner of {{DLEQ}} section 2.2.8 that Zprime
+is computed correctly, that is DLEQ(G, Yprime, X, Zprime).
 
 ## Issuance Step Two: Opening and Proof
 
