@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-14T02:43:55.349439+00:00",
+  "timestamp": "2026-07-16T02:49:11.036197+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -283,7 +283,7 @@
       ],
       "body": "I've been reviewing the Longfellow mechanism (Section 4.2 of -protocol) and it seems like the nullifier just includes the epoch. As I've discussed with a few of you for Webbotauth, I think it's going to be desirable to sometimes use the same Endorsement with multiple Moderators, because we're leaning less on scarcity and more on the validation of the client. If I'm reading the description correctly, this will currently result in linkability. I think this can be readily addressed by including the identity of the Moderator in the computation of the nullifier, along with the epoch. Presumably we could have both Endorsements that allow this and forbid it, as desired.\n\n\n\n\n",
       "createdAt": "2026-07-06T22:10:42Z",
-      "updatedAt": "2026-07-08T07:39:07Z",
+      "updatedAt": "2026-07-14T21:32:20Z",
       "closedAt": null,
       "comments": [
         {
@@ -292,6 +292,13 @@
           "body": "I think this is right for Longfellow.\nLongfellow in [section 4.2](https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00#name-longfellow) gives you a per epoch and global nullifier. I agree that we could derive a nullifier per moderator. This is probably desireable to support late binding of the endorsement to specific moderators.\n\nHowever, that does not apply directly to IHAT, which requires the nullifier to be known at the time of endorsement. This implies that it cannot rely on the client knowing the moderator \"identity\" which is only known at the \"Redeem & Issue\" phase, possibly further down the line.\n\nSo to your suggestion\n1. Longfellow could work in both modes,\n2. IHAT would be restricted to a global nullifier and one-time use. Issuance and verification are orders of magnitude faster and smaller than with Longfellow, at the cost of more RTT and no late binding.\n\nFor IHAT, i'd double check with someone closer to the crypto work.",
           "createdAt": "2026-07-07T08:47:35Z",
           "updatedAt": "2026-07-07T08:47:35Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "IHAT is fundamentally a one time token, and complicated by its support for issuer-hiding, which I don't think WebBotAuth needs. The tradeoffs with MOLE are a bit different, even if both could use similar looking ideas.",
+          "createdAt": "2026-07-14T21:32:20Z",
+          "updatedAt": "2026-07-14T21:32:20Z"
         }
       ]
     },
@@ -420,6 +427,53 @@
       "updatedAt": "2026-07-08T07:47:20Z",
       "closedAt": null,
       "comments": []
+    },
+    {
+      "number": 37,
+      "id": "I_kwDOSX6krs8AAAABI0yylQ",
+      "title": "Fold in ACT draft into crypto draft",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/37",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "wbl"
+      ],
+      "labels": [],
+      "body": "The Crypto draft currently just describes IHAT, and doesn't describe what the moderator does to maintain the accumulator. This issue is a note to fold in the ACT draft (assuming @SamuelSchlesinger agrees) as a new section so we describe both parts in the doc.",
+      "createdAt": "2026-07-14T21:34:21Z",
+      "updatedAt": "2026-07-15T18:39:00Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Actually we might want to leave ACT in the CFRG. How to get it out of there successfully is another question.",
+          "createdAt": "2026-07-15T18:00:32Z",
+          "updatedAt": "2026-07-15T18:00:32Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "ACT is not in cfrg at the moment afaik. There was an agreement that privacypass wg could carry out the crypto.",
+          "createdAt": "2026-07-15T18:09:39Z",
+          "updatedAt": "2026-07-15T18:09:39Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Do we want the draft in this repo so everything is in one place (even if individual drafts in this repo go to different working groups in the end) and we can edit them together as we find things we need? Or will we let ACT be in its own repo/get moved to privacypass org when that's set up (along with IHAT? or IHAT stays here)?",
+          "createdAt": "2026-07-15T18:18:58Z",
+          "updatedAt": "2026-07-15T18:18:58Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I am more tempted to carry it out in privacypass. Currently, it is marked as a CFRG draft because historically that was where it was going to go, but after a discussion in privacypass we decided to carry out the crypto work there. On the other hand, it is not adopted and we can certainly bring it around to mole. Given that reverse mode is staying in privacypass, it might make sense to leave ACTs there too.",
+          "createdAt": "2026-07-15T18:39:00Z",
+          "updatedAt": "2026-07-15T18:39:00Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -3946,6 +4000,48 @@
           "body": "",
           "createdAt": "2026-07-12T21:44:16Z",
           "updatedAt": "2026-07-12T21:44:16Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 38,
+      "id": "PR_kwDOSX6krs7yKhpa",
+      "title": "crypto: fix PQ tagging attack, add intro, add references.",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/38",
+      "state": "MERGED",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-07-15T18:31:32Z",
+      "updatedAt": "2026-07-15T18:53:52Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "1fa0b45f5114826c40f54354e0bd0e93c2d92384",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/editorial-and-moderator",
+      "headRefOid": "f979879e4f86066485a05cac53c0a8ac3bd95bcb",
+      "closedAt": "2026-07-15T18:53:47Z",
+      "mergedAt": "2026-07-15T18:53:47Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "6b94cd09e90badfabe2e212ad409d23334ed0f4e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABGJLJKA",
+          "commit": {
+            "abbreviatedOid": "f979879"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-07-15T18:52:54Z",
+          "updatedAt": "2026-07-15T18:52:54Z",
           "comments": []
         }
       ]
