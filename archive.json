@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-07-16T02:49:11.036197+00:00",
+  "timestamp": "2026-07-19T03:13:51.319279+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -334,16 +334,24 @@
       ],
       "body": "> Discuss use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.\n\nThere has been discussion in https://github.com/antifraudcg/pact/issues/5",
       "createdAt": "2026-07-08T07:41:09Z",
-      "updatedAt": "2026-07-08T07:41:09Z",
+      "updatedAt": "2026-07-17T23:37:12Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "So if we can embed the anchor ID into the credential somehow, and then prove when a query is made that the client also provided valid shares of the anchor ID, we have what we need. Unfortunately the actual doing of this, particularly given our PQ constraints is hard. The anchor to credential is easyish but breaks the nice separation of concerns, we can link them through a commitment easily enough, but then you have to make sure the commitment can be used on both sides. Valid shares encrypted to the right parties for Prio is a tougher statement to prove, and probably requires looking at the encryption scheme a bunch to make it work nicely with what can be proved in credentials.\n\nIf we have heavy hammers like circuit proofs that we're willing to use everywhere this can be done, but I think there are some technicalities to get this to be fast. There's also an issue of multiple counting of good behavior if we are getting fresh shares from the same underlying endorsement multiple times, and doing something to say we have recorded it expands the number of bits the server sees to two, and lets a bad anchor collaborating with bad parties know they won't be observed again doing bad (or at least it will be canceled out).",
+          "createdAt": "2026-07-17T23:37:12Z",
+          "updatedAt": "2026-07-17T23:37:12Z"
+        }
+      ]
     },
     {
       "number": 31,
       "id": "I_kwDOSX6krs8AAAABIDZsrA",
       "title": "Initial cryptographic construction draft",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/31",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -352,9 +360,24 @@
       ],
       "body": "`-protocols` draft has been split into `-protocols` that leverage cryptography and `-crypto` that would define necessary cryptography building blocks.\n\nA first version has to be written. If there are following todos, they can be opened with `crypto` tag for discussion.",
       "createdAt": "2026-07-08T07:42:57Z",
-      "updatedAt": "2026-07-08T07:42:57Z",
-      "closedAt": null,
-      "comments": []
+      "updatedAt": "2026-07-16T12:36:15Z",
+      "closedAt": "2026-07-16T12:36:15Z",
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Can we close this issue now since we have a draft with the part that seems to have been needed?",
+          "createdAt": "2026-07-16T02:55:33Z",
+          "updatedAt": "2026-07-16T02:55:33Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "if you're happy, let's close this issue and open new ones as needed",
+          "createdAt": "2026-07-16T12:36:15Z",
+          "updatedAt": "2026-07-16T12:36:15Z"
+        }
+      ]
     },
     {
       "number": 32,
@@ -433,7 +456,7 @@
       "id": "I_kwDOSX6krs8AAAABI0yylQ",
       "title": "Fold in ACT draft into crypto draft",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/37",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -442,8 +465,8 @@
       "labels": [],
       "body": "The Crypto draft currently just describes IHAT, and doesn't describe what the moderator does to maintain the accumulator. This issue is a note to fold in the ACT draft (assuming @SamuelSchlesinger agrees) as a new section so we describe both parts in the doc.",
       "createdAt": "2026-07-14T21:34:21Z",
-      "updatedAt": "2026-07-15T18:39:00Z",
-      "closedAt": null,
+      "updatedAt": "2026-07-17T23:21:04Z",
+      "closedAt": "2026-07-17T23:21:04Z",
       "comments": [
         {
           "author": "wbl",
@@ -3976,7 +3999,7 @@
       ],
       "body": "diagram rendering had some drawing discontinuity. this fixes them they'll likely have to be reworked down the line, but this is a minimal edit",
       "createdAt": "2026-07-12T19:10:08Z",
-      "updatedAt": "2026-07-12T21:44:16Z",
+      "updatedAt": "2026-07-16T06:39:42Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "1fa0b45f5114826c40f54354e0bd0e93c2d92384",
@@ -4001,6 +4024,46 @@
           "createdAt": "2026-07-12T21:44:16Z",
           "updatedAt": "2026-07-12T21:44:16Z",
           "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABGM0HIA",
+          "commit": {
+            "abbreviatedOid": "e04be47"
+          },
+          "author": "martinthomson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-16T06:28:51Z",
+          "updatedAt": "2026-07-16T06:28:51Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "I really think that you need to use more vertical space in your diagrams.  The ones you usually use are too cramped.  (That's taste, of course, but it also has problems with readability.)",
+              "createdAt": "2026-07-16T06:28:51Z",
+              "updatedAt": "2026-07-16T06:28:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABGM4Yww",
+          "commit": {
+            "abbreviatedOid": "e04be47"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-16T06:39:42Z",
+          "updatedAt": "2026-07-16T06:39:42Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "in this specific instance, I was trying to have interaction and endorsement closer to highlight that they work \"in the same flow\". So the overview still has the same three flows that are presented below visually.\n\nBut point taken. I'll think of other ways to do so to better use the space. I like the boxes you've used around \"if needed\" for instance",
+              "createdAt": "2026-07-16T06:39:42Z",
+              "updatedAt": "2026-07-16T06:39:42Z"
+            }
+          ]
         }
       ]
     },
@@ -4043,6 +4106,65 @@
           "createdAt": "2026-07-15T18:52:54Z",
           "updatedAt": "2026-07-15T18:52:54Z",
           "comments": []
+        }
+      ]
+    },
+    {
+      "number": 39,
+      "id": "PR_kwDOSX6krs7zG-Kw",
+      "title": "Add more text to try to define proof",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/39",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Still much more editorial work to do",
+      "createdAt": "2026-07-17T18:41:30Z",
+      "updatedAt": "2026-07-17T23:20:39Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6b94cd09e90badfabe2e212ad409d23334ed0f4e",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/lots-of-editing-crypto",
+      "headRefOid": "8515588fcb802d97b2d8d79ee4401a8b931ca38c",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABGaWEHw",
+          "commit": {
+            "abbreviatedOid": "61e8e53"
+          },
+          "author": "github-actions",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-07-17T18:41:57Z",
+          "updatedAt": "2026-07-17T18:41:58Z",
+          "comments": [
+            {
+              "originalPosition": 232,
+              "body": "````suggestion\n\n````",
+              "createdAt": "2026-07-17T18:41:57Z",
+              "updatedAt": "2026-07-17T18:41:58Z"
+            },
+            {
+              "originalPosition": 194,
+              "body": "````suggestion\nconstruct parameters that bind at j.\n````",
+              "createdAt": "2026-07-17T18:41:58Z",
+              "updatedAt": "2026-07-17T18:41:58Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "````suggestion\n\n````",
+              "createdAt": "2026-07-17T18:41:58Z",
+              "updatedAt": "2026-07-17T18:41:58Z"
+            }
+          ]
         }
       ]
     }
