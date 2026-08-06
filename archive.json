@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-02T03:16:29.904823+00:00",
+  "timestamp": "2026-08-06T02:47:28.462588+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -495,6 +495,30 @@
           "body": "I am more tempted to carry it out in privacypass. Currently, it is marked as a CFRG draft because historically that was where it was going to go, but after a discussion in privacypass we decided to carry out the crypto work there. On the other hand, it is not adopted and we can certainly bring it around to mole. Given that reverse mode is staying in privacypass, it might make sense to leave ACTs there too.",
           "createdAt": "2026-07-15T18:39:00Z",
           "updatedAt": "2026-07-15T18:39:00Z"
+        }
+      ]
+    },
+    {
+      "number": 41,
+      "id": "I_kwDOSX6krs8AAAABLjL3RQ",
+      "title": "Late Binding for TZ Endorsement",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/41",
+      "state": "OPEN",
+      "author": "cryptphil",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "It is possible to add late binding for the Tessaro and Zhu partial blind signature scheme such that the user can derive the nullifier for a specific moderator only during the endorsement redemption and must not decide on the redemption context already upfront during the endorsement issuance.\n\nConcretely, during the Client Challenge phase, the Client samples one-time key `k`, computes its public value `K`, and puts K in the signed-message slot instead of Message(nf, ctx_red):\n```\nk = DeriveScalar(seeds[...], \"k\")\nK = G.ScalarMultGen(k)\nm = G.SerializeElement(K)\n...\nc = ComputeChallenge(ctx_iss, blinded_commitment, m)\n```\n\nDuring the Endorsement Redemption for a redemption context `ctx_red`, the Client derives the nullifier and proves its correctness:\n```\nR = CreateRedemptionBase(ctx_red)\nnf = ScalarInverse(k) * R\npi_k = PoK{(k): K = G.ScalarMultGen(k) \u2227 R = k * nf}\n```\n\nThe Moderator recomputes `R` from `ctx_red`, verifies `pi_k` for `(K, nf, R)`, and checks the signature challenge over `m = SerializeElement(K)`, and whether `nf` is fresh.\n\n**Note:** Endorsements remain single-show, each endorsement must only redeemed once as unlinkability is only guaranteed for one showing.",
+      "createdAt": "2026-08-05T10:49:48Z",
+      "updatedAt": "2026-08-05T19:30:41Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm not sure I understand what \"late binding\" is meant to provide to MOLE on the Anchor to Endorsement leg.  We wanted to solve the problem of a malicious client being able to use tokens at multiple different moderators. Late binding doesn't do this. It can help with linking the spend to a particular request, but I don't think we need that liveness property unless I'm missing something, and we have a zkp (with a hash) to throw things into also",
+          "createdAt": "2026-08-05T19:30:32Z",
+          "updatedAt": "2026-08-05T19:30:41Z"
         }
       ]
     }
@@ -4114,25 +4138,33 @@
       "id": "PR_kwDOSX6krs7zG-Kw",
       "title": "Add more text to try to define proof",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/39",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Still much more editorial work to do",
       "createdAt": "2026-07-17T18:41:30Z",
-      "updatedAt": "2026-07-17T23:20:39Z",
+      "updatedAt": "2026-08-05T20:01:46Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "6b94cd09e90badfabe2e212ad409d23334ed0f4e",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/lots-of-editing-crypto",
       "headRefOid": "8515588fcb802d97b2d8d79ee4401a8b931ca38c",
-      "closedAt": null,
+      "closedAt": "2026-08-05T20:01:45Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Closing since Deep is working on the TZ IHAT writeup",
+          "createdAt": "2026-08-05T20:01:45Z",
+          "updatedAt": "2026-08-05T20:01:45Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABGaWEHw",
