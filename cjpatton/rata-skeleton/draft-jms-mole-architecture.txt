@@ -5,14 +5,14 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 7 January 2027                                          Mozilla
+Expires: 7 February 2027                                         Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                             6 July 2026
+                                                           6 August 2026
 
 
-                           MoLE Architecture
-               draft-schlesinger-mole-architecture-latest
+       Moderation of unLinkable Endorsements (MoLE) Architecture
+                   draft-jms-mole-architecture-latest
 
 Abstract
 
@@ -38,10 +38,9 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at https://moderation-
-   of-unlinkable-endorsements.github.io/internet-drafts/draft-
-   schlesinger-mole-architecture.html.  Status information for this
-   document may be found at https://datatracker.ietf.org/doc/draft-
-   schlesinger-mole-architecture/.
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-
+   architecture.html.  Status information for this document may be found
+   at https://datatracker.ietf.org/doc/draft-jms-mole-architecture/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -62,7 +61,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 7 January 2027.
+   This Internet-Draft will expire on 7 February 2027.
 
 Copyright Notice
 
@@ -325,19 +324,30 @@ Table of Contents
    presently in good standing with the Moderator in order to access a
    resource.
 
-   +--------+                    +-----------+               +--------+
-   | Client |                    | Moderator |               | Anchor |
-   +---+----+                    +-----+-----+               +----+---+
-       |                               |                          |
-       |<=========== Interaction ================================>|
-       |<=========== Endorsement ================================>|
-       |                               |                          |
-       |<=========== Interaction =====>|
-       |<= If needed: Redeem & Issue =>|                          |
-       |<========= Presentation ======>|                          |
-       |                               |                          |
+   +--------+            +--------+              +-----------+
+   | Anchor |            | Client |              | Moderator |
+   +---+----+            +---+----+              +-----+-----+
+       |                     |                         |
+       |<~~~ Interaction ~~~>|                         |
+       |                     |                         |
+       +==== Endorsement ===>|                         |
+       |                     |                         |
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+       |                     |                         |
+       |                     |<~~~~~ Interaction ~~~~~>|
+       |                     |                         |
+       |                +---- (If needed) -----------------.
+       |                |    |                         |    |
+       |                |    +------ Endorsement ----->|    |
+       |                |    |                         |    |
+       |                |    |<----- Credential -------+    |
+       |                |    |                         |    |
+       |                 `---------------------------------'
+       |                     |                         |
+       |                     +====== Presentation ====>|
+       |                     |                         |
 
-                        Figure 1: MoLE Architecture
+                    Figure 1: MoLE Architecture Overview
 
    During Endorsement, a Client interacts with an Anchor with which it
    has a trust relationship.  The nature of the trust relationship is
