@@ -1300,69 +1300,73 @@ the FAEST digital signature scheme <span>[<a href="#FAEST" class="cite xref">FAE
 solution <code>s</code> to an equation <code>P(s) = t</code>, where <code>t</code> is called the target and is
 computed by hashing the message to be signed. The UOV secret key is a trapdoor
 for <code>P</code> that can be used to efficiently sample signatures for a given target.<a href="#section-3-3" class="pilcrow">¶</a></p>
-<p id="section-3-4">The issuance protocol resembles blind signature issuance for blind RSA
-<span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>:<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-4">This signature scheme has much larger public keys than more structured
+multivariate signatures like MAYO <span>[<a href="#MAYO" class="cite xref">MAYO</a>]</span>, We choose UOV for this application
+because it allows us to adjust its parameters, namely <code>n, m</code>, to suit our
+application.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">The issuance protocol resembles blind signature issuance for blind RSA
+<span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-5.1">
-          <p id="section-3-5.1.1">TODO(cjpatton) Add an illustration of the issuance flow.<a href="#section-3-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-6.1">
+          <p id="section-3-6.1.1">TODO(cjpatton) Add an illustration of the issuance flow.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<ol start="1" type="1" class="normal type-1" id="section-3-6">
-<li id="section-3-6.1">
-          <p id="section-3-6.1.1">The Client transforms the message it wants signed into a blinded message. In
+<ol start="1" type="1" class="normal type-1" id="section-3-7">
+<li id="section-3-7.1">
+          <p id="section-3-7.1.1">The Client transforms the message it wants signed into a blinded message. In
 our case, the blinded message is a commitment to the message, and the
 message consists of a nullifier and the intended redemption context
 <code>ctx_red</code> <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The Client sends this commitment <code>Com(nf, ctx_red, r)</code>
-to the Anchor, where <code>r</code> is the opening of the commitment.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+to the Anchor, where <code>r</code> is the opening of the commitment.<a href="#section-3-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-3-6.2">
-          <p id="section-3-6.2.1">Instead of signing the commitment directly, the Anchor constructs a target
+        <li id="section-3-7.2">
+          <p id="section-3-7.2.1">Instead of signing the commitment directly, the Anchor constructs a target
 <code>t = Tag(Com(nf, ctx_red, r), ctx_iss)</code> from the commitment and the issuance
 context <code>ctx_iss</code> <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> and uses its trapdoor for the public key <code>P</code> to
 sample a solution <code>s</code> to <code>P(s) = t</code>. The Anchor then sends the signature <code>s</code>
-to the Client.<a href="#section-3-6.2.1" class="pilcrow">¶</a></p>
+to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-3-6.3">
-          <p id="section-3-6.3.1">Lastly, the Client finalizes issuance by constructing <code>t</code> and checking that
-<code>P(s) = t</code>.<a href="#section-3-6.3.1" class="pilcrow">¶</a></p>
+        <li id="section-3-7.3">
+          <p id="section-3-7.3.1">Lastly, the Client finalizes issuance by constructing <code>t</code> and checking that
+<code>P(s) = t</code>.<a href="#section-3-7.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-3-7">The key difference between this protocol and blind RSA is that the Anchor
+<p id="section-3-8">The key difference between this protocol and blind RSA is that the Anchor
 observes the signature <code>s</code> in plaintext. To ensure unlinkability, the Client
-must hide the signature from the Moderator during redemption.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
+must hide the signature from the Moderator during redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof-of-knowledge of
 <code>s, r</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing <code>i</code>. In
 order to prove this statement with VOLEitH, we need to express it as an
-arithmetic circuit.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Our arithmetization exploits the simple structure of UOV signatures. Namely,
+arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures. Namely,
 for any public <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
 witness <code>s</code> into <code>z[1], ..., z[L]</code> for which <code>z[j] = s</code> if <code>j = i</code> and <code>0^n</code>
-otherwise. The circuit evaluates the following equation:<a href="#section-3-9" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3-10">
+otherwise. The circuit evaluates the following equation:<a href="#section-3-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3-11">
 <pre>
   P[1](z[1]) + ... + P[L](z[L]) = Tag(Com(nf, ctx_red, r), ctx_iss)
-</pre><a href="#section-3-10" class="pilcrow">¶</a>
+</pre><a href="#section-3-11" class="pilcrow">¶</a>
 </div>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-11.1">
-          <p id="section-3-11.1.1">TODO Decide if this circuit is sound. It seems too simple to work, but if a
+<li class="normal ulEmpty" id="section-3-12.1">
+          <p id="section-3-12.1.1">TODO Decide if this circuit is sound. It seems too simple to work, but if a
 client could find a malformed <code>z</code> vector, it seems like they'd be able to
-forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" class="pilcrow">¶</a></p>
+forge signatures for one of the Anchor public keys.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-12">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>,
 this parameterization of Keccak has half the number of rounds as used in SHA-3.
 However, its state is also half the size of either SHA-3 or TurboSHAKE. This
 helps reduce the size of the VOLEitH proof without significantly impacting the
-binding or hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-12" class="pilcrow">¶</a></p>
-<p id="section-3-13">The <code>Tag()</code> function does not involve a hash at all. Instead, it computes the
+binding or hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
+<p id="section-3-14">The <code>Tag()</code> function does not involve a hash at all. Instead, it computes the
 target by simply encoding the commitment and issuance context into vectors over
 <code>F_q</code> and concatenating them together. As a result, our scheme fixes the length
 of the issuance context to TODO bytes. Likewise, we choose TODO bytes as the
 length for the nullifier and TODO bytes as the length of the presentation
-context in order to fit these values into Keccak-p[800,12].<a href="#section-3-13" class="pilcrow">¶</a></p>
+context in order to fit these values into Keccak-p[800,12].<a href="#section-3-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1431,6 +1435,10 @@ context in order to fit these values into Keccak-p[800,12].<a href="#section-3-1
 <dt id="IHAT">[IHAT]</dt>
         <dd>
 <span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
+<dd class="break"></dd>
+<dt id="MAYO">[MAYO]</dt>
+        <dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Campos, F.</span>, <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Hess, B.</span>, and <span class="refAuthor">M. J. Kannwischer</span>, <span class="refTitle">"MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02-05" class="refDate">5 February 2025</time>, <span>&lt;<a href="https://pqmayo.org/assets/specs/mayo-round2.pdf">https://pqmayo.org/assets/specs/mayo-round2.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
