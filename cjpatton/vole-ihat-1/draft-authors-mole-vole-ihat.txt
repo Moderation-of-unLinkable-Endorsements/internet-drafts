@@ -86,7 +86,7 @@ Table of Contents
 1.  Introduction
 
       WARNING This document specifies a cryptographic protocol that has
-      not yet undergone significant security analysis and is not yet
+      not yet undergone significant security analysis.  It's not yet
       suitable for real world applications.  Implement at your own risk.
 
    The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
@@ -103,9 +103,8 @@ Table of Contents
    recovering the Anchor's secret key from its public key.
 
    This document specifies Moussaka, a variant of IHAT that is plausibly
-   post-quantum issuer-hiding, post-issuance unlinkable, and one-more
-   unforgeable [ARCH].  Its design is based on the PoMFRIT blind
-   signature scheme [POMFRIT], which combines a post-quantum signature
+   fully post-quantum.  Its design is based on the PoMFRIT blind
+   signature scheme [PoMFRIT], which combines a post-quantum signature
    with a suitable zero-knowledge proof system and commitment scheme.
    The signer signs a commitment to the message, and the verifier checks
    a zero-knowledge proof-of-knowledge of the signature and the opening
@@ -135,7 +134,7 @@ Table of Contents
    defines some conventions and notation.  Section 3 provides a high-
    level overview of the protocol.  Section 4 defines the relevant
    interfaces for the signature scheme, commitment scheme, and proof
-   system used by Moussaka and provides references for their
+   system used by Moussaka and provides normative references for their
    specifications.  Section 5 specifies the protocol in full detail.
    Finally, Section 6 enumerates some security considerations for
    implementers and adopters.
@@ -205,14 +204,30 @@ Table of Contents
    Our arithmetization exploits the simple structure of UOV signatures.
    Namely, for any public P it holds that P(0^n) = 0^m.  The idea is to
    extend the witness s into z[1], ..., z[L] for which z[j] = s if j = i
-   and 0^n otherwise.  Then the circuit consists of following equation:
+   and 0^n otherwise.  The circuit evaluates the following equation:
 
-     P[1](z[1]) + .... + P[L](z[L]) = t
+     P[1](z[1]) + ... + P[L](z[L]) = Tag(Com(nf, ctx_red, r), ctx_iss)
 
       TODO Decide if this circuit is sound.  It seems too simple to
       work, but if a client could find a malformed z vector, it seems
       like they'd be able to forge signatures for one of the Anchor
       public keys.
+
+   The commitment Com() is instantiated with a single evaluation of the
+   Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
+   [RFC9474], this parameterization of Keccak has half the number of
+   rounds as used in SHA-3.  However, its state is also half the size of
+   either SHA-3 or TurboSHAKE.  This helps reduce the size of the
+   VOLEitH proof without significantly impacting the binding or hiding
+   of the commitment.  See Section 6 for details.
+
+   The Tag() function does not involve a hash at all.  Instead, it
+   computes the target by simply encoding the commitment and issuance
+   context into vectors over F_q and concatenating them together.  As a
+   result, our scheme fixes the length of the issuance context to TODO
+   bytes.  Likewise, we choose TODO bytes as the length for the
+   nullifier and TODO bytes as the length of the presentation context in
+   order to fit these values into Keccak-p[800,12].
 
 4.  Preliminaries
 
@@ -224,7 +239,8 @@ Table of Contents
 
 6.  Security Considerations
 
-      TODO
+      TODO Justify halving the Keccak state from 1600 to 800 (relative
+      to TurboSHAKE).
 
 7.  IANA Considerations
 
@@ -256,6 +272,10 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
+   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
+              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
+              <https://www.rfc-editor.org/rfc/rfc9474>.
+
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
               C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
@@ -272,15 +292,11 @@ Table of Contents
               6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
               jms-mole-architecture-00>.
 
-   [POMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
+   [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
               C. Rechberger, "Concretely Efficient Blind Signatures
               Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
               Cryptology ePrint Archive Paper 2026/109, 2026,
               <https://eprint.iacr.org/2026/109>.
-
-   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
-              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
-              <https://www.rfc-editor.org/rfc/rfc9474>.
 
 Acknowledgments
 

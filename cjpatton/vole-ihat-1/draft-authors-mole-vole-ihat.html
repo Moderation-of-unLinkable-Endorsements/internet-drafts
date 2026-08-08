@@ -1206,8 +1206,8 @@ the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#se
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-1.1">
           <p id="section-1-1.1.1">WARNING This document specifies a cryptographic protocol that has not yet
-undergone significant security analysis and is not yet suitable for real
-world applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
+undergone significant security analysis. It's not yet suitable for real world
+applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-1-2">The Issuer-Hiding Anonymous Token <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> protocol allows a Client to redeem a
@@ -1220,10 +1220,9 @@ computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document specifies Moussaka, a variant of IHAT that is plausibly
-post-quantum issuer-hiding, post-issuance unlinkable, and one-more unforgeable
-<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. Its design is based on the PoMFRIT blind signature scheme
-<span>[<a href="#POMFRIT" class="cite xref">POMFRIT</a>]</span>, which combines a post-quantum signature with a suitable
+<p id="section-1-4">This document specifies Moussaka, a variant of IHAT that is plausibly fully
+post-quantum. Its design is based on the PoMFRIT blind signature scheme
+<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, which combines a post-quantum signature with a suitable
 zero-knowledge proof system and commitment scheme. The signer signs a
 commitment to the message, and the verifier checks a zero-knowledge
 proof-of-knowledge of the signature and the opening of the commitment. Moussaka
@@ -1256,8 +1255,8 @@ issuance, whereas IHAT requires three.<a href="#section-1-9" class="pilcrow">¶<
 defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
 overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
 the signature scheme, commitment scheme, and proof system used by Moussaka and
-provides references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies the
-protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
+provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
+the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
 considerations for implementers and adopters.<a href="#section-1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1339,10 +1338,10 @@ arithmetic circuit.<a href="#section-3-8" class="pilcrow">¶</a></p>
 <p id="section-3-9">Our arithmetization exploits the simple structure of UOV signatures. Namely,
 for any public <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
 witness <code>s</code> into <code>z[1], ..., z[L]</code> for which <code>z[j] = s</code> if <code>j = i</code> and <code>0^n</code>
-otherwise. Then the circuit consists of following equation:<a href="#section-3-9" class="pilcrow">¶</a></p>
+otherwise. The circuit evaluates the following equation:<a href="#section-3-9" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3-10">
 <pre>
-  P[1](z[1]) + .... + P[L](z[L]) = t
+  P[1](z[1]) + ... + P[L](z[L]) = Tag(Com(nf, ctx_red, r), ctx_iss)
 </pre><a href="#section-3-10" class="pilcrow">¶</a>
 </div>
 <ul class="normal ulEmpty">
@@ -1352,6 +1351,18 @@ client could find a malformed <code>z</code> vector, it seems like they'd be abl
 forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-3-12">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>,
+this parameterization of Keccak has half the number of rounds as used in SHA-3.
+However, its state is also half the size of either SHA-3 or TurboSHAKE. This
+helps reduce the size of the VOLEitH proof without significantly impacting the
+binding or hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-12" class="pilcrow">¶</a></p>
+<p id="section-3-13">The <code>Tag()</code> function does not involve a hash at all. Instead, it computes the
+target by simply encoding the commitment and issuance context into vectors over
+<code>F_q</code> and concatenating them together. As a result, our scheme fixes the length
+of the issuance context to TODO bytes. Likewise, we choose TODO bytes as the
+length for the nullifier and TODO bytes as the length of the presentation
+context in order to fit these values into Keccak-p[800,12].<a href="#section-3-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1385,7 +1396,7 @@ forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" c
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-6-1.1">
-          <p id="section-6-1.1.1">TODO<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-6-1.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to TurboSHAKE).<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1429,6 +1440,10 @@ forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" c
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC9474">[RFC9474]</dt>
+        <dd>
+<span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
       <dd>
 <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
@@ -1446,13 +1461,9 @@ forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" c
         <dd>
 <span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="POMFRIT">[POMFRIT]</dt>
-        <dd>
-<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="RFC9474">[RFC9474]</dt>
+<dt id="PoMFRIT">[PoMFRIT]</dt>
       <dd>
-<span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
