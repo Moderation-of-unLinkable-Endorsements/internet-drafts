@@ -1,0 +1,299 @@
+
+
+
+
+Network Working Group                                           T. Zhang
+Internet-Draft                University of Illinois at Urbana-Champaign
+Intended status: Informational                                 C. Patton
+Expires: 9 February 2027                                      Cloudflare
+                                                           8 August 2026
+
+
+                                Moussaka
+                  draft-authors-mole-vole-ihat-latest
+
+Abstract
+
+   This document specifies Moussaka, a candidate post-quantum variant of
+   the Issuer-Hiding Anonymous Token (IHAT) protocol.  Moussaka is based
+   on the UOV digital signature scheme and the VOLE-in-the-Head proof
+   system (a component of the FAEST signature scheme).  The anchor
+   issues a token by signing a commitment to the client's state; to
+   redeem a token, the client proves knowledge of the opening of this
+   commitment and a signature produced by some anchor trusted by the
+   moderator.  The commitment is instantiated with Keccak-p[800,12].
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-vole-ihat.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-vole-
+   ihat/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 9 February 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Overview
+   4.  Preliminaries
+   5.  Protocol
+   6.  Security Considerations
+   7.  IANA Considerations
+   8.  References
+     8.1.  Normative References
+     8.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+      WARNING This document specifies a cryptographic protocol that has
+      not yet undergone significant security analysis and is not yet
+      suitable for real world applications.  Implement at your own risk.
+
+   The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
+   redeem a token with a Moderator without revealing the identify of the
+   Anchor that issued it.  Instead, the client proves the token was
+   issued by some Anchor in the Anchor Set trusted by the Moderator.
+   IHAT is also designed to be post-issuance unlinkable, meaning the
+   issuance of a token cannot be linked to its redemption.
+
+   IHAT meets these privacy goals unconditionally, meaning regardless of
+   its computational resources, no attacker can learn which Anchor
+   issued a token or to which Client it was issued.  On the other hand,
+   it is well known that a quantum attacker can forge tokens by
+   recovering the Anchor's secret key from its public key.
+
+   This document specifies Moussaka, a variant of IHAT that is plausibly
+   post-quantum issuer-hiding, post-issuance unlinkable, and one-more
+   unforgeable [ARCH].  Its design is based on the PoMFRIT blind
+   signature scheme [POMFRIT], which combines a post-quantum signature
+   with a suitable zero-knowledge proof system and commitment scheme.
+   The signer signs a commitment to the message, and the verifier checks
+   a zero-knowledge proof-of-knowledge of the signature and the opening
+   of the commitment.  Moussaka extends this paradigm in the natural
+   way: instead of proving knowledge of a signature under the public key
+   of a particular Anchor, the Client proves knowledge of a signature
+   under some public key in the Anchor Set.
+
+   Moussaka has significantly higher bandwidth cost compared to IHAT:
+
+   1.  each Anchor public key is 42.6 kilobytes;
+
+   2.  TODO kilobytes are transmitted during issuance; and
+
+   3.  TODO*L kilobytes are transmitted during redemption,
+
+   where L is the size of the Anchor Set. In particular, the size of the
+   redemption proof scales linearily with the number of Anchors.
+
+      NOTE(tnyuzg) We should be able to make redemption sublinear using
+      the OR proof of ia,cr/2025/113, Section 4.1.
+
+   On the other hand, Moussaka is round optimal: only two moves are
+   required for issuance, whereas IHAT requires three.
+
+   The remainder of this document is structured as follows.  Section 2
+   defines some conventions and notation.  Section 3 provides a high-
+   level overview of the protocol.  Section 4 defines the relevant
+   interfaces for the signature scheme, commitment scheme, and proof
+   system used by Moussaka and provides references for their
+   specifications.  Section 5 specifies the protocol in full detail.
+   Finally, Section 6 enumerates some security considerations for
+   implementers and adopters.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+      TODO
+
+3.  Overview
+
+   Moussaka makes use of three cryptographic primitives:
+
+   1.  The Unbalanced Oil and Vinegar [UOV] digital signature scheme.
+       Each Anchor uses a UOV secret key to issue tokens, and during
+       redemption, the Client and Moderator construct a sequence of UOV
+       public keys to use as the Anchor Set.
+
+   2.  The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a
+       component of the FAEST digital signature scheme [FAEST].
+
+   3.  A commitment scheme based on the Keccak permutation [FIPS202].
+
+   A UOV public key is a map P from F_q^n to F_q^m.  A UOV signature is
+   a solution s to an equation P(s) = t, where t is called the target
+   and is computed by hashing the message to be signed.  The UOV secret
+   key is a trapdoor for P that can be used to efficiently sample
+   signatures for a given target.
+
+   The issuance protocol resembles blind signature issuance for blind
+   RSA [RFC9474]:
+
+      TODO(cjpatton) Add an illustration of the issuance flow.
+
+   1.  The Client transforms the message it wants signed into a blinded
+       message.  In our case, the blinded message is a commitment to the
+       message, and the message consists of a nullifier and the intended
+       redemption context ctx_red [IHAT].  The Client sends this
+       commitment Com(nf, ctx_red, r) to the Anchor, where r is the
+       opening of the commitment.
+
+   2.  Instead of signing the commitment directly, the Anchor constructs
+       a target t = Tag(Com(nf, ctx_red, r), ctx_iss) from the
+       commitment and the issuance context ctx_iss [IHAT] and uses its
+       trapdoor for the public key P to sample a solution s to P(s) = t.
+       The Anchor then sends the signature s to the Client.
+
+   3.  Lastly, the Client finalizes issuance by constructing t and
+       checking that P(s) = t.
+
+   The key difference between this protocol and blind RSA is that the
+   Anchor observes the signature s in plaintext.  To ensure
+   unlinkability, the Client must hide the signature from the Moderator
+   during redemption.
+
+   Let P[1], ..., P[L] denote the Anchor Set. To redeem a token, the
+   Client presents the nullifier in plaintext along with a VOLEitH
+   proof-of-knowledge of s, r for which P[i](s) = t for some i in [L]
+   without revealing i.  In order to prove this statement with VOLEitH,
+   we need to express it as an arithmetic circuit.
+
+   Our arithmetization exploits the simple structure of UOV signatures.
+   Namely, for any public P it holds that P(0^n) = 0^m.  The idea is to
+   extend the witness s into z[1], ..., z[L] for which z[j] = s if j = i
+   and 0^n otherwise.  Then the circuit consists of following equation:
+
+     P[1](z[1]) + .... + P[L](z[L]) = t
+
+      TODO Decide if this circuit is sound.  It seems too simple to
+      work, but if a client could find a malformed z vector, it seems
+      like they'd be able to forge signatures for one of the Anchor
+      public keys.
+
+4.  Preliminaries
+
+      TODO(cjpatton)
+
+5.  Protocol
+
+      TODO(cjpatton)
+
+6.  Security Considerations
+
+      TODO
+
+7.  IANA Considerations
+
+   This document has no IANA actions.
+
+8.  References
+
+8.1.  Normative References
+
+   [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
+              Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
+              E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
+              "The FAEST Signature Scheme", Version 2.0, 2026,
+              <https://faest.info/faest-spec-v2.0.pdf>.
+
+   [FIPS202]  National Institute of Standards and Technology (NIST),
+              "SHA-3 Standard: Permutation-Based Hash and Extendable-
+              Output Functions", FIPS PUB 202, August 2015,
+              <https://doi.org/10.6028/NIST.FIPS.202>.
+
+   [IHAT]     "*** BROKEN REFERENCE ***".
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
+              M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
+              C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
+              PQC Additional Digital Signatures Round 2 Submission,
+              February 2025, <https://csrc.nist.gov/csrc/media/Projects/
+              pqc-dig-sig/documents/round-2/spec-files/uov-spec-
+              round2-web.pdf>.
+
+8.2.  Informative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [POMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
+              C. Rechberger, "Concretely Efficient Blind Signatures
+              Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
+              Cryptology ePrint Archive Paper 2026/109, 2026,
+              <https://eprint.iacr.org/2026/109>.
+
+   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
+              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
+              <https://www.rfc-editor.org/rfc/rfc9474>.
+
+Acknowledgments
+
+   The use of Keccak-p[800,12] in this application was proposed by Bas
+   Westerbaan.
+
+Authors' Addresses
+
+   Tianyu Zhang
+   University of Illinois at Urbana-Champaign
+   Email: tianyuz@illinois.edu
+
+
+   Christopher Patton
+   Cloudflare
+   Email: chrispatton+ietf@gmail.com
