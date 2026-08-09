@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-06T02:47:28.462588+00:00",
+  "timestamp": "2026-08-09T01:56:14.316120+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -521,6 +521,22 @@
           "updatedAt": "2026-08-05T19:30:41Z"
         }
       ]
+    },
+    {
+      "number": 43,
+      "id": "I_kwDOSX6krs8AAAABL6m4Sg",
+      "title": "Token types?",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/43",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "We currently think of IHAT and ACT as concrete protocols. It might be useful to reframe them as classes of protocols, of which there may be multiple instances. I suppose this is similar to how blind RSA and VOPRF are Privacy Pass token types, but I'm not 100% certain.\n\nIHAT has a few \"token types\":\n\n1. draft-authors-mole-crypto\n2. Longfellow (as discussed in draft-jms-mole-protocol)\n3. draft-authors-mole-vole-ihat\n\nACT has two:\n\n1. draft-schlesinger-cfrg-act\n2. draft-authors-mole-vole-act\n\nWhat do folks think?",
+      "createdAt": "2026-08-07T23:03:41Z",
+      "updatedAt": "2026-08-07T23:03:41Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -4402,6 +4418,226 @@
           ]
         }
       ]
+    },
+    {
+      "number": 42,
+      "id": "PR_kwDOSX6krs77uYxv",
+      "title": "Add draft skeletons for VOLE-based crypto",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/42",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Moussaka will be our candidate PQ version of IHAT; Ratatouille is our candidate PQ version of ACT. Both are constructed from the UOV signature and the VOLE-in-the-Head zero-knowledge proof system. A blind signature (as in reverse Privacy Pass) can also be constructed in this framework. This would be PoMFRIT (https://eprint.iacr.org/2026/109).",
+      "createdAt": "2026-08-06T18:41:22Z",
+      "updatedAt": "2026-08-07T18:32:43Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "a90478be5452b94dd5afeae1edf5ed58da2a679a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-skeleton",
+      "headRefOid": "6098df5ac905df3e69fd745c801b1ba857c593d0",
+      "closedAt": "2026-08-07T18:32:43Z",
+      "mergedAt": "2026-08-07T18:32:43Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a"
+      },
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> ok to me. question though: should these be two distincts draft, or one PQ unforgeable mole crypto draft?\r\n\r\nI thought about this. The advantage of one draft is it would allow us to remove some redundancy and also lower the maintenance burden somewhat. On the other hand, I think having smaller tightly scoped drafts makes them easier to consume. I'm betting there won't be that much redundancy, in which case I lean towards two drafts.",
+          "createdAt": "2026-08-07T16:30:58Z",
+          "updatedAt": "2026-08-07T16:30:58Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIrlIiw",
+          "commit": {
+            "abbreviatedOid": "bc6c6f5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-06T18:55:17Z",
+          "updatedAt": "2026-08-06T18:55:17Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "@SamuelSchlesinger are you willing to join as editor? At the very least we can use your help making sure this stays aligned with the ACT spec, but I'm sure there are many ways you'll be helpful.",
+              "createdAt": "2026-08-06T18:55:17Z",
+              "updatedAt": "2026-08-06T18:55:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIrmMOg",
+          "commit": {
+            "abbreviatedOid": "bc6c6f5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-06T18:58:30Z",
+          "updatedAt": "2026-08-06T18:58:31Z",
+          "comments": [
+            {
+              "originalPosition": 21,
+              "body": "@tnyuzg do you wanna join as editor? It would be helpful to have you review the initial version at least!",
+              "createdAt": "2026-08-06T18:58:31Z",
+              "updatedAt": "2026-08-06T18:58:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIrmbJA",
+          "commit": {
+            "abbreviatedOid": "bc6c6f5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-06T18:59:13Z",
+          "updatedAt": "2026-08-06T18:59:13Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "@tnyuzg We could consider adding an MQ variant as well, but since this still speculative, I figured it would be best to keep this in just one of the drafts for now.",
+              "createdAt": "2026-08-06T18:59:13Z",
+              "updatedAt": "2026-08-06T18:59:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIrmq_A",
+          "commit": {
+            "abbreviatedOid": "bc6c6f5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-06T18:59:57Z",
+          "updatedAt": "2026-08-06T18:59:57Z",
+          "comments": [
+            {
+              "originalPosition": 162,
+              "body": "@tnyuzg \"UOV-friendly commitment\": I didn't want to introduce \"MQ\" here, but we can do this int he intro.",
+              "createdAt": "2026-08-06T18:59:57Z",
+              "updatedAt": "2026-08-06T18:59:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIrp7rg",
+          "commit": {
+            "abbreviatedOid": "bc6c6f5"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-06T19:10:00Z",
+          "updatedAt": "2026-08-06T19:10:00Z",
+          "comments": [
+            {
+              "originalPosition": 26,
+              "body": "Yes, happy to help.",
+              "createdAt": "2026-08-06T19:10:00Z",
+              "updatedAt": "2026-08-06T19:10:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIyS_yQ",
+          "commit": {
+            "abbreviatedOid": "6098df5"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "ok to me. question though: should these be two distincts draft, or one PQ unforgeable mole crypto draft?",
+          "createdAt": "2026-08-07T16:13:33Z",
+          "updatedAt": "2026-08-07T16:14:54Z",
+          "comments": [
+            {
+              "originalPosition": 160,
+              "body": "is post-quantum unforgeability obvious here?",
+              "createdAt": "2026-08-07T16:13:33Z",
+              "updatedAt": "2026-08-07T16:14:54Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIyaTpA",
+          "commit": {
+            "abbreviatedOid": "6098df5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-07T16:27:31Z",
+          "updatedAt": "2026-08-07T16:27:31Z",
+          "comments": [
+            {
+              "originalPosition": 160,
+              "body": "Not obvious no, but we're planning to mention in the intro.",
+              "createdAt": "2026-08-07T16:27:31Z",
+              "updatedAt": "2026-08-07T16:27:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABIyciig",
+          "commit": {
+            "abbreviatedOid": "6098df5"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-07T16:31:34Z",
+          "updatedAt": "2026-08-07T16:31:34Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 44,
+      "id": "PR_kwDOSX6krs78SvBX",
+      "title": "vole-ihat: Add intro and overview",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/44",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Also, add Tianyu as editor.",
+      "createdAt": "2026-08-08T01:43:24Z",
+      "updatedAt": "2026-08-08T01:43:32Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/vole-ihat-1",
+      "headRefOid": "420ed2de5f65bc3451873601f1c4abd7a8bb5973",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
