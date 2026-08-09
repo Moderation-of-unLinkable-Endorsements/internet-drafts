@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 9 February 2027                                      Cloudflare
-                                                           8 August 2026
+Expires: 10 February 2027                                     Cloudflare
+                                                           9 August 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 9 February 2027.
+   This Internet-Draft will expire on 10 February 2027.
 
 Copyright Notice
 
@@ -191,6 +191,13 @@ Table of Contents
        commitment and the issuance context ctx_iss [IHAT] and uses its
        trapdoor for the public key P to sample a solution s to P(s) = t.
        The Anchor then sends the signature s to the Client.
+
+          TODO(cjpatton) Think through what the security reduction for
+          one-more unforgeability would look like.  The targets we
+          construct aren't random, which I think at least rules out UOV
+          as an assumption.  One-more-UOV as in [PoMFRIT], Definition 8
+          is hopefully applicable.  If not, we need to think of
+          something else.
 
    3.  Lastly, the Client finalizes issuance by constructing t and
        checking that P(s) = t.
