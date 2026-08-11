@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-09T01:56:14.316120+00:00",
+  "timestamp": "2026-08-11T01:56:04.331836+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -503,15 +503,15 @@
       "id": "I_kwDOSX6krs8AAAABLjL3RQ",
       "title": "Late Binding for TZ Endorsement",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/41",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cryptphil",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "It is possible to add late binding for the Tessaro and Zhu partial blind signature scheme such that the user can derive the nullifier for a specific moderator only during the endorsement redemption and must not decide on the redemption context already upfront during the endorsement issuance.\n\nConcretely, during the Client Challenge phase, the Client samples one-time key `k`, computes its public value `K`, and puts K in the signed-message slot instead of Message(nf, ctx_red):\n```\nk = DeriveScalar(seeds[...], \"k\")\nK = G.ScalarMultGen(k)\nm = G.SerializeElement(K)\n...\nc = ComputeChallenge(ctx_iss, blinded_commitment, m)\n```\n\nDuring the Endorsement Redemption for a redemption context `ctx_red`, the Client derives the nullifier and proves its correctness:\n```\nR = CreateRedemptionBase(ctx_red)\nnf = ScalarInverse(k) * R\npi_k = PoK{(k): K = G.ScalarMultGen(k) \u2227 R = k * nf}\n```\n\nThe Moderator recomputes `R` from `ctx_red`, verifies `pi_k` for `(K, nf, R)`, and checks the signature challenge over `m = SerializeElement(K)`, and whether `nf` is fresh.\n\n**Note:** Endorsements remain single-show, each endorsement must only redeemed once as unlinkability is only guaranteed for one showing.",
       "createdAt": "2026-08-05T10:49:48Z",
-      "updatedAt": "2026-08-05T19:30:41Z",
-      "closedAt": null,
+      "updatedAt": "2026-08-10T08:02:36Z",
+      "closedAt": "2026-08-10T08:02:36Z",
       "comments": [
         {
           "author": "wbl",
@@ -534,9 +534,51 @@
       "labels": [],
       "body": "We currently think of IHAT and ACT as concrete protocols. It might be useful to reframe them as classes of protocols, of which there may be multiple instances. I suppose this is similar to how blind RSA and VOPRF are Privacy Pass token types, but I'm not 100% certain.\n\nIHAT has a few \"token types\":\n\n1. draft-authors-mole-crypto\n2. Longfellow (as discussed in draft-jms-mole-protocol)\n3. draft-authors-mole-vole-ihat\n\nACT has two:\n\n1. draft-schlesinger-cfrg-act\n2. draft-authors-mole-vole-act\n\nWhat do folks think?",
       "createdAt": "2026-08-07T23:03:41Z",
-      "updatedAt": "2026-08-07T23:03:41Z",
+      "updatedAt": "2026-08-10T18:20:21Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think this is a really good idea. Our (in progress) submission makes IHAT a definition to go along with IHAC (issuer hiding anonymous credentials). This means we need names...",
+          "createdAt": "2026-08-10T15:24:21Z",
+          "updatedAt": "2026-08-10T15:24:21Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Rollatini?",
+          "createdAt": "2026-08-10T18:20:21Z",
+          "updatedAt": "2026-08-10T18:20:21Z"
+        }
+      ]
+    },
+    {
+      "number": 45,
+      "id": "I_kwDOSX6krs8AAAABMLFMCQ",
+      "title": "Multishow IHAT",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto",
+        "protocols"
+      ],
+      "body": "Right now IHAT has roughly the following syntax:\n\n* Issuance: `Client(ctx_red, ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` That is, the client and anchor agree on the anchor's key and issuance context (client keeps the redemption context secret) and interact over some number of moves (2-3).\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Client and moderator agree on the issuance and redemption context and the anchor set. The client sends an endorsement covered by the anchor set.\n\nEach IHAT token can be used just once. In some situations, it may be useful to instead be able to present the same token once (or perhaps multiple times) to many Moderators. Something like this:\n\n* Issuance: `Client(ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` Same as above, except `ctx_red` isn't determined until redemption time.\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Same as above. \n\nWe know roughly how to do this with both Longfellow and Moussaka. In both cases, the solution involves adding an additional hash to the circuit that's used as a PRF applied to the redemption context (and perhaps presentation count, as in ARC). We can do the same thing for plain IHAT as well, but it would use the non-PQ-private trick in ARC.\n\n\n\n\n",
+      "createdAt": "2026-08-10T15:49:29Z",
+      "updatedAt": "2026-08-10T18:22:11Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "We can't do the same thing for Rollatini unless I'm missing something because the random points in the signature are linkable and not rerandomizeable.",
+          "createdAt": "2026-08-10T18:22:11Z",
+          "updatedAt": "2026-08-10T18:22:11Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -4625,13 +4667,13 @@
       ],
       "body": "Also, add Tianyu as editor.",
       "createdAt": "2026-08-08T01:43:24Z",
-      "updatedAt": "2026-08-08T01:43:32Z",
+      "updatedAt": "2026-08-11T00:54:46Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-ihat-1",
-      "headRefOid": "420ed2de5f65bc3451873601f1c4abd7a8bb5973",
+      "headRefOid": "bc4c17060c510ceb52a0d36e6dc2d1f472507b2e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
