@@ -1303,84 +1303,72 @@ computed by hashing the message to be signed. The UOV secret key is a trapdoor
 for <code>P</code> that can be used to efficiently sample signatures for a given target.
 We adopt the uov-1p parameters set (NIST Level 1), hence <code>n=112</code>, <code>m=44</code>, and
 <code>q=2^8</code>.<a href="#section-3-3" class="pilcrow">¶</a></p>
-<p id="section-3-4">In the following, <code>DI, DO, DN</code> are distinct byte constants used for domain
-separation. The issuance protocol resembles blind signature issuance for blind
-RSA <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>:<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-4">Issuance binds a token to an issuance context <code>ctx_iss</code> agreed upon by all the
+Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agreed upon
+by the Client and Moderator <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The protocol commits to both contexts
+during issuance: the Anchor verifies <code>ctx_iss</code> binding during issuance; the
+Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding during redemption.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">The issuance protocol resembles blind signature issuance for blind RSA
+<span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-5.1">
-          <p id="section-3-5.1.1">TODO(cjpatton) Add an illustration of the issuance flow.<a href="#section-3-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-6.1">
+          <p id="section-3-6.1.1">TODO(cjpatton) Add an illustration of the issuance flow.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<ol start="1" type="1" class="normal type-1" id="section-3-6">
-<li id="section-3-6.1">
-          <p id="section-3-6.1.1">The Client transforms the message it wants signed into a blinded message. In
+<ol start="1" type="1" class="normal type-1" id="section-3-7">
+<li id="section-3-7.1">
+          <p id="section-3-7.1.1">The Client transforms the message it wants signed into a blinded message. In
 our case, the blinded message is a commitment to the message, and the
-message consists of a nullifier <code>nf</code> and the intended redemption context
-<code>ctx_red</code> <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The Client sends this commitment <code>c = Com(DI, nf,
-ctx_red, r_red)</code> to the Anchor, where <code>r_red</code> is the opening of the
-commitment.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+message consists of a nullifier <code>nf</code> and the intended issuance and
+redemption context. The Client constructs a VOLEitH proof <code>pf_iss</code> of
+knowledge of <code>nf, r, ctx_red</code> for which <code>t = Com(nf, ctx_iss, ctx_red, r)</code>
+holds and sends <code>t, pf_iss</code> to the Anchor.<a href="#section-3-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-3-6.2">
-          <p id="section-3-6.2.1">The Anchor does not sign the commitment directly. Instead, it "updates" the
-commitment by binding it to the issuance context <code>ctx_iss</code> as <code>t = Com(DO,
-c, ctx_iss, r_iss)</code>. Finally, it samples a solution <code>s</code> to <code>P(s) = t</code> and
-sends <code>s, r_iss</code> to the Client.<a href="#section-3-6.2.1" class="pilcrow">¶</a></p>
+        <li id="section-3-7.2">
+          <p id="section-3-7.2.1">The Anchor verifies <code>pf_iss</code>, samples a solution <code>s</code> to <code>P(s) = t</code>, then
+sends <code>s</code> to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-3-6.3">
-          <p id="section-3-6.3.1">The Client finalizes issuance by computing <code>t</code> and checking that <code>P(s) = t</code>.<a href="#section-3-6.3.1" class="pilcrow">¶</a></p>
+        <li id="section-3-7.3">
+          <p id="section-3-7.3.1">The Client finalizes issuance by checking that <code>P(s) = t</code>.<a href="#section-3-7.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-3-7">The key difference between this protocol and blind RSA is that the Anchor
+<p id="section-3-8">The key difference between this protocol and blind RSA is that the Anchor
 observes the signature <code>s</code> in plaintext. To ensure unlinkability, the Client
-must hide the signature from the Moderator during redemption.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
-presents the nullifier in plaintext along with a VOLEitH proof-of-knowledge of
-<code>s, r_red, s_iss</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing
-<code>i</code>. In order to prove this statement with VOLEitH, we need to express it as an
-arithmetic circuit.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Our arithmetization exploits the simple structure of UOV signatures as defined
+must hide the signature from the Moderator during redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
+presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
+<code>s, r</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing <code>i</code>. In
+order to prove this statement with VOLEitH, we need to express it as an
+arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures as defined
 in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key  <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
 idea is to extend the witness <code>s</code> into <code>z[1], ..., z[L]</code> for which <code>z[j] = s</code>
-if <code>j = i</code> and <code>0^n</code> otherwise. The circuit evaluates the following relation:<a href="#section-3-9" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3-10">
+if <code>j = i</code> and <code>0^n</code> otherwise. The circuit evaluates the following relation:<a href="#section-3-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3-11">
 <pre>
-  P[1](z[1]) + ... + P[L](z[L]) =
-    Com(DO, Com(DI, nf, ctx_red, r_red), ctx_iss, r_iss)
-</pre><a href="#section-3-10" class="pilcrow">¶</a>
+  P[1](z[1]) + ... + P[L](z[L]) = Com(nf, ctx_iss, ctx_red, r)
+</pre><a href="#section-3-11" class="pilcrow">¶</a>
 </div>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-11.1">
-          <p id="section-3-11.1.1">TODO Decide if this circuit is sound. It seems deceptively simple, but if a
+<li class="normal ulEmpty" id="section-3-12.1">
+          <p id="section-3-12.1.1">TODO Decide if this circuit is sound. It seems deceptively simple, but if a
 Client could find a malformed <code>z</code> vector, it seems like they'd be able to
-forge signatures for one of the Anchor public keys.<a href="#section-3-11.1.1" class="pilcrow">¶</a></p>
+forge signatures for one of the Anchor public keys.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-12">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>,
 this parameterization of Keccak has half the number of rounds as used in SHA-3.
 However, its state is also half the size of either SHA-3 or TurboSHAKE. This
 helps reduce the size of the VOLEitH proof without impacting the binding or
-hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-12" class="pilcrow">¶</a></p>
-<p id="section-3-13">Even with these optimizations, evaluation of the commitment constitutes a
-significant fraction of the size of the redemption proof. The purpose of the
-outer commitment is to allow the Anchor to bind the issuance context to the
-token. If this feature is not needed, then the parties may forego the outer
-commitment altogether. That is, when <code>ctx_iss = ""</code>: during issuance the client
-computes <code>c = Com(DN, nf, ctx_red, r_red)</code> and the Anchor samples <code>s</code> for <code>P(s)
-= c</code>; and the redemption proof evaluates a simpler relation:<a href="#section-3-13" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3-14">
-<pre>
-  P[1](z[1]) + ... + P[L](z[L]) = Com(DN, nf, ctx_red, r_red)
-</pre><a href="#section-3-14" class="pilcrow">¶</a>
-</div>
-<p id="section-3-15">The cost of this optimization is that it relies on a stronger security
-assumption for UOV. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-15" class="pilcrow">¶</a></p>
+hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-16.1">
-          <p id="section-3-16.1.1">NOTE An alternative to a second <code>Com()</code> would be to have the first <code>Com()</code>
-commit to the issuance context and have the generate an issuance proof that
-asserts the correct issuance context was used. This would better balance the
-communication cost between issuance and redemption.<a href="#section-3-16.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-14.1">
+          <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+alternative is to have the Anchor bind the issuance context by applying an
+outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
+no issuance proof is required. It would also have the benefit of not
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1422,47 +1410,44 @@ communication cost between issuance and redemption.<a href="#section-3-16.1.1" c
 <p id="section-6-2">Issuer-hiding and post-issuance unlinkability of Moussaka reduces to the
 zero-knowledge property of the VOLEitH proof system and the hiding property of
 our commitment. One-more-unforgeability reduces to witness-extractability of
-VOLEitH, binding of the commitment, and either the standard UOV assumption
-(<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) or the stronger one-more-UOV assumption (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>,
-Definition 8). The latter assumption is required if the parties forego issuance
-context binding.<a href="#section-6-2" class="pilcrow">¶</a></p>
+VOLEitH, binding of the commitment, and the one-more-UOV assumption
+(<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8). The one-more-UOV assumption is a stronger
+assumption than standard UOV (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) and requires some bake
+time before we should trust it.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-6-3.1">
-          <p id="section-6-3.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. The reduction to
-standard UOV should basically have the same structure as the EUF-CMA argument
-for the UOV signature scheme.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.2">We consider a simplified version of Moussaka, similar to PoMFRIT. During
-redemption, the Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c
-= Com(nf, r)</code>.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.3">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
+          <p id="section-6-3.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
+simplified version of Moussaka, similar to PoMFRIT. During redemption, the
+Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-3.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
 forger <code>A</code>. We simulate <code>B</code>'s RO queries using the random targets we got as
 input to our one-more-UOV instance; when <code>B</code> requests issuance, we forward
-the target to our own <code>SPre</code> oracle.<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.4">On input <code>P, t[1], ..., t[Q]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as the
-issuer public key and respond to its queries as follows:<a href="#section-6-3.1.4" class="pilcrow">¶</a></p>
+the target to our own <code>SPre</code> oracle.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
+<p id="section-6-3.1.3">On input <code>P, t[1], ..., t[Q]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as the
+issuer public key and respond to its queries as follows:<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-3.1.5.1">
-              <p id="section-6-3.1.5.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, respond with <code>c =
-t[i]</code>.<a href="#section-6-3.1.5.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6-3.1.4.1">
+              <p id="section-6-3.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, respond with <code>c =
+t[i]</code>.<a href="#section-6-3.1.4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-3.1.5.2">
-              <p id="section-6-3.1.5.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.5.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6-3.1.4.2">
+              <p id="section-6-3.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-3.1.5.3">
-              <p id="section-6-3.1.5.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: extract the witness <code>s, r</code> for
+            <li class="normal" id="section-6-3.1.4.3">
+              <p id="section-6-3.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: extract the witness <code>s, r</code> for
 <code>pi</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
 of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
 <code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
 some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
-instance.<a href="#section-6-3.1.5.3.1" class="pilcrow">¶</a></p>
+instance.<a href="#section-6-3.1.4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6-3.1.6">NOTE We previously looked at an alternative to the outer commitment in which
+<p id="section-6-3.1.5">NOTE We previously looked at an alternative to the outer commitment in which
 <code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c ^ x</code>. A
 reduction to one-more-UOV is possible, but it incurs a significant loss in
 concrete security, since the reduction has to guess <code>x</code> so that it can
 program the random oracle accordingly. We haven't thought of a matching
-attack yet.<a href="#section-6-3.1.6" class="pilcrow">¶</a></p>
+attack yet.<a href="#section-6-3.1.5" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">

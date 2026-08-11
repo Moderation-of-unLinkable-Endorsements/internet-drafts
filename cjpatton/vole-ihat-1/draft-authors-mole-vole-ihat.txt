@@ -171,26 +171,30 @@ Table of Contents
    signatures for a given target.  We adopt the uov-1p parameters set
    (NIST Level 1), hence n=112, m=44, and q=2^8.
 
-   In the following, DI, DO, DN are distinct byte constants used for
-   domain separation.  The issuance protocol resembles blind signature
-   issuance for blind RSA [RFC9474]:
+   Issuance binds a token to an issuance context ctx_iss agreed upon by
+   all the Client, Anchor, and Moderator, and a redemption context
+   ctx_red agreed upon by the Client and Moderator [IHAT].  The protocol
+   commits to both contexts during issuance: the Anchor verifies ctx_iss
+   binding during issuance; the Moderator verifies both the ctx_iss and
+   ctx_red binding during redemption.
+
+   The issuance protocol resembles blind signature issuance for blind
+   RSA [RFC9474]:
 
       TODO(cjpatton) Add an illustration of the issuance flow.
 
    1.  The Client transforms the message it wants signed into a blinded
        message.  In our case, the blinded message is a commitment to the
        message, and the message consists of a nullifier nf and the
-       intended redemption context ctx_red [IHAT].  The Client sends
-       this commitment c = Com(DI, nf, ctx_red, r_red) to the Anchor,
-       where r_red is the opening of the commitment.
+       intended issuance and redemption context.  The Client constructs
+       a VOLEitH proof pf_iss of knowledge of nf, r, ctx_red for which t
+       = Com(nf, ctx_iss, ctx_red, r) holds and sends t, pf_iss to the
+       Anchor.
 
-   2.  The Anchor does not sign the commitment directly.  Instead, it
-       "updates" the commitment by binding it to the issuance context
-       ctx_iss as t = Com(DO, c, ctx_iss, r_iss).  Finally, it samples a
-       solution s to P(s) = t and sends s, r_iss to the Client.
+   2.  The Anchor verifies pf_iss, samples a solution s to P(s) = t,
+       then sends s to the Client.
 
-   3.  The Client finalizes issuance by computing t and checking that
-       P(s) = t.
+   3.  The Client finalizes issuance by checking that P(s) = t.
 
    The key difference between this protocol and blind RSA is that the
    Anchor observes the signature s in plaintext.  To ensure
@@ -198,10 +202,10 @@ Table of Contents
    during redemption.
 
    Let P[1], ..., P[L] denote the Anchor Set. To redeem a token, the
-   Client presents the nullifier in plaintext along with a VOLEitH
-   proof-of-knowledge of s, r_red, s_iss for which P[i](s) = t for some
-   i in [L] without revealing i.  In order to prove this statement with
-   VOLEitH, we need to express it as an arithmetic circuit.
+   Client presents the nullifier in plaintext along with a VOLEitH proof
+   of knowledge of s, r for which P[i](s) = t for some i in [L] without
+   revealing i.  In order to prove this statement with VOLEitH, we need
+   to express it as an arithmetic circuit.
 
    Our arithmetization exploits the simple structure of UOV signatures
    as defined in [UOV].  Namely, for any public key P it holds that
@@ -209,8 +213,7 @@ Table of Contents
    z[L] for which z[j] = s if j = i and 0^n otherwise.  The circuit
    evaluates the following relation:
 
-     P[1](z[1]) + ... + P[L](z[L]) =
-       Com(DO, Com(DI, nf, ctx_red, r_red), ctx_iss, r_iss)
+     P[1](z[1]) + ... + P[L](z[L]) = Com(nf, ctx_iss, ctx_red, r)
 
       TODO Decide if this circuit is sound.  It seems deceptively
       simple, but if a Client could find a malformed z vector, it seems
@@ -225,25 +228,12 @@ Table of Contents
    VOLEitH proof without impacting the binding or hiding of the
    commitment.  See Section 6 for details.
 
-   Even with these optimizations, evaluation of the commitment
-   constitutes a significant fraction of the size of the redemption
-   proof.  The purpose of the outer commitment is to allow the Anchor to
-   bind the issuance context to the token.  If this feature is not
-   needed, then the parties may forego the outer commitment altogether.
-   That is, when ctx_iss = "": during issuance the client computes c =
-   Com(DN, nf, ctx_red, r_red) and the Anchor samples s for P(s) = c;
-   and the redemption proof evaluates a simpler relation:
-
-     P[1](z[1]) + ... + P[L](z[L]) = Com(DN, nf, ctx_red, r_red)
-
-   The cost of this optimization is that it relies on a stronger
-   security assumption for UOV.  See Section 6 for details.
-
-      NOTE An alternative to a second Com() would be to have the first
-      Com() commit to the issuance context and have the generate an
-      issuance proof that asserts the correct issuance context was used.
-      This would better balance the communication cost between issuance
-      and redemption.
+      NOTE Both issuance and redemption involve a Com() evaluation.  An
+      alternative is to have the Anchor bind the issuance context by
+      applying an outer commit, like Com(Com(nf, ctx_red, r_red),
+      ctx_iss, r_iss).  This way no issuance proof is required.  It
+      would also have the benefit of not requiring the stronger one-
+      more-UOV assumption.  See Section 6 for details.
 
 4.  Preliminaries
 
@@ -261,16 +251,12 @@ Table of Contents
    the zero-knowledge property of the VOLEitH proof system and the
    hiding property of our commitment.  One-more-unforgeability reduces
    to witness-extractability of VOLEitH, binding of the commitment, and
-   either the standard UOV assumption ([UOV], Definition 2) or the
-   stronger one-more-UOV assumption ([PoMFRIT], Definition 8).  The
-   latter assumption is required if the parties forego issuance context
-   binding.
+   the one-more-UOV assumption ([PoMFRIT], Definition 8).  The one-more-
+   UOV assumption is a stronger assumption than standard UOV ([UOV],
+   Definition 2) and requires some bake time before we should trust it.
 
-      NOTE Here's a sketch of the reduction to one-more-UOV.  The
-      reduction to standard UOV should basically have the same structure
-      as the EUF-CMA argument for the UOV signature scheme.
-
-      We consider a simplified version of Moussaka, similar to PoMFRIT.
+      NOTE Here's a sketch of the reduction to one-more-UOV.  We
+      consider a simplified version of Moussaka, similar to PoMFRIT.
       During redemption, the Client proves knowledge of s, r for which
       P(s) = c and c = Com(nf, r).
 
