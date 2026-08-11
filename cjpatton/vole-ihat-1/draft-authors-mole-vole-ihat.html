@@ -1364,10 +1364,10 @@ hiding of the commitment. See <a href="#security" class="auto internal xref">Sec
 <p id="section-3-13">Even with these optimizations, evaluation of the commitment constitutes a
 significant fraction of the size of the redemption proof. The purpose of the
 outer commitment is to allow the Anchor to bind the issuance context to the
-token. If this feature is not needed, then they may forego the outer commitment
-altogether. That is, when <code>ctx_iss = ""</code>: during issuance the client computes
-<code>c = Com(DN, nf, ctx_red, r_red)</code> and the Anchor samples <code>s</code> for <code>P(s) = c</code>;
-and the redemption proof evaluates a simpler relation:<a href="#section-3-13" class="pilcrow">¶</a></p>
+token. If this feature is not needed, then the parties may forego the outer
+commitment altogether. That is, when <code>ctx_iss = ""</code>: during issuance the client
+computes <code>c = Com(DN, nf, ctx_red, r_red)</code> and the Anchor samples <code>s</code> for <code>P(s)
+= c</code>; and the redemption proof evaluates a simpler relation:<a href="#section-3-13" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3-14">
 <pre>
   P[1](z[1]) + ... + P[L](z[L]) = Com(DN, nf, ctx_red, r_red)
@@ -1375,6 +1375,14 @@ and the redemption proof evaluates a simpler relation:<a href="#section-3-13" cl
 </div>
 <p id="section-3-15">The cost of this optimization is that it relies on a stronger security
 assumption for UOV. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-15" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-16.1">
+          <p id="section-3-16.1.1">NOTE An alternative to a second <code>Com()</code> would be to have the first <code>Com()</code>
+commit to the issuance context and have the generate an issuance proof that
+asserts the correct issuance context was used. This would better balance the
+communication cost between issuance and redemption.<a href="#section-3-16.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 </section>
 </div>
 <div id="preliminaries">

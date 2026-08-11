@@ -228,8 +228,8 @@ Table of Contents
    constitutes a significant fraction of the size of the redemption
    proof.  The purpose of the outer commitment is to allow the Anchor to
    bind the issuance context to the token.  If this feature is not
-   needed, then they may forego the outer commitment altogether.  That
-   is, when ctx_iss = "": during issuance the client computes c =
+   needed, then the parties may forego the outer commitment altogether.
+   That is, when ctx_iss = "": during issuance the client computes c =
    Com(DN, nf, ctx_red, r_red) and the Anchor samples s for P(s) = c;
    and the redemption proof evaluates a simpler relation:
 
@@ -237,6 +237,12 @@ Table of Contents
 
    The cost of this optimization is that it relies on a stronger
    security assumption for UOV.  See Section 6 for details.
+
+      NOTE An alternative to a second Com() would be to have the first
+      Com() commit to the issuance context and have the generate an
+      issuance proof that asserts the correct issuance context was used.
+      This would better balance the communication cost between issuance
+      and redemption.
 
 4.  Preliminaries
 
