@@ -103,15 +103,15 @@ Table of Contents
    recovering the Anchor's secret key from its public key.
 
    This document specifies Moussaka, a variant of IHAT that is plausibly
-   fully post-quantum.  Its design is based on the PoMFRIT blind
+   fully post-quantum secure.  Its design is based on the PoMFRIT blind
    signature scheme [PoMFRIT], which combines a post-quantum signature
-   with a suitable zero-knowledge proof system and commitment scheme.
-   The signer signs a commitment to the message, and the verifier checks
-   a zero-knowledge proof-of-knowledge of the signature and the opening
-   of the commitment.  Moussaka extends this paradigm in the natural
-   way: rather than prove knowledge of a signature under the public key
-   of a particular Anchor, the Client proves knowledge of a signature
-   under some public key in the Anchor Set.
+   scheme with a suitable zero-knowledge proof system and commitment
+   scheme.  The signer signs a commitment to the message, and the
+   verifier checks a zero-knowledge proof-of-knowledge of the signature
+   and the opening of the commitment.  Moussaka extends this paradigm in
+   the natural way: rather than prove knowledge of a signature under the
+   public key of a particular Anchor, the Client proves knowledge of a
+   signature under some public key in the Anchor Set.
 
    Moussaka has significantly higher bandwidth cost compared to IHAT:
 
@@ -156,7 +156,7 @@ Table of Contents
 
    1.  The Unbalanced Oil and Vinegar [UOV] digital signature scheme.
        Each Anchor uses a UOV secret key to issue tokens, and during
-       redemption, the Client and Moderator construct a sequence of UOV
+       redemption, the Client and Moderator agree on a sequence of UOV
        public keys to use as the Anchor Set.
 
    2.  The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a
@@ -171,26 +171,26 @@ Table of Contents
    signatures for a given target.  We adopt the uov-1p parameters set
    (NIST Level 1), hence n=112, m=44, and q=2^8.
 
-   The issuance protocol resembles blind signature issuance for blind
-   RSA [RFC9474]:
+   In the following, DI, DO, DN are distinct byte constants used for
+   domain separation.  The issuance protocol resembles blind signature
+   issuance for blind RSA [RFC9474]:
 
       TODO(cjpatton) Add an illustration of the issuance flow.
 
    1.  The Client transforms the message it wants signed into a blinded
        message.  In our case, the blinded message is a commitment to the
-       message, and the message consists of a nullifier and the intended
-       redemption context ctx_red [IHAT].  The Client sends this
-       commitment Com(nf, ctx_red, r) to the Anchor, where r is the
-       opening of the commitment.
+       message, and the message consists of a nullifier nf and the
+       intended redemption context ctx_red [IHAT].  The Client sends
+       this commitment c = Com(DI, nf, ctx_red, r_red) to the Anchor,
+       where r_red is the opening of the commitment.
 
-   2.  Instead of signing the commitment directly, the Anchor constructs
-       a target t = Tag(Com(nf, ctx_red, r), ctx_iss) from the
-       commitment and the issuance context ctx_iss [IHAT] and uses its
-       trapdoor for the public key P to sample a solution s to P(s) = t.
-       The Anchor then sends the signature s to the Client.
+   2.  The Anchor does not sign the commitment directly.  Instead, it
+       "updates" the commitment by binding it to the issuance context
+       ctx_iss as t = Com(DO, c, ctx_iss, r_iss).  Finally, it samples a
+       solution s to P(s) = t and sends s, r_iss to the Client.
 
-   3.  Lastly, the Client finalizes issuance by constructing t and
-       checking that P(s) = t.
+   3.  The Client finalizes issuance by computing t and checking that
+       P(s) = t.
 
    The key difference between this protocol and blind RSA is that the
    Anchor observes the signature s in plaintext.  To ensure
@@ -199,19 +199,20 @@ Table of Contents
 
    Let P[1], ..., P[L] denote the Anchor Set. To redeem a token, the
    Client presents the nullifier in plaintext along with a VOLEitH
-   proof-of-knowledge of s, r for which P[i](s) = t for some i in [L]
-   without revealing i.  In order to prove this statement with VOLEitH,
-   we need to express it as an arithmetic circuit.
+   proof-of-knowledge of s, r_red, s_iss for which P[i](s) = t for some
+   i in [L] without revealing i.  In order to prove this statement with
+   VOLEitH, we need to express it as an arithmetic circuit.
 
    Our arithmetization exploits the simple structure of UOV signatures.
-   Namely, for any public P it holds that P(0^n) = 0^m.  The idea is to
-   extend the witness s into z[1], ..., z[L] for which z[j] = s if j = i
-   and 0^n otherwise.  The circuit evaluates the following equation:
+   Namely, for any public key P it holds that P(0^n) = 0^m.  The idea is
+   to extend the witness s into z[1], ..., z[L] for which z[j] = s if j
+   = i and 0^n otherwise.  The circuit evaluates the following relation:
 
-     P[1](z[1]) + ... + P[L](z[L]) = Tag(Com(nf, ctx_red, r), ctx_iss)
+     P[1](z[1]) + ... + P[L](z[L]) =
+       Com(DO, Com(DI, nf, ctx_red, r_red), ctx_iss, r_iss)
 
-      TODO Decide if this circuit is sound.  It seems too simple to
-      work, but if a client could find a malformed z vector, it seems
+      TODO Decide if this circuit is sound.  It seems deceptively
+      simple, but if a Client could find a malformed z vector, it seems
       like they'd be able to forge signatures for one of the Anchor
       public keys.
 
@@ -220,16 +221,22 @@ Table of Contents
    [RFC9474], this parameterization of Keccak has half the number of
    rounds as used in SHA-3.  However, its state is also half the size of
    either SHA-3 or TurboSHAKE.  This helps reduce the size of the
-   VOLEitH proof without significantly impacting the binding or hiding
-   of the commitment.  See Section 6 for details.
+   VOLEitH proof without impacting the binding or hiding of the
+   commitment.  See Section 6 for details.
 
-   The Tag() function does not involve a hash at all.  Instead, it
-   computes the target by simply encoding the commitment and issuance
-   context into vectors over F_q and adding them together.  Our scheme
-   fixes the length of the issuance context to 32 bytes.  We choose 24
-   bytes as the length for the nullifier and 32 bytes as the length of
-   the presentation context in order to fit these values into a single
-   evaluation of Keccak-p[800,12].
+   Even with these optimizations, evaluation of the commitment
+   constitutes a significant fraction of the size of the redemption
+   proof.  The purpose of the outer commitment is to allow the Anchor to
+   bind the issuance context to the token.  If this feature is not
+   needed, then they may forego the outer commitment altogether.  That
+   is, when ctx_iss = "": during issuance the client computes c =
+   Com(DN, nf, ctx_red, r_red) and the Anchor samples s for P(s) = c;
+   and the redemption proof evaluates a simpler relation:
+
+     P[1](z[1]) + ... + P[L](z[L]) = Com(DN, nf, ctx_red, r_red)
+
+   The cost of this optimization is that it relies on a stronger
+   security assumption for UOV.  See Section 6 for details.
 
 4.  Preliminaries
 
@@ -241,28 +248,29 @@ Table of Contents
 
 6.  Security Considerations
 
-      TODO Justify halving the Keccak state from 1600 to 800 (relative
-      to TurboSHAKE).
+      TODO Prove the following claims.
 
-      TODO Think through what the security reduction for one-more
-      unforgeability would look like.  Reducing to UOV would require t
-      to be random.  This is the case for honest executions of the
-      protocol, but the attacker can also get a solution s for any t
-      that is a valid commitment.  This is a slightly stronger attack
-      than EUF-CMA against the UOV signature scheme, in which the target
-      is generated by the signer.  Perhaps we can reduce to one-more-UOV
-      ([PoMFRIT], Definition 8).
+   Issuer-hiding and post-issuance unlinkability of Moussaka reduces to
+   the zero-knowledge property of the VOLEitH proof system and the
+   hiding property of our commitment.  One-more-unforgeability reduces
+   to witness-extractability of VOLEitH, binding of the commitment, and
+   either the standard UOV assumption ([UOV], Definition 2) or the
+   stronger one-more-UOV assumption ([PoMFRIT], Definition 8).  The
+   latter assumption is required if the parties forego issuance context
+   binding.
 
-      We consider a simplified version of Moussaka, similar to PoMFRIT
-      but with an added tag x (issuance context).  During redemption,
-      the Client proves knowledge of s, r for which P(s) = t and t =
-      Tag(Com(nf, r), x).  We define Tag(c, x) = c + x and model Com as
-      an RO.
+      NOTE Here's a sketch of the reduction to one-more-UOV.  The
+      reduction to standard UOV should basically have the same structure
+      as the EUF-CMA argument for the UOV signature scheme.
+
+      We consider a simplified version of Moussaka, similar to PoMFRIT.
+      During redemption, the Client proves knowledge of s, r for which
+      P(s) = c and c = Com(nf, r).
 
       Our goal is to transform a one-more-redemption forger B into a
-      one-more-UOV forger.  We simulate B's RO queries using the random
-      targets we got as input to our one-more-UOV instance; when B
-      requests issuance, we forward the target to our own SPre oracle.
+      one-more-UOV forger A.  We simulate B's RO queries using the
+      random targets we got as input to our one-more-UOV instance; when
+      B requests issuance, we forward the target to our own SPre oracle.
 
       On input P, t[1], ..., t[Q] and with oracle SPre: Run B with P as
       the issuer public key and respond to its queries as follows:
@@ -270,16 +278,24 @@ Table of Contents
       -  When B asks Com(nf, r): for the i-th such query, respond with c
          = t[i].
 
-      -  When B requests issuance for c, x: respond with s = SPre(c +
-         x).
+      -  When B requests issuance for c: respond with s = SPre(c).
 
       -  When B requests redemption for nf, pi: if Verify(P, nf, pi) =
          1, then extract the witness s, r for pi and let c = Com(nf, r).
          (If this fails, then this implies VOLEitH is not witness-
-         extractable.)  If we didn't issue s for c, x, then B has
+         extractable.)  If we didn't issue s for c, then B has
          successfully one-more-forged.  Furthermore, c = t[i] for some i
-         in [Q].  To win our game, we need to somehow compute s_hat for
-         whichP(s_hat) = c.
+         in [Q], hence s is a solution to our one-more-UOV instance.
+
+      NOTE We previously looked at an alternative to the outer
+      commitment in which c was "tagged" with issuance context x via
+      either c || x or c ^ x.  A reduction to one-more-UOV is possible,
+      but it incurs a significant loss in concrete security, since the
+      reduction has to guess x so that it can program the random oracle
+      accordingly.  We haven't thought of a matching attack yet.
+
+      TODO Justify halving the Keccak state from 1600 to 800 (relative
+      to TurboSHAKE).
 
 7.  IANA Considerations
 
