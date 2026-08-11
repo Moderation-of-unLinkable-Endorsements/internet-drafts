@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 10 February 2027                                     Cloudflare
-                                                           9 August 2026
+Expires: 12 February 2027                                     Cloudflare
+                                                          11 August 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 February 2027.
+   This Internet-Draft will expire on 12 February 2027.
 
 Copyright Notice
 
@@ -90,11 +90,11 @@ Table of Contents
       suitable for real world applications.  Implement at your own risk.
 
    The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
-   redeem a token with a Moderator without revealing the identify of the
-   Anchor that issued it.  Instead, the client proves the token was
-   issued by some Anchor in the Anchor Set trusted by the Moderator.
-   IHAT is also designed to be post-issuance unlinkable, meaning the
-   issuance of a token cannot be linked to its redemption.
+   redeem a token with a Moderator without which Anchor issued the
+   token.  Instead, the client proves the token was issued by some
+   Anchor in the Anchor Set trusted by the Moderator.  IHAT is also
+   designed to be post-issuance unlinkable, meaning the redemption of a
+   token cannot be linked to its issuance.
 
    IHAT meets these privacy goals unconditionally, meaning regardless of
    its computational resources, no attacker can learn which Anchor
@@ -109,13 +109,14 @@ Table of Contents
    The signer signs a commitment to the message, and the verifier checks
    a zero-knowledge proof-of-knowledge of the signature and the opening
    of the commitment.  Moussaka extends this paradigm in the natural
-   way: instead of proving knowledge of a signature under the public key
+   way: rather than prove knowledge of a signature under the public key
    of a particular Anchor, the Client proves knowledge of a signature
    under some public key in the Anchor Set.
 
    Moussaka has significantly higher bandwidth cost compared to IHAT:
 
-   1.  each Anchor public key is 42.6 kilobytes;
+   1.  each Anchor public key is 42.6 kilobytes (this corresponds to the
+       uov-Ip parameter set [UOV]);
 
    2.  TODO kilobytes are transmitted during issuance; and
 
@@ -167,12 +168,8 @@ Table of Contents
    a solution s to an equation P(s) = t, where t is called the target
    and is computed by hashing the message to be signed.  The UOV secret
    key is a trapdoor for P that can be used to efficiently sample
-   signatures for a given target.
-
-   This signature scheme has much larger public keys than more
-   structured multivariate signatures like MAYO [MAYO], We choose UOV
-   for this application because it allows us to adjust its parameters,
-   namely n, m, to suit our application.
+   signatures for a given target.  We adopt the uov-1p parameters set
+   (NIST Level 1), hence n=112, m=44, and q=2^8.
 
    The issuance protocol resembles blind signature issuance for blind
    RSA [RFC9474]:
@@ -191,13 +188,6 @@ Table of Contents
        commitment and the issuance context ctx_iss [IHAT] and uses its
        trapdoor for the public key P to sample a solution s to P(s) = t.
        The Anchor then sends the signature s to the Client.
-
-          TODO(cjpatton) Think through what the security reduction for
-          one-more unforgeability would look like.  The targets we
-          construct aren't random, which I think at least rules out UOV
-          as an assumption.  One-more-UOV as in [PoMFRIT], Definition 8
-          is hopefully applicable.  If not, we need to think of
-          something else.
 
    3.  Lastly, the Client finalizes issuance by constructing t and
        checking that P(s) = t.
@@ -235,12 +225,11 @@ Table of Contents
 
    The Tag() function does not involve a hash at all.  Instead, it
    computes the target by simply encoding the commitment and issuance
-   context into vectors over F_q and concatenating them together.  As a
-   result, our scheme fixes the length of the issuance context to TODO
-   bytes.  Likewise, we choose TODO bytes as the length for the
-   nullifier and TODO bytes as the length of the presentation context in
-   order to fit these values into a single evaluation of Keccak-
-   p[800,12].
+   context into vectors over F_q and adding them together.  Our scheme
+   fixes the length of the issuance context to 32 bytes.  We choose 24
+   bytes as the length for the nullifier and 32 bytes as the length of
+   the presentation context in order to fit these values into a single
+   evaluation of Keccak-p[800,12].
 
 4.  Preliminaries
 
@@ -254,6 +243,43 @@ Table of Contents
 
       TODO Justify halving the Keccak state from 1600 to 800 (relative
       to TurboSHAKE).
+
+      TODO Think through what the security reduction for one-more
+      unforgeability would look like.  Reducing to UOV would require t
+      to be random.  This is the case for honest executions of the
+      protocol, but the attacker can also get a solution s for any t
+      that is a valid commitment.  This is a slightly stronger attack
+      than EUF-CMA against the UOV signature scheme, in which the target
+      is generated by the signer.  Perhaps we can reduce to one-more-UOV
+      ([PoMFRIT], Definition 8).
+
+      We consider a simplified version of Moussaka, similar to PoMFRIT
+      but with an added tag x (issuance context).  During redemption,
+      the Client proves knowledge of s, r for which P(s) = t and t =
+      Tag(Com(nf, r), x).  We define Tag(c, x) = c + x and model Com as
+      an RO.
+
+      Our goal is to transform a one-more-redemption forger B into a
+      one-more-UOV forger.  We simulate B's RO queries using the random
+      targets we got as input to our one-more-UOV instance; when B
+      requests issuance, we forward the target to our own SPre oracle.
+
+      On input P, t[1], ..., t[Q] and with oracle SPre: Run B with P as
+      the issuer public key and respond to its queries as follows:
+
+      -  When B asks Com(nf, r): for the i-th such query, respond with c
+         = t[i].
+
+      -  When B requests issuance for c, x: respond with s = SPre(c +
+         x).
+
+      -  When B requests redemption for nf, pi: if Verify(P, nf, pi) =
+         1, then extract the witness s, r for pi and let c = Com(nf, r).
+         (If this fails, then this implies VOLEitH is not witness-
+         extractable.)  If we didn't issue s for c, x, then B has
+         successfully one-more-forged.  Furthermore, c = t[i] for some i
+         in [Q].  To win our game, we need to somehow compute s_hat from
+         P, s, c, x.
 
 7.  IANA Considerations
 
