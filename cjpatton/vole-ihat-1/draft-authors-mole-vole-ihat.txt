@@ -280,12 +280,12 @@ Table of Contents
 
       -  When B requests issuance for c: respond with s = SPre(c).
 
-      -  When B requests redemption for nf, pi: if Verify(P, nf, pi) =
-         1, then extract the witness s, r for pi and let c = Com(nf, r).
-         (If this fails, then this implies VOLEitH is not witness-
-         extractable.)  If we didn't issue s for c, then B has
-         successfully one-more-forged.  Furthermore, c = t[i] for some i
-         in [Q], hence s is a solution to our one-more-UOV instance.
+      -  When B requests redemption for nf, pi: extract the witness s, r
+         for pi and let c = Com(nf, r).  (If this fails, then witness
+         extractability of VOLEitH implies the Moderator will reject.)
+         If we didn't issue s for c, then B has successfully one-more-
+         forged.  Furthermore, c = t[i] for some i in [Q], hence s is a
+         solution to our one-more-UOV instance.
 
       NOTE We previously looked at an alternative to the outer
       commitment in which c was "tagged" with issuance context x via

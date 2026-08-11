@@ -1441,11 +1441,11 @@ t[i]</code>.<a href="#section-6-3.1.5.1.1" class="pilcrow">¶</a></p>
               <p id="section-6-3.1.5.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.5.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6-3.1.5.3">
-              <p id="section-6-3.1.5.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: if <code>Verify(P, nf, pi) = 1</code>, then
-extract the witness <code>s, r</code> for <code>pi</code> and let <code>c = Com(nf, r)</code>. (If this
-fails, then this implies VOLEitH is not witness-extractable.) If we didn't
-issue <code>s</code> for <code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore,
-<code>c = t[i]</code> for some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
+              <p id="section-6-3.1.5.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: extract the witness <code>s, r</code> for
+<code>pi</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
+of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
+<code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
+some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
 instance.<a href="#section-6-3.1.5.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
