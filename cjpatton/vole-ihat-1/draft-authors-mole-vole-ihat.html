@@ -1338,10 +1338,10 @@ presents the nullifier in plaintext along with a VOLEitH proof-of-knowledge of
 <code>s, r_red, s_iss</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing
 <code>i</code>. In order to prove this statement with VOLEitH, we need to express it as an
 arithmetic circuit.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Our arithmetization exploits the simple structure of UOV signatures. Namely,
-for any public key  <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
-witness <code>s</code> into <code>z[1], ..., z[L]</code> for which <code>z[j] = s</code> if <code>j = i</code> and <code>0^n</code>
-otherwise. The circuit evaluates the following relation:<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-9">Our arithmetization exploits the simple structure of UOV signatures as defined
+in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key  <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
+idea is to extend the witness <code>s</code> into <code>z[1], ..., z[L]</code> for which <code>z[j] = s</code>
+if <code>j = i</code> and <code>0^n</code> otherwise. The circuit evaluates the following relation:<a href="#section-3-9" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-3-10">
 <pre>
   P[1](z[1]) + ... + P[L](z[L]) =

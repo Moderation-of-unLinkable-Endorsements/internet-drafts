@@ -203,10 +203,11 @@ Table of Contents
    i in [L] without revealing i.  In order to prove this statement with
    VOLEitH, we need to express it as an arithmetic circuit.
 
-   Our arithmetization exploits the simple structure of UOV signatures.
-   Namely, for any public key P it holds that P(0^n) = 0^m.  The idea is
-   to extend the witness s into z[1], ..., z[L] for which z[j] = s if j
-   = i and 0^n otherwise.  The circuit evaluates the following relation:
+   Our arithmetization exploits the simple structure of UOV signatures
+   as defined in [UOV].  Namely, for any public key P it holds that
+   P(0^n) = 0^m.  The idea is to extend the witness s into z[1], ...,
+   z[L] for which z[j] = s if j = i and 0^n otherwise.  The circuit
+   evaluates the following relation:
 
      P[1](z[1]) + ... + P[L](z[L]) =
        Com(DO, Com(DI, nf, ctx_red, r_red), ctx_iss, r_iss)
