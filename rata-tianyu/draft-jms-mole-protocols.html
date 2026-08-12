@@ -1,0 +1,2823 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>MoLE Protocols</title>
+<meta content="Samuel Schlesinger" name="author">
+<meta content="Dennis Jackson" name="author">
+<meta content="Thibault Meunier" name="author">
+<meta content="
+       This document defines protocols that instantiate the MoLE architecture: two
+endorsement protocols, by which a Client proves to a Moderator that it holds
+an Endorsement from a trusted Anchor without revealing which one, and three
+credential protocols, by which a Moderator issues, verifies, and updates
+per-Client state without being able to link presentations. It also
+establishes the registries that identify these protocols. 
+    " name="description">
+<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="moderation" name="keyword">
+<meta content="endorsement" name="keyword">
+<meta content="unlinkability" name="keyword">
+<meta content="privacy" name="keyword">
+<meta content="draft-jms-mole-protocols-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.0
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.2
+-->
+<link href="draft-jms-mole-protocols.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">MoLE Protocols</td>
+<td class="right">August 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Schlesinger, et al.</td>
+<td class="center">Expires 13 February 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-jms-mole-protocols-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-08-12" class="published">12 August 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-02-13">13 February 2027</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">S. Schlesinger</div>
+<div class="org">Google LLC</div>
+</div>
+<div class="author">
+      <div class="author-name">D. Jackson</div>
+<div class="org">Mozilla</div>
+</div>
+<div class="author">
+      <div class="author-name">T. Meunier</div>
+<div class="org">Cloudflare</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">MoLE Protocols</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document defines protocols that instantiate the MoLE architecture: two
+endorsement protocols, by which a Client proves to a Moderator that it holds
+an Endorsement from a trusted Anchor without revealing which one, and three
+credential protocols, by which a Moderator issues, verifies, and updates
+per-Client state without being able to link presentations. It also
+establishes the registries that identify these protocols.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-jms-mole-protocols/">https://datatracker.ietf.org/doc/draft-jms-mole-protocols/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 13 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-common-requirements" class="internal xref">Common Requirements</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-message-types" class="internal xref">Message Types</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-greasing" class="internal xref">Greasing</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-challenge-binding" class="internal xref">Challenge Binding</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-endorsement-protocols" class="internal xref">Endorsement Protocols</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-issuer-hiding-anonymous-tok" class="internal xref">Issuer-Hiding Anonymous Token (IHAT)</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
+                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
+                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-grant" class="internal xref">Grant</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.3">
+                    <p id="section-toc.1-1.4.2.1.2.3.1"><a href="#section-4.1.3" class="auto internal xref">4.1.3</a>.  <a href="#name-redemption" class="internal xref">Redemption</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-longfellow" class="internal xref">Longfellow</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-configuration-2" class="internal xref">Configuration</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
+                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-redemption-2" class="internal xref">Redemption</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
+                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-differences-from-ihat" class="internal xref">Differences from IHAT</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-credential-protocols" class="internal xref">Credential Protocols</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-anonymous-credit-tokens-act" class="internal xref">Anonymous Credit Tokens (ACT)</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
+                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-configuration-3" class="internal xref">Configuration</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.2">
+                    <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="auto internal xref">5.1.2</a>.  <a href="#name-redeem-issue" class="internal xref">Redeem &amp; Issue</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.3">
+                    <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-presentation-and-update" class="internal xref">Presentation and Update</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-privacy-pass-with-a-reverse" class="internal xref">Privacy Pass with a Reverse Flow</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-redeem-issue-2" class="internal xref">Redeem &amp; Issue</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.2">
+                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-presentation-and-update-2" class="internal xref">Presentation and Update</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.3">
+                    <p id="section-toc.1-1.5.2.2.2.3.1"><a href="#section-5.2.3" class="auto internal xref">5.2.3</a>.  <a href="#name-limitations" class="internal xref">Limitations</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-budget-privacy-pass" class="internal xref">Budget Privacy Pass</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.1">
+                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-redeem-issue-3" class="internal xref">Redeem &amp; Issue</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.2">
+                    <p id="section-toc.1-1.5.2.3.2.2.1"><a href="#section-5.3.2" class="auto internal xref">5.3.2</a>.  <a href="#name-presentation-and-update-3" class="internal xref">Presentation and Update</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.3">
+                    <p id="section-toc.1-1.5.2.3.2.3.1"><a href="#section-5.3.3" class="auto internal xref">5.3.3</a>.  <a href="#name-when-to-use-it" class="internal xref">When to use it</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-key-rotation-and-discovery" class="internal xref">Key Rotation and Discovery</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-privacy-considerations" class="internal xref">Privacy Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-mole-endorsement-types" class="internal xref">MoLE Endorsement Types</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
+                    <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-ihat" class="internal xref">IHAT</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.2">
+                    <p id="section-toc.1-1.9.2.1.2.2.1"><a href="#section-9.1.2" class="auto internal xref">9.1.2</a>.  <a href="#name-longfellow-2" class="internal xref">Longfellow</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-mole-credential-types" class="internal xref">MoLE Credential Types</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.1">
+                    <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-act" class="internal xref">ACT</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.2">
+                    <p id="section-toc.1-1.9.2.2.2.2.1"><a href="#section-9.2.2" class="auto internal xref">9.2.2</a>.  <a href="#name-privacy-pass-reverse-flow" class="internal xref">Privacy Pass Reverse Flow</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.3">
+                    <p id="section-toc.1-1.9.2.2.2.3.1"><a href="#section-9.2.3" class="auto internal xref">9.2.3</a>.  <a href="#name-budget-privacy-pass-2" class="internal xref">Budget Privacy Pass</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.4">
+                    <p id="section-toc.1-1.9.2.2.2.4.1"><a href="#section-9.2.4" class="auto internal xref">9.2.4</a>.  <a href="#name-greased-values" class="internal xref">Greased Values</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#section-9.3" class="auto internal xref">9.3</a>.  <a href="#name-media-types" class="internal xref">Media Types</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-example" class="internal xref">Example</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">The MoLE architecture <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> defines three roles. Clients obtain
+Endorsements from Anchors, redeem them at Moderators in exchange for
+Credentials, and present those Credentials to Moderators to access
+resources. The architecture states the required properties of Endorsements
+and Credentials but does not say how to build them. This document does.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">TODO: the protocols below reflect our current understanding of how MoLE
+may work, and showcase agility. They are not final. Some may be removed,
+others added.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">It defines two endorsement protocols and three credential protocols. Each is
+identified by a type value from a registry established in this document
+(<a href="#iana" class="auto internal xref">Section 9</a>). The HTTP carriage of challenges, redemptions, and
+presentations is defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. This document defines the
+messages themselves and, for the grant flow, the HTTP exchanges that carry
+them.<a href="#section-1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Protocol messages are described in TLS presentation language (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). This document also uses the optional-value and variable-size
+vector conventions (<code>optional&lt;T&gt;</code>, <code>&lt;V&gt;</code>) defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.
+All constants are in network byte order.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">This document uses the following terms for protocol actions:<a href="#section-2-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-2-4">
+        <dt id="section-2-4.1">Grant:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.2">
+          <p id="section-2-4.2.1">An Anchor gives a Client an Endorsement.<a href="#section-2-4.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.3">Redeem:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.4">
+          <p id="section-2-4.4.1">A Client spends an Endorsement at a Moderator. Each Endorsement can be
+redeemed once.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.5">Issue:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.6">
+          <p id="section-2-4.6.1">A Moderator gives a Client a Credential in return for a redemption.<a href="#section-2-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.7">Present:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.8">
+          <p id="section-2-4.8.1">A Client shows a Credential to a Moderator. Each Credential can be
+presented once. The update replaces it.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.9">Update:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.10">
+          <p id="section-2-4.10.1">The Moderator's adjustment to a presented Credential, returned in the
+same exchange.<a href="#section-2-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-2-4.11">Finalize:</dt>
+        <dd style="margin-left: 1.5em" id="section-2-4.12">
+          <p id="section-2-4.12.1">The Client-local step that turns a protocol response into a stored
+Endorsement or Credential.<a href="#section-2-4.12.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="common">
+<section id="section-3">
+      <h2 id="name-common-requirements">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-common-requirements" class="section-name selfRef">Common Requirements</a>
+      </h2>
+<div id="message-types">
+<section id="section-3.1">
+        <h3 id="name-message-types">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-message-types" class="section-name selfRef">Message Types</a>
+        </h3>
+<p id="section-3.1-1">Every MoLE protocol message <span class="bcp14">MUST</span> begin with a <code>uint16</code> type field:
+<code>endorsement_type</code> for messages in the endorsement flow, <code>credential_type</code>
+for messages in the credential flow. Values are assigned in the registries
+defined in <a href="#iana" class="auto internal xref">Section 9</a>. A recipient that does not recognize the type <span class="bcp14">MUST</span>
+ignore the message. A Client that receives a challenge with an unknown type
+simply does not respond to it.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">The value 0x0000 is reserved in both registries and <span class="bcp14">MUST NOT</span> appear on the
+wire. Endorsement type 0x0001 means the Moderator establishes trust in the
+Client on its own, and no Endorsement is redeemed.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="greasing">
+<section id="section-3.2">
+        <h3 id="name-greasing">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-greasing" class="section-name selfRef">Greasing</a>
+        </h3>
+<p id="section-3.2-1">In order to prevent Moderators from becoming incompatible with future
+credential types, Clients <span class="bcp14">SHOULD</span> send presentations whose
+<code>credential_type</code> is a random value from the reserved greased values
+(<a href="#iana-grease" class="auto internal xref">Section 9.2.4</a>), with some non-trivial probability. The body of a
+greased presentation is random bytes.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<p id="section-3.2-2">The greased values follow the pattern 0x?A?A, spread uniformly across the
+registry space. Moderators <span class="bcp14">MUST</span> handle them exactly as any other unknown
+type and <span class="bcp14">MUST NOT</span> special-case the reserved list: a Moderator that
+enumerates greased values defeats their purpose and will still receive
+unknown types it did not enumerate.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+<p id="section-3.2-3">Additionally, when a credential is not required, Clients <span class="bcp14">SHOULD</span> randomly
+choose not to answer a challenge with some non-trivial probability. This
+helps ensure that Moderators maintain their behavior for handling Clients
+without credentials, rather than relying on a presentation always being
+present.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="challenge-binding">
+<section id="section-3.3">
+        <h3 id="name-challenge-binding">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-challenge-binding" class="section-name selfRef">Challenge Binding</a>
+        </h3>
+<p id="section-3.3-1">Every redemption and presentation is bound to the challenge that triggered
+it. The binding value is:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3.3-2">
+<pre>
+challenge_digest = SHA-256(challenge)
+</pre><a href="#section-3.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.3-3">where <code>challenge</code> is the challenge structure in its binary form: the
+octets of its TLS-presentation encoding. When a challenge arrives
+base64url encoded in an HTTP header (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>), the Client first
+decodes it, then hashes the resulting octets. The digest is never computed
+over the ASCII form. SHA-256 is defined in <span>[<a href="#SHA2" class="cite xref">SHA2</a>]</span>.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">Each protocol in this document states where <code>challenge_digest</code> enters its
+messages. A verifier <span class="bcp14">MUST</span> reject a redemption or presentation bound to a
+different challenge. This prevents a message captured in one context from
+being replayed in another.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
+<p id="section-3.3-5">In the endorsement protocols, the presentation is a proof generated at
+redemption time, and <code>challenge_digest</code> is an input to that proof: it
+enters the proof transcript in IHAT and the public inputs in Longfellow.
+A proof produced for one challenge does not verify under another.
+Challenge binding is separate from the nullifier. The nullifier is a PRF
+output over a credential-bound secret and the epoch; it limits a Client
+to one presentation per epoch.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="endorsement-protocols">
+<section id="section-4">
+      <h2 id="name-endorsement-protocols">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-endorsement-protocols" class="section-name selfRef">Endorsement Protocols</a>
+      </h2>
+<p id="section-4-1">An endorsement protocol has two parts. First, the Client runs one or more
+request/response exchanges with an Anchor and finalizes the result into an
+Endorsement. This is the grant. Second, the Client redeems the Endorsement
+at a Moderator, proving it came from an Anchor in the Moderator's accepted
+set without revealing which one. Redemption happens inside the Redeem &amp;
+Issue flow (<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span id="name-endorsement-grant-and-redem"></span><div id="fig-endorsement-flow">
+<figure id="figure-1">
+        <div id="section-4-2.1">
+          <div class="alignLeft art-svg artwork" id="section-4-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="288" width="416" viewBox="0 0 416 288" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
+              <path d="M 40,160 L 40,272" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 240,176 L 240,208" fill="none" stroke="black"></path>
+              <path d="M 248,32 L 248,64" fill="none" stroke="black"></path>
+              <path d="M 280,64 L 280,144" fill="none" stroke="black"></path>
+              <path d="M 288,208 L 288,272" fill="none" stroke="black"></path>
+              <path d="M 320,32 L 320,64" fill="none" stroke="black"></path>
+              <path d="M 336,176 L 336,208" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 248,32 L 320,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 248,64 L 320,64" fill="none" stroke="black"></path>
+              <path d="M 40,96 L 64,96" fill="none" stroke="black"></path>
+              <path d="M 232,96 L 272,96" fill="none" stroke="black"></path>
+              <path d="M 48,112 L 64,112" fill="none" stroke="black"></path>
+              <path d="M 240,112 L 280,112" fill="none" stroke="black"></path>
+              <path d="M 240,176 L 336,176" fill="none" stroke="black"></path>
+              <path d="M 240,208 L 336,208" fill="none" stroke="black"></path>
+              <path d="M 48,240 L 112,240" fill="none" stroke="black"></path>
+              <path d="M 208,240 L 288,240" fill="none" stroke="black"></path>
+              <path d="M 40,256 L 96,256" fill="none" stroke="black"></path>
+              <path d="M 216,256 L 280,256" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="288,256 276,250.4 276,261.6" fill="black" transform="rotate(0,280,256)"></polygon>
+              <polygon class="arrowhead" points="280,96 268,90.4 268,101.6" fill="black" transform="rotate(0,272,96)"></polygon>
+              <polygon class="arrowhead" points="56,240 44,234.4 44,245.6" fill="black" transform="rotate(180,48,240)"></polygon>
+              <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="284" y="52">Anchor</text>
+                <text x="148" y="100">EndorsementRequest</text>
+                <text x="304" y="100">\</text>
+                <text x="152" y="116">EndorsementResponse</text>
+                <text x="304" y="116">|</text>
+                <text x="336" y="116">one</text>
+                <text x="364" y="116">or</text>
+                <text x="396" y="116">more</text>
+                <text x="152" y="132">...</text>
+                <text x="304" y="132">/</text>
+                <text x="360" y="132">exchanges</text>
+                <text x="36" y="148">Finalize</text>
+                <text x="288" y="196">Moderator</text>
+                <text x="160" y="244">Challenge</text>
+                <text x="156" y="260">Presentation</text>
+              </g>
+            </svg><a href="#section-4-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-endorsement-grant-and-redem" class="selfRef">Endorsement grant and redemption</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-3">Exchanges with the Anchor are HTTP POST requests. The request body has media
+type <code>application/mole-endorsement-request</code> and contains an
+<code>EndorsementRequest</code>. The response body has media type
+<code>application/mole-endorsement-response</code> and contains an
+<code>EndorsementResponse</code>. The endorsement type determines how many exchanges
+are needed and what the <code>body</code> field contains at each step.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4-4">
+<pre>
+struct {
+  uint16 endorsement_type;
+  opaque body&lt;V&gt;;
+} EndorsementRequest;
+
+struct {
+  uint16 endorsement_type;
+  opaque body&lt;V&gt;;
+} EndorsementResponse;
+</pre><a href="#section-4-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4-5">Every endorsement protocol defines two structures. <code>Challenge</code> is the
+type-specific content of the Moderator's challenge, carried in its
+<code>challenge</code> field (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). Its content, including any Anchor
+set, is opaque at the transport level. Each endorsement type refines it,
+for example into a list of accepted Anchor keys. <code>Presentation</code> is the protocol's
+final output: the message a Client sends to redeem the Endorsement,
+carried in the <code>endorsement_presentation</code> field of a <code>CredentialRequest</code>
+(<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-5" class="pilcrow">¶</a></p>
+<div id="ihat">
+<section id="section-4.1">
+        <h3 id="name-issuer-hiding-anonymous-tok">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-issuer-hiding-anonymous-tok" class="section-name selfRef">Issuer-Hiding Anonymous Token (IHAT)</a>
+        </h3>
+<p id="section-4.1-1">Endorsement type: 0x0002.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">TODO: IHAT is a placeholder name. Once we have a first version for <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>,
+we would align.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<p id="section-4.1-3">IHAT is a pairing-free, issuer-hiding endorsement scheme over P-256. The
+Anchor blindly signs a Client-chosen nullifier. The Client later proves,
+with a 1-of-n OR proof, that its Endorsement verifies under one of the
+Anchor keys the Moderator accepts. The cryptographic operations, and the
+contents of every message body, are defined in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>. Until that
+document is complete, bodies in this section are opaque byte strings
+produced and consumed by the functions named below.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">The following primitive types are used in this section:<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.1-5">
+<pre>
+opaque Scalar[32];  /* big-endian integer mod the group order */
+opaque Point[33];   /* P-256 point, SEC1 compressed */
+</pre><a href="#section-4.1-5" class="pilcrow">¶</a>
+</div>
+<div id="configuration">
+<section id="section-4.1.1">
+          <h4 id="name-configuration">
+<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+          </h4>
+<p id="section-4.1.1-1">The Client needs, from Anchor configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.1.1-2">
+            <dt id="section-4.1.1-2.1">Anchor Public Key</dt>
+            <dd style="margin-left: 1.5em" id="section-4.1.1-2.2">
+              <p id="section-4.1.1-2.2.1"><code>pkA</code>, a <code>Point</code>, as generated in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.<a href="#section-4.1.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.1.1-2.3">Endorsement Context</dt>
+            <dd style="margin-left: 1.5em" id="section-4.1.1-2.4">
+              <p id="section-4.1.1-2.4.1">an opaque byte string identifying the current epoch. Endorsements are
+valid for one epoch, see <a href="#key-rotation" class="auto internal xref">Section 6</a>.<a href="#section-4.1.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="grant">
+<section id="section-4.1.2">
+          <h4 id="name-grant">
+<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-grant" class="section-name selfRef">Grant</a>
+          </h4>
+<p id="section-4.1.2-1">The grant takes two exchanges with the Anchor.<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-2">In the first exchange, the Client runs <code>Prepare(pkA,
+endorsement_context)</code> (<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), keeps the returned client state, and
+sends the resulting request as the <code>body</code> of an <code>EndorsementRequest</code>. The
+Anchor runs <code>Sign(skA, body)</code>, keeps its own state for the second
+exchange, and returns the result in an <code>EndorsementResponse</code>.<a href="#section-4.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-3">In the second exchange, the Client runs <code>RequestProof(state, body)</code> and
+sends the result. The Anchor runs <code>Prove(state, body)</code> and returns the
+result.<a href="#section-4.1.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-4">The Client finalizes with <code>Finalize(state, body)</code>, which verifies the
+Anchor's commitment opening and produces an Endorsement. The Endorsement
+contains a nullifier <code>nf</code> and the <code>endorsement_context</code> it was granted
+under. If finalization fails, the Client <span class="bcp14">MUST</span> discard the session. It <span class="bcp14">MUST NOT</span> retry with the same state.<a href="#section-4.1.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-5">The Anchor learns neither <code>nf</code> nor the final Endorsement, so it cannot
+recognize the Endorsement when it is later redeemed.<a href="#section-4.1.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.1.2-6">TODO: the two exchanges must be correlated, since the Anchor holds state
+between them. Either <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span> adds a session identifier to its messages
+or this document mandates connection reuse.<a href="#section-4.1.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="redemption">
+<section id="section-4.1.3">
+          <h4 id="name-redemption">
+<a href="#section-4.1.3" class="section-number selfRef">4.1.3. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
+          </h4>
+<p id="section-4.1.3-1">The Moderator's challenge (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>) carries the set of Anchor
+keys it accepts:<a href="#section-4.1.3-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.1.3-2">
+<pre>
+struct {
+  Point keys&lt;V&gt;;      /* accepted Anchor public keys */
+} Challenge;
+</pre><a href="#section-4.1.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1.3-3">The order of <code>keys</code> is significant: OR-proof branches are matched to keys
+by position. Moderators <span class="bcp14">MUST</span> present the set in the order published in
+their configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-4.1.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-4">The Client runs <code>Present(endorsement, keys, challenge_digest)</code>
+(<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), with <code>challenge_digest</code> computed as in <a href="#challenge-binding" class="auto internal xref">Section 3.3</a>,
+and sends the result:<a href="#section-4.1.3-4" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.1.3-5">
+<pre>
+struct {
+  opaque bytes&lt;V&gt;;    /* output of Present */
+} Presentation;
+</pre><a href="#section-4.1.3-5" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1.3-6"><code>Present</code> <span class="bcp14">MUST</span> bind <code>challenge_digest</code> into the proof transcript, and
+<code>Verify</code> <span class="bcp14">MUST</span> fail when given any other <code>challenge_digest</code>. This is a
+requirement on <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.<a href="#section-4.1.3-6" class="pilcrow">¶</a></p>
+<p id="section-4.1.3-7">The Moderator runs <code>Verify(presentation, keys, challenge_digest)</code>
+(<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), which exposes <code>nf</code> and <code>endorsement_context</code>, and
+additionally checks that:<a href="#section-4.1.3-7" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1.3-8">
+<li id="section-4.1.3-8.1">
+              <p id="section-4.1.3-8.1.1"><code>endorsement_context</code> names the current epoch, and<a href="#section-4.1.3-8.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.1.3-8.2">
+              <p id="section-4.1.3-8.2.1"><code>nf</code> has not been seen before in this epoch.<a href="#section-4.1.3-8.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+<p id="section-4.1.3-9">If all checks pass, the Moderator records <code>nf</code> and proceeds with credential
+issuance. The Endorsement is spent: redeeming it again <span class="bcp14">MUST</span> fail check 2.<a href="#section-4.1.3-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="longfellow">
+<section id="section-4.2">
+        <h3 id="name-longfellow">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-longfellow" class="section-name selfRef">Longfellow</a>
+        </h3>
+<p id="section-4.2-1">Endorsement type: 0x0003.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Where IHAT requires Anchors to run new cryptography, this protocol preserves
+backward compatibility with credentials Clients may hold, such as mdocs.
+The Client proves in zero knowledge, using the scheme of <span>[<a href="#LONGFELLOW" class="cite xref">LONGFELLOW</a>]</span>, that it
+holds a valid credential from one of an accepted set of issuers, without
+revealing which issuer or any credential attribute. An experimental circuit is
+described in <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER-CIRCUIT</a>]</span>.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-3">There is no grant exchange in this protocol. The Client obtains its
+credential from the Anchor out of band, through whatever legacy issuance
+that credential uses. The circuit is likewise distributed out of band and
+identified by its hash.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+<div id="configuration-1">
+<section id="section-4.2.1">
+          <h4 id="name-configuration-2">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-configuration-2" class="section-name selfRef">Configuration</a>
+          </h4>
+<p id="section-4.2.1-1">The Client needs, from Moderator configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.2.1-2">
+            <dt id="section-4.2.1-2.1">Circuit Identifier</dt>
+            <dd style="margin-left: 1.5em" id="section-4.2.1-2.2">
+              <p id="section-4.2.1-2.2.1"><code>circuit_id</code>, the SHA-256 hash of the circuit both parties use.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.2.1-2.3">Accepted Issuer Set</dt>
+            <dd style="margin-left: 1.5em" id="section-4.2.1-2.4">
+              <p id="section-4.2.1-2.4.1">the credential-issuer certificates the Moderator accepts, in a fixed
+published order.<a href="#section-4.2.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.2.1-2.5">Epoch</dt>
+            <dd style="margin-left: 1.5em" id="section-4.2.1-2.6">
+              <p id="section-4.2.1-2.6.1">the validity window redemptions must fall in.<a href="#section-4.2.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="redemption-1">
+<section id="section-4.2.2">
+          <h4 id="name-redemption-2">
+<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-redemption-2" class="section-name selfRef">Redemption</a>
+          </h4>
+<p id="section-4.2.2-1">This protocol needs no type-specific challenge content: <code>Challenge</code> is
+empty. The accepted issuer set, circuit, and epoch come from configuration.<a href="#section-4.2.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.2-2">The Client evaluates the circuit over its credential to produce a proof and
+a nullifier. The nullifier is derived, inside the circuit, from a
+credential-bound secret and the current epoch, so one credential yields
+exactly one valid nullifier per epoch.<a href="#section-4.2.2-2" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.2.2-3">
+<pre>
+struct {
+  opaque circuit_id[32];
+  opaque nullifier&lt;V&gt;;
+  opaque proof&lt;V&gt;;
+} Presentation;
+</pre><a href="#section-4.2.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2.2-4">The public inputs to the proof are the accepted issuer set, the epoch, the
+nullifier, and <code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>). A proof is
+valid only for its exact public inputs, so a presentation bound to a
+different challenge fails verification. The Moderator
+verifies the proof using the verifier of <span>[<a href="#LONGFELLOW" class="cite xref">LONGFELLOW</a>]</span>, then applies the
+same epoch and nullifier-freshness checks as IHAT redemption.<a href="#section-4.2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="differences-from-ihat">
+<section id="section-4.2.3">
+          <h4 id="name-differences-from-ihat">
+<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-differences-from-ihat" class="section-name selfRef">Differences from IHAT</a>
+          </h4>
+<p id="section-4.2.3-1">While Longfellow does not require the Anchor to actively participate in MoLE,
+it is preferred to guarantee and control scarcity. Otherwise, the number of
+Endorsements that can be obtained by a given Client is unbounded.
+Scarcity comes both from the participation of the Anchor, and from the
+one-nullifier-per-epoch rule. Deployments without an aware Anchor remain
+possible, but lose Anchor-controlled scarcity.<a href="#section-4.2.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.2.3-2">The required circuit properties, in particular sound nullifier derivation
+from a credential-bound secret, are stated here as requirements on the
+circuit. <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER-CIRCUIT</a>]</span> is one candidate that could be refined.<a href="#section-4.2.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="credential-protocols">
+<section id="section-5">
+      <h2 id="name-credential-protocols">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-credential-protocols" class="section-name selfRef">Credential Protocols</a>
+      </h2>
+<p id="section-5-1">A credential protocol has two parts: Redeem &amp; Issue, in which the Client
+redeems an Endorsement and receives a Credential from the Moderator, and
+presentation, in which the Client shows the Credential and receives an
+update. Presentation and update happen in one exchange, following
+<span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span id="name-redeem-issue-then-presentat"></span><div id="fig-credential-flow">
+<figure id="figure-2">
+        <div id="section-5-2.1">
+          <div class="alignLeft art-svg artwork" id="section-5-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="288" width="424" viewBox="0 0 424 288" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
+              <path d="M 40,176 L 40,240" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 320,32 L 320,64" fill="none" stroke="black"></path>
+              <path d="M 368,64 L 368,272" fill="none" stroke="black"></path>
+              <path d="M 416,32 L 416,64" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 320,32 L 416,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 320,64 L 416,64" fill="none" stroke="black"></path>
+              <path d="M 48,96 L 144,96" fill="none" stroke="black"></path>
+              <path d="M 240,96 L 368,96" fill="none" stroke="black"></path>
+              <path d="M 40,112 L 56,112" fill="none" stroke="black"></path>
+              <path d="M 320,112 L 360,112" fill="none" stroke="black"></path>
+              <path d="M 48,128 L 112,128" fill="none" stroke="black"></path>
+              <path d="M 280,128 L 368,128" fill="none" stroke="black"></path>
+              <path d="M 48,208 L 144,208" fill="none" stroke="black"></path>
+              <path d="M 240,208 L 368,208" fill="none" stroke="black"></path>
+              <path d="M 40,224 L 64,224" fill="none" stroke="black"></path>
+              <path d="M 312,224 L 360,224" fill="none" stroke="black"></path>
+              <path d="M 48,240 L 144,240" fill="none" stroke="black"></path>
+              <path d="M 280,240 L 368,240" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="368,224 356,218.4 356,229.6" fill="black" transform="rotate(0,360,224)"></polygon>
+              <polygon class="arrowhead" points="368,112 356,106.4 356,117.6" fill="black" transform="rotate(0,360,112)"></polygon>
+              <polygon class="arrowhead" points="56,240 44,234.4 44,245.6" fill="black" transform="rotate(180,48,240)"></polygon>
+              <polygon class="arrowhead" points="56,208 44,202.4 44,213.6" fill="black" transform="rotate(180,48,208)"></polygon>
+              <polygon class="arrowhead" points="56,128 44,122.4 44,133.6" fill="black" transform="rotate(180,48,128)"></polygon>
+              <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="368" y="52">Moderator</text>
+                <text x="192" y="100">Challenge</text>
+                <text x="108" y="116">Redemption</text>
+                <text x="160" y="116">+</text>
+                <text x="240" y="116">CredentialRequest</text>
+                <text x="196" y="132">CredentialResponse</text>
+                <text x="36" y="148">Finalize</text>
+                <text x="40" y="164">|</text>
+                <text x="32" y="180">.</text>
+                <text x="48" y="180">.</text>
+                <text x="192" y="212">Challenge</text>
+                <text x="124" y="228">Presentation</text>
+                <text x="184" y="228">+</text>
+                <text x="248" y="228">UpdateRequest</text>
+                <text x="212" y="244">UpdateResponse</text>
+                <text x="36" y="260">Finalize</text>
+                <text x="40" y="276">|</text>
+              </g>
+            </svg><a href="#section-5-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
+<a href="#name-redeem-issue-then-presentat" class="selfRef">Redeem &amp; Issue, then presentation and update</a>
+        </figcaption></figure>
+</div>
+<p id="section-5-3">Both parts ride on HTTP requests to the Moderator, since each is an
+authorization. Redeem &amp; Issue carries a <code>CredentialRequest</code> in the
+<code>Authorization</code> header and receives the <code>CredentialResponse</code> in the
+<code>Mole-Credential</code> response header. Presentation uses the same
+authentication scheme, with the update returned in the same
+<code>Mole-Credential</code> header under its <code>update</code> parameter. Carriage is
+defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5-4">
+<pre>
+struct {
+  uint16 endorsement_type;
+  opaque endorsement_presentation&lt;V&gt;;
+  uint16 credential_type;
+  opaque issuance_request&lt;V&gt;;
+} CredentialRequest;
+
+struct {
+  uint16 credential_type;
+  opaque issuance_response&lt;V&gt;;
+} CredentialResponse;
+</pre><a href="#section-5-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5-5">The <code>endorsement_presentation</code> field carries the <code>Presentation</code> structure
+of the named endorsement type. With <code>endorsement_type</code> 0x0001 it is empty,
+and the Moderator relies on its own trust establishment (<a href="#common" class="auto internal xref">Section 3</a>).<a href="#section-5-5" class="pilcrow">¶</a></p>
+<p id="section-5-6">Every credential protocol defines five structures. <code>Challenge</code> is the
+type-specific content of the Moderator's challenge, carried in its
+<code>challenge</code> field (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). <code>IssuanceRequest</code> and
+<code>IssuanceResponse</code> fill the <code>issuance_request</code> and <code>issuance_response</code>
+fields above. <code>PresentationAndUpdate</code> is carried in the
+<code>presentation_and_update</code> field of a <code>CredentialPresentation</code>
+(<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). <code>Update</code> is returned in the <code>update</code> parameter of
+the <code>Mole-Credential</code> header.<a href="#section-5-6" class="pilcrow">¶</a></p>
+<div id="credential-act">
+<section id="section-5.1">
+        <h3 id="name-anonymous-credit-tokens-act">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-anonymous-credit-tokens-act" class="section-name selfRef">Anonymous Credit Tokens (ACT)</a>
+        </h3>
+<p id="section-5.1-1">Credential type: 0x0001.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">An ACT credential <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> is an anonymous state machine: the Moderator can
+test a predicate against the Credential's hidden state and update that
+state, without learning the state or linking presentations. This is the
+credential protocol that provides every property required by
+<span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>, including that updates provably apply to the credential
+that was presented.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<div id="configuration-2">
+<section id="section-5.1.1">
+          <h4 id="name-configuration-3">
+<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-configuration-3" class="section-name selfRef">Configuration</a>
+          </h4>
+<p id="section-5.1.1-1">The Moderator publishes its ACT public key and the predicate description
+(<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="redeem-issue">
+<section id="section-5.1.2">
+          <h4 id="name-redeem-issue">
+<a href="#section-5.1.2" class="section-number selfRef">5.1.2. </a><a href="#name-redeem-issue" class="section-name selfRef">Redeem &amp; Issue</a>
+          </h4>
+<div class="lang-tls-presentation sourcecode" id="section-5.1.2-1">
+<pre>
+struct {
+  uint8 truncated_key_id;
+  opaque request&lt;V&gt;;
+} IssuanceRequest;
+
+struct {
+  opaque response&lt;V&gt;;
+} IssuanceResponse;
+</pre><a href="#section-5.1.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1.2-2">The <code>request</code> and <code>response</code> fields are defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>. The Client
+finalizes the response into a Credential with an initial state chosen by
+the Moderator's policy.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="presentation-and-update">
+<section id="section-5.1.3">
+          <h4 id="name-presentation-and-update">
+<a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-presentation-and-update" class="section-name selfRef">Presentation and Update</a>
+          </h4>
+<p id="section-5.1.3-1">The Client presents the Credential against the challenged predicate,
+spending it, and in the same message requests the replacement that carries
+the updated state.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.1.3-2">
+<pre>
+struct {
+  opaque challenge_digest[32];
+  opaque key_id[32];
+  opaque spend_proof&lt;V&gt;;
+} PresentationAndUpdate;
+
+struct {
+  opaque refund&lt;V&gt;;
+} Update;
+</pre><a href="#section-5.1.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1.3-3">The <code>spend_proof</code> and <code>refund</code> fields are defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>. The
+Moderator verifies the spend proof and learns whether the Credential's
+hidden state satisfies the challenged predicate. For range-style
+predicates, this necessarily reveals the public bound being tested, but
+not the hidden state value. The Client finalizes the refund into its new
+Credential. ACT guarantees the refund applies to the state that was
+presented.<a href="#section-5.1.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-4">TODO: the exact mapping between the spend and refund operations of <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>
+and MoLE's predicate and update is not settled. In particular, <code>Challenge</code>
+for this type must express the predicate and the charged amount, and its
+contents are not yet defined.<a href="#section-5.1.3-4" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-5">The <code>Challenge</code> for this type therefore needs to identify the predicate,
+including any public bound, and the update to apply.<a href="#section-5.1.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="credential-reverse">
+<section id="section-5.2">
+        <h3 id="name-privacy-pass-with-a-reverse">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-privacy-pass-with-a-reverse" class="section-name selfRef">Privacy Pass with a Reverse Flow</a>
+        </h3>
+<p id="section-5.2-1">Credential type: 0x0002.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">The Credential is a single privately verifiable Privacy Pass token. Any
+token type registered in the Privacy Pass Token Types registry
+(<span>[<a href="#PRIVACYPASS-PROTOCOLS" class="cite xref">PRIVACYPASS-PROTOCOLS</a>]</span>) can be used. The Moderator's configuration
+names one. The Credential encodes one bit: the Client either holds a valid
+token or it does not. Presentation consumes the token. The update, if
+granted, is a fresh token issued through the reverse flow of
+<span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>, with the Moderator acting as both initial and reverse
+issuer.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">The presented and reissued token <span class="bcp14">MUST</span> use the same token type and the same
+Moderator public key. Anything else partitions Clients and leaks state.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<div id="redeem-issue-1">
+<section id="section-5.2.1">
+          <h4 id="name-redeem-issue-2">
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-redeem-issue-2" class="section-name selfRef">Redeem &amp; Issue</a>
+          </h4>
+<p id="section-5.2.1-1"><code>IssuanceRequest</code> is a <code>TokenRequest</code> and <code>IssuanceResponse</code> is a
+<code>TokenResponse</code>, both as defined for the configured token type in
+<span>[<a href="#PRIVACYPASS-PROTOCOLS" class="cite xref">PRIVACYPASS-PROTOCOLS</a>]</span>. The finalized token is the Credential.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="presentation-and-update-1">
+<section id="section-5.2.2">
+          <h4 id="name-presentation-and-update-2">
+<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-presentation-and-update-2" class="section-name selfRef">Presentation and Update</a>
+          </h4>
+<p id="section-5.2.2-1"><code>Challenge</code> is empty for this type. The challenge octets, and therefore
+<code>challenge_digest</code>, are constant for a given Moderator configuration.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.2.2-2">
+<pre>
+struct {
+  opaque token&lt;V&gt;;
+  opaque token_request&lt;V&gt;;  /* TokenRequest */
+} PresentationAndUpdate;
+
+struct {
+  opaque token_response&lt;V&gt;; /* TokenResponse */
+} Update;
+</pre><a href="#section-5.2.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2.2-3">The <code>token</code> field carries a <code>Token</code> as defined in <span>[<a href="#PRIVACYPASS-AUTH" class="cite xref">PRIVACYPASS-AUTH</a>]</span>.
+Its <code>challenge_digest</code> field is fixed when the token is issued, one
+exchange before it is presented, and <span class="bcp14">MUST</span> equal the Moderator's constant
+<code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>). This binds the token to the
+Moderator, not to the exchange that presents it. Anti-replay therefore
+does not come from challenge binding: it comes from the token being
+single-use. The Moderator <span class="bcp14">MUST</span> reject a token whose nonce it has already
+seen.<a href="#section-5.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-4">If the Moderator's policy allows continued access, it returns an <code>Update</code>.
+If not, it returns an empty update and the Client is out of credentials.<a href="#section-5.2.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="limitations">
+<section id="section-5.2.3">
+          <h4 id="name-limitations">
+<a href="#section-5.2.3" class="section-number selfRef">5.2.3. </a><a href="#name-limitations" class="section-name selfRef">Limitations</a>
+          </h4>
+<p id="section-5.2.3-1">TODO: define a device binding mechanism, issuing tokens bound to a Client
+key so that presentation requires proof of possession. This would restore
+the binding between update and presented credential. Open problem.<a href="#section-5.2.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="credential-budget">
+<section id="section-5.3">
+        <h3 id="name-budget-privacy-pass">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-budget-privacy-pass" class="section-name selfRef">Budget Privacy Pass</a>
+        </h3>
+<p id="section-5.3-1">Credential type: 0x0003.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">The Credential is a balance, represented as Privacy Pass tokens drawn from
+N issuers operated by the same Moderator, where issuer i denominates 2^i
+units. Tokens are issued in batches using <span>[<a href="#PRIVACYPASS-BATCHED" class="cite xref">PRIVACYPASS-BATCHED</a>]</span>, and any
+token type registered in the Privacy Pass Token Types registry that
+supports batched issuance can be used. The Client presents whatever tokens
+it wants, and the sum of their denominations is the amount spent. The
+Moderator returns change and any policy adjustment as freshly issued
+tokens through the reverse flow, summing to the intended new balance.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">A presentation reveals that the Client can spend the challenged amount. If
+the protocol presents exactly one token for that amount, and balance
+management remains Client-local, this is the same disclosure as an ACT
+predicate over that amount: the Moderator learns the predicate result, not
+the Client's remaining balance. Deployments that allow multiple tokens,
+variable denominations, or observable change shapes need padding or another
+mitigation.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<div id="redeem-issue-2">
+<section id="section-5.3.1">
+          <h4 id="name-redeem-issue-3">
+<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-redeem-issue-3" class="section-name selfRef">Redeem &amp; Issue</a>
+          </h4>
+<p id="section-5.3.1-1"><code>IssuanceRequest</code> is a <code>BatchTokenRequest</code> and <code>IssuanceResponse</code> is a
+<code>BatchTokenResponse</code> (<span>[<a href="#PRIVACYPASS-BATCHED" class="cite xref">PRIVACYPASS-BATCHED</a>]</span>), for tokens summing to the
+initial balance set by the Moderator's policy.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="presentation-and-update-2">
+<section id="section-5.3.2">
+          <h4 id="name-presentation-and-update-3">
+<a href="#section-5.3.2" class="section-number selfRef">5.3.2. </a><a href="#name-presentation-and-update-3" class="section-name selfRef">Presentation and Update</a>
+          </h4>
+<p id="section-5.3.2-1">The challenge indicates the amount to spend:<a href="#section-5.3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.3.2-2">
+<pre>
+struct {
+  uint64 amount;
+} Challenge;
+</pre><a href="#section-5.3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3.2-3">The <code>amount</code> is an indicator, not a per-Client value. A Moderator <span class="bcp14">MUST</span>
+use the same amount for every Client under a policy: varying it
+partitions Clients. Deployments <span class="bcp14">MAY</span> publish the amount out of band
+instead (<a href="#key-rotation" class="auto internal xref">Section 6</a>), in which case the field repeats the published
+value.<a href="#section-5.3.2-3" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.3.2-4">
+<pre>
+struct {
+  opaque tokens&lt;V&gt;;         /* one or more Tokens */
+  opaque token_request&lt;V&gt;;  /* BatchTokenRequest */
+} PresentationAndUpdate;
+
+struct {
+  opaque token_response&lt;V&gt;; /* BatchTokenResponse */
+} Update;
+</pre><a href="#section-5.3.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3.2-5">Challenge binding comes from each <code>Token</code> structure, as in
+<a href="#credential-reverse" class="auto internal xref">Section 5.2</a>. The Client <span class="bcp14">MAY</span> at any time exchange several small
+tokens for larger ones at the Moderator's refund endpoint.<a href="#section-5.3.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="when-to-use-it">
+<section id="section-5.3.3">
+          <h4 id="name-when-to-use-it">
+<a href="#section-5.3.3" class="section-number selfRef">5.3.3. </a><a href="#name-when-to-use-it" class="section-name selfRef">When to use it</a>
+          </h4>
+<p id="section-5.3.3-1">Balances with many possible values need many tokens and padding traffic to
+avoid leaking through request counts. If the state fits an ACT credential,
+<a href="#credential-act" class="auto internal xref">Section 5.1</a> is simpler and leaks less. This protocol fits
+deployments that already run Privacy Pass issuers and need only coarse
+balances.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="key-rotation">
+<section id="section-6">
+      <h2 id="name-key-rotation-and-discovery">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-key-rotation-and-discovery" class="section-name selfRef">Key Rotation and Discovery</a>
+      </h2>
+<p id="section-6-1">TODO.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-2">Anchors and Moderators each publish a configuration that Clients fetch
+before running any flow. It contains their endpoints, supported endorsement
+and credential types, public keys, and, for Moderators, the accepted Anchor
+set for each policy. The order of the accepted set is normative: IHAT
+OR proofs and Longfellow issuer sets match elements by position, so all
+parties must see the same order.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">Endorsements live in epochs. The <code>endorsement_context</code> of IHAT and the
+epoch of Longfellow name the epoch an Endorsement is granted in, which is
+also the window the Moderator's nullifier store covers. Epoch length is a
+privacy parameter: short epochs shrink the double-spend store but
+partition Clients into smaller anonymity sets. See <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> for
+the consistency requirements on configuration. A Moderator that shows
+different configurations to different Clients can partition them.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">Open questions:<a href="#section-6-4" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-6-5">
+<li id="section-6-5.1">
+          <p id="section-6-5.1.1">Format: a Privacy Pass style directory, or JWKS. Reusing JWKS matters if
+deployments want existing key-management tooling, despite feelings.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-5.2">
+          <p id="section-6-5.2.1">How and when Anchor and Moderator keys rotate.<a href="#section-6-5.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-5.3">
+          <p id="section-6-5.3.1">Whether messages carry a key identifier, such as a truncated key
+identifier as in Privacy Pass token requests, or a JWK Thumbprint.<a href="#section-6-5.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-6-5.4">
+          <p id="section-6-5.4.1">How Clients validate Moderator configuration without revealing
+themselves, and how consistency is audited.<a href="#section-6-5.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+</section>
+</div>
+<div id="privacy-considerations">
+<section id="section-7">
+      <h2 id="name-privacy-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-privacy-considerations" class="section-name selfRef">Privacy Considerations</a>
+      </h2>
+<p id="section-7-1">TODO. The list to cover:<a href="#section-7-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7-2">
+<li id="section-7-2.1">
+          <p id="section-7-2.1.1">Anchor set verification: the Client must be able to verify the number
+of Anchors in an accepted set, and that these Anchors are real rather
+than fabricated by the Moderator. A set padded with fake Anchors
+shrinks the effective anonymity set to the Clients of the real ones.<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-2.2">
+          <p id="section-7-2.2.1">Configuration partitioning: accepted-set contents and order as a
+fingerprinting vector (with <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>).<a href="#section-7-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-2.3">
+          <p id="section-7-2.3.1">Epoch width versus anonymity set size.<a href="#section-7-2.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-8-1">All exchanges defined in this document and <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> <span class="bcp14">MUST</span> be
+carried over HTTPS.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-2">TODO. The list to cover:<a href="#section-8-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-8-3">
+<li id="section-8-3.1">
+          <p id="section-8-3.1.1">Nullifier store sizing and eviction: the store is per epoch, and a
+Moderator that evicts early re-admits spent Endorsements.<a href="#section-8-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-3.2">
+          <p id="section-8-3.2.1">Anchor key compromise: an attacker with an Anchor key in an accepted set
+can mint Endorsements freely. Blast radius and rotation response.<a href="#section-8-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-3.3">
+          <p id="section-8-3.3.1">Reverse-flow update transfer: the two-credential attack of
+<a href="#credential-reverse" class="auto internal xref">Section 5.2</a>, and why single-credential enforcement cannot be
+verified.<a href="#section-8-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-8-3.4">
+          <p id="section-8-3.4.1">Timing and error side channels during verification, especially
+distinguishing "bad proof" from "spent nullifier".<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+</section>
+</div>
+<div id="iana">
+<section id="section-9">
+      <h2 id="name-iana-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-9-1">This document sketches two candidate registries under a future "MoLE"
+group. The values below are candidate values for discussion in this -00
+draft and are not stable assignments.<a href="#section-9-1" class="pilcrow">¶</a></p>
+<p id="section-9-2">A registration <span class="bcp14">MUST</span> define the per-type structures its flow requires:
+<code>Challenge</code> and <code>Presentation</code> for endorsement types
+(<a href="#endorsement-protocols" class="auto internal xref">Section 4</a>), and <code>Challenge</code>, <code>IssuanceRequest</code>,
+<code>IssuanceResponse</code>, <code>PresentationAndUpdate</code>, and <code>Update</code> for credential
+types (<a href="#credential-protocols" class="auto internal xref">Section 5</a>). Every message begins with the registered
+<code>uint16</code> type (<a href="#common" class="auto internal xref">Section 3</a>). A registration <span class="bcp14">MUST</span> also state how redemption
+or presentation binds <code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>).<a href="#section-9-2" class="pilcrow">¶</a></p>
+<div id="mole-endorsement-types">
+<section id="section-9.1">
+        <h3 id="name-mole-endorsement-types">
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-mole-endorsement-types" class="section-name selfRef">MoLE Endorsement Types</a>
+        </h3>
+<span id="name-candidate-mole-endorsement-"></span><div id="endorsement-types">
+<table class="center" id="table-1">
+          <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-candidate-mole-endorsement-" class="selfRef">Candidate MoLE Endorsement Type Values</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0000</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">this document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0001</td>
+              <td class="text-left" rowspan="1" colspan="1">Moderator trust establishment</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#common" class="auto internal xref">Section 3</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0002</td>
+              <td class="text-left" rowspan="1" colspan="1">IHAT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#ihat" class="auto internal xref">Section 4.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0003</td>
+              <td class="text-left" rowspan="1" colspan="1">Longfellow</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#longfellow" class="auto internal xref">Section 4.2</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xFF00 - 0xFFFF</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved for testing</td>
+              <td class="text-left" rowspan="1" colspan="1">this document</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-9.1-2">The registration template contains:<a href="#section-9.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.1-3.1">
+            <p id="section-9.1-3.1.1">Value: The two-byte endorsement type.<a href="#section-9.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-3.2">
+            <p id="section-9.1-3.2.1">Name: A short name for the protocol.<a href="#section-9.1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-3.3">
+            <p id="section-9.1-3.3.1">Exchanges: The number of request/response exchanges with the Anchor, or
+"none" if the grant is out of band.<a href="#section-9.1-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-3.4">
+            <p id="section-9.1-3.4.1">Publicly Verifiable: Whether the Endorsement can be verified without
+Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.1-3.5">
+            <p id="section-9.1-3.5.1">Reference: Where the protocol is defined.<a href="#section-9.1-3.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-9.1-4">The following initial registrations are candidates only.<a href="#section-9.1-4" class="pilcrow">¶</a></p>
+<div id="iana-ihat">
+<section id="section-9.1.1">
+          <h4 id="name-ihat">
+<a href="#section-9.1.1" class="section-number selfRef">9.1.1. </a><a href="#name-ihat" class="section-name selfRef">IHAT</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.1.1-1.1">
+              <p id="section-9.1.1-1.1.1">Value: 0x0002<a href="#section-9.1.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.1-1.2">
+              <p id="section-9.1.1-1.2.1">Name: IHAT<a href="#section-9.1.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.1-1.3">
+              <p id="section-9.1.1-1.3.1">Exchanges: 2<a href="#section-9.1.1-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.1-1.4">
+              <p id="section-9.1.1-1.4.1">Publicly Verifiable: Yes<a href="#section-9.1.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.1-1.5">
+              <p id="section-9.1.1-1.5.1">Reference: <a href="#ihat" class="auto internal xref">Section 4.1</a><a href="#section-9.1.1-1.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="iana-longfellow">
+<section id="section-9.1.2">
+          <h4 id="name-longfellow-2">
+<a href="#section-9.1.2" class="section-number selfRef">9.1.2. </a><a href="#name-longfellow-2" class="section-name selfRef">Longfellow</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.1.2-1.1">
+              <p id="section-9.1.2-1.1.1">Value: 0x0003<a href="#section-9.1.2-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.2-1.2">
+              <p id="section-9.1.2-1.2.1">Name: Longfellow<a href="#section-9.1.2-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.2-1.3">
+              <p id="section-9.1.2-1.3.1">Exchanges: none (out of band)<a href="#section-9.1.2-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.2-1.4">
+              <p id="section-9.1.2-1.4.1">Publicly Verifiable: Yes<a href="#section-9.1.2-1.4.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.1.2-1.5">
+              <p id="section-9.1.2-1.5.1">Reference: <a href="#longfellow" class="auto internal xref">Section 4.2</a><a href="#section-9.1.2-1.5.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="mole-credential-types">
+<section id="section-9.2">
+        <h3 id="name-mole-credential-types">
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-mole-credential-types" class="section-name selfRef">MoLE Credential Types</a>
+        </h3>
+<span id="name-candidate-mole-credential-t"></span><div id="credential-types">
+<table class="center" id="table-2">
+          <caption>
+<a href="#table-2" class="selfRef">Table 2</a>:
+<a href="#name-candidate-mole-credential-t" class="selfRef">Candidate MoLE Credential Type Values</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+              <th class="text-left" rowspan="1" colspan="1">Name</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0000</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved</td>
+              <td class="text-left" rowspan="1" colspan="1">this document</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0001</td>
+              <td class="text-left" rowspan="1" colspan="1">ACT</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#credential-act" class="auto internal xref">Section 5.1</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0002</td>
+              <td class="text-left" rowspan="1" colspan="1">Privacy Pass Reverse Flow</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#credential-reverse" class="auto internal xref">Section 5.2</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0003</td>
+              <td class="text-left" rowspan="1" colspan="1">Budget Privacy Pass</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#credential-budget" class="auto internal xref">Section 5.3</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0x0A0A, 0x1A1A, ..., 0xFAFA</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved for greasing</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#greasing" class="auto internal xref">Section 3.2</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">0xFF00 - 0xFFFF</td>
+              <td class="text-left" rowspan="1" colspan="1">Reserved for testing</td>
+              <td class="text-left" rowspan="1" colspan="1">this document</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-9.2-2">The registration template contains:<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-9.2-3.1">
+            <p id="section-9.2-3.1.1">Value: The two-byte credential type.<a href="#section-9.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-3.2">
+            <p id="section-9.2-3.2.1">Name: A short name for the protocol.<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-3.3">
+            <p id="section-9.2-3.3.1">Bound Update: Whether updates provably apply to the presented
+credential.<a href="#section-9.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-9.2-3.4">
+            <p id="section-9.2-3.4.1">Reference: Where the protocol is defined.<a href="#section-9.2-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div id="iana-act">
+<section id="section-9.2.1">
+          <h4 id="name-act">
+<a href="#section-9.2.1" class="section-number selfRef">9.2.1. </a><a href="#name-act" class="section-name selfRef">ACT</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.2.1-1.1">
+              <p id="section-9.2.1-1.1.1">Value: 0x0001<a href="#section-9.2.1-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.1-1.2">
+              <p id="section-9.2.1-1.2.1">Name: ACT<a href="#section-9.2.1-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.1-1.3">
+              <p id="section-9.2.1-1.3.1">Bound Update: Yes<a href="#section-9.2.1-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.1-1.4">
+              <p id="section-9.2.1-1.4.1">Reference: <a href="#credential-act" class="auto internal xref">Section 5.1</a><a href="#section-9.2.1-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="iana-reverse">
+<section id="section-9.2.2">
+          <h4 id="name-privacy-pass-reverse-flow">
+<a href="#section-9.2.2" class="section-number selfRef">9.2.2. </a><a href="#name-privacy-pass-reverse-flow" class="section-name selfRef">Privacy Pass Reverse Flow</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.2.2-1.1">
+              <p id="section-9.2.2-1.1.1">Value: 0x0002<a href="#section-9.2.2-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.2-1.2">
+              <p id="section-9.2.2-1.2.1">Name: Privacy Pass Reverse Flow<a href="#section-9.2.2-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.2-1.3">
+              <p id="section-9.2.2-1.3.1">Bound Update: No<a href="#section-9.2.2-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.2-1.4">
+              <p id="section-9.2.2-1.4.1">Reference: <a href="#credential-reverse" class="auto internal xref">Section 5.2</a><a href="#section-9.2.2-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="iana-budget">
+<section id="section-9.2.3">
+          <h4 id="name-budget-privacy-pass-2">
+<a href="#section-9.2.3" class="section-number selfRef">9.2.3. </a><a href="#name-budget-privacy-pass-2" class="section-name selfRef">Budget Privacy Pass</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.2.3-1.1">
+              <p id="section-9.2.3-1.1.1">Value: 0x0003<a href="#section-9.2.3-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.3-1.2">
+              <p id="section-9.2.3-1.2.1">Name: Budget Privacy Pass<a href="#section-9.2.3-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.3-1.3">
+              <p id="section-9.2.3-1.3.1">Bound Update: No<a href="#section-9.2.3-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.3-1.4">
+              <p id="section-9.2.3-1.4.1">Reference: <a href="#credential-budget" class="auto internal xref">Section 5.3</a><a href="#section-9.2.3-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="iana-grease">
+<section id="section-9.2.4">
+          <h4 id="name-greased-values">
+<a href="#section-9.2.4" class="section-number selfRef">9.2.4. </a><a href="#name-greased-values" class="section-name selfRef">Greased Values</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-9.2.4-1.1">
+              <p id="section-9.2.4-1.1.1">Value: 0x0A0A, 0x1A1A, 0x2A2A, 0x3A3A, 0x4A4A, 0x5A5A, 0x6A6A, 0x7A7A,
+0x8A8A, 0x9A9A, 0xAAAA, 0xBABA, 0xCACA, 0xDADA, 0xEAEA, 0xFAFA<a href="#section-9.2.4-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.4-1.2">
+              <p id="section-9.2.4-1.2.1">Name: RESERVED<a href="#section-9.2.4-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.4-1.3">
+              <p id="section-9.2.4-1.3.1">Bound Update: N/A<a href="#section-9.2.4-1.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-9.2.4-1.4">
+              <p id="section-9.2.4-1.4.1">Reference: <a href="#greasing" class="auto internal xref">Section 3.2</a><a href="#section-9.2.4-1.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-9.2.4-2">These values <span class="bcp14">MUST NOT</span> be assigned. Message bodies carrying them contain
+random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a href="#section-9.2.4-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="media-types">
+<section id="section-9.3">
+        <h3 id="name-media-types">
+<a href="#section-9.3" class="section-number selfRef">9.3. </a><a href="#name-media-types" class="section-name selfRef">Media Types</a>
+        </h3>
+<span id="name-mole-media-types"></span><div id="media-types-table">
+<table class="center" id="table-3">
+          <caption>
+<a href="#table-3" class="selfRef">Table 3</a>:
+<a href="#name-mole-media-types" class="selfRef">MoLE Media Types</a>
+          </caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Media Type</th>
+              <th class="text-left" rowspan="1" colspan="1">Reference</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">application/mole-endorsement-request</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#endorsement-protocols" class="auto internal xref">Section 4</a>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">application/mole-endorsement-response</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <a href="#endorsement-protocols" class="auto internal xref">Section 4</a>
+</td>
+            </tr>
+          </tbody>
+        </table>
+</div>
+<p id="section-9.3-2">TODO: full registration templates, following the Privacy Pass template.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-10">
+      <h2 id="name-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-10.1">
+        <h3 id="name-normative-references">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ACT">[ACT]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-01</span>, <time datetime="2026-02-13" class="refDate">13 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="ARCHITECTURE">[ARCHITECTURE]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CRYPTO">[CRYPTO]</dt>
+        <dd>
+<span class="refTitle">"MoLE Cryptography"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HTTP-TRANSPORT">[HTTP-TRANSPORT]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE HTTP Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-http-transport-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="LONGFELLOW">[LONGFELLOW]</dt>
+        <dd>
+<span class="refAuthor">Frigo, M.</span> and <span class="refAuthor">A. shelat</span>, <span class="refTitle">"Longfellow ZK"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-google-cfrg-libzk-02</span>, <time datetime="2026-07-22" class="refDate">22 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-02">https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PRIVACYPASS-AUTH">[PRIVACYPASS-AUTH]</dt>
+        <dd>
+<span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass HTTP Authentication Scheme"</span>, <span class="seriesInfo">RFC 9577</span>, <span class="seriesInfo">DOI 10.17487/RFC9577</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9577">https://www.rfc-editor.org/rfc/rfc9577</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PRIVACYPASS-BATCHED">[PRIVACYPASS-BATCHED]</dt>
+        <dd>
+<span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Wood, C. A.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Batched Token Issuance Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-batched-tokens-08</span>, <time datetime="2026-05-04" class="refDate">4 May 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-batched-tokens-08">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-batched-tokens-08</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PRIVACYPASS-PROTOCOLS">[PRIVACYPASS-PROTOCOLS]</dt>
+        <dd>
+<span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Privacy Pass Issuance Protocols"</span>, <span class="seriesInfo">RFC 9578</span>, <span class="seriesInfo">DOI 10.17487/RFC9578</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9578">https://www.rfc-editor.org/rfc/rfc9578</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="REVERSE-FLOW">[REVERSE-FLOW]</dt>
+        <dd>
+<span class="refAuthor">Meunier, T.</span>, <span class="refTitle">"Privacy Pass Reverse Flow"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-meunier-privacypass-reverse-flow-07</span>, <time datetime="2026-08-04" class="refDate">4 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-07">https://datatracker.ietf.org/doc/html/draft-meunier-privacypass-reverse-flow-07</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SHA2">[SHA2]</dt>
+        <dd>
+<span class="refAuthor">Eastlake 3rd, D.</span> and <span class="refAuthor">T. Hansen</span>, <span class="refTitle">"US Secure Hash Algorithms (SHA and SHA-based HMAC and HKDF)"</span>, <span class="seriesInfo">RFC 6234</span>, <span class="seriesInfo">DOI 10.17487/RFC6234</span>, <time datetime="2011-05" class="refDate">May 2011</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc6234">https://www.rfc-editor.org/rfc/rfc6234</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TLS13">[TLS13]</dt>
+      <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-10.2">
+        <h3 id="name-informative-references">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="HIDDEN-ISSUER-CIRCUIT">[HIDDEN-ISSUER-CIRCUIT]</dt>
+      <dd>
+<span class="refTitle">"Hidden issuer circuit for longfellow-zk"</span>, <span>n.d.</span>, <span>&lt;<a href="https://github.com/thibmeu/longfellow-zk/blob/hidden-issuer-poc/lib/circuits/mdoc/HIDDEN_ISSUER.md">https://github.com/thibmeu/longfellow-zk/blob/hidden-issuer-poc/lib/circuits/mdoc/HIDDEN_ISSUER.md</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="example">
+<section id="appendix-A">
+      <h2 id="name-example">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-example" class="section-name selfRef">Example</a>
+      </h2>
+<p id="appendix-A-1">A Client requests a resource protected by a Moderator that uses credential
+type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
+0x0002 (IHAT).<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<span id="name-complete-exchange"></span><div id="fig-example">
+<figure id="figure-3">
+        <div id="appendix-A-2.1">
+          <div class="alignLeft art-svg artwork" id="appendix-A-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="304" width="392" viewBox="0 0 392 304" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,176" fill="none" stroke="black"></path>
+              <path d="M 40,208 L 40,224" fill="none" stroke="black"></path>
+              <path d="M 40,256 L 40,288" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 160,32 L 160,64" fill="none" stroke="black"></path>
+              <path d="M 192,64 L 192,288" fill="none" stroke="black"></path>
+              <path d="M 232,32 L 232,64" fill="none" stroke="black"></path>
+              <path d="M 288,32 L 288,64" fill="none" stroke="black"></path>
+              <path d="M 336,64 L 336,288" fill="none" stroke="black"></path>
+              <path d="M 384,32 L 384,64" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 160,32 L 232,32" fill="none" stroke="black"></path>
+              <path d="M 288,32 L 384,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 160,64 L 232,64" fill="none" stroke="black"></path>
+              <path d="M 288,64 L 384,64" fill="none" stroke="black"></path>
+              <path d="M 40,96 L 184,96" fill="none" stroke="black"></path>
+              <path d="M 200,96 L 224,96" fill="none" stroke="black"></path>
+              <path d="M 304,96 L 328,96" fill="none" stroke="black"></path>
+              <path d="M 48,112 L 184,112" fill="none" stroke="black"></path>
+              <path d="M 200,112 L 216,112" fill="none" stroke="black"></path>
+              <path d="M 312,112 L 336,112" fill="none" stroke="black"></path>
+              <path d="M 40,128 L 64,128" fill="none" stroke="black"></path>
+              <path d="M 168,128 L 184,128" fill="none" stroke="black"></path>
+              <path d="M 48,144 L 64,144" fill="none" stroke="black"></path>
+              <path d="M 168,144 L 192,144" fill="none" stroke="black"></path>
+              <path d="M 40,160 L 64,160" fill="none" stroke="black"></path>
+              <path d="M 168,160 L 184,160" fill="none" stroke="black"></path>
+              <path d="M 48,176 L 64,176" fill="none" stroke="black"></path>
+              <path d="M 168,176 L 192,176" fill="none" stroke="black"></path>
+              <path d="M 40,208 L 184,208" fill="none" stroke="black"></path>
+              <path d="M 200,208 L 224,208" fill="none" stroke="black"></path>
+              <path d="M 296,208 L 328,208" fill="none" stroke="black"></path>
+              <path d="M 48,224 L 184,224" fill="none" stroke="black"></path>
+              <path d="M 200,224 L 224,224" fill="none" stroke="black"></path>
+              <path d="M 40,256 L 184,256" fill="none" stroke="black"></path>
+              <path d="M 200,256 L 224,256" fill="none" stroke="black"></path>
+              <path d="M 304,256 L 328,256" fill="none" stroke="black"></path>
+              <path d="M 48,272 L 184,272" fill="none" stroke="black"></path>
+              <path d="M 320,272 L 336,272" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="336,256 324,250.4 324,261.6" fill="black" transform="rotate(0,328,256)"></polygon>
+              <polygon class="arrowhead" points="336,208 324,202.4 324,213.6" fill="black" transform="rotate(0,328,208)"></polygon>
+              <polygon class="arrowhead" points="336,96 324,90.4 324,101.6" fill="black" transform="rotate(0,328,96)"></polygon>
+              <polygon class="arrowhead" points="192,160 180,154.4 180,165.6" fill="black" transform="rotate(0,184,160)"></polygon>
+              <polygon class="arrowhead" points="192,128 180,122.4 180,133.6" fill="black" transform="rotate(0,184,128)"></polygon>
+              <polygon class="arrowhead" points="56,272 44,266.4 44,277.6" fill="black" transform="rotate(180,48,272)"></polygon>
+              <polygon class="arrowhead" points="56,224 44,218.4 44,229.6" fill="black" transform="rotate(180,48,224)"></polygon>
+              <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
+              <polygon class="arrowhead" points="56,144 44,138.4 44,149.6" fill="black" transform="rotate(180,48,144)"></polygon>
+              <polygon class="arrowhead" points="56,112 44,106.4 44,117.6" fill="black" transform="rotate(180,48,112)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="196" y="52">Anchor</text>
+                <text x="336" y="52">Moderator</text>
+                <text x="264" y="100">request</text>
+                <text x="264" y="116">challenge</text>
+                <text x="108" y="132">exchange</text>
+                <text x="152" y="132">1</text>
+                <text x="108" y="148">response</text>
+                <text x="152" y="148">1</text>
+                <text x="108" y="164">exchange</text>
+                <text x="152" y="164">2</text>
+                <text x="108" y="180">response</text>
+                <text x="152" y="180">2</text>
+                <text x="36" y="196">Finalize</text>
+                <text x="260" y="212">redeem</text>
+                <text x="276" y="228">credential</text>
+                <text x="328" y="228">-</text>
+                <text x="36" y="244">Finalize</text>
+                <text x="264" y="260">present</text>
+                <text x="204" y="276">--</text>
+                <text x="228" y="276">ok</text>
+                <text x="248" y="276">+</text>
+                <text x="284" y="276">update</text>
+              </g>
+            </svg><a href="#appendix-A-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-3" class="selfRef">Figure 3</a>:
+<a href="#name-complete-exchange" class="selfRef">Complete exchange</a>
+        </figcaption></figure>
+</div>
+<p id="appendix-A-3">The Moderator challenges the Client:<a href="#appendix-A-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-4">
+<pre>
+HTTP/1.1 401 Unauthorized
+WWW-Authenticate: Mole challenge="&lt;credential-challenge&gt;",
+                       realm="moderator"
+</pre><a href="#appendix-A-4" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A-5">The Client holds no Credential for this Moderator, so it first obtains an
+Endorsement. It runs the two IHAT exchanges against the Anchor:<a href="#appendix-A-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-6">
+<pre>
+POST /mole/endorse HTTP/1.1
+Host: anchor.example
+Content-Type: application/mole-endorsement-request
+
+EndorsementRequest { 0x0002, Prepare(...) }
+</pre><a href="#appendix-A-6" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A-7">The Anchor answers each POST with an
+<code>application/mole-endorsement-response</code> body, and the Client finalizes the
+Endorsement.<a href="#appendix-A-7" class="pilcrow">¶</a></p>
+<p id="appendix-A-8">The Client then runs Redeem &amp; Issue. It repeats its request, this time
+carrying a <code>CredentialRequest</code> that redeems the Endorsement bound to the
+Moderator's challenge together with a Privacy Pass TokenRequest:<a href="#appendix-A-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-9">
+<pre>
+GET /resource HTTP/1.1
+Host: moderator.example
+Authorization: Mole credential-request="&lt;credential-request&gt;"
+</pre><a href="#appendix-A-9" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A-10">The Moderator verifies the redemption, records its nullifier, and returns
+a <code>CredentialResponse</code> carrying a TokenResponse in the <code>Mole-Credential</code>
+header, alongside its unchanged challenge. The Client finalizes it into a
+token and answers the challenge:<a href="#appendix-A-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-11">
+<pre>
+GET /resource HTTP/1.1
+Host: moderator.example
+Authorization: Mole presentation="&lt;credential-presentation&gt;"
+</pre><a href="#appendix-A-11" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A-12">The Moderator verifies the presentation and serves the resource. Its
+response carries a <code>Mole-Credential</code> header whose <code>update</code> parameter
+holds a fresh token, or an absent update if it chose to consume the
+Credential.<a href="#appendix-A-12" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Samuel Schlesinger</span></div>
+<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:sgschlesinger@gmail.com" class="email">sgschlesinger@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Dennis Jackson</span></div>
+<div dir="auto" class="left"><span class="org">Mozilla</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ietf@dennis-jackson.uk" class="email">ietf@dennis-jackson.uk</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Thibault Meunier</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ot-ietf@thibault.uk" class="email">ot-ietf@thibault.uk</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
