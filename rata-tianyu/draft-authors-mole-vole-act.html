@@ -2151,11 +2151,10 @@ still a separate, domain-separated hash of <code>c</code> and zero.<a href="#sec
 <p id="section-4.1-8"><strong>Security.</strong> Commitment hiding follows from the <code>rho = 128</code> bits of fresh
 randomness, and binding follows from collision resistance of the domain-separated
 <code>Com</code> random oracle. <code>Tag(c, x)</code> is a full random-oracle image that jointly binds
-the commitment and refund before UOV inversion. Consequently, unlike the prior
-XOR-embedding construction, this instantiation retains hash-and-sign target
-semantics and does not require a chosen-tail or translated-target UOV
-assumption. A complete protocol proof additionally requires knowledge soundness
-of the VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
+the commitment and refund before UOV inversion. This retains hash-and-sign
+target semantics and avoids a chosen-tail or translated-target UOV assumption.
+A complete protocol proof additionally requires knowledge soundness of the
+VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
 (<a href="#security" class="auto internal xref">Section 6</a>).<a href="#section-4.1-8" class="pilcrow">¶</a></p>
 <p id="section-4.1-9"><strong>Parameter selection.</strong> The knobs chosen for the ciphersuite
 <code>RATA-KP800-uovIp</code>:<a href="#section-4.1-9" class="pilcrow">¶</a></p>

@@ -839,12 +839,11 @@ VerifySpend(pk, proof):
    fresh randomness, and binding follows from collision resistance of
    the domain-separated Com random oracle.  Tag(c, x) is a full random-
    oracle image that jointly binds the commitment and refund before UOV
-   inversion.  Consequently, unlike the prior XOR-embedding
-   construction, this instantiation retains hash-and-sign target
-   semantics and does not require a chosen-tail or translated-target UOV
-   assumption.  A complete protocol proof additionally requires
-   knowledge soundness of the VOLEitH proof, faithful integer
-   arithmetic, and atomic nullifier handling (Section 6).
+   inversion.  This retains hash-and-sign target semantics and avoids a
+   chosen-tail or translated-target UOV assumption.  A complete protocol
+   proof additionally requires knowledge soundness of the VOLEitH proof,
+   faithful integer arithmetic, and atomic nullifier handling
+   (Section 6).
 
    *Parameter selection.* The knobs chosen for the ciphersuite RATA-
    KP800-uovIp:
