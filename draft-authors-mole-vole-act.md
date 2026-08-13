@@ -322,12 +322,10 @@ reader there for their definitions. In particular, it provides
 **double-spend prevention**, and it supports the same use cases, such as
 **rate limiting** and **API credits**.
 
-Beyond ACT, Ratatouille additionally provides:
-
-1. **Full Post-Quantum Security**: All security properties -- unforgeability,
-   unlinkability, and double-spend prevention -- are conjectured to hold against
-   adversaries equipped with a large-scale quantum computer. Security reduces to
-   the UOV and MQ problems and to the security of standard symmetric primitives.
+Beyond ACT, Ratatouille additionally achieves **Full Post-Quantum Security**: All security properties -- unforgeability,
+unlinkability, and double-spend prevention -- are conjectured to hold against
+adversaries equipped with a large-scale quantum computer. Security reduces to
+the UOV and MQ problems and to the security of standard symmetric primitives.
 
 This post-quantum security comes at a cost in **performance**: presentation
 proofs are larger than in the classical construction -- on the order of
@@ -335,10 +333,7 @@ kilobytes to tens of kilobytes. Nonetheless, the protocol remains practical for
 modern web services, with efficient signing, verification, and proof
 generation.
 
-> TODO: Is public verifiability of the token useful? Using public verifiability we can enable a
-> token issued by one moderator can be redeemed at another: Moderator 1 can
-> redeem a token issued by Moderator 2, at the cost of revealing the identity of
-> Moderator 1 to Moderator 2. Is this trade-off worth supporting?
+Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it. 
 
 ## Building Blocks
 
@@ -555,6 +550,8 @@ the trapdoor.
 We use the compressed form: the public key `pk` is just the public seed
 `seed_pk` and the third quadratic-map blocks `P^(3)` while the secret key `sk`
 is the secret seed `seed_sk`.
+
+> TODO Ensure all algorithms are deterministic (the caller provides the initial randomness). This way we can easily generate consistent test vectors. We'll also need to plumb this through VOLEitH proving and UOV signing.
 
 ~~~
 KeyGen():
