@@ -133,7 +133,7 @@ Table of Contents
    3.  TODO*L kilobytes are transmitted during redemption,
 
    where L is the size of the Anchor Set. In particular, the size of the
-   redemption proof scales linearily with the number of Anchors.
+   redemption proof scales linearly with the number of Anchors.
 
       NOTE(tnyuzg) We should be able to make redemption sublinear using
       the OR proof of ia,cr/2025/113, Section 4.1.
@@ -162,14 +162,29 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-   This documented follows the same conventions and uses the same
-   notation as [VOLE-ACT].
+      TODO(cjpatton) Harmonize this section with [VOLE-ACT].
 
-   We adopt the uov-1p parameter set (NIST Level 1).  That is, in the
-   remainder let n=112, m=44, and q=2^8.  Each element of F_q has a
-   natural representation as a byte.  We sometimes write F_q^n to denote
-   the length-n byte strings, e.g., r <- F_q^16 means to choose 16
-   random bytes and assign them to r.
+   This document follows the same conventions and uses the same notation
+   as [VOLE-ACT].
+
+   Vectors and sequences are indexed from zero: the elements of a
+   length-k vector v are v[0], ..., v[k-1].  For an integer k > 0, we
+   write [k] to denote the set of indices {0, ..., k-1}.
+
+   We adopt the following notation for byte strings from [IHAT].  For
+   two byte strings x and y, x || y denotes their concatenation.  For a
+   byte string x, x[i..j] denotes the substring of x that begins at its
+   byte with index i and ends just before its byte with index j; its
+   length is j - i bytes.  String values in monospace and quotes, such
+   as "mouss", are ASCII string literals and do not include a
+   terminating NUL byte.  In addition, x^k denotes the concatenation of
+   k copies of x, so that 0^k is the string of k zero bytes.
+
+   We adopt the uov-Ip parameter set (NIST Level 1).  That is, in the
+   remainder of this document, let n=112, m=44, and q=2^8.  Each element
+   of F_q has a natural representation as a byte.  We sometimes write
+   F_q^k to denote the set of length-k byte strings, e.g., r <- F_q^16
+   means to choose 16 random bytes and assign them to r.
 
 3.  Overview
 
@@ -205,20 +220,20 @@ Table of Contents
    1.  The Client constructs a commitment t = Com(nf, ctx_iss, ctx_red,
        r) to a nullifier nf and the intended issuance and redemption
        context, where r is the opening.  It also constructs a VOLEitH
-       proof pf_iss of knowledge of nf, r, ctx_red from which t was
-       computed sends t, pf_iss to the Anchor.
+       proof pf_iss of knowledge of the nf, r, ctx_red from which t was
+       computed, then sends t, pf_iss to the Anchor.
 
    2.  The Anchor verifies pf_iss, samples a solution s to P(s) = t,
        then sends s to the Client.
 
    3.  The Client finalizes issuance by checking that P(s) = t.
 
-   The process resembles blind signature issuance [RFC9474], The key
+   The process resembles blind signature issuance [RFC9474].  The key
    difference is that the Anchor observes the signature s in plaintext.
    To ensure unlinkability, the Client must hide the signature from the
    Moderator during redemption.
 
-   Let P[1], ..., P[L] denote the Anchor Set. To redeem a token, the
+   Let P[0], ..., P[L-1] denote the Anchor Set. To redeem a token, the
    Client presents the nullifier in plaintext along with a VOLEitH proof
    of knowledge of s, r for which P[i](s) = t for some i in [L] without
    revealing i.  In order to prove this statement with VOLEitH, we need
@@ -227,32 +242,42 @@ Table of Contents
    Our arithmetization exploits the simple structure of UOV signatures
    as defined in [UOV].  Namely, for any public key P it holds that
    P(0^n) = 0^m.  The idea is to extend the witness with a "selector"
-   vector b[1], ..., b[L] for which b[j] = 1 if j = i and 0 otherwise.
+   vector b[0], ..., b[L-1] for which b[j] = 1 if j = i and 0 otherwise.
    First the circuit computes Q := Select(b, P) as follows:
 
    Select(b, P):
      Input:
        - b: selector vector, in F_q^L
-       - P: anchor set, a sequence of L maps F_q^n -> F_q^m
+       - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
+
      Output:
-       - Q: selected map F_q^n -> F_q^m
+       - Q: the selected map from F_q^n to F_q^m
 
      Steps:
-       1. N = n(n + 1) / 2
-       1. Q = 0^N
-       2. for i in [L]:
-       3.   for j in [N]:
-       4.     Q[j] += b[i] * P[i][j]
-       5. return Q
+       1. N := m * n * (n + 1) / 2  // field elements per map
+       2. Q := 0^N
+       3. for i in [L]:
+       4.   for j in [N]:
+       5.     Q[j] += b[i] * P[i][j]
+       6. return Q
 
    It then checks that Q(s) = Com(nf, ctx_iss, ctx_red, r) and that
    b[i]*(b[i] - 1) = 0 for all i in [L].
 
+      TODO(cjpatton) These constraints force each b[i] into {0, 1} but
+      do not force b to have Hamming weight one.  If more than one b[i]
+      is set, then Q is a sum of public keys, and a rogue Anchor could
+      choose its own key so that it knows a trapdoor for that sum.  Note
+      that the obvious fix, the linear constraint b[0] + ... + b[L-1] =
+      1, is not sufficient: F_q has characteristic 2, so this only
+      forces the weight of b to be odd.  We may instead want to derive b
+      in-circuit from a binary encoding of i.
+
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
-   [RFC9474], this parameterization of Keccak has half the number of
-   rounds as used in SHA-3.  However, its state is also half the size of
-   either SHA-3 or TurboSHAKE.  This helps reduce the size of the
+   [RFC9861], this parameterization of Keccak uses half as many rounds
+   as SHA-3.  However, its state is also half the size of the state used
+   by either SHA-3 or TurboSHAKE.  This helps reduce the size of the
    VOLEitH proof without impacting the binding or hiding of the
    commitment.  See Section 6 for details.
 
@@ -271,31 +296,31 @@ Table of Contents
       any randomness they would generate as input.  This will make it
       easier to generate test vectors.
 
-   Define KP800(state) to be output of applying Keccak-p[800,12]
+   Define KP800(state) to be the output of applying Keccak-p[800,12]
    [FIPS202] to state in F_q^100.  Note that this is a non-standard size
    for the Keccak permutation; see Section 6 for discussion.
 
-   We write to (cpk, csk) := UOV.CompactKeyGen() to denote execution of
-   the compact key generation algorithm of [UOV], Figure 2.  Output cpk
-   is the public key and csk is the secret key.  The input parameters
-   are omitted and instead hard coded as uov-Ip (see [UOV], Table 4).
+   We write (cpk, csk) := UOV.CompactKeyGen() to denote execution of the
+   compact key generation algorithm of [UOV], Figure 2.  Output cpk is
+   the public key and csk is the secret key.  The input parameters are
+   omitted and instead hard-coded as uov-Ip (see [UOV], Table 4).
 
    We write P := UOV.ExpandPK(cpk) to denote expansion of the public key
    into the UOV map P : F_q^n -> F_q^m using the procedure in [UOV],
    Figure 2.  Likewise, we write td := UOV.ExpandSK(csk) to denote
-   expansion of the secret into the trapdoor td for P.
+   expansion of the secret key into the trapdoor td for P.
 
-   We write t := UOV.SPre(td, s) to denote sampling a pre-image s for
-   target t under P, i.e., s for which P(s) = t.  This is the same
+   We write s := UOV.SPre(td, t) to denote sampling a pre-image of
+   target t under P, i.e., an s for which P(s) = t.  This is the same
    procedure as used in the signing algorithm in [UOV], Figure 2.
 
    We write pf := VOLEitH.Prove(W, X, R) to denote proving knowledge of
    a witness W satisfying a relation R(X, W) for public parameters X
    using the VOLE-in-the-Head proof system defined in [FAEST].  We write
    v := VOLEitH.Verify(pf, X, R) to denote verification of pf under the
-   same public parameters and relation and assigning the output (a bit)
-   to v.  The relation is expressed as a sequence of constraints, all of
-   which must be satisfied for the proof to be valid.
+   same public parameters and relation, where the output v is a bit.
+   The relation is expressed as a sequence of constraints, all of which
+   must be satisfied for the proof to be valid.
 
       TODO(cjpatton) Figure out how to cite [FAEST] more precisely.  At
       the moment the details of VOLEitH are mixed with the details of
@@ -305,12 +330,12 @@ Table of Contents
 5.  Protocol
 
       TODO(cjpatton) Specify wire formats for each of the messages.  For
-      now we're will ignore how things are encoded until we're more
-      certain of the shape of the protocol.
+      now we will ignore how things are encoded until we're more certain
+      of the shape of the protocol.
 
-   The constant VERSION in F_q is used for versioning and is meant to be
-   kept in sync with revisions to this document.  Its current value
-   SHALL be 0.
+   The constant VERSION, an element of F_q, is used for versioning and
+   is meant to be kept in sync with revisions to this document.  Its
+   current value SHALL be 0.
 
 5.1.  Anchor Key Generation
 
@@ -323,10 +348,10 @@ Table of Contents
        - td: a secret UOV trapdoor for P
 
      Steps:
-       2. (cpk, csk) := UOV.CompactKeyGen(params)
-       3. P := UOV.ExpandPK(cpk)
-       4. td := UOV.ExpandSK(csk)
-       5. return (P, td)
+       1. (cpk, csk) := UOV.CompactKeyGen()
+       2. P := UOV.ExpandPK(cpk)
+       3. td := UOV.ExpandSK(csk)
+       4. return (P, td)
 
 5.2.  Commitment
 
@@ -343,13 +368,23 @@ Table of Contents
        - r: the commitment opening, in F_q^16
 
      Output:
-       - t: the commitment, in `F_q^m`
+       - t: the commitment, in F_q^m
 
      Steps:
        1. state := "mouss" || VERSION || 0^10 || r ||
                    ctx_iss || ctx_red || 0^12 || nf
-       2. t := KP800(state)[:m]
+       2. t := KP800(state)[0..m]
        3. return t
+
+   The layout of state is chosen so that the entire commitment is
+   computed with a single application of the permutation.  This
+   constrains the lengths of the inputs: nf is 24 bytes, whereas [IHAT]
+   uses a 32-byte nullifier, and the contexts are 16 bytes, whereas
+   [IHAT] allows them to be arbitrary byte strings.
+
+      TODO(cjpatton) Specify how the issuance and redemption contexts of
+      [IHAT] are compressed into 16 bytes each, and whether a 24-byte
+      nullifier is sufficient.
 
 5.3.  Issuance
 
@@ -402,7 +437,7 @@ Table of Contents
             [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
           )
        3. if v = 0: return INVALID
-       4. s := UOV.Sign(td, t)
+       4. s := UOV.SPre(td, t)
        5. return s
 
 5.3.3.  Finalization
@@ -419,7 +454,7 @@ Table of Contents
        - ctx_red: redemption context, in F_q^16
 
      Output:
-       - token: the issued token
+       - token: the issued token, or INVALID
 
      Steps:
        1. (nf, r) := pending_token
@@ -429,10 +464,8 @@ Table of Contents
 
 5.4.  Redemption
 
-      XXX zero-based indexing
-
    Before redemption, the Client and Moderator agree on an Anchor Set
-   consisting of a sequence of UOV public keys P[1], ..., P[L].
+   consisting of a sequence of UOV public keys P[0], ..., P[L-1].
 
 5.4.1.  Redeem Request
 
@@ -440,10 +473,10 @@ Table of Contents
    Client runs the following procedure.  Let Select() be the procedure
    defined in Section 3.
 
-   RedeemRequest(P, token, ctx_iss, ctx_red):
+   RedeemRequest(P, i, token, ctx_iss, ctx_red):
      Input:
-       - P: Anchor Set
-       - i: index of issuing Anchor
+       - P: Anchor Set of length L
+       - i: index of the issuing Anchor, in [L]
        - token: the issued token
        - ctx_iss: issuance context, in F_q^16
        - ctx_red: redemption context, in F_q^16
@@ -459,10 +492,10 @@ Table of Contents
             (r, s, b),                  // witness
             (P, nf, ctx_iss, ctx_red),  // public
             [                           // relation
-              b[1] * (b[1] - 1) = 0,
+              b[0] * (b[0] - 1) = 0,
               ...,
-              b[L] * (b[L] - 1) = 0,
-              Select(b, P) = Com(nf, ctx_iss, ctx_red, r),
+              b[L-1] * (b[L-1] - 1) = 0,
+              Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
             ],
           )
        5. request := (nf, pf_red)
@@ -489,10 +522,10 @@ Table of Contents
             pf_red,
             (P, nf, ctx_iss, ctx_red),  // public
             [                           // relation
-              b[1] * (b[1] - 1) = 0,
+              b[0] * (b[0] - 1) = 0,
               ...,
-              b[L] * (b[L] - 1) = 0,
-              Select(b, P) = Com(nf, ctx_iss, ctx_red, r),
+              b[L-1] * (b[L-1] - 1) = 0,
+              Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
             ],
           )
        3. if v = 0: return INVALID
@@ -502,7 +535,7 @@ Table of Contents
 
       TODO Prove the following claims.
 
-   Issuer-hiding and post-issuance unlinkability of Moussaka reduces to
+   Issuer-hiding and post-issuance unlinkability of Moussaka reduce to
    the zero-knowledge property of the VOLEitH proof system and the
    hiding property of our commitment.  One-more-unforgeability reduces
    to witness-extractability of VOLEitH, binding of the commitment, and
@@ -521,16 +554,16 @@ Table of Contents
       random targets we got as input to our one-more-UOV instance; when
       B requests issuance, we forward the target to our own SPre oracle.
 
-      On input P, t[1], ..., t[Q] and with oracle SPre: Run B with P as
-      the issuer public key and respond to its queries as follows:
+      On input P, t[0], ..., t[Q-1] and with oracle SPre: Run B with P
+      as the issuer public key and respond to its queries as follows:
 
-      -  When B asks Com(nf, r): for the i-th such query, respond with c
-         = t[i].
+      -  When B asks Com(nf, r): for the i-th such query, counting from
+         zero, respond with c = t[i].
 
       -  When B requests issuance for c: respond with s = SPre(c).
 
-      -  When B requests redemption for nf, pi: extract the witness s, r
-         for pi and let c = Com(nf, r).  (If this fails, then witness
+      -  When B requests redemption for nf, pf: extract the witness s, r
+         for pf and let c = Com(nf, r).  (If this fails, then witness
          extractability of VOLEitH implies the Moderator will reject.)
          If we didn't issue s for c, then B has successfully one-more-
          forged.  Furthermore, c = t[i] for some i in [Q], hence s is a
@@ -538,13 +571,13 @@ Table of Contents
 
       NOTE We previously looked at an alternative to the outer
       commitment in which c was "tagged" with issuance context x via
-      either c || x or c ^ x.  A reduction to one-more-UOV is possible,
-      but it incurs a significant loss in concrete security, since the
-      reduction has to guess x so that it can program the random oracle
-      accordingly.  Matching attack: XORing the tag into the image under
-      the hash makes means the attacker gets to pick any prefix it
-      wants.  It now only needs to find a collision in the remaining
-      bits of the image.
+      either c || x or c XOR x.  A reduction to one-more-UOV is
+      possible, but it incurs a significant loss in concrete security,
+      since the reduction has to guess x so that it can program the
+      random oracle accordingly.  Matching attack: XORing the tag into
+      the image under the hash means the attacker gets to pick any
+      prefix it wants.  It now only needs to find a collision in the
+      remaining bits of the image.
 
       TODO Justify halving the Keccak state from 1600 to 800 (relative
       to TurboSHAKE).
@@ -585,10 +618,6 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
-              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
-              <https://www.rfc-editor.org/rfc/rfc9474>.
-
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
               C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
@@ -612,6 +641,15 @@ Table of Contents
               Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
               Cryptology ePrint Archive Paper 2026/109, 2026,
               <https://eprint.iacr.org/2026/109>.
+
+   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
+              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
+              <https://www.rfc-editor.org/rfc/rfc9474>.
+
+   [RFC9861]  Viguier, B., Wong, D., Ed., Van Assche, G., Ed., Dang, Q.,
+              Ed., and J. Daemen, Ed., "KangarooTwelve and TurboSHAKE",
+              RFC 9861, DOI 10.17487/RFC9861, October 2025,
+              <https://www.rfc-editor.org/rfc/rfc9861>.
 
 Acknowledgments
 

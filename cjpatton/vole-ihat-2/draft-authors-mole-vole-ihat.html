@@ -1276,7 +1276,7 @@ parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="
 </li>
       </ol>
 <p id="section-1-7">where <code>L</code> is the size of the Anchor Set. In particular, the size of the
-redemption proof scales linearily with the number of Anchors.<a href="#section-1-7" class="pilcrow">¶</a></p>
+redemption proof scales linearly with the number of Anchors.<a href="#section-1-7" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-8.1">
           <p id="section-1-8.1.1">NOTE(tnyuzg) We should be able to make redemption sublinear using the
@@ -1306,13 +1306,29 @@ considerations for implementers and adopters.<a href="#section-1-10" class="pilc
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">This documented follows the same conventions and uses the same notation as
-<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">We adopt the uov-1p parameter set (NIST Level 1). That is, in the remainder let
-<code>n=112</code>, <code>m=44</code>, and <code>q=2^8</code>. Each element of <code>F_q</code> has a natural
-representation as a byte. We sometimes write <code>F_q^n</code> to denote the length-<code>n</code>
-byte strings, e.g., <code>r &lt;- F_q^16</code> means to choose <code>16</code> random bytes and assign
-them to <code>r</code>.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-2-2.1">
+          <p id="section-2-2.1.1">TODO(cjpatton) Harmonize this section with <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-2-3">This document follows the same conventions and uses the same notation as
+<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">Vectors and sequences are indexed from zero: the elements of a length-<code>k</code> vector
+<code>v</code> are <code>v[0], ..., v[k-1]</code>. For an integer <code>k &gt; 0</code>, we write <code>[k]</code> to denote
+the set of indices <code>{0, ..., k-1}</code>.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">We adopt the following notation for byte strings from <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. For two byte
+strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation. For a byte string
+<code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at its byte with index
+<code>i</code> and ends just before its byte with index <code>j</code>; its length is <code>j - i</code> bytes.
+String values in monospace and quotes, such as <code>"mouss"</code>, are ASCII string
+literals and do not include a terminating NUL byte. In addition, <code>x^k</code> denotes
+the concatenation of <code>k</code> copies of <code>x</code>, so that <code>0^k</code> is the string of <code>k</code> zero
+bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">We adopt the uov-Ip parameter set (NIST Level 1). That is, in the remainder of
+this document, let <code>n=112</code>, <code>m=44</code>, and <code>q=2^8</code>. Each element of <code>F_q</code> has a
+natural representation as a byte. We sometimes write <code>F_q^k</code> to denote the set
+of length-<code>k</code> byte strings, e.g., <code>r &lt;- F_q^16</code> means to choose 16 random bytes
+and assign them to <code>r</code>.<a href="#section-2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1353,11 +1369,11 @@ redemption.<a href="#section-3-4" class="pilcrow">¶</a></p>
       </ul>
 <ol start="1" type="1" class="normal type-1" id="section-3-7">
 <li id="section-3-7.1">
-          <p id="section-3-7.1.1">The Client constructs a commitment <code>t = Com(nf, ctx_iss, ctx_red, r) </code> to a
+          <p id="section-3-7.1.1">The Client constructs a commitment <code>t = Com(nf, ctx_iss, ctx_red, r)</code> to a
 nullifier <code>nf</code> and the intended issuance and redemption context, where <code>r</code>
 is the opening. It also constructs a VOLEitH proof <code>pf_iss</code> of knowledge of
-<code>nf, r, ctx_red</code> from which <code>t</code> was computed sends <code>t, pf_iss</code> to the
-Anchor.<a href="#section-3-7.1.1" class="pilcrow">¶</a></p>
+the <code>nf, r, ctx_red</code> from which <code>t</code> was computed, then sends <code>t, pf_iss</code> to
+the Anchor.<a href="#section-3-7.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-3-7.2">
           <p id="section-3-7.2.1">The Anchor verifies <code>pf_iss</code>, samples a solution <code>s</code> to <code>P(s) = t</code>, then
@@ -1367,18 +1383,18 @@ sends <code>s</code> to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶
           <p id="section-3-7.3.1">The Client finalizes issuance by checking that <code>P(s) = t</code>.<a href="#section-3-7.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-3-8">The process resembles blind signature issuance <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>, The key difference
+<p id="section-3-8">The process resembles blind signature issuance <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>. The key difference
 is that the Anchor observes the signature <code>s</code> in plaintext. To ensure
 unlinkability, the Client must hide the signature from the Moderator during
 redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
+<p id="section-3-9">Let <code>P[0], ..., P[L-1]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 <code>s, r</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing <code>i</code>. In
 order to prove this statement with VOLEitH, we need to express it as an
 arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
 <p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures as defined
-in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key  <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
-idea is to extend the witness with a "selector" vector <code>b[1], ..., b[L]</code> for
+in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
+idea is to extend the witness with a "selector" vector <code>b[0], ..., b[L-1]</code> for
 which <code>b[j] = 1</code> if <code>j = i</code> and <code>0</code> otherwise. First the circuit computes <code>Q :=
 Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-3-11">
@@ -1386,34 +1402,46 @@ Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p
 Select(b, P):
   Input:
     - b: selector vector, in F_q^L
-    - P: anchor set, a sequence of L maps F_q^n -&gt; F_q^m
+    - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
+
   Output:
-    - Q: selected map F_q^n -&gt; F_q^m
+    - Q: the selected map from F_q^n to F_q^m
 
   Steps:
-    1. N = n(n + 1) / 2
-    1. Q = 0^N
-    2. for i in [L]:
-    3.   for j in [N]:
-    4.     Q[j] += b[i] * P[i][j]
-    5. return Q
+    1. N := m * n * (n + 1) / 2  // field elements per map
+    2. Q := 0^N
+    3. for i in [L]:
+    4.   for j in [N]:
+    5.     Q[j] += b[i] * P[i][j]
+    6. return Q
 </pre><a href="#section-3-11" class="pilcrow">¶</a>
 </div>
 <p id="section-3-12">It then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that
 <code>b[i]*(b[i] - 1) = 0</code> for all <code>i in [L]</code>.<a href="#section-3-12" class="pilcrow">¶</a></p>
-<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
-Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>,
-this parameterization of Keccak has half the number of rounds as used in SHA-3.
-However, its state is also half the size of either SHA-3 or TurboSHAKE. This
-helps reduce the size of the VOLEitH proof without impacting the binding or
-hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-14.1">
-          <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+<li class="normal ulEmpty" id="section-3-13.1">
+          <p id="section-3-13.1.1">TODO(cjpatton) These constraints force each <code>b[i]</code> into <code>{0, 1}</code> but do not
+force <code>b</code> to have Hamming weight one. If more than one <code>b[i]</code> is set, then <code>Q</code>
+is a sum of public keys, and a rogue Anchor could choose its own key so that
+it knows a trapdoor for that sum. Note that the obvious fix, the linear
+constraint <code>b[0] + ... + b[L-1] = 1</code>, is not sufficient: <code>F_q</code> has
+characteristic 2, so this only forces the weight of <code>b</code> to be odd. We may
+instead want to derive <code>b</code> in-circuit from a binary encoding of <code>i</code>.<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-14">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
+this parameterization of Keccak uses half as many rounds as SHA-3. However, its
+state is also half the size of the state used by either SHA-3 or TurboSHAKE.
+This helps reduce the size of the VOLEitH proof without impacting the binding or
+hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-15.1">
+          <p id="section-3-15.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
 alternative is to have the Anchor bind the issuance context by applying an
 outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
 no issuance proof is required. It would also have the benefit of not
-requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1435,27 +1463,27 @@ randomness they would generate as input. This will make it easier to generate
 test vectors.<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-4-3">Define <code>KP800(state)</code> to be output of applying <code>Keccak-p[800,12]</code> <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>
-to <code>state in F_q^100</code>. Note that this is a non-standard size for the Keccak
-permutation; see <a href="#security" class="auto internal xref">Section 6</a> for discussion.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">We write to <code>(cpk, csk) := UOV.CompactKeyGen()</code> to denote execution of the
-compact key generation algorithm of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2. Output <code>cpk</code> is the
-public key and <code>csk</code> is the secret key. The input parameters are omitted and
-instead hard coded as uov-Ip (see <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Table 4).<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-3">Define <code>KP800(state)</code> to be the output of applying <code>Keccak-p[800,12]</code>
+        <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span> to <code>state in F_q^100</code>. Note that this is a non-standard size for
+the Keccak permutation; see <a href="#security" class="auto internal xref">Section 6</a> for discussion.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">We write <code>(cpk, csk) := UOV.CompactKeyGen()</code> to denote execution of the compact
+key generation algorithm of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2. Output <code>cpk</code> is the public key
+and <code>csk</code> is the secret key. The input parameters are omitted and instead
+hard-coded as uov-Ip (see <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Table 4).<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">We write <code>P := UOV.ExpandPK(cpk)</code> to denote expansion of the public key into the
 UOV map <code>P : F_q^n -&gt; F_q^m</code> using the procedure in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.
-Likewise, we write <code>td := UOV.ExpandSK(csk)</code> to denote expansion of the secret into
-the trapdoor <code>td</code> for <code>P</code>.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">We write <code>t := UOV.SPre(td, s)</code> to denote sampling a pre-image <code>s</code> for target
-<code>t</code> under <code>P</code>, i.e., <code>s</code> for which <code>P(s) = t</code>. This is the same procedure as
-used in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.<a href="#section-4-6" class="pilcrow">¶</a></p>
+Likewise, we write <code>td := UOV.ExpandSK(csk)</code> to denote expansion of the secret
+key into the trapdoor <code>td</code> for <code>P</code>.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">We write <code>s := UOV.SPre(td, t)</code> to denote sampling a pre-image of target <code>t</code>
+under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. This is the same procedure as used
+in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.<a href="#section-4-6" class="pilcrow">¶</a></p>
 <p id="section-4-7">We write <code>pf := VOLEitH.Prove(W, X, R)</code> to denote proving knowledge of a
 witness <code>W</code> satisfying a relation <code>R(X, W)</code> for public parameters <code>X</code> using the
 VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write <code>v :=
 VOLEitH.Verify(pf, X, R)</code> to denote verification of <code>pf</code> under the same public
-parameters and relation and assigning the output (a bit) to <code>v</code>. The relation
-is expressed as a sequence of constraints, all of which must be satisfied for
-the proof to be valid.<a href="#section-4-7" class="pilcrow">¶</a></p>
+parameters and relation, where the output <code>v</code> is a bit. The relation is
+expressed as a sequence of constraints, all of which must be satisfied for the
+proof to be valid.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-4-8.1">
           <p id="section-4-8.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. At the moment
@@ -1473,13 +1501,14 @@ proof system out of the spec.<a href="#section-4-8.1.1" class="pilcrow">¶</a></
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5-1.1">
-          <p id="section-5-1.1.1">TODO(cjpatton) Specify wire formats for each of the messages. For now we're
-will ignore how things are encoded until we're more certain of the shape of
-the protocol.<a href="#section-5-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-5-1.1.1">TODO(cjpatton) Specify wire formats for each of the messages. For now we will
+ignore how things are encoded until we're more certain of the shape of the
+protocol.<a href="#section-5-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-5-2">The constant <code>VERSION in F_q</code> is used for versioning and is meant to be kept in
-sync with revisions to this document. Its current value <span class="bcp14">SHALL</span> be <code>0</code>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-2">The constant <code>VERSION</code>, an element of <code>F_q</code>, is used for versioning and is meant
+to be kept in sync with revisions to this document. Its current value <span class="bcp14">SHALL</span> be
+<code>0</code>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <div id="anchor-key-generation">
 <section id="section-5.1">
         <h3 id="name-anchor-key-generation">
@@ -1494,10 +1523,10 @@ KeyGen():
     - td: a secret UOV trapdoor for P
 
   Steps:
-    2. (cpk, csk) := UOV.CompactKeyGen(params)
-    3. P := UOV.ExpandPK(cpk)
-    4. td := UOV.ExpandSK(csk)
-    5. return (P, td)
+    1. (cpk, csk) := UOV.CompactKeyGen()
+    2. P := UOV.ExpandPK(cpk)
+    3. td := UOV.ExpandSK(csk)
+    4. return (P, td)
 </pre><a href="#section-5.1-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -1520,15 +1549,27 @@ Com(nf, ctx_iss, ctx_red, r):
     - r: the commitment opening, in F_q^16
 
   Output:
-    - t: the commitment, in `F_q^m`
+    - t: the commitment, in F_q^m
 
   Steps:
     1. state := "mouss" || VERSION || 0^10 || r ||
                 ctx_iss || ctx_red || 0^12 || nf
-    2. t := KP800(state)[:m]
+    2. t := KP800(state)[0..m]
     3. return t
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
+<p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with a
+single application of the permutation. This constrains the lengths of the
+inputs: <code>nf</code> is 24 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> uses a 32-byte nullifier, and the
+contexts are 16 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> allows them to be arbitrary byte
+strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.2-4.1">
+            <p id="section-5.2-4.1.1">TODO(cjpatton) Specify how the issuance and redemption contexts of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>
+are compressed into 16 bytes each, and whether a 24-byte nullifier is
+sufficient.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="issuance">
@@ -1596,7 +1637,7 @@ IssueResponse(td, request, ctx_iss):
          [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
        )
     3. if v = 0: return INVALID
-    4. s := UOV.Sign(td, t)
+    4. s := UOV.SPre(td, t)
     5. return s
 </pre><a href="#section-5.3.2-2" class="pilcrow">¶</a>
 </div>
@@ -1620,7 +1661,7 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
     - ctx_red: redemption context, in F_q^16
 
   Output:
-    - token: the issued token
+    - token: the issued token, or INVALID
 
   Steps:
     1. (nf, r) := pending_token
@@ -1638,13 +1679,8 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
         <h3 id="name-redemption">
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
         </h3>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.4-1.1">
-            <p id="section-5.4-1.1.1">XXX zero-based indexing<a href="#section-5.4-1.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-5.4-2">Before redemption, the Client and Moderator agree on an Anchor Set consisting
-of a sequence of UOV public keys <code>P[1], ..., P[L]</code>.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
+of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">
@@ -1655,10 +1691,10 @@ the following procedure. Let <code>Select()</code> be the procedure defined in
 <a href="#overview" class="auto internal xref">Section 3</a>.<a href="#section-5.4.1-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.4.1-2">
 <pre>
-RedeemRequest(P, token, ctx_iss, ctx_red):
+RedeemRequest(P, i, token, ctx_iss, ctx_red):
   Input:
-    - P: Anchor Set
-    - i: index of issuing Anchor
+    - P: Anchor Set of length L
+    - i: index of the issuing Anchor, in [L]
     - token: the issued token
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
@@ -1674,10 +1710,10 @@ RedeemRequest(P, token, ctx_iss, ctx_red):
          (r, s, b),                  // witness
          (P, nf, ctx_iss, ctx_red),  // public
          [                           // relation
-           b[1] * (b[1] - 1) = 0,
+           b[0] * (b[0] - 1) = 0,
            ...,
-           b[L] * (b[L] - 1) = 0,
-           Select(b, P) = Com(nf, ctx_iss, ctx_red, r),
+           b[L-1] * (b[L-1] - 1) = 0,
+           Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
          ],
        )
     5. request := (nf, pf_red)
@@ -1710,10 +1746,10 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
          pf_red,
          (P, nf, ctx_iss, ctx_red),  // public
          [                           // relation
-           b[1] * (b[1] - 1) = 0,
+           b[0] * (b[0] - 1) = 0,
            ...,
-           b[L] * (b[L] - 1) = 0,
-           Select(b, P) = Com(nf, ctx_iss, ctx_red, r),
+           b[L-1] * (b[L-1] - 1) = 0,
+           Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
          ],
        )
     3. if v = 0: return INVALID
@@ -1736,7 +1772,7 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
           <p id="section-6-1.1.1">TODO Prove the following claims.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-2">Issuer-hiding and post-issuance unlinkability of Moussaka reduces to the
+<p id="section-6-2">Issuer-hiding and post-issuance unlinkability of Moussaka reduce to the
 zero-knowledge property of the VOLEitH proof system and the hiding property of
 our commitment. One-more-unforgeability reduces to witness-extractability of
 VOLEitH, binding of the commitment, and the one-more-UOV assumption
@@ -1752,39 +1788,43 @@ Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and
 forger <code>A</code>. We simulate <code>B</code>'s RO queries using the random targets we got as
 input to our one-more-UOV instance; when <code>B</code> requests issuance, we forward
 the target to our own <code>SPre</code> oracle.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.3">On input <code>P, t[1], ..., t[Q]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as the
-issuer public key and respond to its queries as follows:<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
+<p id="section-6-3.1.3">On input <code>P, t[0], ..., t[Q-1]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as
+the issuer public key and respond to its queries as follows:<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-6-3.1.4.1">
-              <p id="section-6-3.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, respond with <code>c =
-t[i]</code>.<a href="#section-6-3.1.4.1.1" class="pilcrow">¶</a></p>
+              <p id="section-6-3.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, counting from zero,
+respond with <code>c = t[i]</code>.<a href="#section-6-3.1.4.1.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6-3.1.4.2">
               <p id="section-6-3.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6-3.1.4.3">
-              <p id="section-6-3.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: extract the witness <code>s, r</code> for
-<code>pi</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
+              <p id="section-6-3.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pf</code>: extract the witness <code>s, r</code> for
+<code>pf</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
 of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
 <code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
 some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
 instance.<a href="#section-6-3.1.4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6-3.1.5">NOTE We previously looked at an alternative to the outer commitment in which
-<code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c ^ x</code>. A
-reduction to one-more-UOV is possible, but it incurs a significant loss in
-concrete security, since the reduction has to guess <code>x</code> so that it can
-program the random oracle accordingly. Matching attack: XORing the tag
-into the image under the hash makes means the attacker gets to pick any
-prefix it wants. It now only needs to find a collision in the remaining bits
-of the image.<a href="#section-6-3.1.5" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-6-4.1">
-          <p id="section-6-4.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
-TurboSHAKE).<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+          <p id="section-6-4.1.1">NOTE We previously looked at an alternative to the outer commitment in which
+<code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c XOR x</code>. A
+reduction to one-more-UOV is possible, but it incurs a significant loss in
+concrete security, since the reduction has to guess <code>x</code> so that it can
+program the random oracle accordingly. Matching attack: XORing the tag
+into the image under the hash means the attacker gets to pick any prefix it
+wants. It now only needs to find a collision in the remaining bits of the
+image.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-5.1">
+          <p id="section-6-5.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1832,10 +1872,6 @@ TurboSHAKE).<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="RFC9474">[RFC9474]</dt>
-        <dd>
-<span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
         <dd>
 <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
@@ -1858,8 +1894,16 @@ TurboSHAKE).<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
 <span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PoMFRIT">[PoMFRIT]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9474">[RFC9474]</dt>
+        <dd>
+<span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC9861">[RFC9861]</dt>
+      <dd>
+<span class="refAuthor">Viguier, B.</span>, <span class="refAuthor">Wong, D., Ed.</span>, <span class="refAuthor">Van Assche, G., Ed.</span>, <span class="refAuthor">Dang, Q., Ed.</span>, and <span class="refAuthor">J. Daemen, Ed.</span>, <span class="refTitle">"KangarooTwelve and TurboSHAKE"</span>, <span class="seriesInfo">RFC 9861</span>, <span class="seriesInfo">DOI 10.17487/RFC9861</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9861">https://www.rfc-editor.org/rfc/rfc9861</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
