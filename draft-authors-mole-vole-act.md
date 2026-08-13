@@ -864,7 +864,7 @@ deployment-wide parameters derived from `dst`, and the resulting UOV dimensions
 ## Hash commitment (Keccak-p[800, 12]) {#hash-commitment}
 
 Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE
-{{RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`
+{{?RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`
 {{FIPS202}}, modeled as a random oracle and domain-separated by `dst`.
 `KP800(M, d)` squeezes `d` bytes of output, and `KP800(M)` defaults to
 `d = 2*lambda/8` bytes (i.e. `2*lambda` bits). Distinct one-byte
