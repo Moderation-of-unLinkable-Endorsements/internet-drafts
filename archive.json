@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-11T01:56:04.331836+00:00",
+  "timestamp": "2026-08-13T02:10:48.916009+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -534,7 +534,7 @@
       "labels": [],
       "body": "We currently think of IHAT and ACT as concrete protocols. It might be useful to reframe them as classes of protocols, of which there may be multiple instances. I suppose this is similar to how blind RSA and VOPRF are Privacy Pass token types, but I'm not 100% certain.\n\nIHAT has a few \"token types\":\n\n1. draft-authors-mole-crypto\n2. Longfellow (as discussed in draft-jms-mole-protocol)\n3. draft-authors-mole-vole-ihat\n\nACT has two:\n\n1. draft-schlesinger-cfrg-act\n2. draft-authors-mole-vole-act\n\nWhat do folks think?",
       "createdAt": "2026-08-07T23:03:41Z",
-      "updatedAt": "2026-08-10T18:20:21Z",
+      "updatedAt": "2026-08-13T00:11:51Z",
       "closedAt": null,
       "comments": [
         {
@@ -550,6 +550,27 @@
           "body": "Rollatini?",
           "createdAt": "2026-08-10T18:20:21Z",
           "updatedAt": "2026-08-10T18:20:21Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Registering tokens that mole needed within [privacy pass token registry](https://www.iana.org/assignments/privacy-pass/privacy-pass.xhtml) was discussed in the side meeting in Vienna. This is something that seems valuable overall to facilitate reuse of new token types within the privacy pass ecosystem.\n\nThe tradeoff is that we should not consider privacy pass to be the main use case. The interface fits well at the moment (both for endorsement and credential types). If that diverges too much from what privacy pass rfc defines (specifically RFC 9576 and RFC 9577), we should be ok to cut the tie down the line.\n\nRegistration should be relativaly straight forward by following the template provided in the [IANA consideration section of RFC 9578](https://datatracker.ietf.org/doc/html/rfc9578#name-privacy-pass-token-types)",
+          "createdAt": "2026-08-12T07:40:44Z",
+          "updatedAt": "2026-08-12T07:40:44Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "I don't think we necessarily need a **Privacy Pass** registry. If we decide to form a WG for MoLE, then we can create our own registry.",
+          "createdAt": "2026-08-12T15:03:08Z",
+          "updatedAt": "2026-08-12T15:03:08Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Consider not doing the negotiation of type at the core protocol layer.  That is something that is better handled at a higher layer.",
+          "createdAt": "2026-08-13T00:11:51Z",
+          "updatedAt": "2026-08-13T00:11:51Z"
         }
       ]
     },
@@ -568,7 +589,7 @@
       ],
       "body": "Right now IHAT has roughly the following syntax:\n\n* Issuance: `Client(ctx_red, ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` That is, the client and anchor agree on the anchor's key and issuance context (client keeps the redemption context secret) and interact over some number of moves (2-3).\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Client and moderator agree on the issuance and redemption context and the anchor set. The client sends an endorsement covered by the anchor set.\n\nEach IHAT token can be used just once. In some situations, it may be useful to instead be able to present the same token once (or perhaps multiple times) to many Moderators. Something like this:\n\n* Issuance: `Client(ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` Same as above, except `ctx_red` isn't determined until redemption time.\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Same as above. \n\nWe know roughly how to do this with both Longfellow and Moussaka. In both cases, the solution involves adding an additional hash to the circuit that's used as a PRF applied to the redemption context (and perhaps presentation count, as in ARC). We can do the same thing for plain IHAT as well, but it would use the non-PQ-private trick in ARC.\n\n\n\n\n",
       "createdAt": "2026-08-10T15:49:29Z",
-      "updatedAt": "2026-08-10T18:22:11Z",
+      "updatedAt": "2026-08-12T08:43:30Z",
       "closedAt": null,
       "comments": [
         {
@@ -577,6 +598,13 @@
           "body": "We can't do the same thing for Rollatini unless I'm missing something because the random points in the signature are linkable and not rerandomizeable.",
           "createdAt": "2026-08-10T18:22:11Z",
           "updatedAt": "2026-08-10T18:22:11Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Relates to #28: multishow with a presentation context would allow for the moderator identity to \"scope\" the presentation",
+          "createdAt": "2026-08-12T08:43:30Z",
+          "updatedAt": "2026-08-12T08:43:30Z"
         }
       ]
     }
@@ -4667,19 +4695,379 @@
       ],
       "body": "Also, add Tianyu as editor.",
       "createdAt": "2026-08-08T01:43:24Z",
-      "updatedAt": "2026-08-11T00:54:46Z",
+      "updatedAt": "2026-08-12T23:23:04Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-ihat-1",
-      "headRefOid": "bc4c17060c510ceb52a0d36e6dc2d1f472507b2e",
+      "headRefOid": "873dae0072658c7d286c4f4de5968669e11678eb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJKxc7A",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "tnyuzg",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:01:17Z",
+          "updatedAt": "2026-08-11T20:01:17Z",
+          "comments": [
+            {
+              "originalPosition": 275,
+              "body": "This should be correct. But just to confirm my understanding, in blind RSA, the issuer can see the signature it signs but the user can rerandomize the signature?",
+              "createdAt": "2026-08-11T20:01:17Z",
+              "updatedAt": "2026-08-11T20:01:17Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJK0emQ",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "tnyuzg",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:07:47Z",
+          "updatedAt": "2026-08-11T20:07:47Z",
+          "comments": [
+            {
+              "originalPosition": 284,
+              "body": "There are different variants of UOV. The one used in NIST has no constant terms so `P(0^n) = 0^m` holds but the very first UOV paper has constant terms.\n\nBut constant terms don't contribute to security, so ppl remove it later.\n\nBut no need to change here",
+              "createdAt": "2026-08-11T20:07:47Z",
+              "updatedAt": "2026-08-11T20:07:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJK1oAA",
+          "commit": {
+            "abbreviatedOid": "84e90f6"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:10:23Z",
+          "updatedAt": "2026-08-11T20:12:04Z",
+          "comments": [
+            {
+              "originalPosition": 275,
+              "body": "Actually, the server produces a \"blind signature\". The client removes the blinding factor, and the result is a valid signature of the message under the public exponent.",
+              "createdAt": "2026-08-11T20:10:23Z",
+              "updatedAt": "2026-08-11T20:12:04Z"
+            },
+            {
+              "originalPosition": 284,
+              "body": "Great call out, I'll make a note of this!",
+              "createdAt": "2026-08-11T20:10:49Z",
+              "updatedAt": "2026-08-11T20:12:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJLGPdQ",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "tnyuzg",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:43:30Z",
+          "updatedAt": "2026-08-11T20:43:30Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "I think maybe a safer and also efficient way is to use circuit\n\none-hot vec constraint: b[i]\u00b7(b[i]\u22121)=0,  \\sum_i b[i]= 1\nand\n(\\sum_i P[i]b[i]) z = com\n",
+              "createdAt": "2026-08-11T20:43:30Z",
+              "updatedAt": "2026-08-11T20:43:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJLIchg",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:48:12Z",
+          "updatedAt": "2026-08-11T20:48:12Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "I'm not sure I follow. What are the `b[i]`s?",
+              "createdAt": "2026-08-11T20:48:12Z",
+              "updatedAt": "2026-08-11T20:48:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJLJG2w",
+          "commit": {
+            "abbreviatedOid": "599b0fc"
+          },
+          "author": "tnyuzg",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T20:49:35Z",
+          "updatedAt": "2026-08-11T20:49:35Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "b is a vector where only one element is 1 and all others are 0, a selector vector",
+              "createdAt": "2026-08-11T20:49:35Z",
+              "updatedAt": "2026-08-11T20:49:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJLeqrQ",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-11T21:40:43Z",
+          "updatedAt": "2026-08-11T21:40:44Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "EDIT: Ah got it. But `P[i]b[i]` is a bit ill-defined. I suppose you mean this:\r\n\r\n```python\r\nQ = [0] * len(P[0])  # over F_q\r\nfor i in range(L):  # L is the number of anchor keys\r\n  for j in range(len(P[i])):\r\n     Q[j] += b[i] * P[i][j]\r\nreturn Q(s) == com\r\n```",
+              "createdAt": "2026-08-11T21:40:43Z",
+              "updatedAt": "2026-08-12T20:39:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJVAiCg",
+          "commit": {
+            "abbreviatedOid": "44b890b"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-12T20:45:44Z",
+          "updatedAt": "2026-08-12T20:45:44Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "Revised after discussion:\r\n\r\n```python\r\nr = [0] * n\r\nfor i in range(L):\r\n  t = P[i](s)\r\n  for j in range(n):\r\n    r[j] += b[i] * t[j]\r\n```",
+              "createdAt": "2026-08-12T20:45:44Z",
+              "updatedAt": "2026-08-12T20:45:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJV9ioQ",
+          "commit": {
+            "abbreviatedOid": "873dae0"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-12T23:23:04Z",
+          "updatedAt": "2026-08-12T23:23:04Z",
+          "comments": [
+            {
+              "originalPosition": 291,
+              "body": "Done.",
+              "createdAt": "2026-08-12T23:23:04Z",
+              "updatedAt": "2026-08-12T23:23:04Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 46,
+      "id": "PR_kwDOSX6krs79nomz",
+      "title": "draft for rata",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/46",
+      "state": "CLOSED",
+      "author": "tnyuzg",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-08-11T16:29:02Z",
+      "updatedAt": "2026-08-12T20:35:37Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-skeleton",
+      "headRefOid": "81894358de7921589e6e4b8e037b0db32ad026a6",
+      "closedAt": "2026-08-12T20:35:37Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
+    },
+    {
+      "number": 47,
+      "id": "PR_kwDOSX6krs7-Q0w0",
+      "title": "vole-act: Fill in Ratatouille draft with protocol content",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/47",
+      "state": "OPEN",
+      "author": "tnyuzg",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Port the Ratatouille write-up into the draft skeleton in kramdown-rfc format: introduction, conventions, the full protocol specification (key generation, commitment/tag, issuance, and spend-and-reissue), the two commitment instantiations (Keccak-p[800,12] and the BFMRSV25a MQ commitment), and performance numbers. Reference links and internal section references are converted to {{...}} citations and cross-refs.",
+      "createdAt": "2026-08-12T20:37:04Z",
+      "updatedAt": "2026-08-13T00:07:52Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "rata-tianyu",
+      "headRefOid": "b0b77c11da59eac8d717c43212c369eeab634dad",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJV-q7A",
+          "commit": {
+            "abbreviatedOid": "b0b77c1"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-12T23:26:19Z",
+          "updatedAt": "2026-08-13T00:02:14Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Where did you get this date?",
+              "createdAt": "2026-08-12T23:26:19Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 158,
+              "body": "nit nit :)\n\n```suggestion\nRatatouille is inspired by PoMFRIT {{PoMFRIT}}, which builds a post-quantum\n```",
+              "createdAt": "2026-08-12T23:29:43Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 150,
+              "body": "I wanna try to be careful to not overload terminology in RFC 9474.\n\n```suggestion\nissuer a hiding commitment to a message, the issuer signs the\n```",
+              "createdAt": "2026-08-12T23:30:50Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 195,
+              "body": "Say what you mean by public verifiability: Moderator 1 can redeem a token issued by Moderator 2, but the identity of Moderator 1 is revealed to Moderator 2.",
+              "createdAt": "2026-08-12T23:32:49Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 192,
+              "body": "Most of this section is redundant. In particular we should assume the reader is familiar with ACT.\n\nIt's worth mentioning the communication cost, but that can be a single paragraph.",
+              "createdAt": "2026-08-12T23:33:58Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 209,
+              "body": "Likewise here, let's leave this to the ACT doc.",
+              "createdAt": "2026-08-12T23:34:19Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 211,
+              "body": "Overview should come after Conventions and Definitions.",
+              "createdAt": "2026-08-12T23:35:07Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 260,
+              "body": "Reframe: We should mention the primitives we build on before the overview (similar to https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/44). We can delete the {{Fischlin}} or {{ACT}} bullets completely I think, as these are already discussed in the intro.",
+              "createdAt": "2026-08-12T23:37:13Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 359,
+              "body": "Can rename `n_uov` to `n` or does this cause a collision? I'd prefer to have more symmetry in the UOV parameters, i.e., `n, m` or `n_uov, m_uov`.",
+              "createdAt": "2026-08-12T23:38:23Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 770,
+              "body": "`KB800()` needs a normative reference. What is `m`?",
+              "createdAt": "2026-08-12T23:40:49Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 541,
+              "body": "Let's go with `pf_init` instead of `pi_init`, since `pf` (short for \"proof\") is slightly more meaningful. Likewise for other VOLEitH proofs.",
+              "createdAt": "2026-08-12T23:42:44Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 912,
+              "body": "Ahhhh, I forgot about how lovely this trick is. It's worth leaving a TODO here to remind ourselves to think through the security reduction here. We might have to accept losing `|x|` bits of security here for the same reason as https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/44.",
+              "createdAt": "2026-08-12T23:53:04Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 1046,
+              "body": "Let's add TODOs here for all the things that need security analysis.\n```suggestion\n\n> TODO Security reduction for both variants to (one-more-)UOV problem. As part of this, figure out if the constant-addition hommoorphism trick for the MQ variant incurs a security loss.\n\n> TODO Finalize parameters MQ variant, pending further cryptanalysis of the commitment. [Remind the reader here how the current parameters were chosen.]\n```",
+              "createdAt": "2026-08-12T23:59:03Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            },
+            {
+              "originalPosition": 969,
+              "body": "This section should be move to the appendix. Here's an example of an appendix:\nhttps://github.com/cfrg/draft-irtf-cfrg-vdaf/blob/main/draft-irtf-cfrg-vdaf.md?plain=1#L6523\n\n",
+              "createdAt": "2026-08-13T00:02:02Z",
+              "updatedAt": "2026-08-13T00:02:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJWLRGA",
+          "commit": {
+            "abbreviatedOid": "b0b77c1"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-13T00:07:52Z",
+          "updatedAt": "2026-08-13T00:07:52Z",
+          "comments": [
+            {
+              "originalPosition": 991,
+              "body": "Can you add a similar table for the hash variant?",
+              "createdAt": "2026-08-13T00:07:52Z",
+              "updatedAt": "2026-08-13T00:07:52Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
