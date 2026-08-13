@@ -130,7 +130,7 @@ normative:
 informative:
   ACT: I-D.draft-schlesinger-cfrg-act-01
 
-  POMFRIT:
+  PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
     target: https://eprint.iacr.org/2026/109
     date: 2026
@@ -299,7 +299,7 @@ Vinegar (UOV) signature scheme {{UOV}}, and the security of symmetric
 primitives (hash functions and pseudorandom generators), via the
 VOLE-in-the-Head (VOLEitH) zero-knowledge proof system {{FAEST}}. We build on
 the Fischlin blind-signature paradigm {{Fischlin}}, in which a client sends the
-issuer a hiding commitment to a message, the issuer blindly signs the
+issuer a hiding commitment to a message, the issuer signs the
 commitment, and the client later proves knowledge of a signature on the
 committed message. Ratatouille generalizes this from a one-time signature to a
 spendable balance: the commitment binds a nullifier together with the remaining
@@ -307,90 +307,42 @@ credits, and each presentation additionally proves that the spend was
 subtracted correctly and the balance stays in range, with the issuer re-signing
 the updated commitment so that every spend chains into the next token.
 
-Ratatouille is inspired by PoMFRIT {{POMFRIT}}, which builds a post-quantum
+Ratatouille is inspired by PoMFRIT {{PoMFRIT}}, which builds a post-quantum
 blind signature from the MAYO signature (another MQ signature) and optimizes
 the VOLEitH proof for SHAKE hashing, and by Bouillaguet et al. {{BFMRSV25a}},
 which builds a post-quantum blind signature from an MQ commitment. In both, the
 multivariate building block is chosen to be efficiently provable in VOLEitH --
 the same principle Ratatouille follows.
 
-## Key Properties
+## Key Properties and Use Cases
 
-The protocol provides the following properties, which make it suitable for
-privacy-preserving credit systems in a post-quantum setting:
+Ratatouille inherits the properties and use cases of ACT {{ACT}}; we refer the
+reader there for their definitions. In particular, it provides
+**unlinkability**, **flexible spending and refunding**, **balance privacy**, and
+**double-spend prevention**, and it supports the same use cases, such as
+**rate limiting** and **API credits**.
 
-1. **Unlinkability**: The issuer cannot link credit issuance to spending, or
-   connect multiple spends by the same client. Unlinkability holds against
-   quantum adversaries and follows from the hiding of the commitment scheme and
-   the zero-knowledge property of the VOLEitH proof.
-2. **Flexible Spending and Refunding**: Clients can spend any amount up to
-   their balance and receive anonymous change, without revealing their balance.
-   The issuer can also add credits at spend time -- a refund -- which are folded
-   into the change token, enabling flexible top-ups alongside spending.
-3. **Balance Privacy**: During spending, only the amount being spent is
-   revealed, not the total balance remaining in the token, protecting clients
-   from balance-based profiling.
-4. **Double-Spend Prevention**: A cryptographic nullifier, chosen at random by
-   the client and revealed on spend, ensures each token is used only once. The
-   issuer stores accepted nullifiers and rejects repeats, without learning
-   anything that links the nullifier to a client.
-5. **Post-Quantum Security**: All security properties -- unforgeability,
+Beyond ACT, Ratatouille additionally provides:
+
+1. **Full Post-Quantum Security**: All security properties -- unforgeability,
    unlinkability, and double-spend prevention -- are conjectured to hold against
    adversaries equipped with a large-scale quantum computer. Security reduces to
    the UOV and MQ problems and to the security of standard symmetric primitives.
-6. **Performance**: The protocol is practical for modern web services.
-   Presentation proofs are larger than in the classical construction -- on the
-   order of kilobytes to tens of kilobytes -- but signing, verification, and
-   proof generation remain efficient.
 
-> TODO Is public verifiability useful?
+This post-quantum security comes at a cost in **performance**: presentation
+proofs are larger than in the classical construction -- on the order of
+kilobytes to tens of kilobytes. Nonetheless, the protocol remains practical for
+modern web services, with efficient signing, verification, and proof
+generation.
 
-## Use Cases
+> TODO: Is public verifiability of the token useful? Using public verifiability we can enable a
+> token issued by one moderator can be redeemed at another: Moderator 1 can
+> redeem a token issued by Moderator 2, at the cost of revealing the identity of
+> Moderator 1 to Moderator 2. Is this trade-off worth supporting?
 
-Anonymous Credit Tokens can be applied to various scenarios:
+## Building Blocks
 
-* **Rate Limiting**: Services can issue periodic credit allowances that clients
-  spend anonymously for API calls or resource access.
-* **API Credits**: API providers can sell credit packages that developers use
-  to pay for API requests without creating a detailed usage history linked to
-  their identity. This enables:
-    * Pre-paid API access without requiring credit cards for each transaction
-    * Anonymous API usage for privacy-sensitive applications
-    * Usage-based billing without tracking individual request patterns
-    * Protection against competitive analysis through usage monitoring
-
-## Protocol Overview {#overview}
-
-The protocol involves two parties: an **issuer** (typically a service provider)
-and **clients** (typically users of the service). The issuer holds a long-lived
-UOV key pair and maintains a set of accepted nullifiers. The interaction
-follows three main phases:
-
-1. **Setup**: The issuer generates a UOV key pair and publishes the public key.
-   The UOV signature has relative large public key size, but its signature size
-   is small leading to small communication size.
-2. **Issuance**: A client requests credits from the issuer. The client commits
-   to a fresh random nullifier and to an initial credit count, and the issuer
-   blindly signs the message (i.e., signs the hiding commitment of the
-   message). The result is a credit token that the issuer cannot link to future
-   spends.
-3. **Spending (Present-and-Reissue)**: To spend credits, the client reveals the
-   nullifier of its current token and proves, in zero knowledge, that (a) it
-   holds a valid signature over that token, (b) the token's balance suffices,
-   and (c) it has correctly formed a fresh commitment for the remaining
-   balance. The issuer checks the proof, checks that the nullifier has not been
-   accepted before, records it, and blindly signs the new commitment -- issuing
-   change as a new, unlinkable token.
-
-Because each spend simultaneously presents an old token and obtains a new one
-for the change, spending and re-issuance are a single combined step. Only the
-spend amount is revealed to the issuer; the balance and the client's identity
-remain hidden.
-
-## Relation to Existing Work
-
-This protocol builds upon several cryptographic primitives and prior
-constructions:
+Ratatouille builds on the following cryptographic primitives:
 
 * **UOV Signatures {{UOV}}**: Unbalanced Oil and Vinegar is a multivariate
   hash-and-sign signature scheme and a Round 2 candidate in the NIST additional
@@ -401,14 +353,6 @@ constructions:
   framework, used here as the proof system for spending. Its proofs are
   publicly verifiable, are built entirely from symmetric primitives, and are
   concretely small and fast for circuits over small binary fields.
-* **Fischlin Blind Signatures {{Fischlin}}**: A blind-signature paradigm built
-  from a commitment scheme, a digital signature, and a zero-knowledge proof of
-  knowledge. Issuance signs a commitment; presentation proves knowledge of a
-  signature over a commitment. The post-quantum instantiation of this paradigm
-  using VOLEitH and a multivariate trapdoor was studied in PoMFRIT {{POMFRIT}}.
-* **Anonymous Credit Tokens {{ACT}}**: The original ACT protocol, optimized for
-  numerical values and partial spending over prime-order groups. This document
-  can be viewed as a post-quantum analogue of that protocol.
 
 # Conventions and Definitions {#conventions}
 
@@ -435,9 +379,9 @@ This document uses the following notation:
   bytes, or a single `F_{2^lambda}` element as needed.
 * Vectors are written in lower case (e.g., `s`) and matrices in upper case
   (e.g., `P`). `F_q^n` denotes the set of length-`n` column vectors over `F_q`.
-* `P(s)`: Application of a quadratic map `P: F_q^{n_uov} -> F_q^m` to a vector
-  `s`, yielding `(s^T P_0 s, ..., s^T P_{m-1} s) in F_q^m`, where each `P_i` is
-  an upper-triangular matrix over `F_q`.
+* `P(s)`: Application of a quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}` to a
+  vector `s`, yielding `(s^T P_0 s, ..., s^T P_{m_uov-1} s) in F_q^{m_uov}`,
+  where each `P_i` is an upper-triangular matrix over `F_q`.
 * `<t>_L`: The `L`-bit big-endian encoding of a nonnegative integer `t < 2^L`
   as an element of `F_2^L`.
 * `H`: A cryptographic extendable-output hash function, modeled as a random
@@ -466,16 +410,16 @@ From these, the protocol builds the following objects, each defined in
 {{protocol}}:
 
 * **Signature**: A UOV signature `s in F_q^{n_uov}` satisfying `P(s) = y` for a
-  target `y in F_q^m`. The target is the domain-separated hash `y =
+  target `y in F_q^{m_uov}`. The target is the domain-separated hash `y =
   Tag(Com(nf, t, r), x)` of the token commitment and refund.
 * **Commitment**: `c = Com(nf, t, r)`, binding a nullifier `nf` and credit
   value `t` under randomness `r`. We instantiate the commitment scheme in one
   of two ways: see {{instantiations}}.
-* **Tag**: `Tag(c, x) in F_q^m`, the UOV signing target derived from a
+* **Tag**: `Tag(c, x) in F_q^{m_uov}`, the UOV signing target derived from a
   commitment `c` and a refund amount `x`.
 * **Token**: `tok = (nf, t, r, x, s)`, the state a client holds for one credit
   token.
-* **Proof**: `pi`, a VOLE-in-the-Head zero-knowledge proof for the presentation
+* **Proof**: `pf`, a VOLE-in-the-Head zero-knowledge proof for the presentation
   relation of {{spending}}.
 
 ## VOLE-in-the-Head Proofs of Knowledge
@@ -496,17 +440,18 @@ Parameters:
   - nu: Nullifier length in bits. Chosen so that random nullifiers do not
         collide across all tokens issued under one key (see below).
   - rho: Commitment randomness length in bits. Chosen for commitment hiding.
-  - (n_uov, m): UOV dimensions -- n_uov variables, m equations -- over `F_q`.
+  - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
   - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
             N leaves per GGM tree (with tau * log2(N) = lambda), and a
             proof-of-work grinding parameter w_grind.
   - L: Bit width of credit values (1 <= L <= 128). The maximum credit a
        token can hold is 2^L - 1.
-  - H: Extendable-output hash function (e.g., the KP800 sponge over
-       Keccak-p[800, 12] for lambda = 128; see hash commitment). (TODO)
+  - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
+       of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
+       lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
 ~~~
 
-The issuer's public key is a UOV quadratic map `P: F_q^{n_uov} -> F_q^m`; the
+The issuer's public key is a UOV quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}`; the
 secret key is a trapdoor for sampling a solution `s` for a given target `P(s) =
 t` (see {{UOV}}, Section 3.2). The UOV and VOLE-in-the-Head security levels must
 match, so neither weakens the token's overall security ({{system-parameters}}).
@@ -514,13 +459,41 @@ match, so neither weakens the token's overall security ({{system-parameters}}).
 The lengths `nu` and `rho` are independent. The nullifier is revealed and must
 not collide across tokens issued under one key, so a birthday bound motivates
 `nu >= 2*lambda`, and a ciphersuite defaults to `nu = 2*lambda`; a compact
-ciphersuite MAY use a smaller `nu` (e.g., `224` bits in the MQ instantiation of
+ciphersuite MAY use a smaller `nu` (e.g., `192` bits in {{hash-commitment}} and `224` bits in the MQ instantiation of
 {{mq-commitment}}), trading collision margin for size. The randomness only hides
 the commitment; its length is instantiation-dependent -- `rho = lambda` for the
 hash commitment ({{hash-commitment}}) and `rho = 8*n_com` (the `F_256` input
 length, i.e. `n_com` elements of `F_256`) for the MQ commitment
 ({{mq-commitment}}). Credit values are exactly `L` bits: the issuer MAY choose
 any initial amount in `[1, 2^L - 1]`, with no cap beyond `L`.
+
+# Protocol Overview {#overview}
+
+The protocol involves two parties: an **issuer** (typically a service provider)
+and **clients** (typically users of the service). The issuer holds a long-lived
+UOV key pair and maintains a set of accepted nullifiers. The interaction
+follows three main phases:
+
+1. **Setup**: The issuer generates a UOV key pair and publishes the public key.
+   The UOV signature has relative large public key size, but its signature size
+   is small leading to small communication size.
+2. **Issuance**: A client requests credits from the issuer. The client commits
+   to a fresh random nullifier and to an initial credit count, and the issuer
+   blindly signs the message (i.e., signs the hiding commitment of the
+   message). The result is a credit token that the issuer cannot link to future
+   spends.
+3. **Spending (Present-and-Reissue)**: To spend credits, the client reveals the
+   nullifier of its current token and proves, in zero knowledge, that (a) it
+   holds a valid signature over that token, (b) the token's balance suffices,
+   and (c) it has correctly formed a fresh commitment for the remaining
+   balance. The issuer checks the proof, checks that the nullifier has not been
+   accepted before, records it, and blindly signs the new commitment -- issuing
+   change as a new, unlinkable token.
+
+Because each spend simultaneously presents an old token and obtains a new one
+for the change, spending and re-issuance are a single combined step. Only the
+spend amount is revealed to the issuer; the balance and the client's identity
+remain hidden.
 
 # Protocol Specification {#protocol}
 
@@ -551,7 +524,7 @@ proof of {{FAEST}} with parameters fixed by the ciphersuite
 A deployment fixes two things:
 
 1. A **ciphersuite** ({{instantiations}}), which determines `(lambda, nu, rho,
-   n_uov, m, tau, N, w_grind, L, H)`.
+   n_uov, m_uov, tau, N, w_grind, L, H)`.
 2. A **domain separation tag** `dst`, a byte string that identifies the
    deployment and isolates it cryptographically from every other deployment.
 
@@ -592,13 +565,13 @@ KeyGen():
 
   Steps:
     1.  seed_sk <- {0,1}^(seed_sk_len)
-    2.  (seed_pk, O) := ExpandSK(seed_sk)   // trapdoor O in F_q^(v * m),
-                                           // with v = n_uov - m
-    3.  {(P_i^(1), P_i^(2))}_{i in [m]} := ExpandPK(seed_pk)
-    4.  for i in [m]:
+    2.  (seed_pk, O) := ExpandSK(seed_sk)   // trapdoor O in F_q^(v * m_uov),
+                                           // with v = n_uov - m_uov
+    3.  {(P_i^(1), P_i^(2))}_{i in [m_uov]} := ExpandPK(seed_pk)
+    4.  for i in [m_uov]:
     5.      P_i^(3) := Upper( - O^T P_i^(1) O - O^T P_i^(2) O )
     6.  sk := seed_sk
-    7.  pk := (seed_pk, { P_i^(3) }_{i in [m]})
+    7.  pk := (seed_pk, { P_i^(3) }_{i in [m_uov]})
     8.  return (sk, pk)
 ~~~
 
@@ -638,7 +611,7 @@ Tag(c, x):
     - c: Commitment
     - x: Refund in [0, 2^L - 1]
   Output:
-    - y: UOV target in F_q^m
+    - y: UOV target in F_q^{m_uov}
 ~~~
 
 `Tag` hashes the commitment and issuer-granted refund to a full UOV target.
@@ -688,19 +661,19 @@ IssueRequest(T_init):
   Input:
     - T_init in [1, 2^L - 1]: agreed initial credit balance
   Output:
-    - request = (c, pi_init): commitment and well-formedness proof
+    - request = (c, pf_init): commitment and well-formedness proof
     - state   = (nf, r): client state for Token Verification
 
   Steps:
     1.  nf     <- {0,1}^nu                     // nullifier
     2.  r      <- {0,1}^rho                    // commitment randomness
     3.  c      := Com(nf, T_init, r)           // see Commitment and Tag
-    4.  pi_init := Prove{
+    4.  pf_init := Prove{
           public:   (c, T_init)
           private:  (nf, r)
           relation: c = Com(nf, T_init, r)    // opens c to the agreed T_init
         }
-    5.  request := (c, pi_init)
+    5.  request := (c, pf_init)
     6.  state   := (nf, r)
     7.  return (request, state)
 ~~~
@@ -711,14 +684,14 @@ IssueRequest(T_init):
 IssueResponse(sk, request, T_init):
   Input:
     - sk: Issuer secret key (secret seed seed_sk)
-    - request = (c, pi_init)
+    - request = (c, pf_init)
     - T_init in [1, 2^L - 1]: agreed initial credit balance
   Output:
     - response = s: UOV signature, or INVALID
 
   Steps:
     1.  if not (0 < T_init < 2^L): return INVALID
-    2.  verify pi_init against (c, T_init); if invalid, return INVALID
+    2.  verify pf_init against (c, T_init); if invalid, return INVALID
     3.  s <- UOV.Sign(sk, Tag(c, 0))   // preimage of Tag(c, 0): P(s) = Tag(c, 0),
                                        // rejection sampling on singular system
     4.  return s
@@ -743,7 +716,7 @@ VerifyIssuance(pk, state, response, T_init):
 ~~~
 
 The issuer's view of a single issuance is the commitment `c`, the
-well-formedness proof `pi_init`, and the signature `s` it produced.
+well-formedness proof `pf_init`, and the signature `s` it produced.
 Unlinkability of issuance to any later spend follows from the hiding of `Com`
 and the zero-knowledge of the presentation proof ({{spending}}).
 
@@ -777,7 +750,7 @@ ProveSpend(tok, d):
     - tok  = (nf, t, r, x, s): a token of effective balance B = t + x
     - d in [0, B]: amount to spend
   Output:
-    - proof = (nf, d, c', pi_spend): spend proof
+    - proof = (nf, d, c', pf_spend): spend proof
     - state = (nf', t', r'): client state for Refund Token Construction
 
   Steps:
@@ -786,7 +759,7 @@ ProveSpend(tok, d):
     3.  r'  <- {0,1}^rho                    // fresh commitment randomness
     4.  t'  := t + x - d                    // committed change balance
     5.  c'  := Com(nf', t', r')
-    6.  pi_spend := Prove{
+    6.  pf_spend := Prove{
           public:   (pk, nf, d, c')
           private:  (t, r, x, s, nf', r', t')
           relation:
@@ -799,7 +772,7 @@ ProveSpend(tok, d):
             //  V4  ranges: valid balances, non-negative debit
             AND 0 <= t' < 2^L  AND  0 <= x < 2^L  AND  0 <= d < 2^L
         }
-    7.  proof := (nf, d, c', pi_spend)    // nf, d, c' public; witness hidden
+    7.  proof := (nf, d, c', pf_spend)    // nf, d, c' public; witness hidden
     8.  state := (nf', t', r')
     9.  return (proof, state)
 ~~~
@@ -810,7 +783,7 @@ ProveSpend(tok, d):
 VerifyAndRefund(sk, proof, x'):
   Input:
     - sk: Issuer secret key (secret seed seed_sk)
-    - proof = (nf, d, c', pi_spend)
+    - proof = (nf, d, c', pf_spend)
     - x' in [0, 2^L - 1]: issuer-granted refund; 0 for no refund
   Output:
     - response = (x', s'): granted refund and signature, or INVALID
@@ -829,13 +802,13 @@ VerifyAndRefund(sk, proof, x'):
 VerifySpend(pk, proof):
   Input:
     - pk = P: Issuer public key
-    - proof = (nf, d, c', pi_spend)
+    - proof = (nf, d, c', pf_spend)
   Output:
     - VALID or INVALID
 
   Steps:
     1.  if not (0 <= d < 2^L): return INVALID
-    2.  verify pi_spend against public inputs (pk, nf, d, c');
+    2.  verify pf_spend against public inputs (pk, nf, d, c');
         if verification fails: return INVALID
     3.  return VALID
 ~~~
@@ -846,7 +819,7 @@ replaying the request.
 
 Verification checks only the zero-knowledge proof against the public inputs
 `(pk, nf, d, c')`; conditions V1--V4 of {{prove-spend}} are enforced inside
-`pi_spend`. In particular V1 establishes that the client holds an issuer
+`pf_spend`. In particular V1 establishes that the client holds an issuer
 signature over some token whose effective balance is `t + x`, V3 and V4
 establish `d <= t + x` and that the change `t'` is a valid balance, and V2 binds
 the change to the commitment `c'` the issuer is about to sign. The issuer learns
@@ -886,13 +859,15 @@ Both realize the same abstract interface, so all of Issuance ({{issuance}}),
 Spend ({{spending}}), the conditions V1--V4, double-spend handling, and
 blindness are inherited unchanged. They differ only in `Com`, `Tag`, the
 deployment-wide parameters derived from `dst`, and the resulting UOV dimensions
-`(n_uov, m)`.
+`(n_uov, m_uov)`.
 
 ## Hash commitment (Keccak-p[800, 12]) {#hash-commitment}
 
-Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE-style
-{{?RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`,
-modeled as a random oracle and domain-separated by `dst`. Distinct one-byte
+Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE
+{{RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`
+{{FIPS202}}, modeled as a random oracle and domain-separated by `dst`.
+`KP800(M, d)` squeezes `d` bytes of output, and `KP800(M)` defaults to
+`d = 2*lambda/8` bytes (i.e. `2*lambda` bits). Distinct one-byte
 labels separate commitment hashing from UOV-target hashing. In the Spend
 relation ({{prove-spend}}), V1 evaluates `Com` and `Tag` for the old token, while
 V2 evaluates `Com` for the change token. A spend therefore evaluates
@@ -914,30 +889,31 @@ Com(nf, t, r):
     - t: Credit value in [0, 2^L - 1]
     - r: Randomness (rho bits)
   Output:
-    - c: Commitment (m*8 bits)
+    - c: Commitment (2*lambda bits)
 
   Steps:
-    1.  return KP800(0xAC || dst || nf || <t>_L || r, m)
+    1.  return KP800(0xAC || dst || nf || <t>_L || r)
 ~~~
 
-**Tag.** `Tag` hashes a commitment and public refund to a full UOV target:
+**Tag.** `Tag` hashes a commitment and public refund to a full UOV target of
+`m_uov` bytes, where `m_uov` is the number of UOV equations ({{system-parameters}}):
 
 ~~~
 Tag(c, x):
   Input:
-    - c: Commitment (m*8 bits)
+    - c: Commitment (2*lambda bits)
     - x: Refund in [0, 2^L - 1]
   Output:
-    - y: UOV target (m*8 bits, = m elements of F_256)
+    - y: UOV target (m_uov*8 bits, = m_uov elements of F_256)
 
   Steps:
-    1.  return KP800(0xAD || dst || c || <x>_L, m)
+    1.  return KP800(0xAD || dst || c || <x>_L, m_uov)
 ~~~
 
 Both preimages have fixed-length fields and parse unambiguously. The `Com`
-preimage is `1 + 10 + 32 + 8 + 16 = 67` bytes, leaving the final byte of the
+preimage is `1 + 18 + 24 + 8 + 16 = 67` bytes, leaving the final byte of the
 68-byte rate for the sponge separator and padding. The `Tag` preimage is `1 +
-10 + 44 + 8 = 63` bytes. Each call therefore requires one
+18 + 32 + 8 = 59` bytes. Each call therefore requires one
 `Keccak-p[800, 12]` permutation. At initial issuance `x = 0`, but `Tag(c, 0)` is
 still a separate, domain-separated hash of `c` and zero.
 
@@ -956,11 +932,12 @@ VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
 | Parameter | Value |
 |-----------|-------|
 | Security `lambda` | `128` |
-| Nullifier `nu` | `256` bits |
+| Nullifier `nu` | `192` bits |
 | Randomness `rho` | `128` bits |
 | Credit width `L` | `64` (`t, x, d in [0, 2^64 - 1]`) |
-| Domain-separation tag `dst` | `10` bytes |
-| UOV `(n_uov, m, q)` | `(112, 44, 256)` (`uov-Ip`) |
+| Domain-separation tag `dst` | `18` bytes |
+| Commitment `c` | `2*lambda = 256` bits (`32` bytes) |
+| UOV `(n_uov, m_uov, q)` | `(112, 44, 256)` (`uov-Ip`) |
 | VOLEitH `(tau, w_grind)` | `(11, 7)` (FAEST-128s) |
 
 **API sizes.** Everything below is derived from the parameters above and is
@@ -968,9 +945,9 @@ given in bytes.
 
 | Function | Input | Output |
 |----------|-------|--------|
-| `Com(nf, t, r)` | label `0xAC` = `1`, `dst: 10`, `nf: 32`, `<t>_L: 8`, `r: 16` | `c: m = 44` |
-| `Tag(c, x)` | label `0xAD` = `1`, `dst: 10`, `c: 44`, `<x>_L: 8` | `y: m = 44` |
-| `P(s)` (UOV) | `s: n_uov = 112` | `y: m = 44` |
+| `Com(nf, t, r)` | label `0xAC` = `1`, `dst: 18`, `nf: 24`, `<t>_L: 8`, `r: 16` | `c: 32` |
+| `Tag(c, x)` | label `0xAD` = `1`, `dst: 18`, `c: 32`, `<x>_L: 8` | `y: m_uov = 44` |
+| `P(s)` (UOV) | `s: n_uov = 112` | `y: m_uov = 44` |
 
 ## MQ commitment (BFMRSV25a) {#mq-commitment}
 
@@ -1000,20 +977,20 @@ standard SHAKE128 (FIPS 202) {{FIPS202}} -- the more conservatively reviewed
 XOF:
 
 * Two quadratic maps `F: F_256^{n_com} -> F_256^k` and `G: F_256^{n_com} ->
-  F_256^{m-k}`, obtained as `(F, G) = GenerateParameters(dst)`.
+  F_256^{m_uov-k}`, obtained as `(F, G) = GenerateParameters(dst)`.
 
 ~~~
 GenerateParameters(dst):
   Input:
     - dst: deployment domain-separation tag
   Output:
-    - F: F_256^{n_com} -> F_256^k, G: F_256^{n_com} -> F_256^{m-k}   // public quadratic maps
+    - F: F_256^{n_com} -> F_256^k, G: F_256^{n_com} -> F_256^{m_uov-k}   // public quadratic maps
   Steps:
     1.  stream := SHAKE128("RATA-MQ-maps:" || dst)
-    2.  for each output equation i in [m]:
+    2.  for each output equation i in [m_uov]:
     3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // in F_256^{n_com * n_com}
     4.  F := (M_0, ..., M_{k-1})                       // first k equations
-    5.  G := (M_k, ..., M_{m-1})                       // remaining m-k equations
+    5.  G := (M_k, ..., M_{m_uov-1})                   // remaining m_uov-k equations
     6.  return (F, G)
 ~~~
 
@@ -1032,10 +1009,10 @@ Com(nf, t, r):
     - t: Credit value in [0, 2^L - 1]
     - r: Randomness (rho = 8*n_com bits, parsed as n_com elements of F_256)
   Output:
-    - c: Commitment (m elements in F_256)
+    - c: Commitment (m_uov elements in F_256)
   Steps:
     1.  msg := EmbedNullifierBalance(nf, t)   in F_256^k   // refund coordinate = 0
-    2.  return ( msg + F(r), G(r) )  in F_256^m
+    2.  return ( msg + F(r), G(r) )  in F_256^{m_uov}
 ~~~
 
 `EmbedNullifierBalance(nf, t)` returns a message vector `msg in F_256^k`, one
@@ -1054,15 +1031,15 @@ issuer-granted refund `x` into the (zero) refund coordinate:
 ~~~
 Tag(c, x):
   Input:
-    - c: Commitment (m elements in F_256)
+    - c: Commitment (m_uov elements in F_256)
     - x: Refund in [0, 2^L - 1]
   Output:
-    - y: UOV target (m elements in F_256)
+    - y: UOV target (m_uov elements in F_256)
   Steps:
-    1.  return c + EmbedRefund(x)     in F_256^m   // degree-1, no hash
+    1.  return c + EmbedRefund(x)     in F_256^{m_uov}   // degree-1, no hash
 ~~~
 
-`EmbedRefund(x)` returns a vector `e in F_256^m` that is zero everywhere except
+`EmbedRefund(x)` returns a vector `e in F_256^{m_uov}` that is zero everywhere except
 the refund slot: its `L/8` elements starting at `off_refund = nu/8 + L/8` hold
 the refund encoding `<x>_L`.
 
@@ -1080,22 +1057,22 @@ interactive one-more *quadratic-claw* assumption, flagged as unexplored in
 **Parameter selection.**  The ciphersuite `RATA-MQ128-k32` takes the aggressive
 *heuristic-hiding / computational-binding* row of {{BFMRSV25a}}, Table 3 (`q =
 256`, so one commitment element is one byte), which minimizes commitment size.
-Here `m` is pinned by the commitment length rather than chosen for signature
-compactness; with `m` fixed, the only free UOV knob is the input size `n_uov`,
+Here `m_uov` is pinned by the commitment length rather than chosen for signature
+compactness; with `m_uov` fixed, the only free UOV knob is the input size `n_uov`,
 set to the smallest value keeping every known attack at `>= 2^lambda` under the
 UOV estimator.
 
 | Parameter | Value |
 |-----------|-------|
 | Security `lambda` | `128` |
-| Commitment `(k, n_com, m)` | `(32, 83, 131)` ({{BFMRSV25a}}, Table 3) |
+| Commitment `(k, n_com, m_uov)` | `(32, 83, 131)` ({{BFMRSV25a}}, Table 3) |
 | Nullifier `nu` | `224` bits |
 | Credit width `L` | `16` (`t, x, d in [0, 2^16 - 1]`) |
-| UOV `n_uov` | `275` (`m = 131`, `q = 256` shared with the commitment) |
+| UOV `n_uov` | `275` (`m_uov = 131`, `q = 256` shared with the commitment) |
 | VOLEitH `(tau, w_grind)` | `(11, 7)` (FAEST-128s) |
 
-Security margins: the binding block satisfies `m - k = n_com + lambda/log2(q) =
-n_com + 16`. Because `m = 131` is far larger than a standard UOV set, `n_uov =
+Security margins: the binding block satisfies `m_uov - k = n_com + lambda/log2(q) =
+n_com + 16`. Because `m_uov = 131` is far larger than a standard UOV set, `n_uov =
 275` was fixed as the minimum passing a 128-bit check under the
 CryptographicEstimators `UOVEstimator` ({{CryptEst}}, which implements the
 {{UOV}} Section 4 attacks).
@@ -1106,23 +1083,54 @@ given in bytes (one `F_256` element each). `F, G` are the public maps from
 
 | Function | Input | Output |
 |----------|-------|--------|
-| `Com(nf, t, r)` | `nf: nu/8 = 28`, `<t>_L: L/8 = 2`, `r: n_com = 83` (`= rho/8`) | `c: m = 131` |
-| `Tag(c, x)` | `c: 131`, `<x>_L: L/8 = 2` | `y: m = 131` |
-| `P(s)` (UOV) | `s: n_uov = 275` | `y: m = 131` |
+| `Com(nf, t, r)` | `nf: nu/8 = 28`, `<t>_L: L/8 = 2`, `r: n_com = 83` (`= rho/8`) | `c: m_uov = 131` |
+| `Tag(c, x)` | `c: 131`, `<x>_L: L/8 = 2` | `y: m_uov = 131` |
+| `P(s)` (UOV) | `s: n_uov = 275` | `y: m_uov = 131` |
 
 The message `msg = EmbedNullifierBalance(nf, t)` lays out `k = 32` bytes as `nf
 (28) || <t>_L (2) || <x>_L (2)`, with the refund slot at `off_refund = nu/8 +
 L/8 = 30` left zero until `Tag` writes it (no reserved bytes, since `off_refund
 + L/8 = k`). Derived map and signature dimensions: `F: F_256^83 -> F_256^32`,
-`G: F_256^83 -> F_256^99`, and `v = n_uov - m = 144`.
+`G: F_256^83 -> F_256^99`, and `v = n_uov - m_uov = 144`.
+
+# Security Considerations {#security}
+
+> TODO Security reduction for both variants to (one-more-)UOV problem. As part of this,
+> figure out if the constant-addition hommorphism trick for the MQ variant incurs a
+> security loss.
+
+> TODO Finalize parameters MQ variant (including the UOV parameters used), pending further cryptanalysis of the commitment.
+> [Remind the reader here how the current parameters were chosen.]
+
+# IANA Considerations
+
+This document has no IANA actions.
+
+
+--- back
+
+# Acknowledgments
+{:numbered="false"}
 
 # Performance {#performance}
 
-The reference implementation has not yet been updated to include the
-hash-based `Tag` of {{hash-commitment}}. Its previous hash-instantiation numbers
-covered two in-circuit Keccak evaluations per spend, whereas the revised
-relation evaluates three. Those figures are therefore omitted pending new
-measurements.
+The hash instantiation of {{hash-commitment}} evaluates one in-circuit
+`Keccak-p[800, 12]` permutation per issuance and three per spend (recomputing
+the old commitment, the `Tag`, and the change commitment). The figures below were
+measured at `lambda = 128`, single-threaded on a laptop-class aarch64 core. The
+numbers are indicative and are not normative bounds.
+
+| Operation | Hash (KP800, {{hash-commitment}}) |
+|-----------|-----------------------------------|
+| `IssueRequest` (prove) | 60 ms |
+| `IssueResponse` (verify) | 26 ms |
+| `ProveSpend` | 696 ms |
+| `VerifyAndRefund` (verify) | 66 ms |
+
+| Proof | Hash (KP800) |
+|-------|--------------|
+| Issuance `pf_init` | 7.8 KiB |
+| Spend `pf_spend` | 14.2 KiB |
 
 The MQ instantiation was measured at `lambda = 128`, single-threaded on a
 laptop-class aarch64 core. The numbers are indicative and are not normative
@@ -1137,8 +1145,8 @@ bounds.
 
 | Proof | MQ |
 |-------|----|
-| Issuance `pi_init` | 4.3 KiB |
-| Spend `pi` | 9.0 KiB |
+| Issuance `pf_init` | 4.3 KiB |
+| Spend `pf_spend` | 9.0 KiB |
 
 The MQ instantiation removes all in-circuit Keccak evaluations, but its widened
 UOV trapdoor makes key generation a one-time cost of several seconds. Its
@@ -1147,10 +1155,10 @@ lift tables; without that optimization, the UOV fold dominates proving time.
 
 **Our One-More-UOV blind signature.** As a building block we also implement a
 One-More-UOV blind signature -- the hash-free construction of PoMFRIT
-{{POMFRIT}} instantiated with UOV instead of MAYO. It is a plain blind signature
+{{PoMFRIT}} instantiated with UOV instead of MAYO. It is a plain blind signature
 (no balance, nullifier, or change), so it is not an ACT, but it isolates the
 cost of proving a UOV preimage in VOLEitH with no in-circuit hash. Measured on
-the same aarch64 core with the compact `uov-Ip` map (`n_uov = 112`, `m = 44`);
+the same aarch64 core with the compact `uov-Ip` map (`n_uov = 112`, `m_uov = 44`);
 `Blind`/`BlindSign`/`Finalize` correspond to `Sig1`/`Sig2`/`Sig3` below.
 
 | Operation | One-More-UOV |
@@ -1162,7 +1170,7 @@ the same aarch64 core with the compact `uov-Ip` map (`n_uov = 112`, `m = 44`);
 | issuance `\|t\|` | 44 B |
 | signature | 4.4 KiB |
 
-**Comparison to PoMFRIT {{POMFRIT}}.** For reference, PoMFRIT {{POMFRIT}}
+**Comparison to PoMFRIT {{PoMFRIT}}.** For reference, PoMFRIT {{PoMFRIT}}
 (ePrint 2026/109, Table 3) reports the following at `lambda = 128` with the
 small (`s`) VOLEitH tuning, on an Intel Ultra 9 185H (AVX C/C++). PoMFRIT is a
 blind signature, not an ACT: it has no balance arithmetic, nullifier, or change
@@ -1187,19 +1195,3 @@ language (AVX C/C++ vs aarch64 Rust). Our RATA-MQ spend (prove 85 ms / verify 57
 ms) sits in the same regime once its widened-UOV map is folded with lift tables:
 the map is ~26x larger in coefficients, but the fold cost scales with the number
 of forms, not the map size, so the extra width costs little.
-
-# Security Considerations {#security}
-
-> TODO
-
-# IANA Considerations
-
-This document has no IANA actions.
-
-
---- back
-
-# Acknowledgments
-{:numbered="false"}
-
-The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.
