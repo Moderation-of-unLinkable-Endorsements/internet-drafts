@@ -1109,9 +1109,6 @@ This document has no IANA actions.
 
 --- back
 
-# Acknowledgments
-{:numbered="false"}
-
 # Performance {#performance}
 
 The hash instantiation of {{hash-commitment}} evaluates one in-circuit
@@ -1195,3 +1192,6 @@ language (AVX C/C++ vs aarch64 Rust). Our RATA-MQ spend (prove 85 ms / verify 57
 ms) sits in the same regime once its widened-UOV map is folded with lift tables:
 the map is ~26x larger in coefficients, but the fold cost scales with the number
 of forms, not the map size, so the extra width costs little.
+
+# Acknowledgments
+{:numbered="false"}
