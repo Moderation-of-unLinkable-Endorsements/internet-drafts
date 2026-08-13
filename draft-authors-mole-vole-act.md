@@ -260,7 +260,7 @@ signature scheme and the VOLE-in-the-Head proof system (a component of the
 FAEST signature scheme). The moderator issues a token by signing a commitment
 to the client's state; to present a token, the client proves knowledge of this
 signature and the opening of the commitment. Two variants of the protocol are
-specified, one in which the commitment is instantiated with Keccak-p[800,12]
+specified, one in which the commitment is instantiated with `Keccak-p[800,12]`
 and another in which a UOV-friendly commitment scheme is used instead.
 
 --- middle
@@ -333,7 +333,7 @@ kilobytes to tens of kilobytes. Nonetheless, the protocol remains practical for
 modern web services, with efficient signing, verification, and proof
 generation.
 
-Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it. 
+Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.
 
 ## Building Blocks
 
@@ -858,7 +858,7 @@ blindness are inherited unchanged. They differ only in `Com`, `Tag`, the
 deployment-wide parameters derived from `dst`, and the resulting UOV dimensions
 `(n_uov, m_uov)`.
 
-## Hash commitment (Keccak-p[800, 12]) {#hash-commitment}
+## Hash commitment (`Keccak-p[800, 12]`) {#hash-commitment}
 
 Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE
 {{!RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`
@@ -1097,7 +1097,7 @@ L/8 = 30` left zero until `Tag` writes it (no reserved bytes, since `off_refund
 > security loss.
 
 > TODO Finalize parameters MQ variant (including the UOV parameters used), pending further cryptanalysis of the commitment.
-> [Remind the reader here how the current parameters were chosen.]
+> TODO Remind the reader here how the current parameters were chosen.
 
 # IANA Considerations
 
