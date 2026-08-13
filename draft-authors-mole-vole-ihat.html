@@ -5,6 +5,7 @@
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
 <title>Moussaka</title>
+<meta content="Tianyu Zhang" name="author">
 <meta content="Christopher Patton" name="author">
 <meta content="
        This document specifies Moussaka, a candidate post-quantum variant of the
@@ -12,8 +13,8 @@ Issuer-Hiding Anonymous Token (IHAT) protocol. Moussaka is based on the UOV
 digital signature scheme and the VOLE-in-the-Head proof system (a component of
 the FAEST signature scheme). The anchor issues a token by signing a commitment
 to the client's state; to redeem a token, the client proves knowledge of the
-opening of this commitment and a valid signature produced by some anchor
-trusted by the moderator. The commitment is instantiated with Keccak-p[800,12]. 
+opening of this commitment and a signature produced by some anchor trusted by
+the moderator. The commitment is instantiated with Keccak-p[800,12]. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="moderation" name="keyword">
@@ -1052,8 +1053,8 @@ svg {
 <td class="right">August 2026</td>
 </tr></thead>
 <tfoot><tr>
-<td class="left">Patton</td>
-<td class="center">Expires 8 February 2027</td>
+<td class="left">Zhang &amp; Patton</td>
+<td class="center">Expires 14 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1066,14 +1067,18 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-07" class="published">7 August 2026</time>
+<time datetime="2026-08-13" class="published">13 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-08">8 February 2027</time></dd>
-<dt class="label-authors">Author:</dt>
+<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
+<dt class="label-authors">Authors:</dt>
 <dd class="authors">
+<div class="author">
+      <div class="author-name">T. Zhang</div>
+<div class="org">University of Illinois at Urbana-Champaign</div>
+</div>
 <div class="author">
       <div class="author-name">C. Patton</div>
 <div class="org">Cloudflare</div>
@@ -1089,8 +1094,8 @@ Issuer-Hiding Anonymous Token (IHAT) protocol. Moussaka is based on the UOV
 digital signature scheme and the VOLE-in-the-Head proof system (a component of
 the FAEST signature scheme). The anchor issues a token by signing a commitment
 to the client's state; to redeem a token, the client proves knowledge of the
-opening of this commitment and a valid signature produced by some anchor
-trusted by the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+opening of this commitment and a signature produced by some anchor trusted by
+the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1122,7 +1127,7 @@ trusted by the moderator. The commitment is instantiated with Keccak-p[800,12].<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 8 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1158,22 +1163,36 @@ trusted by the moderator. The commitment is instantiated with Keccak-p[800,12].<
             <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-protocol" class="internal xref">Protocol</a></p>
+            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-overview" class="internal xref">Overview</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-preliminaries" class="internal xref">Preliminaries</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-protocol" class="internal xref">Protocol</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1186,12 +1205,66 @@ trusted by the moderator. The commitment is instantiated with Keccak-p[800,12].<
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-1.1">
-          <p id="section-1-1.1.1">TODO(cjpatton)<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-1.1.1">WARNING This document specifies a cryptographic protocol that has not yet
+undergone significant security analysis. It's not yet suitable for real world
+applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-1-2">The Issuer-Hiding Anonymous Token <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> protocol allows a Client to redeem a
+token with a Moderator without revealing which Anchor issued the token.
+Instead, the client proves the token was issued by some Anchor in the Anchor
+Set trusted by the Moderator. IHAT is also designed to be post-issuance
+unlinkable, meaning the redemption of a token cannot be linked to its issuance.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">IHAT meets these privacy goals unconditionally, meaning regardless of its
+computational resources, no attacker can learn which Anchor issued a token or
+to which Client it was issued. On the other hand, it is well known that a
+quantum attacker can forge tokens by recovering the Anchor's secret key from
+its public key.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">This document specifies Moussaka, a variant of IHAT that is plausibly fully
+post-quantum secure. Its design is based on the PoMFRIT blind signature scheme
+<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, which combines a post-quantum signature scheme with a suitable
+zero-knowledge proof system and commitment scheme. Specifically, the signer
+signs a commitment to the message, and the verifier checks a zero-knowledge
+proof-of-knowledge of the signature and the opening of the commitment. Moussaka
+extends this paradigm in the natural way: rather than prove knowledge of a
+signature under the public key of a particular Anchor, the Client proves
+knowledge of a signature under some public key in the Anchor Set.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">Moussaka has significantly higher bandwidth cost compared to IHAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-6">
+<li id="section-1-6.1">
+          <p id="section-1-6.1.1">each Anchor public key is <code>42.6</code> kilobytes (this corresponds to the uov-Ip
+parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-1-6.2">
+          <p id="section-1-6.2.1"><code>TODO</code> kilobytes are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-1-6.3">
+          <p id="section-1-6.3.1"><code>TODO*L</code> kilobytes are transmitted during redemption,<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-1-7">where <code>L</code> is the size of the Anchor Set. In particular, the size of the
+redemption proof scales linearily with the number of Anchors.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1-8.1">
+          <p id="section-1-8.1.1">NOTE(tnyuzg) We should be able to make redemption sublinear using the
+OR proof of ia,cr/2025/113, Section 4.1.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
+<p id="section-1-8.1.2">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
+for issuance and another for redemption) using the more invasive techniques
+from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.2" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-9">On the other hand, Moussaka is round optimal: only two moves are required for
+issuance, whereas IHAT requires three.<a href="#section-1-9" class="pilcrow">¶</a></p>
+<p id="section-1-10">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
+defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
+overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
+the signature scheme, commitment scheme, and proof system used by Moussaka and
+provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
+the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
+considerations for implementers and adopters.<a href="#section-1-10" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="conventions-and-definitions">
+<div id="conventions">
 <section id="section-2">
       <h2 id="name-conventions-and-definitions">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
@@ -1207,53 +1280,259 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       </ul>
 </section>
 </div>
-<div id="protocol">
+<div id="overview">
 <section id="section-3">
-      <h2 id="name-protocol">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocol" class="section-name selfRef">Protocol</a>
+      <h2 id="name-overview">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
       </h2>
+<p id="section-3-1">Moussaka makes use of three cryptographic primitives:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-2">
+<li id="section-3-2.1">
+          <p id="section-3-2.1.1">The Unbalanced Oil and Vinegar <span>[<a href="#UOV" class="cite xref">UOV</a>]</span> digital signature scheme. Each Anchor
+uses a UOV secret key to issue tokens, and during redemption, the Client and
+Moderator agree on a sequence of UOV public keys to use as the Anchor Set.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.2">
+          <p id="section-3-2.2.1">The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a component of
+the FAEST digital signature scheme <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.3">
+          <p id="section-3-2.3.1">A commitment scheme based on the Keccak permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-3-3">A UOV public key is a map <code>P</code> from <code>F_q^n</code> to <code>F_q^m</code>. A UOV signature is a
+solution <code>s</code> to an equation <code>P(s) = t</code>, where <code>t</code> is called the target and is
+computed by hashing the message to be signed. The UOV secret key is a trapdoor
+for <code>P</code> that can be used to efficiently sample signatures for a given target.
+We adopt the uov-1p parameter set (NIST Level 1):  <code>n=112</code>, <code>m=44</code>, and
+<code>q=2^8</code>.<a href="#section-3-3" class="pilcrow">¶</a></p>
+<p id="section-3-4">Issuance binds a token to an issuance context <code>ctx_iss</code> agreed upon by the
+Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agreed upon
+by the Client and Moderator <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The protocol commits to both contexts
+during issuance: the Anchor verifies the <code>ctx_iss</code> binding during issuance, and
+the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding during
+redemption.<a href="#section-3-4" class="pilcrow">¶</a></p>
+<p id="section-3-5">The issuance protocol is as follows:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-1.1">
-          <p id="section-3-1.1.1">TODO(cjpatton)<a href="#section-3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-6.1">
+          <p id="section-3-6.1.1">TODO(cjpatton) Add an illustration of the issuance flow.<a href="#section-3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<ol start="1" type="1" class="normal type-1" id="section-3-7">
+<li id="section-3-7.1">
+          <p id="section-3-7.1.1">The Client constructs a commitment <code>t = Com(nf, ctx_iss, ctx_red, r) </code> to a
+nullifier <code>nf</code> and the intended issuance and redemption context, where <code>r</code>
+is the opening. It also constructs a VOLEitH proof <code>pf_iss</code> of knowledge of
+<code>nf, r, ctx_red</code> from which <code>t</code> was computed sends <code>t, pf_iss</code> to the
+Anchor.<a href="#section-3-7.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-7.2">
+          <p id="section-3-7.2.1">The Anchor verifies <code>pf_iss</code>, samples a solution <code>s</code> to <code>P(s) = t</code>, then
+sends <code>s</code> to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-7.3">
+          <p id="section-3-7.3.1">The Client finalizes issuance by checking that <code>P(s) = t</code>.<a href="#section-3-7.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
+<p id="section-3-8">The process resembles blind signature issuance <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>, The key difference
+is that the Anchor observes the signature <code>s</code> in plaintext. To ensure
+unlinkability, the Client must hide the signature from the Moderator during
+redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Let <code>P[1], ..., P[L]</code> denote the Anchor Set. To redeem a token, the Client
+presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
+<code>s, r</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing <code>i</code>. In
+order to prove this statement with VOLEitH, we need to express it as an
+arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures as defined
+in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key  <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
+idea is to extend the witness with a "selector" vector <code>b[1], ..., b[L]</code> for
+which <code>b[j] = 1</code> if <code>j = i</code> and <code>0</code> otherwise. First the circuit computes <code>Q</code>
+as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-3-11">
+<pre>
+Q = [0] * P_len  # number of field elements in each P[i]
+for i in range(L):
+  for j in range(len(P[i])):
+     Q[j] += b[i] * P[i][j]
+</pre><a href="#section-3-11" class="pilcrow">¶</a>
+</div>
+<p id="section-3-12">It then checks that <code>Q(s) == Com(nf, ctx_iss, ctx_red, r)</code> and that
+<code>b[i]*(b[i] - 1) == 0</code> for all <code>i in [L]</code>.<a href="#section-3-12" class="pilcrow">¶</a></p>
+<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>,
+this parameterization of Keccak has half the number of rounds as used in SHA-3.
+However, its state is also half the size of either SHA-3 or TurboSHAKE. This
+helps reduce the size of the VOLEitH proof without impacting the binding or
+hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-14.1">
+          <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+alternative is to have the Anchor bind the issuance context by applying an
+outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
+no issuance proof is required. It would also have the benefit of not
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
-<div id="security-considerations">
+<div id="preliminaries">
 <section id="section-4">
-      <h2 id="name-security-considerations">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      <h2 id="name-preliminaries">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-4-1.1">
-          <p id="section-4-1.1.1">TODO<a href="#section-4-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-4-1.1.1">TODO(cjpatton)<a href="#section-4-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="protocol">
+<section id="section-5">
+      <h2 id="name-protocol">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-protocol" class="section-name selfRef">Protocol</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5-1.1">
+          <p id="section-5-1.1.1">TODO(cjpatton)<a href="#section-5-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="security">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-1.1">
+          <p id="section-6-1.1.1">TODO Prove the following claims.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-6-2">Issuer-hiding and post-issuance unlinkability of Moussaka reduces to the
+zero-knowledge property of the VOLEitH proof system and the hiding property of
+our commitment. One-more-unforgeability reduces to witness-extractability of
+VOLEitH, binding of the commitment, and the one-more-UOV assumption
+(<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8). The one-more-UOV assumption is a stronger
+assumption than standard UOV (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some
+scrutiny before we rely on it too heavily.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-3.1">
+          <p id="section-6-3.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
+simplified version of Moussaka, similar to PoMFRIT. During redemption, the
+Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-3.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
+forger <code>A</code>. We simulate <code>B</code>'s RO queries using the random targets we got as
+input to our one-more-UOV instance; when <code>B</code> requests issuance, we forward
+the target to our own <code>SPre</code> oracle.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
+<p id="section-6-3.1.3">On input <code>P, t[1], ..., t[Q]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as the
+issuer public key and respond to its queries as follows:<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-3.1.4.1">
+              <p id="section-6-3.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, respond with <code>c =
+t[i]</code>.<a href="#section-6-3.1.4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-3.1.4.2">
+              <p id="section-6-3.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-3.1.4.3">
+              <p id="section-6-3.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pi</code>: extract the witness <code>s, r</code> for
+<code>pi</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
+of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
+<code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
+some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
+instance.<a href="#section-6-3.1.4.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-6-3.1.5">NOTE We previously looked at an alternative to the outer commitment in which
+<code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c ^ x</code>. A
+reduction to one-more-UOV is possible, but it incurs a significant loss in
+concrete security, since the reduction has to guess <code>x</code> so that it can
+program the random oracle accordingly. Matching attack: XORing the tag
+into the image under the hash makes means the attacker gets to pick any
+prefix it wants. It now only needs to find a collision in the remaining bits
+of the image.<a href="#section-6-3.1.5" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-4.1">
+          <p id="section-6-4.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-5">
+<section id="section-7">
       <h2 id="name-iana-considerations">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-5-1">This document has no IANA actions.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-7-1">This document has no IANA actions.<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="sec-normative-references">
-<section id="section-6">
-      <h2 id="name-normative-references">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
 <dl class="references">
+<dt id="FAEST">[FAEST]</dt>
+        <dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"The FAEST Signature Scheme"</span>, <span class="seriesInfo">Version 2.0</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://faest.info/faest-spec-v2.0.pdf">https://faest.info/faest-spec-v2.0.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIPS202">[FIPS202]</dt>
+        <dd>
+<span class="refAuthor">National Institute of Standards and Technology (NIST)</span>, <span class="refTitle">"SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"</span>, <span class="seriesInfo">FIPS PUB 202</span>, <time datetime="2015-08" class="refDate">August 2015</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.202">https://doi.org/10.6028/NIST.FIPS.202</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IHAT">[IHAT]</dt>
+        <dd>
+<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
+<dd class="break"></dd>
+<dt id="MAYO">[MAYO]</dt>
+        <dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Campos, F.</span>, <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Hess, B.</span>, and <span class="refAuthor">M. J. Kannwischer</span>, <span class="refTitle">"MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02-05" class="refDate">5 February 2025</time>, <span>&lt;<a href="https://pqmayo.org/assets/specs/mayo-round2.pdf">https://pqmayo.org/assets/specs/mayo-round2.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC8174">[RFC8174]</dt>
-    <dd>
+        <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC9474">[RFC9474]</dt>
+        <dd>
+<span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="UOV">[UOV]</dt>
+      <dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 </dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="ARCH">[ARCH]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PoMFRIT">[PoMFRIT]</dt>
+      <dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
 </section>
 </div>
 <div id="acknowledgments">
@@ -1266,9 +1545,17 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 </div>
 <div id="authors-addresses">
 <section id="appendix-B">
-      <h2 id="name-authors-address">
-<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Tianyu Zhang</span></div>
+<div dir="auto" class="left"><span class="org">University of Illinois at Urbana-Champaign</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:tianyuz@illinois.edu" class="email">tianyuz@illinois.edu</a>
+</div>
+</address>
 <address class="vcard">
         <div dir="auto" class="left"><span class="fn nameRole">Christopher Patton</span></div>
 <div dir="auto" class="left"><span class="org">Cloudflare</span></div>
