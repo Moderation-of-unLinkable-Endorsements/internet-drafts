@@ -1222,10 +1222,27 @@ the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#se
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-proof-size" class="internal xref">Proof Size</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-what-voleith-charges-for" class="internal xref">What VOLEitH Charges For</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-the-redemption-witness" class="internal xref">The Redemption Witness</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-degrees-of-the-redemption-r" class="internal xref">Degrees of the Redemption Relation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
+                <p id="section-toc.1-1.9.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-an-alternative-we-rejected" class="internal xref">An Alternative We Rejected</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1265,29 +1282,29 @@ knowledge of a signature under some public key in the Anchor Set.<a href="#secti
 <p id="section-1-5">Moussaka has significantly higher bandwidth cost compared to IHAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-6">
 <li id="section-1-6.1">
-          <p id="section-1-6.1.1">each Anchor public key is <code>42.6</code> kilobytes (this corresponds to the uov-Ip
-parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.1.1">each Anchor public key is 42.6KB (this corresponds to the uov-Ip parameter
+set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.2">
-          <p id="section-1-6.2.1"><code>TODO</code> kilobytes are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.2.1">8KB are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.3">
-          <p id="section-1-6.3.1"><code>TODO</code> kilobytes are transmitted during redemption,<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.3.1">9KB are transmitted during redemption, plus about <code>1.4</code> bytes per Anchor in
+the Anchor Set.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-1-7">where <code>L</code> is the size of the Anchor Set. Verifying a redemption costs the
-Moderator work linear in <code>L</code>, since it evaluates the Anchor Set in the clear. How
-the size of the redemption request grows with <code>L</code> is not yet settled; see
-<a href="#overview" class="auto internal xref">Section 3</a>.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1-7.1">
+          <p id="section-1-7.1.1">NOTE(cjpatton) These numbers aren't based on an actual implementation. They
+are the result of an analysis from Claude Opus 5 looking at the FAEST spec
+and an arithmetization of Keccak in an work in progress implementation.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-8.1">
-          <p id="section-1-8.1.1">NOTE(tnyuzg) We should be able to make redemption sublinear using the
-OR proof of ia.cr/2025/113, Section 4.1. The arithmetization in <a href="#overview" class="auto internal xref">Section 3</a>
-is a step in this direction: the Client commits to the binary encoding of the
-Anchor index rather than to a selector vector of length <code>L</code>.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
-<p id="section-1-8.1.2">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
+          <p id="section-1-8.1.1">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
 for issuance and another for redemption) using the more invasive techniques
-from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.2" class="pilcrow">¶</a></p>
+from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-1-9">On the other hand, Moussaka is round optimal: only two moves are required for
@@ -1399,14 +1416,14 @@ statement with VOLEitH, we need to express it as an arithmetic circuit.<a href="
 in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, each public key is a homogeneous quadratic map, so that any
 linear combination of public keys is again a quadratic map; in particular, for
 any public key <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
-witness with the binary encoding <code>d[0], ..., d[k-1]</code> of the index <code>i</code>, where
-<code>k = ceil(log2(L))</code> and <code>i = d[0] + 2*d[1] + ... + 2^(k-1)*d[k-1]</code>. The circuit
-computes the selected public key <code>Q := Select(d, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
+witness with a "selector" vector <code>b[0], ..., b[L-1]</code> for which <code>b[u] = 1</code> if
+<code>u = i</code> and <code>0</code> otherwise. The circuit computes the selected public key
+<code>Q := Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-3-11">
 <pre>
-Select(d, P):
+Select(b, P):
   Input:
-    - d: binary encoding of the selected index, in F_q^k
+    - b: selector vector, in F_q^L
     - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
 
   Output:
@@ -1416,79 +1433,32 @@ Select(d, P):
     1. N := m * n * (n + 1) / 2  // field elements per map
     2. Q := 0^N
     3. for u in [L]:
-    4.   w := 1                  // does d encode u?
-    5.   for j in [k]:
-    6.     if bit(u, j) = 1: w := w * d[j]
-    7.     else:             w := w * (1 - d[j])
-    8.   for t in [N]:
-    9.     Q[t] += w * P[u][t]
-    10. return Q
+    4.   for t in [N]:
+    5.     Q[t] += b[u] * P[u][t]
+    6. return Q
 </pre><a href="#section-3-11" class="pilcrow">¶</a>
 </div>
-<p id="section-3-12">Here <code>bit(u, j)</code> denotes the <code>j</code>-th least significant bit of the integer <code>u</code>,
-i.e., <code>bit(u, j) = floor(u / 2^j) mod 2</code>. The branch taken in steps 6 and 7
-depends only on the loop index <code>u</code>, which is public, so <code>Select()</code> unrolls into a
-fixed arithmetic circuit determined by <code>L</code> alone. If <code>d</code> is the binary encoding
-of <code>i</code>, then <code>w = 1</code> if <code>u = i</code> and <code>w = 0</code> otherwise, hence <code>Q = P[i]</code>.<a href="#section-3-12" class="pilcrow">¶</a></p>
-<p id="section-3-13">The circuit then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that
-<code>d[j] * (d[j] - 1) = 0</code> for all <code>j in [k]</code>. These <code>k</code> constraints are all that
-is needed to pin <code>d</code> to a single Anchor, since every assignment of bits to <code>d</code>
-is the encoding of exactly one index.<a href="#section-3-13" class="pilcrow">¶</a></p>
-<p id="section-3-14">If <code>L</code> is not a power of two, then <code>d</code> may encode an index <code>u &gt;= L</code>, in which
-case <code>w = 0</code> for every <code>u in [L]</code>. Then <code>Q</code> is the all-zero map, so that
-<code>Q(s) = 0^m</code> for every <code>s</code>, and the Client would have to know an opening of the
-commitment to <code>0^m</code>. See <a href="#security" class="auto internal xref">Section 6</a>.<a href="#section-3-14" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-15.1">
-          <p id="section-3-15.1.1">NOTE We previously extended the witness with a "selector" vector
-<code>b[0], ..., b[L-1]</code> intended to be the indicator of <code>i</code>, with <code>Q</code> computed as
-<code>b[0]*P[0] + ... + b[L-1]*P[L-1]</code>. Constraining each <code>b[u]</code> to <code>{0, 1}</code> does
-not force the weight of <code>b</code> to be one, and neither does adding the linear
-constraint <code>b[0] + ... + b[L-1] = 1</code>, since <code>F_q</code> has characteristic 2 and so
-this only forces the weight to be odd. A Client that sets several entries of
-<code>b</code> proves knowledge of a solution to a <em>sum</em> of public keys, which a rogue
-Anchor could arrange to have a trapdoor it knows. The binary encoding avoids
-this by construction. It also shrinks this part of the witness from <code>L</code>
-elements to <code>k</code>, at the cost of raising the degree of the constraint
-<code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> in the witness from <code>3</code> to <code>k + 2</code>.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-3-16">The cost of the proof is not the number of multiplications the circuit performs.
-Step 9 performs <code>L * N</code> of them, but each is between a value derived from the
-witness and a coefficient of a public key, and multiplication by a public
-constant is a linear operation on a committed value: the Moderator applies it to
-its own keys without the Client sending anything. The same goes for the
-accumulation into <code>Q</code>. What the Client transmits is one field element per
-committed value, plus whatever the proof system charges for checking the
-constraints. So the question is how many values have to be committed, which in
-turn depends on the degree of constraint the proof system admits.<a href="#section-3-16" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-17.1">
-          <p id="section-3-17.1.1">TODO(cjpatton) Settle this and record the resulting size. The witness above is
-<code>r, s, d</code> together with whatever <code>Com()</code> requires, and the constraint
-<code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> has degree <code>k + 2</code> in it. If <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>
-admits constraints of that degree, then the only <code>L</code>-dependent term is the <code>k</code>
-bits of <code>d</code>. If it admits degree <code>2</code> only, then the partial products in steps 6
-and 7 have to be committed as well: sharing them across the loop in step 3
-costs about <code>2L</code> values, which is worse than the <code>L</code> values of the selector
-vector we started with. Splitting the index into blocks of bits interpolates
-between the two. Note that the degree also affects the number of field elements
-exchanged for the constraint check itself, which we should count as well.<a href="#section-3-17.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-3-18">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<p id="section-3-12">The circuit then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that <code>b</code>
+is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for details.<a href="#section-3-12" class="pilcrow">¶</a></p>
+<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
 state is also half the size of the state used by either SHA-3 or TurboSHAKE.
 This helps reduce the size of the VOLEitH proof without impacting the binding or
-hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-18" class="pilcrow">¶</a></p>
+hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-19.1">
-          <p id="section-3-19.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+<li class="normal ulEmpty" id="section-3-14.1">
+          <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
 alternative is to have the Anchor bind the issuance context by applying an
 outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
 no issuance proof is required. It would also have the benefit of not
-requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-19.1.1" class="pilcrow">¶</a></p>
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-15.1">
+          <p id="section-3-15.1.1">NOTE We can add multishow and late binding of redemption context by adding
+another hash evaluation to the redemption proof. See issue 45.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1528,15 +1498,17 @@ in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</sp
 witness <code>W</code> satisfying a relation <code>R(X, W)</code> for public parameters <code>X</code> using the
 VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write <code>v :=
 VOLEitH.Verify(pf, X, R)</code> to denote verification of <code>pf</code> under the same public
-parameters and relation, where the output <code>v</code> is a bit. The relation is
-expressed as a sequence of constraints, all of which must be satisfied for the
-proof to be valid.<a href="#section-4-7" class="pilcrow">¶</a></p>
+parameters and relation, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">The relation is expressed as a sequence of constraints, all of which must be
+satisfied for the proof to be valid. Constraints are equalities involving
+public and witness variables. For the verifier, the witness variables
+implicitly refer to indexes into the proof.<a href="#section-4-8" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-8.1">
-          <p id="section-4-8.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. At the moment
+<li class="normal ulEmpty" id="section-4-9.1">
+          <p id="section-4-9.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. At the moment
 the details of VOLEitH are mixed with the details of the rest of the
 signature. However I suspect we should be able to pull a general purpose
-proof system out of the spec.<a href="#section-4-8.1.1" class="pilcrow">¶</a></p>
+proof system out of the spec.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1728,18 +1700,78 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
 of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span> be
-empty, that is, <code>L &gt; 0</code>. Let <code>k = ceil(log2(L))</code> denote the number of bits needed
-to encode an index into the Anchor Set; note that <code>k = 0</code> when <code>L = 1</code>, in which
-case redemption reveals the issuing Anchor and provides no Anchor-hiding
-<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+empty, that is, <code>L &gt; 0</code>. Note that <code>L = 1</code> is permitted by the constraints below
+but provides no Anchor-hiding, since the Anchor Set then identifies the issuing
+Anchor; the strength of the property is bounded by the size of the Anchor Set, as
+discussed in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">Let <code>i</code> be the index of the Anchor who issued the token. The witness for the
+redemption proof is the opening <code>r</code>, the signature <code>s</code>, and a selector vector
+<code>b[0], ..., b[L-1]</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The circuit
+first selects the public key as <code>Q := Select(b, P)</code>, where <code>Select()</code> is as
+defined in <a href="#overview" class="auto internal xref">Section 3</a>. The first constraint is that <code>Q(s) = Com(nf, ctx_iss,
+ctx_red, r)</code>.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<p id="section-5.4-3">Next, the circuit needs to prove that the selector vector is well-formed, that
+is, exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the
+constraint constraint <code>b[0] + ... + b[L-1] = 1</code> only tells us that the number
+of nonzero entries is odd. We need a few more constraints to deal with this:<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.4-4">
+<li id="section-5.4-4.1">
+            <p id="section-5.4-4.1.1">Bit constraints: <code>b[u] * (b[u] - 1) = 0</code> for all <code>u in [L]</code>. This ensures each
+entry of <code>b</code> is either <code>0</code> or <code>1</code>.<a href="#section-5.4-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-4.2">
+            <p id="section-5.4-4.2.1">Parity constraints: <code>sum(b[0..u+1]) * b[u+1] = 0</code> for all <code>u in [L-1]</code>.
+Once the running parity is nonzero, no later entry may be nonzero, so this
+ensures <code>b</code> has at most one nonzero entry.<a href="#section-5.4-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.4-4.3">
+            <p id="section-5.4-4.3.1">Weight constraint: <code>sum(b) = 1</code>. The number of nonzero entries is odd, hence
+at least one.<a href="#section-5.4-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.4-5">Omitting the parity constraints would be unsound, and not merely in a formal
+sense: a Client that chooses any odd number of nonzero entries obtains a proof
+for the sum of the corresponding public keys. See <a href="#security" class="auto internal xref">Section 6</a>.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.4-6.1">
+            <p id="section-5.4-6.1.1">TODO(cjpatton) Is the selector vector over {0,1}^L or F_q^L?<a href="#section-5.4-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.4-7">These constraints are computed by the following function. Below <code>"r"</code>, <code>"s"</code>,
+and <code>"b"</code> are variables for opening, signature, and selector vector,
+respectively that refer to the witness for the prover and index into the proof
+for the verifier.<a href="#section-5.4-7" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.4-8">
+<pre>
+RedeemRel(P, nf, ctx_iss, ctx_red):
+  Input:
+    - P: Anchor Set of length L
+    - nf: nullifier
+    - ctx_iss: issuance context
+    - ctx_red: redemption context
+
+  Output:
+    - constraints: a sequence of constraints in the witness (r, s, b)
+
+  Steps:
+    1. constraints := []
+    2. Q := Select(b, P)
+    3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
+    4. for u in [L]:
+    5.   constraints.append("b[u] * (b[u] - 1) = 0")
+    6. for u in [L-1]:
+    7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
+    8. constraints.append("sum(b) = 1")
+    9. return constraints
+</pre><a href="#section-5.4-8" class="pilcrow">¶</a>
+</div>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">
 <a href="#section-5.4.1" class="section-number selfRef">5.4.1. </a><a href="#name-redeem-request" class="section-name selfRef">Redeem Request</a>
           </h4>
 <p id="section-5.4.1-1">To redeem a token <code>token = (nf, r, s)</code> issued by Anchor <code>P[i]</code>, the Client runs
-the following procedure. Let <code>Select()</code> and <code>bit()</code> be as defined in
-<a href="#overview" class="auto internal xref">Section 3</a>.<a href="#section-5.4.1-1" class="pilcrow">¶</a></p>
+the following procedure.<a href="#section-5.4.1-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.4.1-2">
 <pre>
 RedeemRequest(P, i, token, ctx_iss, ctx_red):
@@ -1755,19 +1787,15 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 
   Steps:
     1. (nf, r, s) := token
-    2. for j in [k]: d[j] := bit(i, j)  // binary encoding of i
-    3. pf_red := VOLEitH.Prove(
-         (r, s, d),                  // witness
-         (P, nf, ctx_iss, ctx_red),  // public
-         [                           // relation
-           d[0] * (d[0] - 1) = 0,
-           ...,
-           d[k-1] * (d[k-1] - 1) = 0,
-           Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
-         ],
+    2. b := 0^L  // selector vector
+    3. b[i] := 1
+    4. pf_red := VOLEitH.Prove(
+         (r, s, b),                          // witness
+         (P, nf, ctx_iss, ctx_red),          // public
+         RedeemRel(P, nf, tx_iss, ctx_red),  // relation
        )
-    4. request := (nf, pf_red)
-    5. return request
+    5. request := (nf, pf_red)
+    6. return request
 </pre><a href="#section-5.4.1-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -1794,13 +1822,8 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
     1. (nf, pf_red) := request
     2. v := VOLEitH.Verify(
          pf_red,
-         (P, nf, ctx_iss, ctx_red),  // public
-         [                           // relation
-           d[0] * (d[0] - 1) = 0,
-           ...,
-           d[k-1] * (d[k-1] - 1) = 0,
-           Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
-         ],
+         (P, nf, ctx_iss, ctx_red),           // public
+         RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
        )
     3. if v = 0: return INVALID
     4. return nf
@@ -1829,62 +1852,68 @@ VOLEitH, binding of the commitment, and the one-more-UOV assumption
 (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8). The one-more-UOV assumption is a stronger
 assumption than standard UOV (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some
 scrutiny before we rely on it too heavily.<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3">Extracting a witness from a redemption proof yields the bits <code>d</code>, and every
-assignment of bits is the encoding of exactly one index. When <code>L</code> is a power of
-two, that index is always in <code>[L]</code>, so the extracted signature is valid under
-one of the Anchor public keys. Otherwise <code>d</code> may encode an index <code>u &gt;= L</code>, in
-which case <code>Select(d, P)</code> is the all-zero map and the relation instead requires
-<code>Com(nf, ctx_iss, ctx_red, r) = 0^m</code>. Satisfying this means finding an input of
-the form prescribed by <code>Com()</code> whose image under <code>KP800()</code> begins with <code>m</code> zero
-bytes, which we assume is infeasible. Deployments that prefer not to rely on
-this assumption can pad the Anchor Set to a power of two by repeating one of its
-keys; a Client that selects a repeated key still proves the intended statement.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-3">Extracting a witness from a redemption proof yields a selector vector <code>b</code> of
+weight exactly one, by the constraints of <code>RedeemRel()</code> (<a href="#redemption" class="auto internal xref">Section 5.4</a>), so the
+extracted <code>s</code> is a signature under one of the Anchor public keys and not under
+some combination of them. This is what rules out the following attack: a rogue
+Anchor joins the Anchor Set with a public key <code>P[v] = R - P[u]</code>, where <code>P[u]</code> is
+the key of an honest Anchor and <code>R</code> is a key for which the rogue Anchor knows a
+trapdoor. A Client colluding with the rogue Anchor could set <code>b[u] = b[v] = 1</code>,
+making the selected map <code>R</code>, and so redeem tokens that no Anchor ever issued.<a href="#section-6-3" class="pilcrow">¶</a></p>
+<p id="section-6-4">Both families of constraints are load-bearing here. The weight constraint rejects
+the two-key attack just described, since <code>b</code> then has even weight. It does not
+reject the three-key variant, in which the rogue key is
+<code>P[v] = R - P[u] - P[w]</code> and the Client sets <code>b[u] = b[v] = b[w] = 1</code>; that one is
+rejected by the parity constraints. Since linear combinations of UOV public keys
+are again quadratic maps (<a href="#overview" class="auto internal xref">Section 3</a>), any subset of the Anchor Set that a
+malformed <code>b</code> can select is a usable forgery target, so the arithmetization must
+admit unit vectors and nothing else.<a href="#section-6-4" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-4.1">
-          <p id="section-6-4.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
+<li class="normal ulEmpty" id="section-6-5.1">
+          <p id="section-6-5.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
 simplified version of Moussaka, similar to PoMFRIT. During redemption, the
-Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
-<p id="section-6-4.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
+Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-5.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
 forger <code>A</code>. We simulate <code>B</code>'s RO queries using the random targets we got as
 input to our one-more-UOV instance; when <code>B</code> requests issuance, we forward
-the target to our own <code>SPre</code> oracle.<a href="#section-6-4.1.2" class="pilcrow">¶</a></p>
-<p id="section-6-4.1.3">On input <code>P, t[0], ..., t[Q-1]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as
-the issuer public key and respond to its queries as follows:<a href="#section-6-4.1.3" class="pilcrow">¶</a></p>
+the target to our own <code>SPre</code> oracle.<a href="#section-6-5.1.2" class="pilcrow">¶</a></p>
+<p id="section-6-5.1.3">On input <code>P, t[0], ..., t[Q-1]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as
+the issuer public key and respond to its queries as follows:<a href="#section-6-5.1.3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-4.1.4.1">
-              <p id="section-6-4.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, counting from zero,
-respond with <code>c = t[i]</code>.<a href="#section-6-4.1.4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6-5.1.4.1">
+              <p id="section-6-5.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, counting from zero,
+respond with <code>c = t[i]</code>.<a href="#section-6-5.1.4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-4.1.4.2">
-              <p id="section-6-4.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-4.1.4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6-5.1.4.2">
+              <p id="section-6-5.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-5.1.4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-4.1.4.3">
-              <p id="section-6-4.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pf</code>: extract the witness <code>s, r</code> for
+            <li class="normal" id="section-6-5.1.4.3">
+              <p id="section-6-5.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pf</code>: extract the witness <code>s, r</code> for
 <code>pf</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
 of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
 <code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
 some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
-instance.<a href="#section-6-4.1.4.3.1" class="pilcrow">¶</a></p>
+instance.<a href="#section-6-5.1.4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-5.1">
-          <p id="section-6-5.1.1">NOTE We previously looked at an alternative to the outer commitment in which
+<li class="normal ulEmpty" id="section-6-6.1">
+          <p id="section-6-6.1.1">NOTE We previously looked at an alternative to the outer commitment in which
 <code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c XOR x</code>. A
 reduction to one-more-UOV is possible, but it incurs a significant loss in
 concrete security, since the reduction has to guess <code>x</code> so that it can
 program the random oracle accordingly. Matching attack: XORing the tag
 into the image under the hash means the attacker gets to pick any prefix it
 wants. It now only needs to find a collision in the remaining bits of the
-image.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+image.<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-6.1">
-          <p id="section-6-6.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
-TurboSHAKE).<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6-7.1">
+          <p id="section-6-7.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-6-7.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1970,16 +1999,309 @@ TurboSHAKE).<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
 </div>
 </section>
 </div>
-<div id="acknowledgments">
+<div id="proof-size">
 <section id="appendix-A">
+      <h2 id="name-proof-size">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-proof-size" class="section-name selfRef">Proof Size</a>
+      </h2>
+<p id="appendix-A-1">This appendix works out what Moussaka's VOLEitH proofs cost and which parts of the
+protocol drive that cost. It is informative, and the figures are estimates: they
+assume the parameters of FAEST-128s (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Table 3.2), whereas Moussaka would
+need a parameter set of its own.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<div id="charges">
+<section id="appendix-A.1">
+        <h3 id="name-what-voleith-charges-for">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-what-voleith-charges-for" class="section-name selfRef">What VOLEitH Charges For</a>
+        </h3>
+<p id="appendix-A.1-1">Three properties of the proof system determine the accounting (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>,
+Section 2).<a href="#appendix-A.1-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-2">First, linear operations are local. A committed value is represented by a
+polynomial held by the prover and an evaluation of it held by the verifier
+(<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Definition 6.1), so adding two committed values, or multiplying one
+by a public constant, is something each party does on its own (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>,
+Figure 6.1). Nothing is transmitted. Multiplying two committed values is also
+local; it raises the degree of the result rather than costing bandwidth.<a href="#appendix-A.1-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-3">Second, constraints are batched. However many constraints the relation has, the
+verifier combines them into a single polynomial identity using a universal hash,
+and the prover sends only the coefficients of the combined polynomial. In the
+signature these are the two field elements <code>ã1, ã2</code> (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Section 7.2).<a href="#appendix-A.1-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-4">Third, and in the other direction, the witness is charged more than once. The
+prover commits to an extended witness of <code>l</code> bits, but it must also send <code>tau - 1</code>
+correction values, each of length <code>l + D*lambda + B</code> bits, to reconcile the <code>tau</code>
+small-VOLE instances (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Section 2.1), where <code>D</code> is the maximum
+constraint degree and <code>B</code> accounts for a salt. The total is<a href="#appendix-A.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A.1-5">
+<pre>
+size = tau * (l + D*lambda + B) + T_open*lambda + n_leafcom*lambda*tau
+       + lambda + 128 + 32
+</pre><a href="#appendix-A.1-5" class="pilcrow">¶</a>
+</div>
+<p id="appendix-A.1-6">so each additional bit of witness costs about <code>tau</code> bits of proof. For FAEST-128s,
+<code>tau = 11</code> and <code>lambda = 128</code>, i.e., about <code>1.4</code> bytes of proof per witness bit.<a href="#appendix-A.1-6" class="pilcrow">¶</a></p>
+<p id="appendix-A.1-7">The degree <code>D</code> is a parameter rather than a constant, and this is what makes the
+accounting interesting. FAEST instantiates the proof system with <code>D = 3</code>, which
+is what AES needs (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Section 2.2 and Figure 6.1), but the construction
+admits any degree: the combined constraint polynomial has <code>D + 1</code> coefficients
+rather than <code>4</code>, of which all but the first and last are transmitted, and the
+zero-knowledge masks occupy <code>D*lambda</code> of the bits that are charged <code>tau</code> times.
+The masks are the dominant term. Each additional degree therefore costs about
+<code>tau*lambda</code> bits, some <code>176</code> bytes at these parameters, and buys the ability to
+multiply committed values without committing to the products. The soundness error
+grows as <code>D/2^lambda</code> (<span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, Section 6), which is negligible for any <code>D</code> of
+interest. <a href="#redemption-witness" class="auto internal xref">Appendix A.2</a> shows that Moussaka wants a <code>D</code> far above <code>3</code>.<a href="#appendix-A.1-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="redemption-witness">
+<section id="appendix-A.2">
+        <h3 id="name-the-redemption-witness">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-the-redemption-witness" class="section-name selfRef">The Redemption Witness</a>
+        </h3>
+<p id="appendix-A.2-1">The redemption relation (<a href="#protocol" class="auto internal xref">Section 5</a>) commits to the following.<a href="#appendix-A.2-1" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">value</th>
+              <th class="text-left" rowspan="1" colspan="1">bits</th>
+              <th class="text-left" rowspan="1" colspan="1">notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>r</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>128</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">the commitment opening</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>s</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>896</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">the UOV signature, <code>n</code> bytes lifted to <code>F_q</code> elements</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>b</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>L</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">the selector vector, one bit per Anchor</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Com()</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>1600</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">two intermediate permutation states, see below</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="appendix-A.2-3">The nullifier is public during redemption, and so are the contexts and the Anchor
+Set, so none of them are charged.<a href="#appendix-A.2-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-4">The commitment dominates, and how much it dominates is a design choice. The round
+function of Keccak-p[800,12] is linear except for <code>chi</code>, which has degree <code>2</code>, so
+a run of <code>g</code> consecutive rounds applied to a committed state yields a result of
+degree <code>2^g</code>. Cutting the twelve rounds into segments of <code>g</code> rounds and committing
+to the state at each interior boundary therefore costs <code>12/g - 1</code> intermediate
+states of <code>800</code> bits and requires <code>D &gt;= 2^g</code>. The state entering the last segment
+need not be committed, since comparing that segment's output against <code>Q(s)</code> stays
+within the same budget.<a href="#appendix-A.2-4" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-5">The two costs pull against each other: states are charged <code>tau</code> times each, and so
+are the <code>D*lambda</code> mask bits. For a circuit containing <code>E</code> evaluations of the
+permutation the quantity to minimize is <code>E*(12/g - 1)*800 + 2^g*lambda</code> bits.<a href="#appendix-A.2-5" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">g</th>
+              <th class="text-left" rowspan="1" colspan="1">D</th>
+              <th class="text-left" rowspan="1" colspan="1">E = 1</th>
+              <th class="text-left" rowspan="1" colspan="1">E = 2</th>
+              <th class="text-left" rowspan="1" colspan="1">E = 3</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>1</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>9056</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>17856</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>26656</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>4</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>4512</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>8512</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>12512</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>3</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>8</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>3424</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>5824</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>8224</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>4</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>3648</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>5248</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>6848</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>6</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>64</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>8992</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>9792</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>10592</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="appendix-A.2-7">Each Moussaka proof evaluates <code>Com()</code> once, so <code>g = 3</code> and <code>D = 8</code> is the
+optimum, but <code>g = 4</code> is within seven percent of it and is the better choice for a
+parameter set that must also serve circuits with more permutation calls. The
+figures below assume <code>g = 4</code>, hence <code>D = 16</code> and the <code>1600</code> bits in the table.<a href="#appendix-A.2-7" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-8">Summing gives <code>l = 2624 + L</code> bits for redemption. Evaluating the size formula with
+FAEST-128s parameters (<code>tau = 11</code>, <code>T_open = 102</code>, <code>n_leafcom = 3</code>, <code>B = 16</code>) gives
+about <code>8730</code> bytes at <code>L = 64</code>, <code>8990</code> at <code>L = 256</code> and <code>10050</code> at <code>L = 1024</code>; the
+Anchor Set contributes <code>1.4*L</code> bytes, <code>140</code> bytes at <code>L = 100</code>, under two percent
+of the total. The issuance relation commits to <code>nf</code>, <code>r</code>, <code>ctx_red</code> and the same
+two permutation states, <code>l = 2048</code> bits, for about <code>7850</code> bytes.
+Choosing <code>g = 3</code> instead would save some <code>300</code> bytes on each. An implementation
+may round the correction values up to a convenient length, which costs a further
+<code>tau</code> bytes per byte of padding.<a href="#appendix-A.2-8" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-9">Two conclusions follow. The Anchor Set is not what makes redemption expensive, and
+anything that removes one of the two <code>Com()</code> evaluations from the protocol is
+worth far more than anything that shrinks the selection.<a href="#appendix-A.2-9" class="pilcrow">¶</a></p>
+<p id="appendix-A.2-10">What does limit the Anchor Set size is the Moderator's running time rather than
+bandwidth. <code>Select()</code> performs <code>L*N</code> multiply-accumulations, where
+<code>N = m*n*(n+1)/2 = 278432</code> for uov-Ip, so redemption costs the Moderator some
+<code>2.8*10^8</code> field operations at <code>L = 1024</code> against <code>10</code> kilobytes of proof.<a href="#appendix-A.2-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="degrees">
+<section id="appendix-A.3">
+        <h3 id="name-degrees-of-the-redemption-r">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-degrees-of-the-redemption-r" class="section-name selfRef">Degrees of the Redemption Relation</a>
+        </h3>
+<p id="appendix-A.3-1">The selection machinery of <a href="#overview" class="auto internal xref">Section 3</a> sits well inside the budget that the
+commitment already forces. Each <code>b[u]</code> is committed, so it has degree <code>1</code>, and
+<code>P[u]</code> is public, so <code>P[u](s)</code> has degree <code>2</code> in the committed <code>s</code>; their product,
+and hence <code>Select(b, P)(s)</code>, has degree <code>3</code>. The booleanity and running-parity
+constraints have degree <code>2</code>, the running parities themselves being linear
+combinations of committed values. The evaluation of <code>Com()</code> sets the actual bound
+at <code>D = 16</code>, so the selection adds nothing to the mask cost of <a href="#charges" class="auto internal xref">Appendix A.1</a>, and
+neither would a good deal more selection machinery.<a href="#appendix-A.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="rejected">
+<section id="appendix-A.4">
+        <h3 id="name-an-alternative-we-rejected">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-an-alternative-we-rejected" class="section-name selfRef">An Alternative We Rejected</a>
+        </h3>
+<p id="appendix-A.4-1">Instead of committing to <code>b</code> directly, the Client could commit to the <code>k</code>-bit
+binary encoding <code>d</code> of the index <code>i</code>, with <code>k = ceil(log2(L))</code>, and have the
+circuit derive the indicator of <code>i</code> as a product over the bits: for each <code>u</code>, the
+coefficient <code>prod_j (d[j] if bit(u,j) = 1 else 1 - d[j])</code>, where <code>bit(u, j)</code> is
+the <code>j</code>-th least significant bit of <code>u</code>, is <code>1</code> if <code>d</code> encodes <code>u</code> and <code>0</code>
+otherwise. This is appealing because it needs no weight constraints at
+all -- every assignment of bits encodes exactly one index -- and because it
+shrinks this part of the witness from <code>L</code> bits to <code>k</code>.<a href="#appendix-A.4-1" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-2">The degree it needs is free. The coefficient has degree <code>k</code> in the witness, so the
+constraint against the commitment has degree <code>k + 2</code>, and since <code>Com()</code> has already
+bought <code>D = 16</code> (<a href="#degrees" class="auto internal xref">Appendix A.3</a>), this is within budget for every <code>k &lt;= 14</code>, that is,
+every <code>L &lt;= 16384</code>. No extra masks are charged, and the encoding would save about
+<code>1.4*(L-k)</code> bytes: some <code>1.4</code> kilobytes at <code>L = 1024</code>, about one seventh of the
+redemption request.<a href="#appendix-A.4-2" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-3">What rules it out is the Moderator's running time. Verifying step 5 of <code>Select()</code>
+scales a committed polynomial by a public constant, which costs one field
+multiplication per coefficient. Under the selector vector the coefficient count is
+<code>2</code>, since <code>b[u]</code> is committed directly; under the binary encoding it is <code>k + 1</code>.
+That multiplies the <code>L*N</code> multiply-accumulations of <code>Select()</code> by <code>(k+1)/2</code>, a
+factor of <code>5.5</code> at <code>L = 1024</code>. As noted in <a href="#redemption-witness" class="auto internal xref">Appendix A.2</a>, that term is
+already what bounds the Anchor Set size, so inflating it fivefold to save a seventh
+of the proof is the wrong direction. The encoding's other apparent advantage, that
+it needs no weight constraints, is worth nothing either: the constraints of
+<a href="#overview" class="auto internal xref">Section 3</a> are degree <code>2</code> and add no witness, so they are free as well.<a href="#appendix-A.4-3" class="pilcrow">¶</a></p>
+<p id="appendix-A.4-4">A further wrinkle is that the encoding admits indices <code>u &gt;= L</code> when <code>L</code> is not a
+power of two. Those select the all-zero map, which is not immediately exploitable
+-- the relation then demands an opening of the commitment to <code>0^m</code> -- but it is one
+more thing to argue.<a href="#appendix-A.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.
+Claude Opus 5 suggested the parity constraints for redemption proof.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-B">
+<section id="appendix-C">
       <h2 id="name-authors-addresses">
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>

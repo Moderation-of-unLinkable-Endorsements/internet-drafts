@@ -89,6 +89,11 @@ Table of Contents
    8.  References
      8.1.  Normative References
      8.2.  Informative References
+   Appendix A.  Proof Size
+     A.1.  What VOLEitH Charges For
+     A.2.  The Redemption Witness
+     A.3.  Degrees of the Redemption Relation
+     A.4.  An Alternative We Rejected
    Acknowledgments
    Authors' Addresses
 
@@ -125,23 +130,18 @@ Table of Contents
 
    Moussaka has significantly higher bandwidth cost compared to IHAT:
 
-   1.  each Anchor public key is 42.6 kilobytes (this corresponds to the
-       uov-Ip parameter set [UOV]);
+   1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
+       parameter set [UOV]);
 
-   2.  TODO kilobytes are transmitted during issuance; and
+   2.  8KB are transmitted during issuance; and
 
-   3.  TODO kilobytes are transmitted during redemption,
+   3.  9KB are transmitted during redemption, plus about 1.4 bytes per
+       Anchor in the Anchor Set.
 
-   where L is the size of the Anchor Set. Verifying a redemption costs
-   the Moderator work linear in L, since it evaluates the Anchor Set in
-   the clear.  How the size of the redemption request grows with L is
-   not yet settled; see Section 3.
-
-      NOTE(tnyuzg) We should be able to make redemption sublinear using
-      the OR proof of ia.cr/2025/113, Section 4.1.  The arithmetization
-      in Section 3 is a step in this direction: the Client commits to
-      the binary encoding of the Anchor index rather than to a selector
-      vector of length L.
+      NOTE(cjpatton) These numbers aren't based on an actual
+      implementation.  They are the result of an analysis from Claude
+      Opus 5 looking at the FAEST spec and an arithmetization of Keccak
+      in an work in progress implementation.
 
       NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH
       proofs (one for issuance and another for redemption) using the
@@ -248,14 +248,14 @@ Table of Contents
    as defined in [UOV].  Namely, each public key is a homogeneous
    quadratic map, so that any linear combination of public keys is again
    a quadratic map; in particular, for any public key P it holds that
-   P(0^n) = 0^m.  The idea is to extend the witness with the binary
-   encoding d[0], ..., d[k-1] of the index i, where k = ceil(log2(L))
-   and i = d[0] + 2*d[1] + ... + 2^(k-1)*d[k-1].  The circuit computes
-   the selected public key Q := Select(d, P) as follows:
+   P(0^n) = 0^m.  The idea is to extend the witness with a "selector"
+   vector b[0], ..., b[L-1] for which b[u] = 1 if u = i and 0 otherwise.
+   The circuit computes the selected public key Q := Select(b, P) as
+   follows:
 
-   Select(d, P):
+   Select(b, P):
      Input:
-       - d: binary encoding of the selected index, in F_q^k
+       - b: selector vector, in F_q^L
        - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
 
      Output:
@@ -265,68 +265,13 @@ Table of Contents
        1. N := m * n * (n + 1) / 2  // field elements per map
        2. Q := 0^N
        3. for u in [L]:
-       4.   w := 1                  // does d encode u?
-       5.   for j in [k]:
-       6.     if bit(u, j) = 1: w := w * d[j]
-       7.     else:             w := w * (1 - d[j])
-       8.   for t in [N]:
-       9.     Q[t] += w * P[u][t]
-       10. return Q
-
-   Here bit(u, j) denotes the j-th least significant bit of the integer
-   u, i.e., bit(u, j) = floor(u / 2^j) mod 2.  The branch taken in steps
-   6 and 7 depends only on the loop index u, which is public, so
-   Select() unrolls into a fixed arithmetic circuit determined by L
-   alone.  If d is the binary encoding of i, then w = 1 if u = i and w =
-   0 otherwise, hence Q = P[i].
+       4.   for t in [N]:
+       5.     Q[t] += b[u] * P[u][t]
+       6. return Q
 
    The circuit then checks that Q(s) = Com(nf, ctx_iss, ctx_red, r) and
-   that d[j] * (d[j] - 1) = 0 for all j in [k].  These k constraints are
-   all that is needed to pin d to a single Anchor, since every
-   assignment of bits to d is the encoding of exactly one index.
-
-   If L is not a power of two, then d may encode an index u >= L, in
-   which case w = 0 for every u in [L].  Then Q is the all-zero map, so
-   that Q(s) = 0^m for every s, and the Client would have to know an
-   opening of the commitment to 0^m.  See Section 6.
-
-      NOTE We previously extended the witness with a "selector" vector
-      b[0], ..., b[L-1] intended to be the indicator of i, with Q
-      computed as b[0]*P[0] + ... + b[L-1]*P[L-1].  Constraining each
-      b[u] to {0, 1} does not force the weight of b to be one, and
-      neither does adding the linear constraint b[0] + ... + b[L-1] = 1,
-      since F_q has characteristic 2 and so this only forces the weight
-      to be odd.  A Client that sets several entries of b proves
-      knowledge of a solution to a _sum_ of public keys, which a rogue
-      Anchor could arrange to have a trapdoor it knows.  The binary
-      encoding avoids this by construction.  It also shrinks this part
-      of the witness from L elements to k, at the cost of raising the
-      degree of the constraint Q(s) = Com(nf, ctx_iss, ctx_red, r) in
-      the witness from 3 to k + 2.
-
-   The cost of the proof is not the number of multiplications the
-   circuit performs.  Step 9 performs L * N of them, but each is between
-   a value derived from the witness and a coefficient of a public key,
-   and multiplication by a public constant is a linear operation on a
-   committed value: the Moderator applies it to its own keys without the
-   Client sending anything.  The same goes for the accumulation into Q.
-   What the Client transmits is one field element per committed value,
-   plus whatever the proof system charges for checking the constraints.
-   So the question is how many values have to be committed, which in
-   turn depends on the degree of constraint the proof system admits.
-
-      TODO(cjpatton) Settle this and record the resulting size.  The
-      witness above is r, s, d together with whatever Com() requires,
-      and the constraint Q(s) = Com(nf, ctx_iss, ctx_red, r) has degree
-      k + 2 in it.  If [FAEST] admits constraints of that degree, then
-      the only L-dependent term is the k bits of d.  If it admits degree
-      2 only, then the partial products in steps 6 and 7 have to be
-      committed as well: sharing them across the loop in step 3 costs
-      about 2L values, which is worse than the L values of the selector
-      vector we started with.  Splitting the index into blocks of bits
-      interpolates between the two.  Note that the degree also affects
-      the number of field elements exchanged for the constraint check
-      itself, which we should count as well.
+   that b is the indicator vector of a single Anchor.  See Section 5.4
+   for details.
 
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
@@ -342,6 +287,10 @@ Table of Contents
       ctx_iss, r_iss).  This way no issuance proof is required.  It
       would also have the benefit of not requiring the stronger one-
       more-UOV assumption.  See Section 6 for details.
+
+      NOTE We can add multishow and late binding of redemption context
+      by adding another hash evaluation to the redemption proof.  See
+      issue 45.
 
 4.  Preliminaries
 
@@ -374,8 +323,11 @@ Table of Contents
    using the VOLE-in-the-Head proof system defined in [FAEST].  We write
    v := VOLEitH.Verify(pf, X, R) to denote verification of pf under the
    same public parameters and relation, where the output v is a bit.
+
    The relation is expressed as a sequence of constraints, all of which
-   must be satisfied for the proof to be valid.
+   must be satisfied for the proof to be valid.  Constraints are
+   equalities involving public and witness variables.  For the verifier,
+   the witness variables implicitly refer to indexes into the proof.
 
       TODO(cjpatton) Figure out how to cite [FAEST] more precisely.  At
       the moment the details of VOLEitH are mixed with the details of
@@ -521,16 +473,72 @@ Table of Contents
 
    Before redemption, the Client and Moderator agree on an Anchor Set
    consisting of a sequence of UOV public keys P[0], ..., P[L-1].  The
-   Anchor Set MUST NOT be empty, that is, L > 0.  Let k = ceil(log2(L))
-   denote the number of bits needed to encode an index into the Anchor
-   Set; note that k = 0 when L = 1, in which case redemption reveals the
-   issuing Anchor and provides no Anchor-hiding [ARCH].
+   Anchor Set MUST NOT be empty, that is, L > 0.  Note that L = 1 is
+   permitted by the constraints below but provides no Anchor-hiding,
+   since the Anchor Set then identifies the issuing Anchor; the strength
+   of the property is bounded by the size of the Anchor Set, as
+   discussed in [ARCH].
+
+   Let i be the index of the Anchor who issued the token.  The witness
+   for the redemption proof is the opening r, the signature s, and a
+   selector vector b[0], ..., b[L-1], where b[u] = 1 if u = i and 0
+   otherwise.  The circuit first selects the public key as Q :=
+   Select(b, P), where Select() is as defined in Section 3.  The first
+   constraint is that Q(s) = Com(nf, ctx_iss, ctx_red, r).
+
+   Next, the circuit needs to prove that the selector vector is well-
+   formed, that is, exactly one entry is set.  Because F_q has
+   characteristic 2, the constraint constraint b[0] + ... + b[L-1] = 1
+   only tells us that the number of nonzero entries is odd.  We need a
+   few more constraints to deal with this:
+
+   1.  Bit constraints: b[u] * (b[u] - 1) = 0 for all u in [L].  This
+       ensures each entry of b is either 0 or 1.
+
+   2.  Parity constraints: sum(b[0..u+1]) * b[u+1] = 0 for all u in
+       [L-1].  Once the running parity is nonzero, no later entry may be
+       nonzero, so this ensures b has at most one nonzero entry.
+
+   3.  Weight constraint: sum(b) = 1.  The number of nonzero entries is
+       odd, hence at least one.
+
+   Omitting the parity constraints would be unsound, and not merely in a
+   formal sense: a Client that chooses any odd number of nonzero entries
+   obtains a proof for the sum of the corresponding public keys.  See
+   Section 6.
+
+      TODO(cjpatton) Is the selector vector over {0,1}^L or F_q^L?
+
+   These constraints are computed by the following function.  Below "r",
+   "s", and "b" are variables for opening, signature, and selector
+   vector, respectively that refer to the witness for the prover and
+   index into the proof for the verifier.
+
+   RedeemRel(P, nf, ctx_iss, ctx_red):
+     Input:
+       - P: Anchor Set of length L
+       - nf: nullifier
+       - ctx_iss: issuance context
+       - ctx_red: redemption context
+
+     Output:
+       - constraints: a sequence of constraints in the witness (r, s, b)
+
+     Steps:
+       1. constraints := []
+       2. Q := Select(b, P)
+       3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
+       4. for u in [L]:
+       5.   constraints.append("b[u] * (b[u] - 1) = 0")
+       6. for u in [L-1]:
+       7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
+       8. constraints.append("sum(b) = 1")
+       9. return constraints
 
 5.4.1.  Redeem Request
 
    To redeem a token token = (nf, r, s) issued by Anchor P[i], the
-   Client runs the following procedure.  Let Select() and bit() be as
-   defined in Section 3.
+   Client runs the following procedure.
 
    RedeemRequest(P, i, token, ctx_iss, ctx_red):
      Input:
@@ -545,19 +553,15 @@ Table of Contents
 
      Steps:
        1. (nf, r, s) := token
-       2. for j in [k]: d[j] := bit(i, j)  // binary encoding of i
-       3. pf_red := VOLEitH.Prove(
-            (r, s, d),                  // witness
-            (P, nf, ctx_iss, ctx_red),  // public
-            [                           // relation
-              d[0] * (d[0] - 1) = 0,
-              ...,
-              d[k-1] * (d[k-1] - 1) = 0,
-              Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
-            ],
+       2. b := 0^L  // selector vector
+       3. b[i] := 1
+       4. pf_red := VOLEitH.Prove(
+            (r, s, b),                          // witness
+            (P, nf, ctx_iss, ctx_red),          // public
+            RedeemRel(P, nf, tx_iss, ctx_red),  // relation
           )
-       4. request := (nf, pf_red)
-       5. return request
+       5. request := (nf, pf_red)
+       6. return request
 
 5.4.2.  Finalization
 
@@ -578,13 +582,8 @@ Table of Contents
        1. (nf, pf_red) := request
        2. v := VOLEitH.Verify(
             pf_red,
-            (P, nf, ctx_iss, ctx_red),  // public
-            [                           // relation
-              d[0] * (d[0] - 1) = 0,
-              ...,
-              d[k-1] * (d[k-1] - 1) = 0,
-              Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
-            ],
+            (P, nf, ctx_iss, ctx_red),           // public
+            RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
           )
        3. if v = 0: return INVALID
        4. return nf
@@ -602,18 +601,26 @@ Table of Contents
    Definition 2) that requires some scrutiny before we rely on it too
    heavily.
 
-   Extracting a witness from a redemption proof yields the bits d, and
-   every assignment of bits is the encoding of exactly one index.  When
-   L is a power of two, that index is always in [L], so the extracted
-   signature is valid under one of the Anchor public keys.  Otherwise d
-   may encode an index u >= L, in which case Select(d, P) is the all-
-   zero map and the relation instead requires Com(nf, ctx_iss, ctx_red,
-   r) = 0^m.  Satisfying this means finding an input of the form
-   prescribed by Com() whose image under KP800() begins with m zero
-   bytes, which we assume is infeasible.  Deployments that prefer not to
-   rely on this assumption can pad the Anchor Set to a power of two by
-   repeating one of its keys; a Client that selects a repeated key still
-   proves the intended statement.
+   Extracting a witness from a redemption proof yields a selector vector
+   b of weight exactly one, by the constraints of RedeemRel()
+   (Section 5.4), so the extracted s is a signature under one of the
+   Anchor public keys and not under some combination of them.  This is
+   what rules out the following attack: a rogue Anchor joins the Anchor
+   Set with a public key P[v] = R - P[u], where P[u] is the key of an
+   honest Anchor and R is a key for which the rogue Anchor knows a
+   trapdoor.  A Client colluding with the rogue Anchor could set b[u] =
+   b[v] = 1, making the selected map R, and so redeem tokens that no
+   Anchor ever issued.
+
+   Both families of constraints are load-bearing here.  The weight
+   constraint rejects the two-key attack just described, since b then
+   has even weight.  It does not reject the three-key variant, in which
+   the rogue key is P[v] = R - P[u] - P[w] and the Client sets b[u] =
+   b[v] = b[w] = 1; that one is rejected by the parity constraints.
+   Since linear combinations of UOV public keys are again quadratic maps
+   (Section 3), any subset of the Anchor Set that a malformed b can
+   select is a usable forgery target, so the arithmetization must admit
+   unit vectors and nothing else.
 
       NOTE Here's a sketch of the reduction to one-more-UOV.  We
       consider a simplified version of Moussaka, similar to PoMFRIT.
@@ -722,10 +729,196 @@ Table of Contents
               RFC 9861, DOI 10.17487/RFC9861, October 2025,
               <https://www.rfc-editor.org/rfc/rfc9861>.
 
+Appendix A.  Proof Size
+
+   This appendix works out what Moussaka's VOLEitH proofs cost and which
+   parts of the protocol drive that cost.  It is informative, and the
+   figures are estimates: they assume the parameters of FAEST-128s
+   ([FAEST], Table 3.2), whereas Moussaka would need a parameter set of
+   its own.
+
+A.1.  What VOLEitH Charges For
+
+   Three properties of the proof system determine the accounting
+   ([FAEST], Section 2).
+
+   First, linear operations are local.  A committed value is represented
+   by a polynomial held by the prover and an evaluation of it held by
+   the verifier ([FAEST], Definition 6.1), so adding two committed
+   values, or multiplying one by a public constant, is something each
+   party does on its own ([FAEST], Figure 6.1).  Nothing is transmitted.
+   Multiplying two committed values is also local; it raises the degree
+   of the result rather than costing bandwidth.
+
+   Second, constraints are batched.  However many constraints the
+   relation has, the verifier combines them into a single polynomial
+   identity using a universal hash, and the prover sends only the
+   coefficients of the combined polynomial.  In the signature these are
+   the two field elements ã1, ã2 ([FAEST], Section 7.2).
+
+   Third, and in the other direction, the witness is charged more than
+   once.  The prover commits to an extended witness of l bits, but it
+   must also send tau - 1 correction values, each of length l + D*lambda
+   + B bits, to reconcile the tau small-VOLE instances ([FAEST],
+   Section 2.1), where D is the maximum constraint degree and B accounts
+   for a salt.  The total is
+
+  size = tau * (l + D*lambda + B) + T_open*lambda + n_leafcom*lambda*tau
+         + lambda + 128 + 32
+
+   so each additional bit of witness costs about tau bits of proof.  For
+   FAEST-128s, tau = 11 and lambda = 128, i.e., about 1.4 bytes of proof
+   per witness bit.
+
+   The degree D is a parameter rather than a constant, and this is what
+   makes the accounting interesting.  FAEST instantiates the proof
+   system with D = 3, which is what AES needs ([FAEST], Section 2.2 and
+   Figure 6.1), but the construction admits any degree: the combined
+   constraint polynomial has D + 1 coefficients rather than 4, of which
+   all but the first and last are transmitted, and the zero-knowledge
+   masks occupy D*lambda of the bits that are charged tau times.  The
+   masks are the dominant term.  Each additional degree therefore costs
+   about tau*lambda bits, some 176 bytes at these parameters, and buys
+   the ability to multiply committed values without committing to the
+   products.  The soundness error grows as D/2^lambda ([FAEST],
+   Section 6), which is negligible for any D of interest.  Appendix A.2
+   shows that Moussaka wants a D far above 3.
+
+A.2.  The Redemption Witness
+
+   The redemption relation (Section 5) commits to the following.
+
+   +=======+======+===================================================+
+   | value | bits | notes                                             |
+   +=======+======+===================================================+
+   | r     | 128  | the commitment opening                            |
+   +-------+------+---------------------------------------------------+
+   | s     | 896  | the UOV signature, n bytes lifted to F_q elements |
+   +-------+------+---------------------------------------------------+
+   | b     | L    | the selector vector, one bit per Anchor           |
+   +-------+------+---------------------------------------------------+
+   | Com() | 1600 | two intermediate permutation states, see below    |
+   +-------+------+---------------------------------------------------+
+
+                                 Table 1
+
+   The nullifier is public during redemption, and so are the contexts
+   and the Anchor Set, so none of them are charged.
+
+   The commitment dominates, and how much it dominates is a design
+   choice.  The round function of Keccak-p[800,12] is linear except for
+   chi, which has degree 2, so a run of g consecutive rounds applied to
+   a committed state yields a result of degree 2^g.  Cutting the twelve
+   rounds into segments of g rounds and committing to the state at each
+   interior boundary therefore costs 12/g - 1 intermediate states of 800
+   bits and requires D >= 2^g.  The state entering the last segment need
+   not be committed, since comparing that segment's output against Q(s)
+   stays within the same budget.
+
+   The two costs pull against each other: states are charged tau times
+   each, and so are the D*lambda mask bits.  For a circuit containing E
+   evaluations of the permutation the quantity to minimize is E*(12/g -
+   1)*800 + 2^g*lambda bits.
+
+                    +===+====+=======+=======+=======+
+                    | g | D  | E = 1 | E = 2 | E = 3 |
+                    +===+====+=======+=======+=======+
+                    | 1 | 2  | 9056  | 17856 | 26656 |
+                    +---+----+-------+-------+-------+
+                    | 2 | 4  | 4512  | 8512  | 12512 |
+                    +---+----+-------+-------+-------+
+                    | 3 | 8  | 3424  | 5824  | 8224  |
+                    +---+----+-------+-------+-------+
+                    | 4 | 16 | 3648  | 5248  | 6848  |
+                    +---+----+-------+-------+-------+
+                    | 6 | 64 | 8992  | 9792  | 10592 |
+                    +---+----+-------+-------+-------+
+
+                                 Table 2
+
+   Each Moussaka proof evaluates Com() once, so g = 3 and D = 8 is the
+   optimum, but g = 4 is within seven percent of it and is the better
+   choice for a parameter set that must also serve circuits with more
+   permutation calls.  The figures below assume g = 4, hence D = 16 and
+   the 1600 bits in the table.
+
+   Summing gives l = 2624 + L bits for redemption.  Evaluating the size
+   formula with FAEST-128s parameters (tau = 11, T_open = 102, n_leafcom
+   = 3, B = 16) gives about 8730 bytes at L = 64, 8990 at L = 256 and
+   10050 at L = 1024; the Anchor Set contributes 1.4*L bytes, 140 bytes
+   at L = 100, under two percent of the total.  The issuance relation
+   commits to nf, r, ctx_red and the same two permutation states, l =
+   2048 bits, for about 7850 bytes.  Choosing g = 3 instead would save
+   some 300 bytes on each.  An implementation may round the correction
+   values up to a convenient length, which costs a further tau bytes per
+   byte of padding.
+
+   Two conclusions follow.  The Anchor Set is not what makes redemption
+   expensive, and anything that removes one of the two Com() evaluations
+   from the protocol is worth far more than anything that shrinks the
+   selection.
+
+   What does limit the Anchor Set size is the Moderator's running time
+   rather than bandwidth.  Select() performs L*N multiply-accumulations,
+   where N = m*n*(n+1)/2 = 278432 for uov-Ip, so redemption costs the
+   Moderator some 2.8*10^8 field operations at L = 1024 against 10
+   kilobytes of proof.
+
+A.3.  Degrees of the Redemption Relation
+
+   The selection machinery of Section 3 sits well inside the budget that
+   the commitment already forces.  Each b[u] is committed, so it has
+   degree 1, and P[u] is public, so P[u](s) has degree 2 in the
+   committed s; their product, and hence Select(b, P)(s), has degree 3.
+   The booleanity and running-parity constraints have degree 2, the
+   running parities themselves being linear combinations of committed
+   values.  The evaluation of Com() sets the actual bound at D = 16, so
+   the selection adds nothing to the mask cost of Appendix A.1, and
+   neither would a good deal more selection machinery.
+
+A.4.  An Alternative We Rejected
+
+   Instead of committing to b directly, the Client could commit to the
+   k-bit binary encoding d of the index i, with k = ceil(log2(L)), and
+   have the circuit derive the indicator of i as a product over the
+   bits: for each u, the coefficient prod_j (d[j] if bit(u,j) = 1 else 1
+   - d[j]), where bit(u, j) is the j-th least significant bit of u, is 1
+   if d encodes u and 0 otherwise.  This is appealing because it needs
+   no weight constraints at all -- every assignment of bits encodes
+   exactly one index -- and because it shrinks this part of the witness
+   from L bits to k.
+
+   The degree it needs is free.  The coefficient has degree k in the
+   witness, so the constraint against the commitment has degree k + 2,
+   and since Com() has already bought D = 16 (Appendix A.3), this is
+   within budget for every k <= 14, that is, every L <= 16384.  No extra
+   masks are charged, and the encoding would save about 1.4*(L-k) bytes:
+   some 1.4 kilobytes at L = 1024, about one seventh of the redemption
+   request.
+
+   What rules it out is the Moderator's running time.  Verifying step 5
+   of Select() scales a committed polynomial by a public constant, which
+   costs one field multiplication per coefficient.  Under the selector
+   vector the coefficient count is 2, since b[u] is committed directly;
+   under the binary encoding it is k + 1.  That multiplies the L*N
+   multiply-accumulations of Select() by (k+1)/2, a factor of 5.5 at L =
+   1024.  As noted in Appendix A.2, that term is already what bounds the
+   Anchor Set size, so inflating it fivefold to save a seventh of the
+   proof is the wrong direction.  The encoding's other apparent
+   advantage, that it needs no weight constraints, is worth nothing
+   either: the constraints of Section 3 are degree 2 and add no witness,
+   so they are free as well.
+
+   A further wrinkle is that the encoding admits indices u >= L when L
+   is not a power of two.  Those select the all-zero map, which is not
+   immediately exploitable -- the relation then demands an opening of
+   the commitment to 0^m -- but it is one more thing to argue.
+
 Acknowledgments
 
    The use of Keccak-p[800,12] in this application was proposed by Bas
-   Westerbaan.
+   Westerbaan.  Claude Opus 5 suggested the parity constraints for
+   redemption proof.
 
 Authors' Addresses
 
