@@ -319,7 +319,7 @@ the same principle Ratatouille follows.
 Ratatouille inherits the properties and use cases of ACT {{ACT}}; we refer the
 reader there for their definitions. In particular, it provides
 **unlinkability**, **flexible spending and refunding**, **balance privacy**, and
-**double-spend prevention**, and it supports the same use cases, such as
+**double-spend prevention** (if a single database is shared across issuers), and it supports the same use cases, such as
 **rate limiting** and **API credits**.
 
 Beyond ACT, Ratatouille additionally achieves **Full Post-Quantum Security**: All security properties -- unforgeability,
@@ -343,9 +343,8 @@ communication cost than the classical ACT:
 4. the issuer's reply is a single UOV signature -- about 112 B (hash) or 275 B
    (MQ), plus a few bytes of granted refund on a spend.
 
-Nonetheless, the protocol remains practical for modern web services, 
-with efficient signing, verification,
-and proof generation.
+Nonetheless, the protocol remains practical for modern web services,
+with efficient signing, verification, and proof generation.
 
 Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.
 
