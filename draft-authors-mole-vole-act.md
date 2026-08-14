@@ -327,11 +327,25 @@ unlinkability, and double-spend prevention -- are conjectured to hold against
 adversaries equipped with a large-scale quantum computer. Security reduces to
 the UOV and MQ problems and to the security of standard symmetric primitives.
 
-This post-quantum security comes at a cost in **performance**: presentation
-proofs are larger than in the classical construction -- on the order of
-kilobytes to tens of kilobytes. Nonetheless, the protocol remains practical for
-modern web services, with efficient signing, verification, and proof
-generation.
+This post-quantum security comes at a cost in **performance**: presentation proofs
+are larger than in the classical construction, on the order of kilobytes to tens
+of kilobytes. At the 128-bit security level, Ratatouille has significantly higher
+communication cost than the classical ACT:
+
+1. the issuer's public key is a UOV map -- approximately 42.6 KB for the hash
+   instantiation ({{hash-commitment}}, the uov-Ip parameter set {{UOV}}), and
+   larger for the MQ instantiation ({{mq-commitment}}), which widens the UOV map;
+
+2. ~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance; and
+
+3. ~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend; and
+
+4. the issuer's reply is a single UOV signature -- about 112 B (hash) or 275 B
+   (MQ), plus a few bytes of granted refund on a spend.
+
+Nonetheless, the protocol remains practical for modern web services, 
+with efficient signing, verification,
+and proof generation.
 
 Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.
 
@@ -1148,34 +1162,6 @@ This document has no IANA actions.
 
 
 --- back
-
-# Performance {#performance}
-{:numbered="false"}
-
-The hash instantiation of {{hash-commitment}} evaluates one in-circuit
-`Keccak-p[800, 12]` permutation per issuance and three per spend (recomputing
-the old commitment, the `Tag`, and the change commitment). Its communication is
-dominated by the VOLEitH proof; the sizes below follow from the ciphersuite
-parameters ({{hash-commitment}}). The public fields sent with each proof add only
-tens of bytes (`c` at issuance; `nf`, `d`, `c'` at spend), and the issuer's reply
-is a single UOV signature (`m_uov = 44` bytes plus the `L`-byte refund).
-
-| Communication | Hash (KP800) |
-|---------------|--------------|
-| Issuance request (`c`, `pf_init`) | 7.8 KiB |
-| Issuance response (`s`) | 112 B |
-| Spend request (`nf`, `d`, `c'`, `pf_spend`) | 14.2 KiB |
-| Spend response (`x'`, `s'`) | 120 B |
-
-| Communication | MQ |
-|---------------|----|
-| Issuance request (`c`, `pf_init`) | 4.3 KiB |
-| Issuance response (`s`) | 275 B |
-| Spend request (`nf`, `d`, `c'`, `pf_spend`) | 9.0 KiB |
-| Spend response (`x'`, `s'`) | 277 B |
-
-The MQ instantiation removes all in-circuit Keccak evaluations, but its widened
-UOV trapdoor makes key generation a one-time cost of several seconds.
 
 # Acknowledgments
 {:numbered="false"}
