@@ -133,9 +133,9 @@ Table of Contents
    1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
        parameter set [UOV]);
 
-   2.  8KB are transmitted during issuance; and
+   2.  ~8KB are transmitted during issuance; and
 
-   3.  9KB are transmitted during redemption, plus about 1.4 bytes per
+   3.  ~9KB are transmitted during redemption, plus a couple bytes per
        Anchor in the Anchor Set.
 
       NOTE(cjpatton) These numbers aren't based on an actual
@@ -180,10 +180,7 @@ Table of Contents
    two byte strings x and y, x || y denotes their concatenation.  For a
    byte string x, x[i..j] denotes the substring of x that begins at its
    byte with index i and ends just before its byte with index j; its
-   length is j - i bytes.  String values in monospace and quotes, such
-   as "mouss", are ASCII string literals and do not include a
-   terminating NUL byte.  In addition, x^k denotes the concatenation of
-   k copies of x, so that 0^k is the string of k zero bytes.
+   length is j - i bytes.
 
    We adopt the uov-Ip parameter set (NIST Level 1).  That is, in the
    remainder of this document, let n=112, m=44, and q=2^8.  Each element
@@ -278,8 +275,7 @@ Table of Contents
    [RFC9861], this parameterization of Keccak uses half as many rounds
    as SHA-3.  However, its state is also half the size of the state used
    by either SHA-3 or TurboSHAKE.  This helps reduce the size of the
-   VOLEitH proof without impacting the binding or hiding of the
-   commitment.  See Section 6 for details.
+   VOLEitH proof.  See Section 6 for justification.
 
       NOTE Both issuance and redemption involve a Com() evaluation.  An
       alternative is to have the Anchor bind the issuance context by
@@ -389,9 +385,8 @@ Table of Contents
    uses a 32-byte nullifier, and the contexts are 16 bytes, whereas
    [IHAT] allows them to be arbitrary byte strings.
 
-      TODO(cjpatton) Specify how the issuance and redemption contexts of
-      [IHAT] are compressed into 16 bytes each, and whether a 24-byte
-      nullifier is sufficient.
+      TODO(cjpatton) Add guidelines for choosing the context strings.
+      Honestly, truncating a hash to 16 bytes is not terrible.
 
 5.3.  Issuance
 
@@ -414,9 +409,9 @@ Table of Contents
        2. r  <- F_q^16
        3. t  := Com(nf, ctx_iss, ctx_red, r)
        4. pf_iss := VOLEitH.Prove(
-            (nf, r, ctx_red),                    // witness
-            (t, ctx_iss),                        // public
-            [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
+            (nf, r, ctx_red),                      // witness
+            (t, ctx_iss),                          // public
+            ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
           )
        5. request := (t, pf_iss)
        6. pending_token := (nf, r)
@@ -440,8 +435,8 @@ Table of Contents
        1. (t, pf_iss) := request  // commitment, issuance proof
        2. v := VOLEitH.Verify(
             pf_iss,
-            (t, ctx_iss),                        // public
-            [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
+            (t, ctx_iss),                          // public
+            ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
           )
        3. if v = 0: return INVALID
        4. s := UOV.SPre(td, t)
@@ -473,11 +468,7 @@ Table of Contents
 
    Before redemption, the Client and Moderator agree on an Anchor Set
    consisting of a sequence of UOV public keys P[0], ..., P[L-1].  The
-   Anchor Set MUST NOT be empty, that is, L > 0.  Note that L = 1 is
-   permitted by the constraints below but provides no Anchor-hiding,
-   since the Anchor Set then identifies the issuing Anchor; the strength
-   of the property is bounded by the size of the Anchor Set, as
-   discussed in [ARCH].
+   Anchor Set MUST NOT be empty, that is, L > 0.
 
    Let i be the index of the Anchor who issued the token.  The witness
    for the redemption proof is the opening r, the signature s, and a
@@ -488,30 +479,13 @@ Table of Contents
 
    Next, the circuit needs to prove that the selector vector is well-
    formed, that is, exactly one entry is set.  Because F_q has
-   characteristic 2, the constraint constraint b[0] + ... + b[L-1] = 1
-   only tells us that the number of nonzero entries is odd.  We need a
-   few more constraints to deal with this:
+   characteristic 2, the weight constraint sum(b) = 1 only tells us that
+   the number of nonzero entries is odd.  We also need some parity
+   constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [L-1].
 
-   1.  Bit constraints: b[u] * (b[u] - 1) = 0 for all u in [L].  This
-       ensures each entry of b is either 0 or 1.
-
-   2.  Parity constraints: sum(b[0..u+1]) * b[u+1] = 0 for all u in
-       [L-1].  Once the running parity is nonzero, no later entry may be
-       nonzero, so this ensures b has at most one nonzero entry.
-
-   3.  Weight constraint: sum(b) = 1.  The number of nonzero entries is
-       odd, hence at least one.
-
-   Omitting the parity constraints would be unsound, and not merely in a
-   formal sense: a Client that chooses any odd number of nonzero entries
-   obtains a proof for the sum of the corresponding public keys.  See
-   Section 6.
-
-      TODO(cjpatton) Is the selector vector over {0,1}^L or F_q^L?
-
-   These constraints are computed by the following function.  Below "r",
+   These constraints are computed by the following function.  Here "r",
    "s", and "b" are variables for opening, signature, and selector
-   vector, respectively that refer to the witness for the prover and
+   vector respectively that refer to the witness for the prover and
    index into the proof for the verifier.
 
    RedeemRel(P, nf, ctx_iss, ctx_red):
@@ -528,8 +502,6 @@ Table of Contents
        1. constraints := []
        2. Q := Select(b, P)
        3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
-       4. for u in [L]:
-       5.   constraints.append("b[u] * (b[u] - 1) = 0")
        6. for u in [L-1]:
        7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
        8. constraints.append("sum(b) = 1")

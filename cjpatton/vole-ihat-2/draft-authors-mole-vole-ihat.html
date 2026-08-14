@@ -1286,10 +1286,10 @@ knowledge of a signature under some public key in the Anchor Set.<a href="#secti
 set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.2">
-          <p id="section-1-6.2.1">8KB are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.2.1">~8KB are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.3">
-          <p id="section-1-6.3.1">9KB are transmitted during redemption, plus about <code>1.4</code> bytes per Anchor in
+          <p id="section-1-6.3.1">~9KB are transmitted during redemption, plus a couple bytes per Anchor in
 the Anchor Set.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
@@ -1340,11 +1340,7 @@ the set of indices <code>{0, ..., k-1}</code>.<a href="#section-2-4" class="pilc
 <p id="section-2-5">We adopt the following notation for byte strings from <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. For two byte
 strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation. For a byte string
 <code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at its byte with index
-<code>i</code> and ends just before its byte with index <code>j</code>; its length is <code>j - i</code> bytes.
-String values in monospace and quotes, such as <code>"mouss"</code>, are ASCII string
-literals and do not include a terminating NUL byte. In addition, <code>x^k</code> denotes
-the concatenation of <code>k</code> copies of <code>x</code>, so that <code>0^k</code> is the string of <code>k</code> zero
-bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<code>i</code> and ends just before its byte with index <code>j</code>; its length is <code>j - i</code> bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
 <p id="section-2-6">We adopt the uov-Ip parameter set (NIST Level 1). That is, in the remainder of
 this document, let <code>n=112</code>, <code>m=44</code>, and <code>q=2^8</code>. Each element of <code>F_q</code> has a
 natural representation as a byte. We sometimes write <code>F_q^k</code> to denote the set
@@ -1444,8 +1440,8 @@ is the indicator vector of a single Anchor. See <a href="#redemption" class="aut
 Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
 state is also half the size of the state used by either SHA-3 or TurboSHAKE.
-This helps reduce the size of the VOLEitH proof without impacting the binding or
-hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13" class="pilcrow">¶</a></p>
+This helps reduce the size of the VOLEitH proof. See <a href="#security" class="auto internal xref">Section 6</a> for
+justification.<a href="#section-3-13" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-14.1">
           <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
@@ -1584,9 +1580,8 @@ contexts are 16 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>
 strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.2-4.1">
-            <p id="section-5.2-4.1.1">TODO(cjpatton) Specify how the issuance and redemption contexts of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>
-are compressed into 16 bytes each, and whether a 24-byte nullifier is
-sufficient.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-4.1.1">TODO(cjpatton) Add guidelines for choosing the context strings. Honestly,
+truncating a hash to 16 bytes is not terrible.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1619,9 +1614,9 @@ IssueRequest(ctx_iss, ctx_red):
     2. r  &lt;- F_q^16
     3. t  := Com(nf, ctx_iss, ctx_red, r)
     4. pf_iss := VOLEitH.Prove(
-         (nf, r, ctx_red),                    // witness
-         (t, ctx_iss),                        // public
-         [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
+         (nf, r, ctx_red),                      // witness
+         (t, ctx_iss),                          // public
+         ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
        )
     5. request := (t, pf_iss)
     6. pending_token := (nf, r)
@@ -1652,8 +1647,8 @@ IssueResponse(td, request, ctx_iss):
     1. (t, pf_iss) := request  // commitment, issuance proof
     2. v := VOLEitH.Verify(
          pf_iss,
-         (t, ctx_iss),                        // public
-         [t = Com(nf, ctx_iss, ctx_red, r)],  // relation
+         (t, ctx_iss),                          // public
+         ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
        )
     3. if v = 0: return INVALID
     4. s := UOV.SPre(td, t)
@@ -1700,10 +1695,7 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
 of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span> be
-empty, that is, <code>L &gt; 0</code>. Note that <code>L = 1</code> is permitted by the constraints below
-but provides no Anchor-hiding, since the Anchor Set then identifies the issuing
-Anchor; the strength of the property is bounded by the size of the Anchor Set, as
-discussed in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+empty, that is, <code>L &gt; 0</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> be the index of the Anchor who issued the token. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and a selector vector
 <code>b[0], ..., b[L-1]</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The circuit
@@ -1711,37 +1703,15 @@ first selects the public key as <code>Q := Select(b, P)</code>, where <code>Sele
 defined in <a href="#overview" class="auto internal xref">Section 3</a>. The first constraint is that <code>Q(s) = Com(nf, ctx_iss,
 ctx_red, r)</code>.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
 <p id="section-5.4-3">Next, the circuit needs to prove that the selector vector is well-formed, that
-is, exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the
-constraint constraint <code>b[0] + ... + b[L-1] = 1</code> only tells us that the number
-of nonzero entries is odd. We need a few more constraints to deal with this:<a href="#section-5.4-3" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-5.4-4">
-<li id="section-5.4-4.1">
-            <p id="section-5.4-4.1.1">Bit constraints: <code>b[u] * (b[u] - 1) = 0</code> for all <code>u in [L]</code>. This ensures each
-entry of <code>b</code> is either <code>0</code> or <code>1</code>.<a href="#section-5.4-4.1.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.4-4.2">
-            <p id="section-5.4-4.2.1">Parity constraints: <code>sum(b[0..u+1]) * b[u+1] = 0</code> for all <code>u in [L-1]</code>.
-Once the running parity is nonzero, no later entry may be nonzero, so this
-ensures <code>b</code> has at most one nonzero entry.<a href="#section-5.4-4.2.1" class="pilcrow">¶</a></p>
-</li>
-          <li id="section-5.4-4.3">
-            <p id="section-5.4-4.3.1">Weight constraint: <code>sum(b) = 1</code>. The number of nonzero entries is odd, hence
-at least one.<a href="#section-5.4-4.3.1" class="pilcrow">¶</a></p>
-</li>
-        </ol>
-<p id="section-5.4-5">Omitting the parity constraints would be unsound, and not merely in a formal
-sense: a Client that chooses any odd number of nonzero entries obtains a proof
-for the sum of the corresponding public keys. See <a href="#security" class="auto internal xref">Section 6</a>.<a href="#section-5.4-5" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.4-6.1">
-            <p id="section-5.4-6.1.1">TODO(cjpatton) Is the selector vector over {0,1}^L or F_q^L?<a href="#section-5.4-6.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-5.4-7">These constraints are computed by the following function. Below <code>"r"</code>, <code>"s"</code>,
-and <code>"b"</code> are variables for opening, signature, and selector vector,
+is, exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the weight
+constraint <code>sum(b) = 1</code> only tells us that the number of nonzero entries is
+odd. We also need some parity constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code>
+for all <code>u in [L-1]</code>.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
+<p id="section-5.4-4">These constraints are computed by the following function. Here <code>"r"</code>, <code>"s"</code>,
+and <code>"b"</code> are variables for opening, signature, and selector vector
 respectively that refer to the witness for the prover and index into the proof
-for the verifier.<a href="#section-5.4-7" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="section-5.4-8">
+for the verifier.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.4-5">
 <pre>
 RedeemRel(P, nf, ctx_iss, ctx_red):
   Input:
@@ -1757,13 +1727,11 @@ RedeemRel(P, nf, ctx_iss, ctx_red):
     1. constraints := []
     2. Q := Select(b, P)
     3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
-    4. for u in [L]:
-    5.   constraints.append("b[u] * (b[u] - 1) = 0")
     6. for u in [L-1]:
     7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
     8. constraints.append("sum(b) = 1")
     9. return constraints
-</pre><a href="#section-5.4-8" class="pilcrow">¶</a>
+</pre><a href="#section-5.4-5" class="pilcrow">¶</a>
 </div>
 <div id="redeem-request">
 <section id="section-5.4.1">
