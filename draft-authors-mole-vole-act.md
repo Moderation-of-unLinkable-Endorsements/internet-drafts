@@ -992,8 +992,9 @@ and V2 of {{prove-spend}} are pure `F_256` arithmetic with no Keccak in-circuit.
 The realization differs from {{hash-commitment}} in two ways:
 
 1. **`Com` is algebraic.** `Com(nf, t, r) = (EmbedNullifierBalance(nf, t) +
-   F(r), G(r))` for public quadratic maps `F`, `G` from the
-   `GenerateParameters` function defined below.
+   F(r), G(r))` for public general (inhomogeneous) quadratic maps `F`, `G` --
+   each with a linear term -- from the `GenerateParameters` function defined
+   below.
 2. **`Tag` is affine and homomorphic.** The MQ commitment is
    constant-additively homomorphic, so the refund is applied by a homomorphic
    addition rather than a hash: `Tag(c, x) = c + EmbedRefund(x)`, a degree-1 map
@@ -1010,8 +1011,9 @@ parameter expansion is never proven in zero knowledge. It therefore uses
 standard SHAKE128 (FIPS 202) {{FIPS202}} -- the more conservatively reviewed
 XOF:
 
-* Two quadratic maps `F: F_256^{n_com} -> F_256^k` and `G: F_256^{n_com} ->
-  F_256^{m_uov-k}`, obtained as `(F, G) = GenerateParameters(dst)`.
+* Two general (inhomogeneous) quadratic maps `F: F_256^{n_com} -> F_256^k` and
+  `G: F_256^{n_com} -> F_256^{m_uov-k}`, obtained as `(F, G) =
+  GenerateParameters(dst)`.
 
 ~~~~pseudocode
 GenerateParameters(dst):
@@ -1022,16 +1024,21 @@ GenerateParameters(dst):
   Steps:
     1.  stream := SHAKE128("RATA-MQ-maps:" || dst)
     2.  for each output equation i in [m_uov]:
-    3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // in F_256^{n_com * n_com}
-    4.  F := (M_0, ..., M_{k-1})                       // first k equations
-    5.  G := (M_k, ..., M_{m_uov-1})                   // remaining m_uov-k equations
-    6.  return (F, G)
+    3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // quadratic part, in F_256^{n_com * n_com}
+    4.      l_i := stream.next(n_com)                              // linear part, in F_256^{n_com}
+    5.      Q_i := (M_i, l_i)   such that   Q_i(x) = x^T M_i x + l_i . x
+    6.  F := (Q_0, ..., Q_{k-1})                       // first k equations
+    7.  G := (Q_k, ..., Q_{m_uov-1})                   // remaining m_uov-k equations
+    8.  return (F, G)
 ~~~~
 
 `bytesIntoUpper(b)` fills the upper triangle of an `n_com x n_com` matrix over
 `F_256` row-major from the bytes `b`, one element per byte, with all other
-entries zero; each `M_i` is the coefficient matrix of a quadratic form in the
-`n_com` variables.
+entries zero. Each output equation is a general (inhomogeneous) quadratic map
+`Q_i(x) = x^T M_i x + l_i . x` in the `n_com` variables, with `M_i` the quadratic
+part and `l_i` the linear part. The linear terms are essential: a purely
+homogeneous map (`l_i = 0`) has `F(0) = G(0) = 0` and is scaling-covariant
+(`Q_i(a x) = a^2 Q_i(x)`), which admits a forgery.
 
 **Commitment.** `Com` binds a nullifier `nf` and a credit value `t` under
 randomness `r`, following the MQ commitment construction in {{BFMRSV25a}}:
