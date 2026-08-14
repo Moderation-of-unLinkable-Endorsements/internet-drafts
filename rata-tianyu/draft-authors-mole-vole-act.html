@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang, et al.</td>
-<td class="center">Expires 14 February 2027</td>
+<td class="center">Expires 15 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-13" class="published">13 August 2026</time>
+<time datetime="2026-08-14" class="published">14 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-15">15 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1134,7 +1134,7 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1265,7 +1265,7 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-performance" class="internal xref">Performance</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-performance" class="internal xref">Performance</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
             <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
@@ -1300,7 +1300,7 @@ enabling credit-based systems without client tracking: an issuer can grant a
 client a token worth some number of credits, and the client can later spend
 those credits anonymously, in whole or in part, without the issuer being able
 to link the spend to the issuance or to any other spend by the same client.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> builds on BBS signatures over prime-order groups. Its
+<p id="section-1-4">ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> builds on BBS MACs over prime-order groups. Its
 <em>unlinkability</em> (the issuer cannot correlate transactions) is
 information-theoretic, following from the perfectly hiding commitments, so it
 already holds against unbounded and hence quantum adversaries. Its
@@ -1429,8 +1429,8 @@ vector <code>s</code>, yielding <code>(s^T P_0 s, ..., s^T P_{m_uov-1} s) in F_q
 where each <code>P_i</code> is an upper-triangular matrix over <code>F_q</code>.<a href="#section-2.1-2.9.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.1-2.10">
-            <p id="section-2.1-2.10.1"><code>&lt;t&gt;_L</code>: The <code>L</code>-bit big-endian encoding of a nonnegative integer <code>t &lt; 2^L</code>
-as an element of <code>F_2^L</code>.<a href="#section-2.1-2.10.1" class="pilcrow">¶</a></p>
+            <p id="section-2.1-2.10.1"><code>&lt;t&gt;_L</code>: The <code>L</code>-byte big-endian encoding of a nonnegative integer <code>t &lt; 2^(8*L)</code>
+as an element of <code>F_256^L</code> (equivalently <code>F_2^(8*L)</code>).<a href="#section-2.1-2.10.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.1-2.11">
             <p id="section-2.1-2.11.1"><code>H</code>: A cryptographic extendable-output hash function, modeled as a random
@@ -1457,17 +1457,17 @@ distinct label and the deployment tag <code>dst</code> to each use.<a href="#sec
             <p id="section-2.2-2.3.1"><strong>Field vector</strong>: A tuple of field elements, e.g., an element of <code>F_q^n</code>.<a href="#section-2.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.2-2.4">
-            <p id="section-2.2-2.4.1"><strong>Credit value</strong>: A nonnegative integer in the range <code>[0, 2^L - 1]</code>
+            <p id="section-2.2-2.4.1"><strong>Credit value</strong>: A nonnegative integer in the range <code>[0, 2^(8*L) - 1]</code>
 representing an amount of credits, encoded as <code>&lt;t&gt;_L</code>.<a href="#section-2.2-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.2-2.5">
-            <p id="section-2.2-2.5.1"><strong>Nullifier</strong>: A uniformly random bit string of length <code>nu</code>, denoted <code>nf</code>,
+            <p id="section-2.2-2.5.1"><strong>Nullifier</strong>: A uniformly random byte string of length <code>nu</code>, denoted <code>nf</code>,
 that identifies a token for double-spend detection. Its length is governed by
 collision resistance across all tokens issued under one key (see
 <a href="#parameters" class="auto internal xref">Section 2.4</a>).<a href="#section-2.2-2.5.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-2.2-2.6">
-            <p id="section-2.2-2.6.1"><strong>Randomness</strong>: A uniformly random bit string of length <code>rho</code>, denoted <code>r</code>,
+            <p id="section-2.2-2.6.1"><strong>Randomness</strong>: A uniformly random byte string of length <code>rho</code>, denoted <code>r</code>,
 used to hide a commitment. Its length is governed by the hiding of the
 commitment scheme.<a href="#section-2.2-2.6.1" class="pilcrow">¶</a></p>
 </li>
@@ -1508,11 +1508,21 @@ relation of <a href="#spending" class="auto internal xref">Section 4.5</a>.<a hr
         <h3 id="name-vole-in-the-head-proofs-of-">
 <a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-vole-in-the-head-proofs-of-" class="section-name selfRef">VOLE-in-the-Head Proofs of Knowledge</a>
         </h3>
+<p id="section-2.3-1">We write <code>pf := VOLEitH.Prove(R, X, W)</code> to denote proving knowledge of a witness
+<code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is the
+instance, using the VOLE-in-the-Head proof system of <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write <code>v :=
+VOLEitH.Verify(R, X, pf)</code> to denote verification of <code>pf</code> under the same relation
+and instance, where the output <code>v</code> is a bit.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-2">Relations are specified as a sequence of constraints. Each constraint is an
+equation of the instance and witness variables; unlike a linear system, each
+side of the equation may be a polynomial over <code>F_q</code> of arbitrary degree. Because
+the degree of a constraint influences the size of the proof, a relation is
+designed to balance the size of the witness against the degree of its
+constraints.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-2.3-1.1">
-            <p id="section-2.3-1.1.1">TODO Define Prove{} and Verify{} APIs, with references to FAEST. Give a high
-level overview of VOLEitH. Define any terms we use here, such as "small
-VOLE", "big VOLE", and "grinding".<a href="#section-2.3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-2.3-3.1">
+            <p id="section-2.3-3.1.1">TODO Give a high level overview of VOLEitH. Define any terms we use here, such
+as "small VOLE", "big VOLE", and "grinding".<a href="#section-2.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1529,15 +1539,15 @@ instantiations (ciphersuites) are given in <a href="#instantiations" class="auto
 Parameters:
   - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
             F_{2^lambda} and the default for nu and rho.
-  - nu: Nullifier length in bits. Chosen so that random nullifiers do not
+  - nu: Nullifier length in bytes. Chosen so that random nullifiers do not
         collide across all tokens issued under one key (see below).
-  - rho: Commitment randomness length in bits. Chosen for commitment hiding.
+  - rho: Commitment randomness length in bytes. Chosen for commitment hiding.
   - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
   - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
             N leaves per GGM tree (with tau * log2(N) = lambda), and a
             proof-of-work grinding parameter w_grind.
-  - L: Bit width of credit values (1 &lt;= L &lt;= 128). The maximum credit a
-       token can hold is 2^L - 1.
+  - L: Byte width of credit values (1 &lt;= L &lt;= 16). The maximum credit a
+       token can hold is 2^(8*L) - 1.
   - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
        of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
        lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
@@ -1549,14 +1559,15 @@ t</code> (see <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Section 3
 match, so neither weakens the token's overall security (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>).<a href="#section-2.4-3" class="pilcrow">¶</a></p>
 <p id="section-2.4-4">The lengths <code>nu</code> and <code>rho</code> are independent. The nullifier is revealed and must
 not collide across tokens issued under one key, so a birthday bound motivates
-<code>nu &gt;= 2*lambda</code>, and a ciphersuite defaults to <code>nu = 2*lambda</code>; a compact
-ciphersuite <span class="bcp14">MAY</span> use a smaller <code>nu</code> (e.g., <code>192</code> bits in <a href="#hash-commitment" class="auto internal xref">Section 5.1</a> and <code>224</code> bits in the MQ instantiation of
+<code>nu &gt;= lambda/4</code> bytes (<code>= 2*lambda</code> bits), and a ciphersuite defaults to <code>nu =
+lambda/4</code>; a compact ciphersuite <span class="bcp14">MAY</span> use a smaller <code>nu</code> (e.g., <code>24</code> bytes in
+<a href="#hash-commitment" class="auto internal xref">Section 5.1</a> and <code>28</code> bytes in the MQ instantiation of
 <a href="#mq-commitment" class="auto internal xref">Section 5.2</a>), trading collision margin for size. The randomness only hides
-the commitment; its length is instantiation-dependent -- <code>rho = lambda</code> for the
-hash commitment (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>) and <code>rho = 8*n_com</code> (the <code>F_256</code> input
-length, i.e. <code>n_com</code> elements of <code>F_256</code>) for the MQ commitment
-(<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>). Credit values are exactly <code>L</code> bits: the issuer <span class="bcp14">MAY</span> choose
-any initial amount in <code>[1, 2^L - 1]</code>, with no cap beyond <code>L</code>.<a href="#section-2.4-4" class="pilcrow">¶</a></p>
+the commitment; its length is instantiation-dependent -- <code>rho = lambda/8</code> bytes
+for the hash commitment (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>) and <code>rho = n_com</code> (the <code>F_256</code>
+input length, i.e. <code>n_com</code> elements of <code>F_256</code>) for the MQ commitment
+(<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>). Credit values are exactly <code>L</code> bytes: the issuer <span class="bcp14">MAY</span> choose
+any initial amount in <code>[1, 2^(8*L) - 1]</code>, with no cap beyond <code>L</code>.<a href="#section-2.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1661,43 +1672,32 @@ organization, the service, the deployment environment, and so on. For example:<a
         <h3 id="name-key-generation">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
         </h3>
-<p id="section-4.2-1">Key generation is run once by the issuer. It produces a long-lived UOV key
-pair. The routines <code>ExpandSK</code>, <code>ExpandPK</code>, and <code>Upper</code> are those of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>
-(Section 3.2, Figure 2): <code>ExpandSK</code> expands the secret seed into the trapdoor
-(plus a public seed), <code>ExpandPK</code> expands that public seed <code>seed_pk</code> into the
-first and second quadratic-map blocks <code>P^(1)</code> and <code>P^(2)</code>, and <code>Upper</code>
-(<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Section 3.1) derives the third block <code>P^(3)</code> from the first two and
-the trapdoor.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">We use the compressed form: the public key <code>pk</code> is just the public seed
-<code>seed_pk</code> and the third quadratic-map blocks <code>P^(3)</code> while the secret key <code>sk</code>
-is the secret seed <code>seed_sk</code>.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.2-1">Key generation is run once by the issuer to produce a long-lived UOV key pair.
+The routines <code>UOV.CompactKeyGen</code>, <code>UOV.ExpandPK</code>, and <code>UOV.ExpandSK</code> are those of
+<span>[<a href="#UOV" class="cite xref">UOV</a>]</span> (Section 3.2, Figure 2): <code>CompactKeyGen</code> samples a compact key pair
+<code>(cpk, csk)</code>, <code>ExpandPK</code> expands <code>cpk</code> into the public UOV map <code>P</code>, and
+<code>ExpandSK</code> expands <code>csk</code> into the trapdoor for <code>P</code>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4.2-3.1">
-            <p id="section-4.2-3.1.1">TODO Ensure all algorithms are deterministic (the caller provides the initial randomness). This way we can easily generate consistent test vectors. We'll also need to plumb this through VOLEitH proving and UOV signing.<a href="#section-4.2-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">TODO Ensure all algorithms are deterministic (the caller provides the initial randomness). This way we can easily generate consistent test vectors. We'll also need to plumb this through VOLEitH proving and UOV signing.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<div class="alignLeft art-text artwork" id="section-4.2-4">
+<div class="lang-pseudocode sourcecode" id="section-4.2-3">
 <pre>
 KeyGen():
-  Input: None
   Output:
-    - sk: Issuer secret key (secret seed seed_sk)
-    - pk: Issuer public key (public seed seed_pk and blocks P^(3))
+    - sk: Issuer secret key, a UOV trapdoor for P
+    - pk: Issuer public key, a UOV map P from F_q^{n_uov} to F_q^{m_uov}
 
   Steps:
-    1.  seed_sk &lt;- {0,1}^(seed_sk_len)
-    2.  (seed_pk, O) := ExpandSK(seed_sk)   // trapdoor O in F_q^(v * m_uov),
-                                           // with v = n_uov - m_uov
-    3.  {(P_i^(1), P_i^(2))}_{i in [m_uov]} := ExpandPK(seed_pk)
-    4.  for i in [m_uov]:
-    5.      P_i^(3) := Upper( - O^T P_i^(1) O - O^T P_i^(2) O )
-    6.  sk := seed_sk
-    7.  pk := (seed_pk, { P_i^(3) }_{i in [m_uov]})
-    8.  return (sk, pk)
-</pre><a href="#section-4.2-4" class="pilcrow">¶</a>
+    1.  (cpk, csk) := UOV.CompactKeyGen()
+    2.  pk := UOV.ExpandPK(cpk)
+    3.  sk := UOV.ExpandSK(csk)
+    4.  return (sk, pk)
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
 </div>
-<p id="section-4.2-5">The issuer publishes <code>pk</code>. The issuer additionally maintains a set of accepted
-nullifiers for rejecting any nullifier it has already accepted.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-4">The issuer publishes <code>pk</code>. The issuer additionally maintains a set of accepted
+nullifiers for rejecting any nullifier it has already accepted.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="commitment-tag">
@@ -1711,13 +1711,13 @@ domain-separated by <code>dst</code>. Any instantiation <span class="bcp14">MUST
 interface.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.3-2"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
 randomness <code>r</code>:<a href="#section-4.3-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.3-3">
+<div class="lang-pseudocode sourcecode" id="section-4.3-3">
 <pre>
 Com(nf, t, r):
   Input:
-    - nf: Nullifier (nu bits)
-    - t: Credit value in [0, 2^L - 1]
-    - r: Randomness (rho bits)
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho bytes)
   Output:
     - c: Commitment
 </pre><a href="#section-4.3-3" class="pilcrow">¶</a>
@@ -1727,12 +1727,12 @@ concealed by <code>r</code> -- and computationally <strong>binding</strong> -- n
 open one <code>c</code> to two distinct <code>(nf, t)</code>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 <p id="section-4.3-5"><strong>Tag.</strong> <code>Tag</code> derives the UOV signing target from a commitment <code>c</code> and a public
 refund <code>x</code>:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.3-6">
+<div class="lang-pseudocode sourcecode" id="section-4.3-6">
 <pre>
 Tag(c, x):
   Input:
     - c: Commitment
-    - x: Refund in [0, 2^L - 1]
+    - x: Refund in [0, 2^(8*L) - 1]
   Output:
     - y: UOV target in F_q^{m_uov}
 </pre><a href="#section-4.3-6" class="pilcrow">¶</a>
@@ -1748,7 +1748,7 @@ signing time without the client re-committing; at initial issuance <code>x = 0</
 Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
 </pre><a href="#section-4.3-9" class="pilcrow">¶</a>
 </div>
-<p id="section-4.3-10">where <code>nf</code> is the nullifier, <code>t</code> the committed credit, <code>r in {0,1}^rho</code> the
+<p id="section-4.3-10">where <code>nf</code> is the nullifier, <code>t</code> the committed credit, <code>r in {0,1}^(8*rho)</code> the
 commitment randomness, <code>x</code> the refund amount, and <code>s</code> the UOV signature. The
 token's <strong>effective balance</strong> -- the amount the client may spend -- is <code>B = t +
 x</code>.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
@@ -1760,7 +1760,7 @@ x</code>.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-token-issuance" class="section-name selfRef">Token Issuance</a>
         </h3>
 <p id="section-4.4-1">Issuance mints a fresh token carrying an initial credit balance <code>T_init in [1,
-2^L - 1]</code> agreed between the client and issuer. It is a two-message interactive
+2^(8*L) - 1]</code> agreed between the client and issuer. It is a two-message interactive
 protocol, structured as the Fischlin blind signature <span>[<a href="#Fischlin" class="cite xref">Fischlin</a>]</span> -- commit,
 sign, prove-knowledge -- instantiated with UOV and VOLE-in-the-Head.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
 <p id="section-4.4-2">The client commits to both its nullifier <code>nf</code> and the credit balance <code>t =
@@ -1777,29 +1777,46 @@ hiding, the issuer cannot link a presented <code>nf</code> to the <code>c</code>
 later presentation proves knowledge of <code>(nf, t, r, x, s)</code> satisfying <code>P(s) =
 Tag(Com(nf, t, r), x)</code> -- the UOV relation of <a href="#commitment-tag" class="auto internal xref">Section 4.3</a> -- without
 revealing <code>c</code>.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">The issuance relation proves that the commitment <code>c</code> opens to the agreed initial
+balance <code>T_init</code>:<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4-5">
+<pre>
+Relation IssueRelation(c, T_init):
+  Instance:
+    - c: commitment
+    - T_init: agreed initial credit balance, in [1, 2^(8*L) - 1]
+
+  Witness:
+    - nf: nullifier
+    - r: commitment randomness
+
+  Constraints:
+    - c = Com(nf, T_init, r)
+</pre><a href="#section-4.4-5" class="pilcrow">¶</a>
+</div>
 <div id="issue-request">
 <section id="section-4.4.1">
           <h4 id="name-client-issuance-request">
 <a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-client-issuance-request" class="section-name selfRef">Client: Issuance Request</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.4.1-1">
+<div class="lang-pseudocode sourcecode" id="section-4.4.1-1">
 <pre>
 IssueRequest(T_init):
   Input:
-    - T_init in [1, 2^L - 1]: agreed initial credit balance
+    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
   Output:
     - request = (c, pf_init): commitment and well-formedness proof
     - state   = (nf, r): client state for Token Verification
 
   Steps:
-    1.  nf     &lt;- {0,1}^nu                     // nullifier
-    2.  r      &lt;- {0,1}^rho                    // commitment randomness
+    1.  nf     &lt;- {0,1}^(8*nu)                 // nullifier
+    2.  r      &lt;- {0,1}^(8*rho)                // commitment randomness
     3.  c      := Com(nf, T_init, r)           // see Commitment and Tag
-    4.  pf_init := Prove{
-          public:   (c, T_init)
-          private:  (nf, r)
-          relation: c = Com(nf, T_init, r)    // opens c to the agreed T_init
-        }
+    4.  pf_init := VOLEitH.Prove(
+          IssueRelation,   // relation
+          (c, T_init),     // instance
+          (nf, r),         // witness
+        )
     5.  request := (c, pf_init)
     6.  state   := (nf, r)
     7.  return (request, state)
@@ -1812,19 +1829,19 @@ IssueRequest(T_init):
           <h4 id="name-issuer-issuance-response">
 <a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-issuer-issuance-response" class="section-name selfRef">Issuer: Issuance Response</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.4.2-1">
+<div class="lang-pseudocode sourcecode" id="section-4.4.2-1">
 <pre>
 IssueResponse(sk, request, T_init):
   Input:
     - sk: Issuer secret key (secret seed seed_sk)
     - request = (c, pf_init)
-    - T_init in [1, 2^L - 1]: agreed initial credit balance
+    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
   Output:
     - response = s: UOV signature, or INVALID
 
   Steps:
-    1.  if not (0 &lt; T_init &lt; 2^L): return INVALID
-    2.  verify pf_init against (c, T_init); if invalid, return INVALID
+    1.  if not (0 &lt; T_init &lt; 2^(8*L)): return INVALID
+    2.  if VOLEitH.Verify(IssueRelation, (c, T_init), pf_init) = 0: return INVALID
     3.  s &lt;- UOV.Sign(sk, Tag(c, 0))   // preimage of Tag(c, 0): P(s) = Tag(c, 0),
                                        // rejection sampling on singular system
     4.  return s
@@ -1837,7 +1854,7 @@ IssueResponse(sk, request, T_init):
           <h4 id="name-client-token-verification">
 <a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-client-token-verification" class="section-name selfRef">Client: Token Verification</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.4.3-1">
+<div class="lang-pseudocode sourcecode" id="section-4.4.3-1">
 <pre>
 VerifyIssuance(pk, state, response, T_init):
   Input:
@@ -1882,14 +1899,41 @@ x'))</code>. In the common case <code>x' = 0</code> and the change is entirely c
 positive <code>x'</code> lets the issuer top the token up without a second message
 (<a href="#commitment-tag" class="auto internal xref">Section 4.3</a>). Setting <code>d = 0</code> re-randomizes a token under a fresh
 nullifier -- a re-anonymization operation useful for transferring a token.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
-<p id="section-4.5-3">Let <code>L</code> be the credit bit length (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>), so all balances lie
-in <code>[0, 2^L - 1]</code> and <code>x, x' in [0, 2^L - 1]</code>.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">Let <code>L</code> be the credit byte length (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>), so all balances lie
+in <code>[0, 2^(8*L) - 1]</code> and <code>x, x' in [0, 2^(8*L) - 1]</code>.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-4">The spend relation binds the spent token to a well-formed change token. It is
+specified by the conditions V1--V4 below.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5-5">
+<pre>
+Relation SpendRelation(pk, nf, d, c'):
+  Instance:
+    - pk = P: Issuer public key
+    - nf: nullifier of the spent token
+    - d: amount to spend, in [0, 2^(8*L) - 1]
+    - c': change commitment
+
+  Witness:
+    - t: committed credit of the spent token
+    - r: commitment randomness of the spent token
+    - x: refund carried by the spent token
+    - s: UOV signature over the spent token
+    - nf': nullifier of the change token
+    - r': commitment randomness of the change token
+    - t': committed change balance
+
+  Constraints:
+    - P(s) = Tag(Com(nf, t, r), x)                       // V1: valid signature
+    - c' = Com(nf', t', r')                              // V2: change well-formed
+    - t' = t + x - d                                     // V3: balance conservation
+    - 0 &lt;= t' &lt; 2^(8*L) AND 0 &lt;= x &lt; 2^(8*L) AND 0 &lt;= d &lt; 2^(8*L)  // V4: ranges
+</pre><a href="#section-4.5-5" class="pilcrow">¶</a>
+</div>
 <div id="prove-spend">
 <section id="section-4.5.1">
           <h4 id="name-client-spend-proof-generati">
 <a href="#section-4.5.1" class="section-number selfRef">4.5.1. </a><a href="#name-client-spend-proof-generati" class="section-name selfRef">Client: Spend Proof Generation</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.5.1-1">
+<div class="lang-pseudocode sourcecode" id="section-4.5.1-1">
 <pre>
 ProveSpend(tok, d):
   Input:
@@ -1901,23 +1945,15 @@ ProveSpend(tok, d):
 
   Steps:
     1.  if not (0 &lt;= d &lt;= t + x): raise InvalidAmount
-    2.  nf' &lt;- {0,1}^nu                     // fresh nullifier for the change
-    3.  r'  &lt;- {0,1}^rho                    // fresh commitment randomness
+    2.  nf' &lt;- {0,1}^(8*nu)                 // fresh nullifier for the change
+    3.  r'  &lt;- {0,1}^(8*rho)                // fresh commitment randomness
     4.  t'  := t + x - d                    // committed change balance
     5.  c'  := Com(nf', t', r')
-    6.  pf_spend := Prove{
-          public:   (pk, nf, d, c')
-          private:  (t, r, x, s, nf', r', t')
-          relation:
-            //  V1  old token carries a valid signature
-            P(s) = Tag(Com(nf, t, r), x)
-            //  V2  change commitment is well-formed
-            AND c' = Com(nf', t', r')
-            //  V3  balance conservation
-            AND t' = t + x - d
-            //  V4  ranges: valid balances, non-negative debit
-            AND 0 &lt;= t' &lt; 2^L  AND  0 &lt;= x &lt; 2^L  AND  0 &lt;= d &lt; 2^L
-        }
+    6.  pf_spend := VOLEitH.Prove(
+          SpendRelation,                // relation
+          (pk, nf, d, c'),              // instance
+          (t, r, x, s, nf', r', t'),    // witness
+        )
     7.  proof := (nf, d, c', pf_spend)    // nf, d, c' public; witness hidden
     8.  state := (nf', t', r')
     9.  return (proof, state)
@@ -1930,13 +1966,13 @@ ProveSpend(tok, d):
           <h4 id="name-issuer-spend-verification-a">
 <a href="#section-4.5.2" class="section-number selfRef">4.5.2. </a><a href="#name-issuer-spend-verification-a" class="section-name selfRef">Issuer: Spend Verification and Refund</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.5.2-1">
+<div class="lang-pseudocode sourcecode" id="section-4.5.2-1">
 <pre>
 VerifyAndRefund(sk, proof, x'):
   Input:
     - sk: Issuer secret key (secret seed seed_sk)
     - proof = (nf, d, c', pf_spend)
-    - x' in [0, 2^L - 1]: issuer-granted refund; 0 for no refund
+    - x' in [0, 2^(8*L) - 1]: issuer-granted refund; 0 for no refund
   Output:
     - response = (x', s'): granted refund and signature, or INVALID
   Exceptions:
@@ -1944,7 +1980,7 @@ VerifyAndRefund(sk, proof, x'):
 
   Steps:
     1.  if nf has already been accepted: raise DoubleSpend
-    2.  if not (0 &lt;= x' &lt; 2^L): return INVALID
+    2.  if not (0 &lt;= x' &lt; 2^(8*L)): return INVALID
     3.  if VerifySpend(pk, proof) = INVALID: return INVALID      // see below
     4.  mark nf as accepted
     5.  s' &lt;- UOV.Sign(sk, Tag(c', x'))       // sign the change commitment
@@ -1959,9 +1995,9 @@ VerifySpend(pk, proof):
     - VALID or INVALID
 
   Steps:
-    1.  if not (0 &lt;= d &lt; 2^L): return INVALID
-    2.  verify pf_spend against public inputs (pk, nf, d, c');
-        if verification fails: return INVALID
+    1.  if not (0 &lt;= d &lt; 2^(8*L)): return INVALID
+    2.  if VOLEitH.Verify(SpendRelation, (pk, nf, d, c'), pf_spend) = 0:
+          return INVALID
     3.  return VALID
 </pre><a href="#section-4.5.2-1" class="pilcrow">¶</a>
 </div>
@@ -1983,7 +2019,7 @@ the spent amount <code>d</code> and the nullifier <code>nf</code>, but neither t
           <h4 id="name-client-refund-token-constru">
 <a href="#section-4.5.3" class="section-number selfRef">4.5.3. </a><a href="#name-client-refund-token-constru" class="section-name selfRef">Client: Refund Token Construction</a>
           </h4>
-<div class="alignLeft art-text artwork" id="section-4.5.3-1">
+<div class="lang-pseudocode sourcecode" id="section-4.5.3-1">
 <pre>
 VerifyRefund(pk, state, response):
   Input:
@@ -1994,7 +2030,7 @@ VerifyRefund(pk, state, response):
     - tok' = (nf', t', r', x', s'): the change token, or INVALID
 
   Steps:
-    1.  if not (0 &lt;= x' &lt; 2^L): return INVALID
+    1.  if not (0 &lt;= x' &lt; 2^(8*L)): return INVALID
     2.  c' := Com(nf', t', r')
     3.  if P(s') != Tag(c', x'): return INVALID
     4.  return tok' := (nf', t', r', x', s')
@@ -2044,15 +2080,15 @@ V2 evaluates <code>Com</code> for the change token. A spend therefore evaluates
 to fit in one absorb block and for each output to fit in one squeeze block.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 <p id="section-5.1-3"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
 randomness <code>r</code>:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.1-4">
+<div class="lang-pseudocode sourcecode" id="section-5.1-4">
 <pre>
 Com(nf, t, r):
   Input:
-    - nf: Nullifier (nu bits)
-    - t: Credit value in [0, 2^L - 1]
-    - r: Randomness (rho bits)
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho bytes)
   Output:
-    - c: Commitment (2*lambda bits)
+    - c: Commitment (lambda/4 bytes)
 
   Steps:
     1.  return KP800(0xAC || dst || nf || &lt;t&gt;_L || r)
@@ -2060,14 +2096,14 @@ Com(nf, t, r):
 </div>
 <p id="section-5.1-5"><strong>Tag.</strong> <code>Tag</code> hashes a commitment and public refund to a full UOV target of
 <code>m_uov</code> bytes, where <code>m_uov</code> is the number of UOV equations (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>):<a href="#section-5.1-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.1-6">
+<div class="lang-pseudocode sourcecode" id="section-5.1-6">
 <pre>
 Tag(c, x):
   Input:
-    - c: Commitment (2*lambda bits)
-    - x: Refund in [0, 2^L - 1]
+    - c: Commitment (lambda/4 bytes)
+    - x: Refund in [0, 2^(8*L) - 1]
   Output:
-    - y: UOV target (m_uov*8 bits, = m_uov elements of F_256)
+    - y: UOV target (m_uov bytes, = m_uov elements of F_256)
 
   Steps:
     1.  return KP800(0xAD || dst || c || &lt;x&gt;_L, m_uov)
@@ -2079,7 +2115,7 @@ preimage is <code>1 + 18 + 24 + 8 + 16 = 67</code> bytes, leaving the final byte
 18 + 32 + 8 = 59</code> bytes. Each call therefore requires one
 <code>Keccak-p[800, 12]</code> permutation. At initial issuance <code>x = 0</code>, but <code>Tag(c, 0)</code> is
 still a separate, domain-separated hash of <code>c</code> and zero.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
-<p id="section-5.1-8"><strong>Security.</strong> Commitment hiding follows from the <code>rho = 128</code> bits of fresh
+<p id="section-5.1-8"><strong>Security.</strong> Commitment hiding follows from the <code>rho = 16</code> bytes of fresh
 randomness, and binding follows from collision resistance of the domain-separated
 <code>Com</code> random oracle. <code>Tag(c, x)</code> is a full random-oracle image that jointly binds
 the commitment and refund before UOV inversion. This retains hash-and-sign
@@ -2109,19 +2145,19 @@ VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
               <td class="text-left" rowspan="1" colspan="1">Nullifier <code>nu</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>192</code> bits</td>
+                <code>24</code> bytes</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Randomness <code>rho</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>128</code> bits</td>
+                <code>16</code> bytes</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Credit width <code>L</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>64</code> (<code>t, x, d in [0, 2^64 - 1]</code>)</td>
+                <code>8</code> (<code>t, x, d in [0, 2^64 - 1]</code>)</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Domain-separation tag <code>dst</code>
@@ -2133,7 +2169,7 @@ VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
               <td class="text-left" rowspan="1" colspan="1">Commitment <code>c</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>2*lambda = 256</code> bits (<code>32</code> bytes)</td>
+                <code>lambda/4 = 32</code> bytes</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">UOV <code>(n_uov, m_uov, q)</code>
@@ -2208,8 +2244,8 @@ The realization differs from <a href="#hash-commitment" class="auto internal xre
 <ol start="1" type="1" class="normal type-1" id="section-5.2-2">
 <li id="section-5.2-2.1">
             <p id="section-5.2-2.1.1"><strong><code>Com</code> is algebraic.</strong> <code>Com(nf, t, r) = (EmbedNullifierBalance(nf, t) +
-F(r), G(r))</code> for public quadratic maps <code>F</code>, <code>G</code> from the
-<code>GenerateParameters</code> function defined below.<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
+F(r), G(r))</code> for public general quadratic maps <code>F</code>, <code>G</code> from the <code>GenerateParameters</code> function defined
+below.<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li id="section-5.2-2.2">
             <p id="section-5.2-2.2.1"><strong><code>Tag</code> is affine and homomorphic.</strong> The MQ commitment is
@@ -2230,11 +2266,12 @@ standard SHAKE128 (FIPS 202) <span>[<a href="#FIPS202" class="cite xref">FIPS202
 XOF:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.2-4.1">
-            <p id="section-5.2-4.1.1">Two quadratic maps <code>F: F_256^{n_com} -&gt; F_256^k</code> and <code>G: F_256^{n_com} -&gt;
-F_256^{m_uov-k}</code>, obtained as <code>(F, G) = GenerateParameters(dst)</code>.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-4.1.1">Two general (inhomogeneous) quadratic maps <code>F: F_256^{n_com} -&gt; F_256^k</code> and
+<code>G: F_256^{n_com} -&gt; F_256^{m_uov-k}</code>, obtained as <code>(F, G) =
+GenerateParameters(dst)</code>.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<div class="alignLeft art-text artwork" id="section-5.2-5">
+<div class="lang-pseudocode sourcecode" id="section-5.2-5">
 <pre>
 GenerateParameters(dst):
   Input:
@@ -2244,25 +2281,30 @@ GenerateParameters(dst):
   Steps:
     1.  stream := SHAKE128("RATA-MQ-maps:" || dst)
     2.  for each output equation i in [m_uov]:
-    3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // in F_256^{n_com * n_com}
-    4.  F := (M_0, ..., M_{k-1})                       // first k equations
-    5.  G := (M_k, ..., M_{m_uov-1})                   // remaining m_uov-k equations
-    6.  return (F, G)
+    3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // quadratic part, in F_256^{n_com * n_com}
+    4.      l_i := stream.next(n_com)                              // linear part, in F_256^{n_com}
+    5.      Q_i := (M_i, l_i)   such that   Q_i(x) = x^T M_i x + l_i . x
+    6.  F := (Q_0, ..., Q_{k-1})                       // first k equations
+    7.  G := (Q_k, ..., Q_{m_uov-1})                   // remaining m_uov-k equations
+    8.  return (F, G)
 </pre><a href="#section-5.2-5" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2-6"><code>bytesIntoUpper(b)</code> fills the upper triangle of an <code>n_com x n_com</code> matrix over
 <code>F_256</code> row-major from the bytes <code>b</code>, one element per byte, with all other
-entries zero; each <code>M_i</code> is the coefficient matrix of a quadratic form in the
-<code>n_com</code> variables.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+entries zero. Each output equation is a general (inhomogeneous) quadratic map
+<code>Q_i(x) = x^T M_i x + l_i . x</code> in the <code>n_com</code> variables, with <code>M_i</code> the quadratic
+part and <code>l_i</code> the linear part. The linear terms are essential: a purely
+homogeneous map (<code>l_i = 0</code>) has <code>F(0) = G(0) = 0</code> and is scaling-covariant
+(<code>Q_i(a x) = a^2 Q_i(x)</code>), which admits a forgery.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
 <p id="section-5.2-7"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
 randomness <code>r</code>, following the MQ commitment construction in <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>:<a href="#section-5.2-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.2-8">
+<div class="lang-pseudocode sourcecode" id="section-5.2-8">
 <pre>
 Com(nf, t, r):
   Input:
-    - nf: Nullifier (nu bits)
-    - t: Credit value in [0, 2^L - 1]
-    - r: Randomness (rho = 8*n_com bits, parsed as n_com elements of F_256)
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho = n_com bytes, parsed as n_com elements of F_256)
   Output:
     - c: Commitment (m_uov elements in F_256)
   Steps:
@@ -2271,22 +2313,22 @@ Com(nf, t, r):
 </pre><a href="#section-5.2-8" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2-9"><code>EmbedNullifierBalance(nf, t)</code> returns a message vector <code>msg in F_256^k</code>, one
-<code>F_256</code> element per byte. The first <code>nu/8</code> elements hold the nullifier, one byte
-per element (<code>msg[i] = byte(nf[i])</code> for each <code>i in [nu/8)</code>); the next <code>L/8</code>
-elements hold the balance encoding <code>&lt;t&gt;_L</code>; the following <code>L/8</code> elements are the
+<code>F_256</code> element per byte. The first <code>nu</code> elements hold the nullifier, one byte
+per element (<code>msg[i] = byte(nf[i])</code> for each <code>i in [nu)</code>); the next <code>L</code>
+elements hold the balance encoding <code>&lt;t&gt;_L</code>; the following <code>L</code> elements are the
 refund slot, left zero here and written later by <code>Tag</code>; and the remaining <code>k -
-off_refund - L/8</code> elements are reserved and set to zero (there are none unless
-<code>k &gt; off_refund + L/8</code>).<a href="#section-5.2-9" class="pilcrow">¶</a></p>
+off_refund - L</code> elements are reserved and set to zero (there are none unless
+<code>k &gt; off_refund + L</code>).<a href="#section-5.2-9" class="pilcrow">¶</a></p>
 <p id="section-5.2-10"><strong>Tag.</strong> The MQ commitment is <em>constant-additively homomorphic</em>: adding a public
 vector to <code>c</code> shifts the committed message without touching the binding block
 <code>G(r)</code> and without knowledge of <code>r</code> <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>. <code>Tag</code> uses this to write the
 issuer-granted refund <code>x</code> into the (zero) refund coordinate:<a href="#section-5.2-10" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.2-11">
+<div class="lang-pseudocode sourcecode" id="section-5.2-11">
 <pre>
 Tag(c, x):
   Input:
     - c: Commitment (m_uov elements in F_256)
-    - x: Refund in [0, 2^L - 1]
+    - x: Refund in [0, 2^(8*L) - 1]
   Output:
     - y: UOV target (m_uov elements in F_256)
   Steps:
@@ -2294,7 +2336,7 @@ Tag(c, x):
 </pre><a href="#section-5.2-11" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2-12"><code>EmbedRefund(x)</code> returns a vector <code>e in F_256^{m_uov}</code> that is zero everywhere except
-the refund slot: its <code>L/8</code> elements starting at <code>off_refund = nu/8 + L/8</code> hold
+the refund slot: its <code>L</code> elements starting at <code>off_refund = nu + L</code> hold
 the refund encoding <code>&lt;x&gt;_L</code>.<a href="#section-5.2-12" class="pilcrow">¶</a></p>
 <p id="section-5.2-13">Because the commitment length exceeds the standard NIST UOV output size, the UOV
 parameters are enlarged to accommodate it, as reflected in the parameters below.<a href="#section-5.2-13" class="pilcrow">¶</a></p>
@@ -2338,13 +2380,13 @@ UOV estimator.<a href="#section-5.2-15" class="pilcrow">¶</a></p>
               <td class="text-left" rowspan="1" colspan="1">Nullifier <code>nu</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>224</code> bits</td>
+                <code>28</code> bytes</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">Credit width <code>L</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>16</code> (<code>t, x, d in [0, 2^16 - 1]</code>)</td>
+                <code>2</code> (<code>t, x, d in [0, 2^16 - 1]</code>)</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">UOV <code>n_uov</code>
@@ -2383,7 +2425,7 @@ given in bytes (one <code>F_256</code> element each). <code>F, G</code> are the 
                 <code>Com(nf, t, r)</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>nf: nu/8 = 28</code>, <code>&lt;t&gt;_L: L/8 = 2</code>, <code>r: n_com = 83</code> (<code>= rho/8</code>)</td>
+                <code>nf: nu = 28</code>, <code>&lt;t&gt;_L: L = 2</code>, <code>r: n_com = 83</code> (<code>= rho</code>)</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>c: m_uov = 131</code>
 </td>
@@ -2393,7 +2435,7 @@ given in bytes (one <code>F_256</code> element each). <code>F, G</code> are the 
                 <code>Tag(c, x)</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>c: 131</code>, <code>&lt;x&gt;_L: L/8 = 2</code>
+                <code>c: 131</code>, <code>&lt;x&gt;_L: L = 2</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>y: m_uov = 131</code>
@@ -2412,9 +2454,9 @@ given in bytes (one <code>F_256</code> element each). <code>F, G</code> are the 
           </tbody>
         </table>
 <p id="section-5.2-20">The message <code>msg = EmbedNullifierBalance(nf, t)</code> lays out <code>k = 32</code> bytes as <code>nf
-(28) || &lt;t&gt;_L (2) || &lt;x&gt;_L (2)</code>, with the refund slot at <code>off_refund = nu/8 +
-L/8 = 30</code> left zero until <code>Tag</code> writes it (no reserved bytes, since <code>off_refund
-+ L/8 = k</code>). Derived map and signature dimensions: <code>F: F_256^83 -&gt; F_256^32</code>,
+(28) || &lt;t&gt;_L (2) || &lt;x&gt;_L (2)</code>, with the refund slot at <code>off_refund = nu +
+L = 30</code> left zero until <code>Tag</code> writes it (no reserved bytes, since <code>off_refund
++ L = k</code>). Derived map and signature dimensions: <code>F: F_256^83 -&gt; F_256^32</code>,
 <code>G: F_256^83 -&gt; F_256^99</code>, and <code>v = n_uov - m_uov = 144</code>.<a href="#section-5.2-20" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2528,42 +2570,39 @@ TODO Remind the reader here how the current parameters were chosen.<a href="#sec
 <div id="performance">
 <section id="appendix-A">
       <h2 id="name-performance">
-<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-performance" class="section-name selfRef">Performance</a>
+<a href="#name-performance" class="section-name selfRef">Performance</a>
       </h2>
 <p id="appendix-A-1">The hash instantiation of <a href="#hash-commitment" class="auto internal xref">Section 5.1</a> evaluates one in-circuit
 <code>Keccak-p[800, 12]</code> permutation per issuance and three per spend (recomputing
-the old commitment, the <code>Tag</code>, and the change commitment). The figures below were
-measured at <code>lambda = 128</code>, single-threaded on a laptop-class aarch64 core. The
-numbers are indicative and are not normative bounds.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+the old commitment, the <code>Tag</code>, and the change commitment). Its communication is
+dominated by the VOLEitH proof; the sizes below follow from the ciphersuite
+parameters (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>). The public fields sent with each proof add only
+tens of bytes (<code>c</code> at issuance; <code>nf</code>, <code>d</code>, <code>c'</code> at spend), and the issuer's reply
+is a single UOV signature (<code>m_uov = 44</code> bytes plus the <code>L</code>-byte refund).<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <table class="center" id="table-5">
         <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
 <thead>
           <tr>
-            <th class="text-left" rowspan="1" colspan="1">Operation</th>
-            <th class="text-left" rowspan="1" colspan="1">Hash (KP800, )</th>
+            <th class="text-left" rowspan="1" colspan="1">Communication</th>
+            <th class="text-left" rowspan="1" colspan="1">Hash (KP800)</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>IssueRequest</code> (prove)</td>
-            <td class="text-left" rowspan="1" colspan="1">60 ms</td>
+            <td class="text-left" rowspan="1" colspan="1">Issuance request (<code>c</code>, <code>pf_init</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">7.8 KiB</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>IssueResponse</code> (verify)</td>
-            <td class="text-left" rowspan="1" colspan="1">26 ms</td>
+            <td class="text-left" rowspan="1" colspan="1">Issuance response (<code>s</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">112 B</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>ProveSpend</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">696 ms</td>
+            <td class="text-left" rowspan="1" colspan="1">Spend request (<code>nf</code>, <code>d</code>, <code>c'</code>, <code>pf_spend</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">14.2 KiB</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>VerifyAndRefund</code> (verify)</td>
-            <td class="text-left" rowspan="1" colspan="1">66 ms</td>
+            <td class="text-left" rowspan="1" colspan="1">Spend response (<code>x'</code>, <code>s'</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">120 B</td>
           </tr>
         </tbody>
       </table>
@@ -2571,191 +2610,39 @@ numbers are indicative and are not normative bounds.<a href="#appendix-A-1" clas
         <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
 <thead>
           <tr>
-            <th class="text-left" rowspan="1" colspan="1">Proof</th>
-            <th class="text-left" rowspan="1" colspan="1">Hash (KP800)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance <code>pf_init</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">7.8 KiB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend <code>pf_spend</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">14.2 KiB</td>
-          </tr>
-        </tbody>
-      </table>
-<p id="appendix-A-4">The MQ instantiation was measured at <code>lambda = 128</code>, single-threaded on a
-laptop-class aarch64 core. The numbers are indicative and are not normative
-bounds.<a href="#appendix-A-4" class="pilcrow">¶</a></p>
-<table class="center" id="table-7">
-        <caption><a href="#table-7" class="selfRef">Table 7</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Operation</th>
-            <th class="text-left" rowspan="1" colspan="1">MQ (BFMRSV25a, )</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>IssueRequest</code> (prove)</td>
-            <td class="text-left" rowspan="1" colspan="1">24 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>IssueResponse</code> (verify)</td>
-            <td class="text-left" rowspan="1" colspan="1">65 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>ProveSpend</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">85 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>VerifyAndRefund</code> (verify)</td>
-            <td class="text-left" rowspan="1" colspan="1">57 ms</td>
-          </tr>
-        </tbody>
-      </table>
-<table class="center" id="table-8">
-        <caption><a href="#table-8" class="selfRef">Table 8</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Proof</th>
+            <th class="text-left" rowspan="1" colspan="1">Communication</th>
             <th class="text-left" rowspan="1" colspan="1">MQ</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance <code>pf_init</code>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">Issuance request (<code>c</code>, <code>pf_init</code>)</td>
             <td class="text-left" rowspan="1" colspan="1">4.3 KiB</td>
           </tr>
           <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend <code>pf_spend</code>
-</td>
+            <td class="text-left" rowspan="1" colspan="1">Issuance response (<code>s</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">275 B</td>
+          </tr>
+          <tr>
+            <td class="text-left" rowspan="1" colspan="1">Spend request (<code>nf</code>, <code>d</code>, <code>c'</code>, <code>pf_spend</code>)</td>
             <td class="text-left" rowspan="1" colspan="1">9.0 KiB</td>
           </tr>
-        </tbody>
-      </table>
-<p id="appendix-A-7">The MQ instantiation removes all in-circuit Keccak evaluations, but its widened
-UOV trapdoor makes key generation a one-time cost of several seconds. Its
-performance also relies on folding the public quadratic forms with precomputed
-lift tables; without that optimization, the UOV fold dominates proving time.<a href="#appendix-A-7" class="pilcrow">¶</a></p>
-<p id="appendix-A-8"><strong>Our One-More-UOV blind signature.</strong> As a building block we also implement a
-One-More-UOV blind signature -- the hash-free construction of PoMFRIT
-<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span> instantiated with UOV instead of MAYO. It is a plain blind signature
-(no balance, nullifier, or change), so it is not an ACT, but it isolates the
-cost of proving a UOV preimage in VOLEitH with no in-circuit hash. Measured on
-the same aarch64 core with the compact <code>uov-Ip</code> map (<code>n_uov = 112</code>, <code>m_uov = 44</code>);
-<code>Blind</code>/<code>BlindSign</code>/<code>Finalize</code> correspond to <code>Sig1</code>/<code>Sig2</code>/<code>Sig3</code> below.<a href="#appendix-A-8" class="pilcrow">¶</a></p>
-<table class="center" id="table-9">
-        <caption><a href="#table-9" class="selfRef">Table 9</a></caption>
-<thead>
           <tr>
-            <th class="text-left" rowspan="1" colspan="1">Operation</th>
-            <th class="text-left" rowspan="1" colspan="1">One-More-UOV</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>Blind</code> (request)</td>
-            <td class="text-left" rowspan="1" colspan="1">15 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>BlindSign</code> (issuer preimage)</td>
-            <td class="text-left" rowspan="1" colspan="1">1.8 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>Finalize</code> (show / prove)</td>
-            <td class="text-left" rowspan="1" colspan="1">80 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>Verify</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">47 ms</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">issuance <code>\|t\|</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">44 B</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">signature</td>
-            <td class="text-left" rowspan="1" colspan="1">4.4 KiB</td>
+            <td class="text-left" rowspan="1" colspan="1">Spend response (<code>x'</code>, <code>s'</code>)</td>
+            <td class="text-left" rowspan="1" colspan="1">277 B</td>
           </tr>
         </tbody>
       </table>
-<p id="appendix-A-10"><strong>Comparison to PoMFRIT <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>.</strong> For reference, PoMFRIT <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>
-(ePrint 2026/109, Table 3) reports the following at <code>lambda = 128</code> with the
-small (<code>s</code>) VOLEitH tuning, on an Intel Ultra 9 185H (AVX C/C++). PoMFRIT is a
-blind signature, not an ACT: it has no balance arithmetic, nullifier, or change
-commitment, so its showing (<code>Sig3</code>/<code>Ver</code>) is the closest analogue of our spend
-and its blind-signature size the analogue of our token. It runs on a different
-ISA and language, so treat this as a rough cross-scheme reference, not a
-like-for-like measurement. <code>Sig1</code> is the user's request, <code>Sig2</code> the issuer's
-blind-sign (MAYO preimage sampling), <code>Sig3</code> the user's showing proof, and <code>Ver</code>
-the showing verification.<a href="#appendix-A-10" class="pilcrow">¶</a></p>
-<table class="center" id="table-10">
-        <caption><a href="#table-10" class="selfRef">Table 10</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Scheme (128s)</th>
-            <th class="text-left" rowspan="1" colspan="1">Sig1</th>
-            <th class="text-left" rowspan="1" colspan="1">Sig2</th>
-            <th class="text-left" rowspan="1" colspan="1">Sig3 (show)</th>
-            <th class="text-left" rowspan="1" colspan="1">Ver</th>
-            <th class="text-left" rowspan="1" colspan="1">Issue comm</th>
-            <th class="text-left" rowspan="1" colspan="1">Signature</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">SHAKE256-deg16 + MAYO</td>
-            <td class="text-left" rowspan="1" colspan="1">0.02 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">6.1 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">178 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">143 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">0.47 KB</td>
-            <td class="text-left" rowspan="1" colspan="1">24.3 KB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">One-More-MAYO (no in-circuit hash)</td>
-            <td class="text-left" rowspan="1" colspan="1">47.2 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">6.1 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">42 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">91 ms</td>
-            <td class="text-left" rowspan="1" colspan="1">0.45 KB</td>
-            <td class="text-left" rowspan="1" colspan="1">6.7 KB</td>
-          </tr>
-        </tbody>
-      </table>
-<p id="appendix-A-12">One-More-MAYO drops the symmetric primitive from the proven statement entirely,
-so it is both the smallest (6.7 KB) and fastest-to-show; the cost moves to
-<code>Sig1</code>. Its direct analogue is our One-More-UOV blind signature above (show 80
-ms / verify 47 ms / 4.4 KiB): both prove only a compact MQ preimage with no
-in-circuit hash, and land in the same regime -- the residual gap is ISA and
-language (AVX C/C++ vs aarch64 Rust). Our RATA-MQ spend (prove 85 ms / verify 57
-ms) sits in the same regime once its widened-UOV map is folded with lift tables:
-the map is ~26x larger in coefficients, but the fold cost scales with the number
-of forms, not the map size, so the extra width costs little.<a href="#appendix-A-12" class="pilcrow">¶</a></p>
+<p id="appendix-A-4">The MQ instantiation removes all in-circuit Keccak evaluations, but its widened
+UOV trapdoor makes key generation a one-time cost of several seconds.<a href="#appendix-A-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="acknowledgments">
 <section id="appendix-B">
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
-    </h2>
+      </h2>
+<p id="appendix-B-1">The use of <code>Keccak-p[800,12]</code> in this application was proposed by Bas Westerbaan.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
