@@ -483,10 +483,7 @@ Table of Contents
    the number of nonzero entries is odd.  We also need some parity
    constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [L-1].
 
-   These constraints are computed by the following function.  Here "r",
-   "s", and "b" are variables for opening, signature, and selector
-   vector respectively that refer to the witness for the prover and
-   index into the proof for the verifier.
+   These constraints are computed by the following procedure.
 
    RedeemRel(P, nf, ctx_iss, ctx_red):
      Input:
@@ -572,27 +569,6 @@ Table of Contents
    UOV assumption is a stronger assumption than standard UOV ([UOV],
    Definition 2) that requires some scrutiny before we rely on it too
    heavily.
-
-   Extracting a witness from a redemption proof yields a selector vector
-   b of weight exactly one, by the constraints of RedeemRel()
-   (Section 5.4), so the extracted s is a signature under one of the
-   Anchor public keys and not under some combination of them.  This is
-   what rules out the following attack: a rogue Anchor joins the Anchor
-   Set with a public key P[v] = R - P[u], where P[u] is the key of an
-   honest Anchor and R is a key for which the rogue Anchor knows a
-   trapdoor.  A Client colluding with the rogue Anchor could set b[u] =
-   b[v] = 1, making the selected map R, and so redeem tokens that no
-   Anchor ever issued.
-
-   Both families of constraints are load-bearing here.  The weight
-   constraint rejects the two-key attack just described, since b then
-   has even weight.  It does not reject the three-key variant, in which
-   the rogue key is P[v] = R - P[u] - P[w] and the Client sets b[u] =
-   b[v] = b[w] = 1; that one is rejected by the parity constraints.
-   Since linear combinations of UOV public keys are again quadratic maps
-   (Section 3), any subset of the Anchor Set that a malformed b can
-   select is a usable forgery target, so the arithmetization must admit
-   unit vectors and nothing else.
 
       NOTE Here's a sketch of the reduction to one-more-UOV.  We
       consider a simplified version of Moussaka, similar to PoMFRIT.
