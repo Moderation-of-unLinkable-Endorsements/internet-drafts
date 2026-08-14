@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang &amp; Patton</td>
-<td class="center">Expires 14 February 2027</td>
+<td class="center">Expires 15 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-13" class="published">13 August 2026</time>
+<time datetime="2026-08-14" class="published">14 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-14">14 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-15">15 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#se
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1272,15 +1272,19 @@ parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="
           <p id="section-1-6.2.1"><code>TODO</code> kilobytes are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.3">
-          <p id="section-1-6.3.1"><code>TODO*L</code> kilobytes are transmitted during redemption,<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.3.1"><code>TODO</code> kilobytes are transmitted during redemption,<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-1-7">where <code>L</code> is the size of the Anchor Set. In particular, the size of the
-redemption proof scales linearly with the number of Anchors.<a href="#section-1-7" class="pilcrow">¶</a></p>
+<p id="section-1-7">where <code>L</code> is the size of the Anchor Set. Verifying a redemption costs the
+Moderator work linear in <code>L</code>, since it evaluates the Anchor Set in the clear. How
+the size of the redemption request grows with <code>L</code> is not yet settled; see
+<a href="#overview" class="auto internal xref">Section 3</a>.<a href="#section-1-7" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-8.1">
           <p id="section-1-8.1.1">NOTE(tnyuzg) We should be able to make redemption sublinear using the
-OR proof of ia,cr/2025/113, Section 4.1.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
+OR proof of ia.cr/2025/113, Section 4.1. The arithmetization in <a href="#overview" class="auto internal xref">Section 3</a>
+is a step in this direction: the Client commits to the binary encoding of the
+Anchor index rather than to a selector vector of length <code>L</code>.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
 <p id="section-1-8.1.2">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
 for issuance and another for redemption) using the more invasive techniques
 from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.2" class="pilcrow">¶</a></p>
@@ -1389,19 +1393,20 @@ unlinkability, the Client must hide the signature from the Moderator during
 redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
 <p id="section-3-9">Let <code>P[0], ..., P[L-1]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
-<code>s, r</code> for which <code>P[i](s) = t</code> for some <code>i in [L]</code> without revealing <code>i</code>. In
-order to prove this statement with VOLEitH, we need to express it as an
-arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<code>i, s, r</code> for which <code>P[i](s) = t</code> without revealing <code>i</code>. In order to prove this
+statement with VOLEitH, we need to express it as an arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
 <p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures as defined
-in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, for any public key <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The
-idea is to extend the witness with a "selector" vector <code>b[0], ..., b[L-1]</code> for
-which <code>b[j] = 1</code> if <code>j = i</code> and <code>0</code> otherwise. First the circuit computes <code>Q :=
-Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
+in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, each public key is a homogeneous quadratic map, so that any
+linear combination of public keys is again a quadratic map; in particular, for
+any public key <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
+witness with the binary encoding <code>d[0], ..., d[k-1]</code> of the index <code>i</code>, where
+<code>k = ceil(log2(L))</code> and <code>i = d[0] + 2*d[1] + ... + 2^(k-1)*d[k-1]</code>. The circuit
+computes the selected public key <code>Q := Select(d, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-3-11">
 <pre>
-Select(b, P):
+Select(d, P):
   Input:
-    - b: selector vector, in F_q^L
+    - d: binary encoding of the selected index, in F_q^k
     - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
 
   Output:
@@ -1410,38 +1415,80 @@ Select(b, P):
   Steps:
     1. N := m * n * (n + 1) / 2  // field elements per map
     2. Q := 0^N
-    3. for i in [L]:
-    4.   for j in [N]:
-    5.     Q[j] += b[i] * P[i][j]
-    6. return Q
+    3. for u in [L]:
+    4.   w := 1                  // does d encode u?
+    5.   for j in [k]:
+    6.     if bit(u, j) = 1: w := w * d[j]
+    7.     else:             w := w * (1 - d[j])
+    8.   for t in [N]:
+    9.     Q[t] += w * P[u][t]
+    10. return Q
 </pre><a href="#section-3-11" class="pilcrow">¶</a>
 </div>
-<p id="section-3-12">It then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that
-<code>b[i]*(b[i] - 1) = 0</code> for all <code>i in [L]</code>.<a href="#section-3-12" class="pilcrow">¶</a></p>
+<p id="section-3-12">Here <code>bit(u, j)</code> denotes the <code>j</code>-th least significant bit of the integer <code>u</code>,
+i.e., <code>bit(u, j) = floor(u / 2^j) mod 2</code>. The branch taken in steps 6 and 7
+depends only on the loop index <code>u</code>, which is public, so <code>Select()</code> unrolls into a
+fixed arithmetic circuit determined by <code>L</code> alone. If <code>d</code> is the binary encoding
+of <code>i</code>, then <code>w = 1</code> if <code>u = i</code> and <code>w = 0</code> otherwise, hence <code>Q = P[i]</code>.<a href="#section-3-12" class="pilcrow">¶</a></p>
+<p id="section-3-13">The circuit then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that
+<code>d[j] * (d[j] - 1) = 0</code> for all <code>j in [k]</code>. These <code>k</code> constraints are all that
+is needed to pin <code>d</code> to a single Anchor, since every assignment of bits to <code>d</code>
+is the encoding of exactly one index.<a href="#section-3-13" class="pilcrow">¶</a></p>
+<p id="section-3-14">If <code>L</code> is not a power of two, then <code>d</code> may encode an index <code>u &gt;= L</code>, in which
+case <code>w = 0</code> for every <code>u in [L]</code>. Then <code>Q</code> is the all-zero map, so that
+<code>Q(s) = 0^m</code> for every <code>s</code>, and the Client would have to know an opening of the
+commitment to <code>0^m</code>. See <a href="#security" class="auto internal xref">Section 6</a>.<a href="#section-3-14" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-13.1">
-          <p id="section-3-13.1.1">TODO(cjpatton) These constraints force each <code>b[i]</code> into <code>{0, 1}</code> but do not
-force <code>b</code> to have Hamming weight one. If more than one <code>b[i]</code> is set, then <code>Q</code>
-is a sum of public keys, and a rogue Anchor could choose its own key so that
-it knows a trapdoor for that sum. Note that the obvious fix, the linear
-constraint <code>b[0] + ... + b[L-1] = 1</code>, is not sufficient: <code>F_q</code> has
-characteristic 2, so this only forces the weight of <code>b</code> to be odd. We may
-instead want to derive <code>b</code> in-circuit from a binary encoding of <code>i</code>.<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-15.1">
+          <p id="section-3-15.1.1">NOTE We previously extended the witness with a "selector" vector
+<code>b[0], ..., b[L-1]</code> intended to be the indicator of <code>i</code>, with <code>Q</code> computed as
+<code>b[0]*P[0] + ... + b[L-1]*P[L-1]</code>. Constraining each <code>b[u]</code> to <code>{0, 1}</code> does
+not force the weight of <code>b</code> to be one, and neither does adding the linear
+constraint <code>b[0] + ... + b[L-1] = 1</code>, since <code>F_q</code> has characteristic 2 and so
+this only forces the weight to be odd. A Client that sets several entries of
+<code>b</code> proves knowledge of a solution to a <em>sum</em> of public keys, which a rogue
+Anchor could arrange to have a trapdoor it knows. The binary encoding avoids
+this by construction. It also shrinks this part of the witness from <code>L</code>
+elements to <code>k</code>, at the cost of raising the degree of the constraint
+<code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> in the witness from <code>3</code> to <code>k + 2</code>.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-3-14">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<p id="section-3-16">The cost of the proof is not the number of multiplications the circuit performs.
+Step 9 performs <code>L * N</code> of them, but each is between a value derived from the
+witness and a coefficient of a public key, and multiplication by a public
+constant is a linear operation on a committed value: the Moderator applies it to
+its own keys without the Client sending anything. The same goes for the
+accumulation into <code>Q</code>. What the Client transmits is one field element per
+committed value, plus whatever the proof system charges for checking the
+constraints. So the question is how many values have to be committed, which in
+turn depends on the degree of constraint the proof system admits.<a href="#section-3-16" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-17.1">
+          <p id="section-3-17.1.1">TODO(cjpatton) Settle this and record the resulting size. The witness above is
+<code>r, s, d</code> together with whatever <code>Com()</code> requires, and the constraint
+<code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> has degree <code>k + 2</code> in it. If <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>
+admits constraints of that degree, then the only <code>L</code>-dependent term is the <code>k</code>
+bits of <code>d</code>. If it admits degree <code>2</code> only, then the partial products in steps 6
+and 7 have to be committed as well: sharing them across the loop in step 3
+costs about <code>2L</code> values, which is worse than the <code>L</code> values of the selector
+vector we started with. Splitting the index into blocks of bits interpolates
+between the two. Note that the degree also affects the number of field elements
+exchanged for the constraint check itself, which we should count as well.<a href="#section-3-17.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-18">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
 state is also half the size of the state used by either SHA-3 or TurboSHAKE.
 This helps reduce the size of the VOLEitH proof without impacting the binding or
-hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14" class="pilcrow">¶</a></p>
+hiding of the commitment. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-18" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-15.1">
-          <p id="section-3-15.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+<li class="normal ulEmpty" id="section-3-19.1">
+          <p id="section-3-19.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
 alternative is to have the Anchor bind the issuance context by applying an
 outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
 no issuance proof is required. It would also have the benefit of not
-requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-19.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1680,14 +1727,18 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
-of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span> be
+empty, that is, <code>L &gt; 0</code>. Let <code>k = ceil(log2(L))</code> denote the number of bits needed
+to encode an index into the Anchor Set; note that <code>k = 0</code> when <code>L = 1</code>, in which
+case redemption reveals the issuing Anchor and provides no Anchor-hiding
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">
 <a href="#section-5.4.1" class="section-number selfRef">5.4.1. </a><a href="#name-redeem-request" class="section-name selfRef">Redeem Request</a>
           </h4>
 <p id="section-5.4.1-1">To redeem a token <code>token = (nf, r, s)</code> issued by Anchor <code>P[i]</code>, the Client runs
-the following procedure. Let <code>Select()</code> be the procedure defined in
+the following procedure. Let <code>Select()</code> and <code>bit()</code> be as defined in
 <a href="#overview" class="auto internal xref">Section 3</a>.<a href="#section-5.4.1-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.4.1-2">
 <pre>
@@ -1704,20 +1755,19 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 
   Steps:
     1. (nf, r, s) := token
-    2. b := 0^L  // selector vector
-    3. b[i] := 1
-    4. pf_red := VOLEitH.Prove(
-         (r, s, b),                  // witness
+    2. for j in [k]: d[j] := bit(i, j)  // binary encoding of i
+    3. pf_red := VOLEitH.Prove(
+         (r, s, d),                  // witness
          (P, nf, ctx_iss, ctx_red),  // public
          [                           // relation
-           b[0] * (b[0] - 1) = 0,
+           d[0] * (d[0] - 1) = 0,
            ...,
-           b[L-1] * (b[L-1] - 1) = 0,
-           Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
+           d[k-1] * (d[k-1] - 1) = 0,
+           Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
          ],
        )
-    5. request := (nf, pf_red)
-    6. return request
+    4. request := (nf, pf_red)
+    5. return request
 </pre><a href="#section-5.4.1-2" class="pilcrow">¶</a>
 </div>
 </section>
@@ -1732,7 +1782,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 <pre>
 FinalizeRedeem(P, request, ctx_iss, ctx_red):
   Input:
-    - P: Anchor Set
+    - P: Anchor Set of length L
     - request: redemption request
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
@@ -1746,10 +1796,10 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
          pf_red,
          (P, nf, ctx_iss, ctx_red),  // public
          [                           // relation
-           b[0] * (b[0] - 1) = 0,
+           d[0] * (d[0] - 1) = 0,
            ...,
-           b[L-1] * (b[L-1] - 1) = 0,
-           Select(b, P)(s) = Com(nf, ctx_iss, ctx_red, r),
+           d[k-1] * (d[k-1] - 1) = 0,
+           Select(d, P)(s) = Com(nf, ctx_iss, ctx_red, r),
          ],
        )
     3. if v = 0: return INVALID
@@ -1779,52 +1829,62 @@ VOLEitH, binding of the commitment, and the one-more-UOV assumption
 (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8). The one-more-UOV assumption is a stronger
 assumption than standard UOV (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some
 scrutiny before we rely on it too heavily.<a href="#section-6-2" class="pilcrow">¶</a></p>
+<p id="section-6-3">Extracting a witness from a redemption proof yields the bits <code>d</code>, and every
+assignment of bits is the encoding of exactly one index. When <code>L</code> is a power of
+two, that index is always in <code>[L]</code>, so the extracted signature is valid under
+one of the Anchor public keys. Otherwise <code>d</code> may encode an index <code>u &gt;= L</code>, in
+which case <code>Select(d, P)</code> is the all-zero map and the relation instead requires
+<code>Com(nf, ctx_iss, ctx_red, r) = 0^m</code>. Satisfying this means finding an input of
+the form prescribed by <code>Com()</code> whose image under <code>KP800()</code> begins with <code>m</code> zero
+bytes, which we assume is infeasible. Deployments that prefer not to rely on
+this assumption can pad the Anchor Set to a power of two by repeating one of its
+keys; a Client that selects a repeated key still proves the intended statement.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-3.1">
-          <p id="section-6-3.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
+<li class="normal ulEmpty" id="section-6-4.1">
+          <p id="section-6-4.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
 simplified version of Moussaka, similar to PoMFRIT. During redemption, the
-Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
+Client proves knowledge of <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-4.1.2">Our goal is to transform a one-more-redemption forger <code>B</code> into a one-more-UOV
 forger <code>A</code>. We simulate <code>B</code>'s RO queries using the random targets we got as
 input to our one-more-UOV instance; when <code>B</code> requests issuance, we forward
-the target to our own <code>SPre</code> oracle.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
-<p id="section-6-3.1.3">On input <code>P, t[0], ..., t[Q-1]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as
-the issuer public key and respond to its queries as follows:<a href="#section-6-3.1.3" class="pilcrow">¶</a></p>
+the target to our own <code>SPre</code> oracle.<a href="#section-6-4.1.2" class="pilcrow">¶</a></p>
+<p id="section-6-4.1.3">On input <code>P, t[0], ..., t[Q-1]</code> and with oracle <code>SPre</code>: Run <code>B</code> with <code>P</code> as
+the issuer public key and respond to its queries as follows:<a href="#section-6-4.1.3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-3.1.4.1">
-              <p id="section-6-3.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, counting from zero,
-respond with <code>c = t[i]</code>.<a href="#section-6-3.1.4.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6-4.1.4.1">
+              <p id="section-6-4.1.4.1.1">When <code>B</code> asks <code>Com(nf, r)</code>: for the <code>i</code>-th such query, counting from zero,
+respond with <code>c = t[i]</code>.<a href="#section-6-4.1.4.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-3.1.4.2">
-              <p id="section-6-3.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-3.1.4.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-6-4.1.4.2">
+              <p id="section-6-4.1.4.2.1">When <code>B</code> requests issuance for <code>c</code>: respond with <code>s = SPre(c)</code>.<a href="#section-6-4.1.4.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-6-3.1.4.3">
-              <p id="section-6-3.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pf</code>: extract the witness <code>s, r</code> for
+            <li class="normal" id="section-6-4.1.4.3">
+              <p id="section-6-4.1.4.3.1">When <code>B</code> requests redemption for <code>nf, pf</code>: extract the witness <code>s, r</code> for
 <code>pf</code> and let <code>c = Com(nf, r)</code>. (If this fails, then witness extractability
 of VOLEitH implies the Moderator will reject.) If we didn't issue <code>s</code> for
 <code>c</code>, then <code>B</code> has successfully one-more-forged. Furthermore, <code>c = t[i]</code> for
 some <code>i in [Q]</code>, hence <code>s</code> is a solution to our one-more-UOV
-instance.<a href="#section-6-3.1.4.3.1" class="pilcrow">¶</a></p>
+instance.<a href="#section-6-4.1.4.3.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-4.1">
-          <p id="section-6-4.1.1">NOTE We previously looked at an alternative to the outer commitment in which
+<li class="normal ulEmpty" id="section-6-5.1">
+          <p id="section-6-5.1.1">NOTE We previously looked at an alternative to the outer commitment in which
 <code>c</code> was "tagged" with issuance context <code>x</code> via either <code>c || x</code> or <code>c XOR x</code>. A
 reduction to one-more-UOV is possible, but it incurs a significant loss in
 concrete security, since the reduction has to guess <code>x</code> so that it can
 program the random oracle accordingly. Matching attack: XORing the tag
 into the image under the hash means the attacker gets to pick any prefix it
 wants. It now only needs to find a collision in the remaining bits of the
-image.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+image.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-5.1">
-          <p id="section-6-5.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
-TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6-6.1">
+          <p id="section-6-6.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
