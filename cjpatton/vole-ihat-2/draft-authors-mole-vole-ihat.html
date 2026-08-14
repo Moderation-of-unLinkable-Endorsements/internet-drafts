@@ -1360,7 +1360,8 @@ Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agr
 by the Client and Moderator <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The protocol commits to both contexts
 during issuance: the Anchor verifies the <code>ctx_iss</code> binding during issuance, and
 the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding during
-redemption.<a href="#section-3-4" class="pilcrow">¶</a></p>
+redemption. Note that Moussaka constrains how these values are chosen compared
+to <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-5">The issuance protocol is as follows:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-6.1">
@@ -1383,21 +1384,17 @@ sends <code>s</code> to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶
           <p id="section-3-7.3.1">The Client finalizes issuance by checking that <code>P(s) = t</code>.<a href="#section-3-7.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-3-8">The process resembles blind signature issuance <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>. The key difference
-is that the Anchor observes the signature <code>s</code> in plaintext. To ensure
-unlinkability, the Client must hide the signature from the Moderator during
-redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-8">The process resembles RSA blind signature issuance <span>[<a href="#RFC9474" class="cite xref">RFC9474</a>]</span>. The key
+difference is that the Anchor observes the signature <code>s</code> in plaintext. To
+ensure unlinkability, the Client must hide the signature from the Moderator
+during redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
 <p id="section-3-9">Let <code>P[0], ..., P[L-1]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 <code>i, s, r</code> for which <code>P[i](s) = t</code> without revealing <code>i</code>. In order to prove this
 statement with VOLEitH, we need to express it as an arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
-<p id="section-3-10">Our arithmetization exploits the simple structure of UOV signatures as defined
-in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>. Namely, each public key is a homogeneous quadratic map, so that any
-linear combination of public keys is again a quadratic map; in particular, for
-any public key <code>P</code> it holds that <code>P(0^n) = 0^m</code>. The idea is to extend the
-witness with a "selector" vector <code>b[0], ..., b[L-1]</code> for which <code>b[u] = 1</code> if
-<code>u = i</code> and <code>0</code> otherwise. The circuit computes the selected public key
-<code>Q := Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
+<p id="section-3-10">The idea is to extend the witness with a "selector" vector <code>b[0], ..., b[L-1]</code>
+for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The circuit computes the
+selected public key <code>Q := Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-3-11">
 <pre>
 Select(b, P):
@@ -1745,9 +1742,9 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
     2. b := 0^L  // selector vector
     3. b[i] := 1
     4. pf_red := VOLEitH.Prove(
-         (r, s, b),                          // witness
-         (P, nf, ctx_iss, ctx_red),          // public
-         RedeemRel(P, nf, tx_iss, ctx_red),  // relation
+         (r, s, b),                           // witness
+         (P, nf, ctx_iss, ctx_red),           // public
+         RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
        )
     5. request := (nf, pf_red)
     6. return request

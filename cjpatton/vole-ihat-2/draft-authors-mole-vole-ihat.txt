@@ -208,7 +208,9 @@ Table of Contents
    agreed upon by the Client and Moderator [IHAT].  The protocol commits
    to both contexts during issuance: the Anchor verifies the ctx_iss
    binding during issuance, and the Moderator verifies both the ctx_iss
-   and ctx_red binding during redemption.
+   and ctx_red binding during redemption.  Note that Moussaka constrains
+   how these values are chosen compared to [IHAT]; see Section 5.2 for
+   details.
 
    The issuance protocol is as follows:
 
@@ -225,10 +227,10 @@ Table of Contents
 
    3.  The Client finalizes issuance by checking that P(s) = t.
 
-   The process resembles blind signature issuance [RFC9474].  The key
-   difference is that the Anchor observes the signature s in plaintext.
-   To ensure unlinkability, the Client must hide the signature from the
-   Moderator during redemption.
+   The process resembles RSA blind signature issuance [RFC9474].  The
+   key difference is that the Anchor observes the signature s in
+   plaintext.  To ensure unlinkability, the Client must hide the
+   signature from the Moderator during redemption.
 
    Let P[0], ..., P[L-1] denote the Anchor Set. To redeem a token, the
    Client presents the nullifier in plaintext along with a VOLEitH proof
@@ -236,14 +238,9 @@ Table of Contents
    In order to prove this statement with VOLEitH, we need to express it
    as an arithmetic circuit.
 
-   Our arithmetization exploits the simple structure of UOV signatures
-   as defined in [UOV].  Namely, each public key is a homogeneous
-   quadratic map, so that any linear combination of public keys is again
-   a quadratic map; in particular, for any public key P it holds that
-   P(0^n) = 0^m.  The idea is to extend the witness with a "selector"
-   vector b[0], ..., b[L-1] for which b[u] = 1 if u = i and 0 otherwise.
-   The circuit computes the selected public key Q := Select(b, P) as
-   follows:
+   The idea is to extend the witness with a "selector" vector b[0], ...,
+   b[L-1] for which b[u] = 1 if u = i and 0 otherwise.  The circuit
+   computes the selected public key Q := Select(b, P) as follows:
 
    Select(b, P):
      Input:
@@ -524,9 +521,9 @@ Table of Contents
        2. b := 0^L  // selector vector
        3. b[i] := 1
        4. pf_red := VOLEitH.Prove(
-            (r, s, b),                          // witness
-            (P, nf, ctx_iss, ctx_red),          // public
-            RedeemRel(P, nf, tx_iss, ctx_red),  // relation
+            (r, s, b),                           // witness
+            (P, nf, ctx_iss, ctx_red),           // public
+            RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
           )
        5. request := (nf, pf_red)
        6. return request
