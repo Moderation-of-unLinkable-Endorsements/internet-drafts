@@ -405,6 +405,13 @@ Parameters:
        before, records it, and blindly signs the new commitment --
        issuing change as a new, unlinkable token.
 
+      TODO Specify a state-update variant that skips the balance-
+      sufficiency check (b), allowing arbitrary hidden updates to the
+      token value (blind-signature-like: the client still proves the
+      token exists and is valid, but the value is not read).  Clarify
+      that "balance suffices" still includes the always-required balance
+      >= 0 (non-negativity) check.
+
    Because each spend simultaneously presents an old token and obtains a
    new one for the change, spending and re-issuance are a single
    combined step.  Only the spend amount is revealed to the issuer; the

@@ -1619,10 +1619,19 @@ accepted before, records it, and blindly signs the new commitment -- issuing
 change as a new, unlinkable token.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
-<p id="section-3-3">Because each spend simultaneously presents an old token and obtains a new one
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-3-3.1">
+          <p id="section-3-3.1.1">TODO Specify a state-update variant that skips the balance-sufficiency check
+(b), allowing arbitrary hidden updates to the token value (blind-signature-like:
+the client still proves the token exists and is valid, but the value is not
+read). Clarify that "balance suffices" still includes the always-required
+<code>balance &gt;= 0</code> (non-negativity) check.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-3-4">Because each spend simultaneously presents an old token and obtains a new one
 for the change, spending and re-issuance are a single combined step. Only the
 spend amount is revealed to the issuer; the balance and the client's identity
-remain hidden.<a href="#section-3-3" class="pilcrow">¶</a></p>
+remain hidden.<a href="#section-3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="protocol">
