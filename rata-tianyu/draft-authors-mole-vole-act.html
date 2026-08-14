@@ -1265,13 +1265,10 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
-            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-performance" class="internal xref">Performance</a></p>
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
-            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
-            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1335,18 +1332,36 @@ the same principle Ratatouille follows.<a href="#section-1-6" class="pilcrow">¶
 <p id="section-1.1-1">Ratatouille inherits the properties and use cases of ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>; we refer the
 reader there for their definitions. In particular, it provides
 <strong>unlinkability</strong>, <strong>flexible spending and refunding</strong>, <strong>balance privacy</strong>, and
-<strong>double-spend prevention</strong>, and it supports the same use cases, such as
+<strong>double-spend prevention</strong> (if a single database is shared across issuers), and it supports the same use cases, such as
 <strong>rate limiting</strong> and <strong>API credits</strong>.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
 <p id="section-1.1-2">Beyond ACT, Ratatouille additionally achieves <strong>Full Post-Quantum Security</strong>: All security properties -- unforgeability,
 unlinkability, and double-spend prevention -- are conjectured to hold against
 adversaries equipped with a large-scale quantum computer. Security reduces to
 the UOV and MQ problems and to the security of standard symmetric primitives.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
-<p id="section-1.1-3">This post-quantum security comes at a cost in <strong>performance</strong>: presentation
-proofs are larger than in the classical construction -- on the order of
-kilobytes to tens of kilobytes. Nonetheless, the protocol remains practical for
-modern web services, with efficient signing, verification, and proof
-generation.<a href="#section-1.1-3" class="pilcrow">¶</a></p>
-<p id="section-1.1-4">Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.<a href="#section-1.1-4" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">This post-quantum security comes at a cost in <strong>performance</strong>: presentation proofs
+are larger than in the classical construction, on the order of kilobytes to tens
+of kilobytes. At the 128-bit security level, Ratatouille has significantly higher
+communication cost than the classical ACT:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1.1-4">
+<li id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">the issuer's public key is a UOV map -- approximately 42.6 KB for the hash
+instantiation (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>, the uov-Ip parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>), and
+larger for the MQ instantiation (<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>), which widens the UOV map;<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance; and<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend; and<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.4">
+            <p id="section-1.1-4.4.1">the issuer's reply is a single UOV signature -- about 112 B (hash) or 275 B
+(MQ), plus a few bytes of granted refund on a spend.<a href="#section-1.1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-1.1-5">Nonetheless, the protocol remains practical for modern web services,
+with efficient signing, verification, and proof generation.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+<p id="section-1.1-6">Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.<a href="#section-1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="building-blocks">
@@ -2567,86 +2582,16 @@ TODO Remind the reader here how the current parameters were chosen.<a href="#sec
 </div>
 </section>
 </div>
-<div id="performance">
-<section id="appendix-A">
-      <h2 id="name-performance">
-<a href="#name-performance" class="section-name selfRef">Performance</a>
-      </h2>
-<p id="appendix-A-1">The hash instantiation of <a href="#hash-commitment" class="auto internal xref">Section 5.1</a> evaluates one in-circuit
-<code>Keccak-p[800, 12]</code> permutation per issuance and three per spend (recomputing
-the old commitment, the <code>Tag</code>, and the change commitment). Its communication is
-dominated by the VOLEitH proof; the sizes below follow from the ciphersuite
-parameters (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>). The public fields sent with each proof add only
-tens of bytes (<code>c</code> at issuance; <code>nf</code>, <code>d</code>, <code>c'</code> at spend), and the issuer's reply
-is a single UOV signature (<code>m_uov = 44</code> bytes plus the <code>L</code>-byte refund).<a href="#appendix-A-1" class="pilcrow">¶</a></p>
-<table class="center" id="table-5">
-        <caption><a href="#table-5" class="selfRef">Table 5</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Communication</th>
-            <th class="text-left" rowspan="1" colspan="1">Hash (KP800)</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance request (<code>c</code>, <code>pf_init</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">7.8 KiB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance response (<code>s</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">112 B</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend request (<code>nf</code>, <code>d</code>, <code>c'</code>, <code>pf_spend</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">14.2 KiB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend response (<code>x'</code>, <code>s'</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">120 B</td>
-          </tr>
-        </tbody>
-      </table>
-<table class="center" id="table-6">
-        <caption><a href="#table-6" class="selfRef">Table 6</a></caption>
-<thead>
-          <tr>
-            <th class="text-left" rowspan="1" colspan="1">Communication</th>
-            <th class="text-left" rowspan="1" colspan="1">MQ</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance request (<code>c</code>, <code>pf_init</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">4.3 KiB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Issuance response (<code>s</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">275 B</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend request (<code>nf</code>, <code>d</code>, <code>c'</code>, <code>pf_spend</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">9.0 KiB</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">Spend response (<code>x'</code>, <code>s'</code>)</td>
-            <td class="text-left" rowspan="1" colspan="1">277 B</td>
-          </tr>
-        </tbody>
-      </table>
-<p id="appendix-A-4">The MQ instantiation removes all in-circuit Keccak evaluations, but its widened
-UOV trapdoor makes key generation a one-time cost of several seconds.<a href="#appendix-A-4" class="pilcrow">¶</a></p>
-</section>
-</div>
 <div id="acknowledgments">
-<section id="appendix-B">
+<section id="appendix-A">
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-B-1">The use of <code>Keccak-p[800,12]</code> in this application was proposed by Bas Westerbaan.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The use of <code>Keccak-p[800,12]</code> in this application was proposed by Bas Westerbaan.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
-<section id="appendix-C">
+<section id="appendix-B">
       <h2 id="name-authors-addresses">
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>

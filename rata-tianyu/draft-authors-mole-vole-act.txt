@@ -103,7 +103,6 @@ Table of Contents
    8.  References
      8.1.  Normative References
      8.2.  Informative References
-   Performance
    Acknowledgments
    Authors' Addresses
 
@@ -167,8 +166,9 @@ Table of Contents
    Ratatouille inherits the properties and use cases of ACT [ACT]; we
    refer the reader there for their definitions.  In particular, it
    provides *unlinkability*, *flexible spending and refunding*, *balance
-   privacy*, and *double-spend prevention*, and it supports the same use
-   cases, such as *rate limiting* and *API credits*.
+   privacy*, and *double-spend prevention* (if a single database is
+   shared across issuers), and it supports the same use cases, such as
+   *rate limiting* and *API credits*.
 
    Beyond ACT, Ratatouille additionally achieves *Full Post-Quantum
    Security*: All security properties -- unforgeability, unlinkability,
@@ -178,10 +178,28 @@ Table of Contents
    symmetric primitives.
 
    This post-quantum security comes at a cost in *performance*:
-   presentation proofs are larger than in the classical construction --
-   on the order of kilobytes to tens of kilobytes.  Nonetheless, the
-   protocol remains practical for modern web services, with efficient
-   signing, verification, and proof generation.
+   presentation proofs are larger than in the classical construction, on
+   the order of kilobytes to tens of kilobytes.  At the 128-bit security
+   level, Ratatouille has significantly higher communication cost than
+   the classical ACT:
+
+   1.  the issuer's public key is a UOV map -- approximately 42.6 KB for
+       the hash instantiation (Section 5.1, the uov-Ip parameter set
+       [UOV]), and larger for the MQ instantiation (Section 5.2), which
+       widens the UOV map;
+
+   2.  ~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance;
+       and
+
+   3.  ~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend;
+       and
+
+   4.  the issuer's reply is a single UOV signature -- about 112 B
+       (hash) or 275 B (MQ), plus a few bytes of granted refund on a
+       spend.
+
+   Nonetheless, the protocol remains practical for modern web services,
+   with efficient signing, verification, and proof generation.
 
    Unlike ACT, Ratatouille tokens are publicly verifiable in the sense
    that it can be presented to any Moderator, not just the Moderator
@@ -1147,49 +1165,6 @@ Relation SpendRelation(pk, nf, d, c'):
               Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
               Cryptology ePrint Archive Paper 2026/109, 2026,
               <https://eprint.iacr.org/2026/109>.
-
-Performance
-
-   The hash instantiation of Section 5.1 evaluates one in-circuit
-   Keccak-p[800, 12] permutation per issuance and three per spend
-   (recomputing the old commitment, the Tag, and the change commitment).
-   Its communication is dominated by the VOLEitH proof; the sizes below
-   follow from the ciphersuite parameters (Section 5.1).  The public
-   fields sent with each proof add only tens of bytes (c at issuance;
-   nf, d, c' at spend), and the issuer's reply is a single UOV signature
-   (m_uov = 44 bytes plus the L-byte refund).
-
-          +=====================================+==============+
-          | Communication                       | Hash (KP800) |
-          +=====================================+==============+
-          | Issuance request (c, pf_init)       | 7.8 KiB      |
-          +-------------------------------------+--------------+
-          | Issuance response (s)               | 112 B        |
-          +-------------------------------------+--------------+
-          | Spend request (nf, d, c', pf_spend) | 14.2 KiB     |
-          +-------------------------------------+--------------+
-          | Spend response (x', s')             | 120 B        |
-          +-------------------------------------+--------------+
-
-                                 Table 5
-
-             +=====================================+=========+
-             | Communication                       | MQ      |
-             +=====================================+=========+
-             | Issuance request (c, pf_init)       | 4.3 KiB |
-             +-------------------------------------+---------+
-             | Issuance response (s)               | 275 B   |
-             +-------------------------------------+---------+
-             | Spend request (nf, d, c', pf_spend) | 9.0 KiB |
-             +-------------------------------------+---------+
-             | Spend response (x', s')             | 277 B   |
-             +-------------------------------------+---------+
-
-                                  Table 6
-
-   The MQ instantiation removes all in-circuit Keccak evaluations, but
-   its widened UOV trapdoor makes key generation a one-time cost of
-   several seconds.
 
 Acknowledgments
 
