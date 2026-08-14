@@ -1180,4 +1180,4 @@ UOV trapdoor makes key generation a one-time cost of several seconds.
 # Acknowledgments
 {:numbered="false"}
 
-The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.
+The use of `Keccak-p[800,12]` in this application was proposed by Bas Westerbaan.
