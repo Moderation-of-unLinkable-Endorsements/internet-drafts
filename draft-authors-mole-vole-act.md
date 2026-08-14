@@ -284,7 +284,7 @@ client a token worth some number of credits, and the client can later spend
 those credits anonymously, in whole or in part, without the issuer being able
 to link the spend to the issuance or to any other spend by the same client.
 
-ACT {{ACT}} builds on BBS signatures over prime-order groups. Its
+ACT {{ACT}} builds on BBS MACs over prime-order groups. Its
 *unlinkability* (the issuer cannot correlate transactions) is
 information-theoretic, following from the perfectly hiding commitments, so it
 already holds against unbounded and hence quantum adversaries. Its
@@ -1107,6 +1107,7 @@ This document has no IANA actions.
 --- back
 
 # Performance {#performance}
+{:numbered="false"}
 
 The hash instantiation of {{hash-commitment}} evaluates one in-circuit
 `Keccak-p[800, 12]` permutation per issuance and three per spend (recomputing
@@ -1192,3 +1193,5 @@ of forms, not the map size, so the extra width costs little.
 
 # Acknowledgments
 {:numbered="false"}
+
+The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.
