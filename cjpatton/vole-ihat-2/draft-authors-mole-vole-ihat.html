@@ -14,7 +14,7 @@ digital signature scheme and the VOLE-in-the-Head proof system (a component of
 the FAEST signature scheme). The anchor issues a token by signing a commitment
 to the client's state; to redeem a token, the client proves knowledge of the
 opening of this commitment and a signature produced by some anchor trusted by
-the moderator. The commitment is instantiated with Keccak-p[800,12]. 
+the moderator. The commitment is instantiated with  Keccak-p[800,12] . 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
 <meta content="moderation" name="keyword">
@@ -1095,7 +1095,7 @@ digital signature scheme and the VOLE-in-the-Head proof system (a component of
 the FAEST signature scheme). The anchor issues a token by signing a commitment
 to the client's state; to redeem a token, the client proves knowledge of the
 opening of this commitment and a signature produced by some anchor trusted by
-the moderator. The commitment is instantiated with Keccak-p[800,12].<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+the moderator. The commitment is instantiated with <code>Keccak-p[800,12]</code>.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1391,50 +1391,32 @@ during redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
 <p id="section-3-9">Let <code>P[0], ..., P[L-1]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 <code>i, s, r</code> for which <code>P[i](s) = t</code> without revealing <code>i</code>. In order to prove this
-statement with VOLEitH, we need to express it as an arithmetic circuit.<a href="#section-3-9" class="pilcrow">¶</a></p>
+statement with VOLEitH, we need to express it as a system of constraints over
+<code>F_q</code>.<a href="#section-3-9" class="pilcrow">¶</a></p>
 <p id="section-3-10">The idea is to extend the witness with a "selector" vector <code>b[0], ..., b[L-1]</code>
-for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The circuit computes the
-selected public key <code>Q := Select(b, P)</code> as follows:<a href="#section-3-10" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="section-3-11">
-<pre>
-Select(b, P):
-  Input:
-    - b: selector vector, in F_q^L
-    - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
-
-  Output:
-    - Q: the selected map from F_q^n to F_q^m
-
-  Steps:
-    1. N := m * n * (n + 1) / 2  // field elements per map
-    2. Q := 0^N
-    3. for u in [L]:
-    4.   for t in [N]:
-    5.     Q[t] += b[u] * P[u][t]
-    6. return Q
-</pre><a href="#section-3-11" class="pilcrow">¶</a>
-</div>
-<p id="section-3-12">The circuit then checks that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code> and that <code>b</code>
-is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for details.<a href="#section-3-12" class="pilcrow">¶</a></p>
-<p id="section-3-13">The commitment <code>Com()</code> is instantiated with a single evaluation of the
-Keccak-p[800,12] permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
+for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The constraints then check
+that the public key selected by <code>b</code> maps <code>s</code> to <code>Com(nf, ctx_iss, ctx_red, r)</code>
+and that <code>b</code> is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for
+details.<a href="#section-3-10" class="pilcrow">¶</a></p>
+<p id="section-3-11">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<code>Keccak-p[800,12]</code> permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
 state is also half the size of the state used by either SHA-3 or TurboSHAKE.
 This helps reduce the size of the VOLEitH proof. See <a href="#security" class="auto internal xref">Section 6</a> for
-justification.<a href="#section-3-13" class="pilcrow">¶</a></p>
+justification.<a href="#section-3-11" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-14.1">
-          <p id="section-3-14.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+<li class="normal ulEmpty" id="section-3-12.1">
+          <p id="section-3-12.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
 alternative is to have the Anchor bind the issuance context by applying an
 outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
 no issuance proof is required. It would also have the benefit of not
-requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-15.1">
-          <p id="section-3-15.1.1">NOTE We can add multishow and late binding of redemption context by adding
-another hash evaluation to the redemption proof. See issue 45.<a href="#section-3-15.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-13.1">
+          <p id="section-3-13.1.1">NOTE We can add multishow and late binding of redemption context by adding
+another hash evaluation to the redemption proof. See issue 45.<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1470,21 +1452,26 @@ key into the trapdoor <code>td</code> for <code>P</code>.<a href="#section-4-5" 
 <p id="section-4-6">We write <code>s := UOV.SPre(td, t)</code> to denote sampling a pre-image of target <code>t</code>
 under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. This is the same procedure as used
 in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">We write <code>pf := VOLEitH.Prove(W, X, R)</code> to denote proving knowledge of a
-witness <code>W</code> satisfying a relation <code>R(X, W)</code> for public parameters <code>X</code> using the
-VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write <code>v :=
-VOLEitH.Verify(pf, X, R)</code> to denote verification of <code>pf</code> under the same public
-parameters and relation, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">The relation is expressed as a sequence of constraints, all of which must be
-satisfied for the proof to be valid. Constraints are equalities involving
-public and witness variables. For the verifier, the witness variables
-implicitly refer to indexes into the proof.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<p id="section-4-7">We write <code>pf := VOLEitH.Prove(R, X, W)</code> to denote proving knowledge of a
+witness <code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is
+the instance, using the VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We
+write <code>v := VOLEitH.Verify(R, X, pf)</code> to denote verification of <code>pf</code> under the
+same relation and instance, where the output <code>v</code> is a bit. The components of
+<code>X</code> and <code>W</code> are passed in the order in which they are declared by <code>R</code>.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
+of constraints. Each constraint is an equation of the instance and witness
+variables. Unlike <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, these equations need not be linear: each side of
+the equation is a polynomial of arbitrary. However, because the degree of the
+polynomial influences the size of the proof, the relation needs to be designed
+to balance the size of the witness with the degree of the constraints.<a href="#section-4-8" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-4-9.1">
-          <p id="section-4-9.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. At the moment
-the details of VOLEitH are mixed with the details of the rest of the
-signature. However I suspect we should be able to pull a general purpose
-proof system out of the spec.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
+          <p id="section-4-9.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
+specifies a compiler of constraints into a proof, as in <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, but this
+is currently beyond the scope of what the FAEST spec does. The degree of
+constraints is coupled tightly to the proof generation procedure, which means
+I think we'll end up pulling some details of the proof construction into this
+document,<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1571,6 +1558,31 @@ truncating a hash to 16 bytes is not terrible.<a href="#section-5.2-4.1.1" class
         <h3 id="name-issuance">
 <a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-issuance" class="section-name selfRef">Issuance</a>
         </h3>
+<p id="section-5.3-1">During issuance the Client proves knowledge of an opening of the commitment <code>t</code>
+that binds <code>t</code> to the issuance context observed by the Anchor:<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3-2">
+<pre>
+Relation IssueRelation(t, ctx_iss):
+  Instance:
+    - t: commitment, in F_q^m
+    - ctx_iss: issuance context, in F_q^16
+
+  Witness:
+    - nf: nullifier, in F_q^24
+    - r: commitment opening, in F_q^16
+    - ctx_red: redemption context, in F_q^16
+
+  Constraints:
+    - t = Com(nf, ctx_iss, ctx_red, r)
+</pre><a href="#section-5.3-2" class="pilcrow">¶</a>
+</div>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.3-3.1">
+            <p id="section-5.3-3.1.1">TODO Expand <code>Com()</code> into a set of polynomial constraints. An optimization
+that will be important for practice is to commit intermediate states of the
+Keccak evaluation to the witness. We need to define precisely how this works.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 <div id="issue-request">
 <section id="section-5.3.1">
           <h4 id="name-issue-request">
@@ -1594,9 +1606,9 @@ IssueRequest(ctx_iss, ctx_red):
     2. r  &lt;- F_q^16
     3. t  := Com(nf, ctx_iss, ctx_red, r)
     4. pf_iss := VOLEitH.Prove(
-         (nf, r, ctx_red),                      // witness
-         (t, ctx_iss),                          // public
-         ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
+         IssueRelation,     // relation
+         (t, ctx_iss),      // instance
+         (nf, r, ctx_red),  // witness
        )
     5. request := (t, pf_iss)
     6. pending_token := (nf, r)
@@ -1626,9 +1638,9 @@ IssueResponse(td, request, ctx_iss):
   Steps:
     1. (t, pf_iss) := request  // commitment, issuance proof
     2. v := VOLEitH.Verify(
+         IssueRelation,  // relation
+         (ctx_iss, t),   // instance
          pf_iss,
-         (t, ctx_iss),                          // public
-         ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
        )
     3. if v = 0: return INVALID
     4. s := UOV.SPre(td, t)
@@ -1674,49 +1686,60 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
-of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span> be
-empty, that is, <code>L &gt; 0</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-<p id="section-5.4-2">Let <code>i</code> be the index of the Anchor who issued the token. The witness for the
-redemption proof is the opening <code>r</code>, the signature <code>s</code>, and a selector vector
-<code>b[0], ..., b[L-1]</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The circuit
-first selects the public key as <code>Q := Select(b, P)</code>, where <code>Select()</code> is as
-defined in <a href="#overview" class="auto internal xref">Section 3</a>. The first constraint is that <code>Q(s) = Com(nf, ctx_iss,
-ctx_red, r)</code>.<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-<p id="section-5.4-3">Next, the circuit needs to prove that the selector vector is well-formed, that
-is, exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the weight
-constraint <code>sum(b) = 1</code> only tells us that the number of nonzero entries is
-odd. We also need some parity constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code>
-for all <code>u in [L-1]</code>.<a href="#section-5.4-3" class="pilcrow">¶</a></p>
-<p id="section-5.4-4">These constraints are computed by the following procedure.<a href="#section-5.4-4" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="section-5.4-5">
+of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span>
+be empty, that is, <code>L &gt; 0</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">Let <code>i in [L]</code> be the index of the issuing Anchor. The witness for the
+redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
+<code>b</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The relation first selects
+the Anchor public key <code>Q</code> with the following procedure:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.4-3">
 <pre>
-RedeemRel(P, nf, ctx_iss, ctx_red):
+Select(b, P):
   Input:
-    - P: Anchor Set of length L
-    - nf: nullifier
-    - ctx_iss: issuance context
-    - ctx_red: redemption context
+    - b: selector vector, in F_q^L
+    - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
 
   Output:
-    - constraints: a sequence of constraints in the witness (r, s, b)
+    - Q: the selected map from F_q^n to F_q^m
 
   Steps:
-    1. constraints := []
-    2. Q := Select(b, P)
-    3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
-    6. for u in [L-1]:
-    7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
-    8. constraints.append("sum(b) = 1")
-    9. return constraints
+    1. N := m * n * (n + 1) / 2
+    2. Q := 0^N
+    3. for u in [L]:
+    4.   for j in [N]:
+    5.     Q[j] += b[u] * P[u][j]
+    6. return Q
+</pre><a href="#section-5.4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-4">The first constraint is that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code>. The
+remaining constraints prove that the selector vector is well-formed, that is,
+exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the weight
+constraint <code>sum(b) = 1</code> only tells us that the number of nonzero entries is
+odd. We also need some parity constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code>
+for all <code>u in [L-1]</code>. The redemption relation is defined as follows:<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-5">
+<pre>
+Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
+  Instance:
+    - P: Anchor Set of length L
+    - nf: nullifier, in F_q^24
+    - ctx_iss: issuance context, in F_q^16
+    - ctx_red: redemption context, in F_q^16
+
+  Witness:
+    - r: F_q^16
+    - s: F_q^n
+    - b: F_q^L
+
+  Where:
+    - Q = Select(b, P)
+
+  Constraints:
+    - Q(s) = Com(nf, ctx_iss, ctx_red, r)
+    - sum(b[0..u+1]) * b[u+1] = 0            for u in [L-1]
+    - sum(b) = 1
 </pre><a href="#section-5.4-5" class="pilcrow">¶</a>
 </div>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.4-6.1">
-            <p id="section-5.4-6.1.1">TODO An optimization that will be important for practice is to commit
-intermediate states of the Keccak evaluation to the witness. We need to
-define precisely how this works.<a href="#section-5.4-6.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">
@@ -1742,9 +1765,9 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
     2. b := 0^L  // selector vector
     3. b[i] := 1
     4. pf_red := VOLEitH.Prove(
-         (r, s, b),                           // witness
-         (P, nf, ctx_iss, ctx_red),           // public
-         RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
+         RedeemRelation,             // relation
+         (P, nf, ctx_iss, ctx_red),  // instance
+         (r, s, b),                  // witness
        )
     5. request := (nf, pf_red)
     6. return request
@@ -1773,9 +1796,9 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
   Steps:
     1. (nf, pf_red) := request
     2. v := VOLEitH.Verify(
+         RedeemRelation,             // relation
+         (P, nf, ctx_iss, ctx_red),  // instance
          pf_red,
-         (P, nf, ctx_iss, ctx_red),           // public
-         RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
        )
     3. if v = 0: return INVALID
     4. return nf
@@ -1927,8 +1950,12 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9861">[RFC9861]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Viguier, B.</span>, <span class="refAuthor">Wong, D., Ed.</span>, <span class="refAuthor">Van Assche, G., Ed.</span>, <span class="refAuthor">Dang, Q., Ed.</span>, and <span class="refAuthor">J. Daemen, Ed.</span>, <span class="refTitle">"KangarooTwelve and TurboSHAKE"</span>, <span class="seriesInfo">RFC 9861</span>, <span class="seriesInfo">DOI 10.17487/RFC9861</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9861">https://www.rfc-editor.org/rfc/rfc9861</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SIGMA">[SIGMA]</dt>
+      <dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Interactive Sigma Proofs"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1940,8 +1967,9 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.
-Claude Opus 5 suggested the parity constraints for the redemption proof.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The use of <code>Keccak-p[800,12]</code> in this application was proposed by Bas
+Westerbaan. Claude Opus 5 suggested the parity constraints for the redemption
+proof.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">

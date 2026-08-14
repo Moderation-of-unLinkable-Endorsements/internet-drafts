@@ -236,31 +236,13 @@ Table of Contents
    Client presents the nullifier in plaintext along with a VOLEitH proof
    of knowledge of i, s, r for which P[i](s) = t without revealing i.
    In order to prove this statement with VOLEitH, we need to express it
-   as an arithmetic circuit.
+   as a system of constraints over F_q.
 
    The idea is to extend the witness with a "selector" vector b[0], ...,
-   b[L-1] for which b[u] = 1 if u = i and 0 otherwise.  The circuit
-   computes the selected public key Q := Select(b, P) as follows:
-
-   Select(b, P):
-     Input:
-       - b: selector vector, in F_q^L
-       - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
-
-     Output:
-       - Q: the selected map from F_q^n to F_q^m
-
-     Steps:
-       1. N := m * n * (n + 1) / 2  // field elements per map
-       2. Q := 0^N
-       3. for u in [L]:
-       4.   for t in [N]:
-       5.     Q[t] += b[u] * P[u][t]
-       6. return Q
-
-   The circuit then checks that Q(s) = Com(nf, ctx_iss, ctx_red, r) and
-   that b is the indicator vector of a single Anchor.  See Section 5.4
-   for details.
+   b[L-1] for which b[u] = 1 if u = i and 0 otherwise.  The constraints
+   then check that the public key selected by b maps s to Com(nf,
+   ctx_iss, ctx_red, r) and that b is the indicator vector of a single
+   Anchor.  See Section 5.4 for details.
 
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
@@ -306,21 +288,28 @@ Table of Contents
    target t under P, i.e., an s for which P(s) = t.  This is the same
    procedure as used in the signing algorithm in [UOV], Figure 2.
 
-   We write pf := VOLEitH.Prove(W, X, R) to denote proving knowledge of
-   a witness W satisfying a relation R(X, W) for public parameters X
-   using the VOLE-in-the-Head proof system defined in [FAEST].  We write
-   v := VOLEitH.Verify(pf, X, R) to denote verification of pf under the
-   same public parameters and relation, where the output v is a bit.
+   We write pf := VOLEitH.Prove(R, X, W) to denote proving knowledge of
+   a witness W for which the pair (X, W) is in the relation R, where X
+   is the instance, using the VOLE-in-the-Head proof system defined in
+   [FAEST].  We write v := VOLEitH.Verify(R, X, pf) to denote
+   verification of pf under the same relation and instance, where the
+   output v is a bit.  The components of X and W are passed in the order
+   in which they are declared by R.
 
-   The relation is expressed as a sequence of constraints, all of which
-   must be satisfied for the proof to be valid.  Constraints are
-   equalities involving public and witness variables.  For the verifier,
-   the witness variables implicitly refer to indexes into the proof.
+   Relations are specified in the style of Section 3.4 of [SIGMA] as a
+   sequence of constraints.  Each constraint is an equation of the
+   instance and witness variables.  Unlike [SIGMA], these equations need
+   not be linear: each side of the equation is a polynomial of
+   arbitrary.  However, because the degree of the polynomial influences
+   the size of the proof, the relation needs to be designed to balance
+   the size of the witness with the degree of the constraints.
 
-      TODO(cjpatton) Figure out how to cite [FAEST] more precisely.  At
-      the moment the details of VOLEitH are mixed with the details of
-      the rest of the signature.  However I suspect we should be able to
-      pull a general purpose proof system out of the spec.
+      TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
+      Ideally it specifies a compiler of constraints into a proof, as in
+      [SIGMA], but this is currently beyond the scope of what the FAEST
+      spec does.  The degree of constraints is coupled tightly to the
+      proof generation procedure, which means I think we'll end up
+      pulling some details of the proof construction into this document,
 
 5.  Protocol
 
@@ -382,6 +371,28 @@ Table of Contents
 
 5.3.  Issuance
 
+   During issuance the Client proves knowledge of an opening of the
+   commitment t that binds t to the issuance context observed by the
+   Anchor:
+
+   Relation IssueRelation(t, ctx_iss):
+     Instance:
+       - t: commitment, in F_q^m
+       - ctx_iss: issuance context, in F_q^16
+
+     Witness:
+       - nf: nullifier, in F_q^24
+       - r: commitment opening, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Constraints:
+       - t = Com(nf, ctx_iss, ctx_red, r)
+
+      TODO Expand Com() into a set of polynomial constraints.  An
+      optimization that will be important for practice is to commit
+      intermediate states of the Keccak evaluation to the witness.  We
+      need to define precisely how this works.
+
 5.3.1.  Issue Request
 
    To request a Moussaka token from an Anchor, the Client runs the
@@ -401,9 +412,9 @@ Table of Contents
        2. r  <- F_q^16
        3. t  := Com(nf, ctx_iss, ctx_red, r)
        4. pf_iss := VOLEitH.Prove(
-            (nf, r, ctx_red),                      // witness
-            (t, ctx_iss),                          // public
-            ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
+            IssueRelation,     // relation
+            (t, ctx_iss),      // instance
+            (nf, r, ctx_red),  // witness
           )
        5. request := (t, pf_iss)
        6. pending_token := (nf, r)
@@ -426,9 +437,9 @@ Table of Contents
      Steps:
        1. (t, pf_iss) := request  // commitment, issuance proof
        2. v := VOLEitH.Verify(
+            IssueRelation,  // relation
+            (ctx_iss, t),   // instance
             pf_iss,
-            (t, ctx_iss),                          // public
-            ["t = Com(nf, ctx_iss, ctx_red, r)"],  // relation
           )
        3. if v = 0: return INVALID
        4. s := UOV.SPre(td, t)
@@ -462,43 +473,54 @@ Table of Contents
    consisting of a sequence of UOV public keys P[0], ..., P[L-1].  The
    Anchor Set MUST NOT be empty, that is, L > 0.
 
-   Let i be the index of the Anchor who issued the token.  The witness
-   for the redemption proof is the opening r, the signature s, and a
-   selector vector b[0], ..., b[L-1], where b[u] = 1 if u = i and 0
-   otherwise.  The circuit first selects the public key as Q :=
-   Select(b, P), where Select() is as defined in Section 3.  The first
-   constraint is that Q(s) = Com(nf, ctx_iss, ctx_red, r).
+   Let i in [L] be the index of the issuing Anchor.  The witness for the
+   redemption proof is the opening r, the signature s, and the selector
+   vector b, where b[u] = 1 if u = i and 0 otherwise.  The relation
+   first selects the Anchor public key Q with the following procedure:
 
-   Next, the circuit needs to prove that the selector vector is well-
+   Select(b, P):
+     Input:
+       - b: selector vector, in F_q^L
+       - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
+
+     Output:
+       - Q: the selected map from F_q^n to F_q^m
+
+     Steps:
+       1. N := m * n * (n + 1) / 2
+       2. Q := 0^N
+       3. for u in [L]:
+       4.   for j in [N]:
+       5.     Q[j] += b[u] * P[u][j]
+       6. return Q
+
+   The first constraint is that Q(s) = Com(nf, ctx_iss, ctx_red, r).
+   The remaining constraints prove that the selector vector is well-
    formed, that is, exactly one entry is set.  Because F_q has
    characteristic 2, the weight constraint sum(b) = 1 only tells us that
    the number of nonzero entries is odd.  We also need some parity
    constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [L-1].
+   The redemption relation is defined as follows:
 
-   These constraints are computed by the following procedure.
-
-   RedeemRel(P, nf, ctx_iss, ctx_red):
-     Input:
+   Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
+     Instance:
        - P: Anchor Set of length L
-       - nf: nullifier
-       - ctx_iss: issuance context
-       - ctx_red: redemption context
+       - nf: nullifier, in F_q^24
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
 
-     Output:
-       - constraints: a sequence of constraints in the witness (r, s, b)
+     Witness:
+       - r: F_q^16
+       - s: F_q^n
+       - b: F_q^L
 
-     Steps:
-       1. constraints := []
-       2. Q := Select(b, P)
-       3. constraints.append("Q(s) = Com(nf, ctx_iss, ctx_red, r)")
-       6. for u in [L-1]:
-       7.   constraints.append("sum(b[0..u+1]) * b[u+1] = 0")
-       8. constraints.append("sum(b) = 1")
-       9. return constraints
+     Where:
+       - Q = Select(b, P)
 
-      TODO An optimization that will be important for practice is to
-      commit intermediate states of the Keccak evaluation to the
-      witness.  We need to define precisely how this works.
+     Constraints:
+       - Q(s) = Com(nf, ctx_iss, ctx_red, r)
+       - sum(b[0..u+1]) * b[u+1] = 0            for u in [L-1]
+       - sum(b) = 1
 
 5.4.1.  Redeem Request
 
@@ -521,9 +543,9 @@ Table of Contents
        2. b := 0^L  // selector vector
        3. b[i] := 1
        4. pf_red := VOLEitH.Prove(
-            (r, s, b),                           // witness
-            (P, nf, ctx_iss, ctx_red),           // public
-            RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
+            RedeemRelation,             // relation
+            (P, nf, ctx_iss, ctx_red),  // instance
+            (r, s, b),                  // witness
           )
        5. request := (nf, pf_red)
        6. return request
@@ -546,9 +568,9 @@ Table of Contents
      Steps:
        1. (nf, pf_red) := request
        2. v := VOLEitH.Verify(
+            RedeemRelation,             // relation
+            (P, nf, ctx_iss, ctx_red),  // instance
             pf_red,
-            (P, nf, ctx_iss, ctx_red),           // public
-            RedeemRel(P, nf, ctx_iss, ctx_red),  // relation
           )
        3. if v = 0: return INVALID
        4. return nf
@@ -672,6 +694,11 @@ Table of Contents
               Ed., and J. Daemen, Ed., "KangarooTwelve and TurboSHAKE",
               RFC 9861, DOI 10.17487/RFC9861, October 2025,
               <https://www.rfc-editor.org/rfc/rfc9861>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-02>.
 
 Acknowledgments
 
