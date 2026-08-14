@@ -15,7 +15,7 @@ signature scheme and the VOLE-in-the-Head proof system (a component of the
 FAEST signature scheme). The moderator issues a token by signing a commitment
 to the client's state; to present a token, the client proves knowledge of this
 signature and the opening of the commitment. Two variants of the protocol are
-specified, one in which the commitment is instantiated with Keccak-p[800,12]
+specified, one in which the commitment is instantiated with  Keccak-p[800,12] 
 and another in which a UOV-friendly commitment scheme is used instead. 
     " name="description">
 <meta content="xml2rfc 3.34.0" name="generator">
@@ -1101,7 +1101,7 @@ signature scheme and the VOLE-in-the-Head proof system (a component of the
 FAEST signature scheme). The moderator issues a token by signing a commitment
 to the client's state; to present a token, the client proves knowledge of this
 signature and the opening of the commitment. Two variants of the protocol are
-specified, one in which the commitment is instantiated with Keccak-p[800,12]
+specified, one in which the commitment is instantiated with <code>Keccak-p[800,12]</code>
 and another in which a UOV-friendly commitment scheme is used instead.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
@@ -1165,35 +1165,110 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
-            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
-            <p id="section-toc.1-1.3.1" class="keepWithNext"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-protocol-specification" class="internal xref">Protocol Specification</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
-            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
-</li>
-          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-references" class="internal xref">References</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-key-properties-and-use-case" class="internal xref">Key Properties and Use Cases</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
-                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.2">
+                <p id="section-toc.1-1.1.2.2.1" class="keepWithNext"><a href="#section-1.2" class="auto internal xref">1.2</a>.  <a href="#name-building-blocks" class="internal xref">Building Blocks</a></p>
 </li>
             </ul>
 </li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1">
+                <p id="section-toc.1-1.2.2.1.1"><a href="#section-2.1" class="auto internal xref">2.1</a>.  <a href="#name-notation" class="internal xref">Notation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.2">
+                <p id="section-toc.1-1.2.2.2.1"><a href="#section-2.2" class="auto internal xref">2.2</a>.  <a href="#name-data-types" class="internal xref">Data Types</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.3">
+                <p id="section-toc.1-1.2.2.3.1"><a href="#section-2.3" class="auto internal xref">2.3</a>.  <a href="#name-vole-in-the-head-proofs-of-" class="internal xref">VOLE-in-the-Head Proofs of Knowledge</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.4">
+                <p id="section-toc.1-1.2.2.4.1"><a href="#section-2.4" class="auto internal xref">2.4</a>.  <a href="#name-cryptographic-parameters" class="internal xref">Cryptographic Parameters</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-protocol-overview" class="internal xref">Protocol Overview</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-protocol-specification" class="internal xref">Protocol Specification</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-system-parameters" class="internal xref">System Parameters</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-commitment-and-tag" class="internal xref">Commitment and Tag</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-token-issuance" class="internal xref">Token Issuance</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-client-issuance-request" class="internal xref">Client: Issuance Request</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-issuer-issuance-response" class="internal xref">Issuer: Issuance Response</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
+                    <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-client-token-verification" class="internal xref">Client: Token Verification</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-token-spending" class="internal xref">Token Spending</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.1">
+                    <p id="section-toc.1-1.4.2.5.2.1.1"><a href="#section-4.5.1" class="auto internal xref">4.5.1</a>.  <a href="#name-client-spend-proof-generati" class="internal xref">Client: Spend Proof Generation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.2">
+                    <p id="section-toc.1-1.4.2.5.2.2.1"><a href="#section-4.5.2" class="auto internal xref">4.5.2</a>.  <a href="#name-issuer-spend-verification-a" class="internal xref">Issuer: Spend Verification and Refund</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.3">
+                    <p id="section-toc.1-1.4.2.5.2.3.1"><a href="#section-4.5.3" class="auto internal xref">4.5.3</a>.  <a href="#name-client-refund-token-constru" class="internal xref">Client: Refund Token Construction</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-instantiations" class="internal xref">Instantiations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-hash-commitment-keccak-p800" class="internal xref">Hash commitment (<code>Keccak-p[800, 12]</code>)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-mq-commitment-bfmrsv25a" class="internal xref">MQ commitment (BFMRSV25a)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
-            <p id="section-toc.1-1.7.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
-            <p id="section-toc.1-1.8.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -1206,12 +1281,115 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-1.1">
-          <p id="section-1-1.1.1">TODO(tnyuzg)<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-1.1.1">WARNING This document specifies a cryptographic protocol that has not yet
+undergone significant security analysis. It's not yet suitable for real world
+applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-1-2">Modern web services face a fundamental tension between operational needs and
+user privacy. Services need to implement rate limiting to prevent abuse, charge
+for API usage to sustain operations, and allocate computational resources
+fairly. However, traditional approaches require tracking client identities and
+creating detailed logs of client behavior, raising significant privacy concerns
+in an era of increasing data protection awareness and regulation.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<p id="section-1-3">The Anonymous Credit Token (ACT) protocol <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> resolves this tension by
+enabling credit-based systems without client tracking: an issuer can grant a
+client a token worth some number of credits, and the client can later spend
+those credits anonymously, in whole or in part, without the issuer being able
+to link the spend to the issuance or to any other spend by the same client.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> builds on BBS MACs over prime-order groups. Its
+<em>unlinkability</em> (the issuer cannot correlate transactions) is
+information-theoretic, following from the perfectly hiding commitments, so it
+already holds against unbounded and hence quantum adversaries. Its
+<em>unforgeability</em> (clients cannot mint or over-spend credits), however, rests on
+the strong Diffie-Hellman assumption that Shor's algorithm breaks. What
+remains, then, is to make unforgeability post-quantum as well.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document specifies Ratatouille, a <strong>post-quantum</strong> variant of ACT, whose
+security rests on assumptions believed to resist quantum attack: the hardness
+of structured multivariate quadratic (MQ) problems, via the Unbalanced Oil and
+Vinegar (UOV) signature scheme <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, and the security of symmetric
+primitives (hash functions and pseudorandom generators), via the
+VOLE-in-the-Head (VOLEitH) zero-knowledge proof system <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We build on
+the Fischlin blind-signature paradigm <span>[<a href="#Fischlin" class="cite xref">Fischlin</a>]</span>, in which a client sends the
+issuer a hiding commitment to a message, the issuer signs the
+commitment, and the client later proves knowledge of a signature on the
+committed message. Ratatouille generalizes this from a one-time signature to a
+spendable balance: the commitment binds a nullifier together with the remaining
+credits, and each presentation additionally proves that the spend was
+subtracted correctly and the balance stays in range, with the issuer re-signing
+the updated commitment so that every spend chains into the next token.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">Ratatouille is inspired by PoMFRIT <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, which builds a post-quantum
+blind signature from the MAYO signature (another MQ signature) and optimizes
+the VOLEitH proof for SHAKE hashing, and by Bouillaguet et al. <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>,
+which builds a post-quantum blind signature from an MQ commitment. In both, the
+multivariate building block is chosen to be efficiently provable in VOLEitH --
+the same principle Ratatouille follows.<a href="#section-1-6" class="pilcrow">¶</a></p>
+<div id="key-properties-and-use-cases">
+<section id="section-1.1">
+        <h3 id="name-key-properties-and-use-case">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-key-properties-and-use-case" class="section-name selfRef">Key Properties and Use Cases</a>
+        </h3>
+<p id="section-1.1-1">Ratatouille inherits the properties and use cases of ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>; we refer the
+reader there for their definitions. In particular, it provides
+<strong>unlinkability</strong>, <strong>flexible spending and refunding</strong>, <strong>balance privacy</strong>, and
+<strong>double-spend prevention</strong> (if a single database is shared across issuers), and it supports the same use cases, such as
+<strong>rate limiting</strong> and <strong>API credits</strong>.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">Beyond ACT, Ratatouille additionally achieves <strong>Full Post-Quantum Security</strong>: All security properties -- unforgeability,
+unlinkability, and double-spend prevention -- are conjectured to hold against
+adversaries equipped with a large-scale quantum computer. Security reduces to
+the UOV and MQ problems and to the security of standard symmetric primitives.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
+<p id="section-1.1-3">This post-quantum security comes at a cost in <strong>performance</strong>: presentation proofs
+are larger than in the classical construction, on the order of kilobytes to tens
+of kilobytes. At the 128-bit security level, Ratatouille has significantly higher
+communication cost than the classical ACT:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1.1-4">
+<li id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">the issuer's public key is a UOV map -- approximately 42.6 KB for the hash
+instantiation (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>, the uov-Ip parameter set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>), and
+larger for the MQ instantiation (<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>), which widens the UOV map;<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance; and<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend; and<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-1.1-4.4">
+            <p id="section-1.1-4.4.1">the issuer's reply is a single UOV signature -- about 112 B (hash) or 275 B
+(MQ), plus a few bytes of granted refund on a spend.<a href="#section-1.1-4.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-1.1-5">Nonetheless, the protocol remains practical for modern web services,
+with efficient signing, verification, and proof generation.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
+<p id="section-1.1-6">Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.<a href="#section-1.1-6" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="conventions-and-definitions">
+<div id="building-blocks">
+<section id="section-1.2">
+        <h3 id="name-building-blocks">
+<a href="#section-1.2" class="section-number selfRef">1.2. </a><a href="#name-building-blocks" class="section-name selfRef">Building Blocks</a>
+        </h3>
+<p id="section-1.2-1">Ratatouille builds on the following cryptographic primitives:<a href="#section-1.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.2-2.1">
+            <p id="section-1.2-2.1.1"><strong>UOV Signatures <span>[<a href="#UOV" class="cite xref">UOV</a>]</span></strong>: Unbalanced Oil and Vinegar is a multivariate
+hash-and-sign signature scheme and a Round 2 candidate in the NIST additional
+post-quantum signatures process. Its public key is a system of multivariate
+quadratic equations, and signature verification is a degree-2 check over a
+small field -- a structure that is especially friendly to VOLEitH proofs.<a href="#section-1.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.2-2.2">
+            <p id="section-1.2-2.2.1"><strong>VOLE-in-the-Head <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span></strong>: A zero-knowledge proof and signature
+framework, used here as the proof system for spending. Its proofs are
+publicly verifiable, are built entirely from symmetric primitives, and are
+concretely small and fast for circuits over small binary fields.<a href="#section-1.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="conventions">
 <section id="section-2">
       <h2 id="name-conventions-and-definitions">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
@@ -1220,59 +1398,1136 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-2-2.1">
-          <p id="section-2-2.1.1">TODO(tnyuzg)<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
+<div id="notation">
+<section id="section-2.1">
+        <h3 id="name-notation">
+<a href="#section-2.1" class="section-number selfRef">2.1. </a><a href="#name-notation" class="section-name selfRef">Notation</a>
+        </h3>
+<p id="section-2.1-1">This document uses the following notation:<a href="#section-2.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.1-2.1">
+            <p id="section-2.1-2.1.1"><code>||</code>: Concatenation of bit strings.<a href="#section-2.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
+          <li class="normal" id="section-2.1-2.2">
+            <p id="section-2.1-2.2.1"><code>x &lt;- S</code>: Sampling <code>x</code> uniformly at random from the finite set <code>S</code>. Also
+written <code>x &lt;- A(...)</code> for assigning to <code>x</code> the output of a randomized
+algorithm <code>A</code>.<a href="#section-2.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.3">
+            <p id="section-2.1-2.3.1"><code>x := y</code>: Assignment of the value <code>y</code> to the variable <code>x</code>.<a href="#section-2.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.4">
+            <p id="section-2.1-2.4.1"><code>[n]</code>: The set of integers <code>{0, 1, ..., n-1}</code>; <code>[a, b]</code> denotes the closed
+integer interval <code>{a, a+1, ..., b}</code>.<a href="#section-2.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.5">
+            <p id="section-2.1-2.5.1"><code>F_2</code>: The binary field <code>{0, 1}</code>. Bits are elements of <code>F_2</code>.<a href="#section-2.1-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.6">
+            <p id="section-2.1-2.6.1"><code>F_q</code>: The finite field with <code>q</code> elements. This document fixes <code>q = 256</code>, so
+<code>F_256 = F_{2^8}</code> is the field of bytes, in which the UOV signature operates.<a href="#section-2.1-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.7">
+            <p id="section-2.1-2.7.1"><code>F_{2^lambda}</code>: The degree-<code>lambda</code> extension field of <code>F_2</code>, in which the
+VOLE-in-the-Head proof operates. Because <code>lambda</code> is a multiple of 8, the
+fields are nested by subfield inclusion: <code>F_2 subset F_q subset
+F_{2^lambda}</code>. The same wire value over the circuit can be viewed as bits,
+bytes, or a single <code>F_{2^lambda}</code> element as needed.<a href="#section-2.1-2.7.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.8">
+            <p id="section-2.1-2.8.1">Vectors are written in lower case (e.g., <code>s</code>) and matrices in upper case
+(e.g., <code>P</code>). <code>F_q^n</code> denotes the set of length-<code>n</code> column vectors over <code>F_q</code>.<a href="#section-2.1-2.8.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.9">
+            <p id="section-2.1-2.9.1"><code>P(s)</code>: Application of a quadratic map <code>P: F_q^{n_uov} -&gt; F_q^{m_uov}</code> to a
+vector <code>s</code>, yielding <code>(s^T P_0 s, ..., s^T P_{m_uov-1} s) in F_q^{m_uov}</code>,
+where each <code>P_i</code> is an upper-triangular matrix over <code>F_q</code>.<a href="#section-2.1-2.9.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.10">
+            <p id="section-2.1-2.10.1"><code>&lt;t&gt;_L</code>: The <code>L</code>-byte big-endian encoding of a nonnegative integer <code>t &lt; 2^(8*L)</code>
+as an element of <code>F_256^L</code> (equivalently <code>F_2^(8*L)</code>).<a href="#section-2.1-2.10.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.1-2.11">
+            <p id="section-2.1-2.11.1"><code>H</code>: A cryptographic extendable-output hash function, modeled as a random
+oracle (see <a href="#protocol" class="auto internal xref">Section 4</a>). Domain separation is applied by prefixing a
+distinct label and the deployment tag <code>dst</code> to each use.<a href="#section-2.1-2.11.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
-<div id="protocol-specification">
+<div id="data-types">
+<section id="section-2.2">
+        <h3 id="name-data-types">
+<a href="#section-2.2" class="section-number selfRef">2.2. </a><a href="#name-data-types" class="section-name selfRef">Data Types</a>
+        </h3>
+<p id="section-2.2-1">The protocol uses the following primitive data types:<a href="#section-2.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.2-2.1">
+            <p id="section-2.2-2.1.1"><strong>Bit</strong>: An element of <code>F_2</code>.<a href="#section-2.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.2">
+            <p id="section-2.2-2.2.1"><strong>Field element</strong>: An element of <code>F_q</code> or <code>F_{2^lambda}</code>.<a href="#section-2.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.3">
+            <p id="section-2.2-2.3.1"><strong>Field vector</strong>: A tuple of field elements, e.g., an element of <code>F_q^n</code>.<a href="#section-2.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.4">
+            <p id="section-2.2-2.4.1"><strong>Credit value</strong>: A nonnegative integer in the range <code>[0, 2^(8*L) - 1]</code>
+representing an amount of credits, encoded as <code>&lt;t&gt;_L</code>.<a href="#section-2.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.5">
+            <p id="section-2.2-2.5.1"><strong>Nullifier</strong>: A uniformly random byte string of length <code>nu</code>, denoted <code>nf</code>,
+that identifies a token for double-spend detection. Its length is governed by
+collision resistance across all tokens issued under one key (see
+<a href="#parameters" class="auto internal xref">Section 2.4</a>).<a href="#section-2.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.6">
+            <p id="section-2.2-2.6.1"><strong>Randomness</strong>: A uniformly random byte string of length <code>rho</code>, denoted <code>r</code>,
+used to hide a commitment. Its length is governed by the hiding of the
+commitment scheme.<a href="#section-2.2-2.6.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-2.7">
+            <p id="section-2.2-2.7.1"><strong>ByteString</strong>: A sequence of bytes.<a href="#section-2.2-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-2.2-3">From these, the protocol builds the following objects, each defined in
+<a href="#protocol" class="auto internal xref">Section 4</a>:<a href="#section-2.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-2.2-4.1">
+            <p id="section-2.2-4.1.1"><strong>Signature</strong>: A UOV signature <code>s in F_q^{n_uov}</code> satisfying <code>P(s) = y</code> for a
+target <code>y in F_q^{m_uov}</code>. The target is the domain-separated hash <code>y =
+Tag(Com(nf, t, r), x)</code> of the token commitment and refund.<a href="#section-2.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-4.2">
+            <p id="section-2.2-4.2.1"><strong>Commitment</strong>: <code>c = Com(nf, t, r)</code>, binding a nullifier <code>nf</code> and credit
+value <code>t</code> under randomness <code>r</code>. We instantiate the commitment scheme in one
+of two ways: see <a href="#instantiations" class="auto internal xref">Section 5</a>.<a href="#section-2.2-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-4.3">
+            <p id="section-2.2-4.3.1"><strong>Tag</strong>: <code>Tag(c, x) in F_q^{m_uov}</code>, the UOV signing target derived from a
+commitment <code>c</code> and a refund amount <code>x</code>.<a href="#section-2.2-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-4.4">
+            <p id="section-2.2-4.4.1"><strong>Token</strong>: <code>tok = (nf, t, r, x, s)</code>, the state a client holds for one credit
+token.<a href="#section-2.2-4.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-2.2-4.5">
+            <p id="section-2.2-4.5.1"><strong>Proof</strong>: <code>pf</code>, a VOLE-in-the-Head zero-knowledge proof for the presentation
+relation of <a href="#spending" class="auto internal xref">Section 4.5</a>.<a href="#section-2.2-4.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="vole-in-the-head-proofs-of-knowledge">
+<section id="section-2.3">
+        <h3 id="name-vole-in-the-head-proofs-of-">
+<a href="#section-2.3" class="section-number selfRef">2.3. </a><a href="#name-vole-in-the-head-proofs-of-" class="section-name selfRef">VOLE-in-the-Head Proofs of Knowledge</a>
+        </h3>
+<p id="section-2.3-1">We write <code>pf := VOLEitH.Prove(R, X, W)</code> to denote proving knowledge of a witness
+<code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is the
+instance, using the VOLE-in-the-Head proof system of <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write <code>v :=
+VOLEitH.Verify(R, X, pf)</code> to denote verification of <code>pf</code> under the same relation
+and instance, where the output <code>v</code> is a bit.<a href="#section-2.3-1" class="pilcrow">¶</a></p>
+<p id="section-2.3-2">Relations are specified as a sequence of constraints. Each constraint is an
+equation of the instance and witness variables; unlike a linear system, each
+side of the equation may be a polynomial over <code>F_q</code> of arbitrary degree. Because
+the degree of a constraint influences the size of the proof, a relation is
+designed to balance the size of the witness against the degree of its
+constraints.<a href="#section-2.3-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-2.3-3.1">
+            <p id="section-2.3-3.1.1">TODO Give a high level overview of VOLEitH. Define any terms we use here, such
+as "small VOLE", "big VOLE", and "grinding".<a href="#section-2.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="parameters">
+<section id="section-2.4">
+        <h3 id="name-cryptographic-parameters">
+<a href="#section-2.4" class="section-number selfRef">2.4. </a><a href="#name-cryptographic-parameters" class="section-name selfRef">Cryptographic Parameters</a>
+        </h3>
+<p id="section-2.4-1">The protocol is parameterized by the following values, whose concrete
+instantiations (ciphersuites) are given in <a href="#instantiations" class="auto internal xref">Section 5</a>:<a href="#section-2.4-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-2.4-2">
+<pre>
+Parameters:
+  - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
+            F_{2^lambda} and the default for nu and rho.
+  - nu: Nullifier length in bytes. Chosen so that random nullifiers do not
+        collide across all tokens issued under one key (see below).
+  - rho: Commitment randomness length in bytes. Chosen for commitment hiding.
+  - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
+  - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
+            N leaves per GGM tree (with tau * log2(N) = lambda), and a
+            proof-of-work grinding parameter w_grind.
+  - L: Byte width of credit values (1 &lt;= L &lt;= 16). The maximum credit a
+       token can hold is 2^(8*L) - 1.
+  - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
+       of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
+       lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
+</pre><a href="#section-2.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-2.4-3">The issuer's public key is a UOV quadratic map <code>P: F_q^{n_uov} -&gt; F_q^{m_uov}</code>; the
+secret key is a trapdoor for sampling a solution <code>s</code> for a given target <code>P(s) =
+t</code> (see <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Section 3.2). The UOV and VOLE-in-the-Head security levels must
+match, so neither weakens the token's overall security (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>).<a href="#section-2.4-3" class="pilcrow">¶</a></p>
+<p id="section-2.4-4">The lengths <code>nu</code> and <code>rho</code> are independent. The nullifier is revealed and must
+not collide across tokens issued under one key, so a birthday bound motivates
+<code>nu &gt;= lambda/4</code> bytes (<code>= 2*lambda</code> bits), and a ciphersuite defaults to <code>nu =
+lambda/4</code>; a compact ciphersuite <span class="bcp14">MAY</span> use a smaller <code>nu</code> (e.g., <code>24</code> bytes in
+<a href="#hash-commitment" class="auto internal xref">Section 5.1</a> and <code>28</code> bytes in the MQ instantiation of
+<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>), trading collision margin for size. The randomness only hides
+the commitment; its length is instantiation-dependent -- <code>rho = lambda/8</code> bytes
+for the hash commitment (<a href="#hash-commitment" class="auto internal xref">Section 5.1</a>) and <code>rho = n_com</code> (the <code>F_256</code>
+input length, i.e. <code>n_com</code> elements of <code>F_256</code>) for the MQ commitment
+(<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>). Credit values are exactly <code>L</code> bytes: the issuer <span class="bcp14">MAY</span> choose
+any initial amount in <code>[1, 2^(8*L) - 1]</code>, with no cap beyond <code>L</code>.<a href="#section-2.4-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="overview">
 <section id="section-3">
-      <h2 id="name-protocol-specification">
-<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocol-specification" class="section-name selfRef">Protocol Specification</a>
+      <h2 id="name-protocol-overview">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-protocol-overview" class="section-name selfRef">Protocol Overview</a>
       </h2>
+<p id="section-3-1">The protocol involves two parties: an <strong>issuer</strong> (typically a service provider)
+and <strong>clients</strong> (typically users of the service). The issuer holds a long-lived
+UOV key pair and maintains a set of accepted nullifiers. The interaction
+follows three main phases:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-3-2">
+<li id="section-3-2.1">
+          <p id="section-3-2.1.1"><strong>Setup</strong>: The issuer generates a UOV key pair and publishes the public key.
+The UOV signature has relative large public key size, but its signature size
+is small leading to small communication size.<a href="#section-3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.2">
+          <p id="section-3-2.2.1"><strong>Issuance</strong>: A client requests credits from the issuer. The client commits
+to a fresh random nullifier and to an initial credit count, and the issuer
+blindly signs the message (i.e., signs the hiding commitment of the
+message). The result is a credit token that the issuer cannot link to future
+spends.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-3-2.3">
+          <p id="section-3-2.3.1"><strong>Spending (Present-and-Reissue)</strong>: To spend credits, the client reveals the
+nullifier of its current token and proves, in zero knowledge, that (a) it
+holds a valid signature over that token, (b) the token's balance suffices,
+and (c) it has correctly formed a fresh commitment for the remaining
+balance. The issuer checks the proof, checks that the nullifier has not been
+accepted before, records it, and blindly signs the new commitment -- issuing
+change as a new, unlinkable token.<a href="#section-3-2.3.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-1.1">
-          <p id="section-3-1.1.1">TODO(tnyuzg)<a href="#section-3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-3.1">
+          <p id="section-3-3.1.1">TODO Specify a state-update variant that skips the balance-sufficiency check
+(b), allowing arbitrary hidden updates to the token value (blind-signature-like:
+the client still proves the token exists and is valid, but the value is not
+read). Clarify that "balance suffices" still includes the always-required
+<code>balance &gt;= 0</code> (non-negativity) check.<a href="#section-3-3.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
+<p id="section-3-4">Because each spend simultaneously presents an old token and obtains a new one
+for the change, spending and re-issuance are a single combined step. Only the
+spend amount is revealed to the issuer; the balance and the client's identity
+remain hidden.<a href="#section-3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="security-considerations">
+<div id="protocol">
 <section id="section-4">
+      <h2 id="name-protocol-specification">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-protocol-specification" class="section-name selfRef">Protocol Specification</a>
+      </h2>
+<p id="section-4-1">This section specifies the protocol algorithms once, over an abstract
+commitment <code>Com</code> and tag <code>Tag</code> (<a href="#commitment-tag" class="auto internal xref">Section 4.3</a>). This document defines two
+constructions of these primitives -- a hash commitment (a TurboSHAKE-style
+sponge over <code>Keccak-p[800, 12]</code>) and the algebraic multivariate-quadratic (MQ)
+commitment of <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span> over <code>F_256</code>: they share the token structure <code>(nf,
+t, r, x, s)</code> with effective balance <code>B = t + x</code>, and the Issuance and Spend
+flows. They differ only in how <code>Com</code> and <code>Tag</code> are realized. Both
+instantiations are given in <a href="#instantiations" class="auto internal xref">Section 5</a>; a deployment <span class="bcp14">MUST</span> fix exactly
+one for the lifetime of a key, as part of the ciphersuite (<a href="#instantiations" class="auto internal xref">Section 5</a>)
+and bound into <code>dst</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">This section begins with the deployment-wide system parameters
+(<a href="#system-parameters" class="auto internal xref">Section 4.1</a>) and the issuer's key generation (<a href="#key-generation" class="auto internal xref">Section 4.2</a>),
+defines the abstract commitment and tag that binds a token's contents
+(<a href="#commitment-tag" class="auto internal xref">Section 4.3</a>), gives the interactive Issuance and Spend-and-Reissue
+protocols (<a href="#issuance" class="auto internal xref">Section 4.4</a> and <a href="#spending" class="auto internal xref">Section 4.5</a>), and then specifies the two concrete
+instantiations of <code>Com</code> and <code>Tag</code> (<a href="#instantiations" class="auto internal xref">Section 5</a>). The zero-knowledge
+relation proved during spending is specified as conditions V1--V4 in
+<a href="#prove-spend" class="auto internal xref">Section 4.5.1</a>; the proof system that establishes it is the VOLE-in-the-Head
+proof of <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> with parameters fixed by the ciphersuite
+(<a href="#system-parameters" class="auto internal xref">Section 4.1</a>).<a href="#section-4-2" class="pilcrow">¶</a></p>
+<div id="system-parameters">
+<section id="section-4.1">
+        <h3 id="name-system-parameters">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-system-parameters" class="section-name selfRef">System Parameters</a>
+        </h3>
+<p id="section-4.1-1">A deployment fixes two things:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.1-2">
+<li id="section-4.1-2.1">
+            <p id="section-4.1-2.1.1">A <strong>ciphersuite</strong> (<a href="#instantiations" class="auto internal xref">Section 5</a>), which determines <code>(lambda, nu, rho,
+n_uov, m_uov, tau, N, w_grind, L, H)</code>.<a href="#section-4.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-4.1-2.2">
+            <p id="section-4.1-2.2.1">A <strong>domain separation tag</strong> <code>dst</code>, a byte string that identifies the
+deployment and isolates it cryptographically from every other deployment.<a href="#section-4.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-4.1-3">The <code>dst</code> encodes the version of this specification and an application context
+string agreed upon by the client and issuer:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-4">
+<pre>
+dst := "RATA-v1:" || application_context
+</pre><a href="#section-4.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-5">This string <span class="bcp14">MUST</span> be unique per deployment. It might encode information like the
+organization, the service, the deployment environment, and so on. For example:<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-6">
+<pre>
+"example-corp:rate-limiter:production:2026-01-15"
+</pre><a href="#section-4.1-6" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="key-generation">
+<section id="section-4.2">
+        <h3 id="name-key-generation">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
+        </h3>
+<p id="section-4.2-1">Key generation is run once by the issuer to produce a long-lived UOV key pair.
+The routines <code>UOV.CompactKeyGen</code>, <code>UOV.ExpandPK</code>, and <code>UOV.ExpandSK</code> are those of
+<span>[<a href="#UOV" class="cite xref">UOV</a>]</span> (Section 3.2, Figure 2): <code>CompactKeyGen</code> samples a compact key pair
+<code>(cpk, csk)</code>, <code>ExpandPK</code> expands <code>cpk</code> into the public UOV map <code>P</code>, and
+<code>ExpandSK</code> expands <code>csk</code> into the trapdoor for <code>P</code>.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.2-2.1">
+            <p id="section-4.2-2.1.1">TODO Ensure all algorithms are deterministic (the caller provides the initial randomness). This way we can easily generate consistent test vectors. We'll also need to plumb this through VOLEitH proving and UOV signing.<a href="#section-4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div class="lang-pseudocode sourcecode" id="section-4.2-3">
+<pre>
+KeyGen():
+  Output:
+    - sk: Issuer secret key, a UOV trapdoor for P
+    - pk: Issuer public key, a UOV map P from F_q^{n_uov} to F_q^{m_uov}
+
+  Steps:
+    1.  (cpk, csk) := UOV.CompactKeyGen()
+    2.  pk := UOV.ExpandPK(cpk)
+    3.  sk := UOV.ExpandSK(csk)
+    4.  return (sk, pk)
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-4">The issuer publishes <code>pk</code>. The issuer additionally maintains a set of accepted
+nullifiers for rejecting any nullifier it has already accepted.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="commitment-tag">
+<section id="section-4.3">
+        <h3 id="name-commitment-and-tag">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-commitment-and-tag" class="section-name selfRef">Commitment and Tag</a>
+        </h3>
+<p id="section-4.3-1">The protocol is stated over two abstract primitives, <code>Com</code> and <code>Tag</code>, whose
+concrete realizations are given in <a href="#instantiations" class="auto internal xref">Section 5</a>. Both are
+domain-separated by <code>dst</code>. Any instantiation <span class="bcp14">MUST</span> provide the following
+interface.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
+randomness <code>r</code>:<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-4.3-3">
+<pre>
+Com(nf, t, r):
+  Input:
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho bytes)
+  Output:
+    - c: Commitment
+</pre><a href="#section-4.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-4"><code>Com</code> <span class="bcp14">MUST</span> be computationally <strong>hiding</strong> -- given <code>c</code>, the pair <code>(nf, t)</code> is
+concealed by <code>r</code> -- and computationally <strong>binding</strong> -- no efficient party can
+open one <code>c</code> to two distinct <code>(nf, t)</code>.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5"><strong>Tag.</strong> <code>Tag</code> derives the UOV signing target from a commitment <code>c</code> and a public
+refund <code>x</code>:<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-4.3-6">
+<pre>
+Tag(c, x):
+  Input:
+    - c: Commitment
+    - x: Refund in [0, 2^(8*L) - 1]
+  Output:
+    - y: UOV target in F_q^{m_uov}
+</pre><a href="#section-4.3-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-7"><code>Tag</code> hashes the commitment and issuer-granted refund to a full UOV target.
+The issuer signs <code>Tag(c, x)</code> with the UOV trapdoor, so a single signature jointly
+binds the committed contents <code>(nf, t)</code> through <code>c</code> and the refund <code>x</code>. The refund
+is an input to <code>Tag</code> rather than <code>Com</code>, which lets the issuer add credits at
+signing time without the client re-committing; at initial issuance <code>x = 0</code>.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.3-8"><strong>Token.</strong> A token is the client-side state carried between presentations:<a href="#section-4.3-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-9">
+<pre>
+Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
+</pre><a href="#section-4.3-9" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-10">where <code>nf</code> is the nullifier, <code>t</code> the committed credit, <code>r in {0,1}^(8*rho)</code> the
+commitment randomness, <code>x</code> the refund amount, and <code>s</code> the UOV signature. The
+token's <strong>effective balance</strong> -- the amount the client may spend -- is <code>B = t +
+x</code>.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="issuance">
+<section id="section-4.4">
+        <h3 id="name-token-issuance">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-token-issuance" class="section-name selfRef">Token Issuance</a>
+        </h3>
+<p id="section-4.4-1">Issuance mints a fresh token carrying an initial credit balance <code>T_init in [1,
+2^(8*L) - 1]</code> agreed between the client and issuer. It is a two-message interactive
+protocol, structured as the Fischlin blind signature <span>[<a href="#Fischlin" class="cite xref">Fischlin</a>]</span> -- commit,
+sign, prove-knowledge -- instantiated with UOV and VOLE-in-the-Head.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">The client commits to both its nullifier <code>nf</code> and the credit balance <code>t =
+T_init</code>, and sends the commitment <code>c</code> to the issuer, who signs it directly via
+its UOV target <code>Tag(c, 0)</code>. Because <code>Com</code> is opaque to the issuer, the client
+attaches a zero-knowledge proof that <code>c</code> opens to the agreed balance <code>T_init</code>;
+without it, a malicious client could commit to an arbitrary balance. The
+signature <code>s</code> is a genuine UOV preimage of <code>Tag(c, 0)</code>, which the client stores
+in its token.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">Blindness does <strong>not</strong> come from masking the signing target. The issuer sees
+<code>c</code> at issuance (which hides <code>nf</code> via <code>r</code>) and sees <code>nf</code> only at presentation
+(where the zero-knowledge proof of <a href="#spending" class="auto internal xref">Section 4.5</a> hides <code>c</code>); because <code>Com</code> is
+hiding, the issuer cannot link a presented <code>nf</code> to the <code>c</code> it signed. Every
+later presentation proves knowledge of <code>(nf, t, r, x, s)</code> satisfying <code>P(s) =
+Tag(Com(nf, t, r), x)</code> -- the UOV relation of <a href="#commitment-tag" class="auto internal xref">Section 4.3</a> -- without
+revealing <code>c</code>.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">The issuance relation proves that the commitment <code>c</code> opens to the agreed initial
+balance <code>T_init</code>:<a href="#section-4.4-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4-5">
+<pre>
+Relation IssueRelation(c, T_init):
+  Instance:
+    - c: commitment
+    - T_init: agreed initial credit balance, in [1, 2^(8*L) - 1]
+
+  Witness:
+    - nf: nullifier
+    - r: commitment randomness
+
+  Constraints:
+    - c = Com(nf, T_init, r)
+</pre><a href="#section-4.4-5" class="pilcrow">¶</a>
+</div>
+<div id="issue-request">
+<section id="section-4.4.1">
+          <h4 id="name-client-issuance-request">
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-client-issuance-request" class="section-name selfRef">Client: Issuance Request</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.4.1-1">
+<pre>
+IssueRequest(T_init):
+  Input:
+    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
+  Output:
+    - request = (c, pf_init): commitment and well-formedness proof
+    - state   = (nf, r): client state for Token Verification
+
+  Steps:
+    1.  nf     &lt;- {0,1}^(8*nu)                 // nullifier
+    2.  r      &lt;- {0,1}^(8*rho)                // commitment randomness
+    3.  c      := Com(nf, T_init, r)           // see Commitment and Tag
+    4.  pf_init := VOLEitH.Prove(
+          IssueRelation,   // relation
+          (c, T_init),     // instance
+          (nf, r),         // witness
+        )
+    5.  request := (c, pf_init)
+    6.  state   := (nf, r)
+    7.  return (request, state)
+</pre><a href="#section-4.4.1-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="issue-response">
+<section id="section-4.4.2">
+          <h4 id="name-issuer-issuance-response">
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-issuer-issuance-response" class="section-name selfRef">Issuer: Issuance Response</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.4.2-1">
+<pre>
+IssueResponse(sk, request, T_init):
+  Input:
+    - sk: Issuer secret key (secret seed seed_sk)
+    - request = (c, pf_init)
+    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
+  Output:
+    - response = s: UOV signature, or INVALID
+
+  Steps:
+    1.  if not (0 &lt; T_init &lt; 2^(8*L)): return INVALID
+    2.  if VOLEitH.Verify(IssueRelation, (c, T_init), pf_init) = 0: return INVALID
+    3.  s &lt;- UOV.Sign(sk, Tag(c, 0))   // preimage of Tag(c, 0): P(s) = Tag(c, 0),
+                                       // rejection sampling on singular system
+    4.  return s
+</pre><a href="#section-4.4.2-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="verify-issuance">
+<section id="section-4.4.3">
+          <h4 id="name-client-token-verification">
+<a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-client-token-verification" class="section-name selfRef">Client: Token Verification</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.4.3-1">
+<pre>
+VerifyIssuance(pk, state, response, T_init):
+  Input:
+    - pk = P: Issuer public key
+    - state  = (nf, r)
+    - response = s
+    - T_init: agreed initial credit balance
+  Output:
+    - tok = (nf, T_init, r, x = 0, s): a fresh token, or INVALID
+
+  Steps:
+    1.  c := Com(nf, T_init, r)
+    2.  if P(s) != Tag(c, 0): return INVALID
+    3.  return tok := (nf, T_init, r, 0, s)
+</pre><a href="#section-4.4.3-1" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4.3-2">The issuer's view of a single issuance is the commitment <code>c</code>, the
+well-formedness proof <code>pf_init</code>, and the signature <code>s</code> it produced.
+Unlinkability of issuance to any later spend follows from the hiding of <code>Com</code>
+and the zero-knowledge of the presentation proof (<a href="#spending" class="auto internal xref">Section 4.5</a>).<a href="#section-4.4.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="spending">
+<section id="section-4.5">
+        <h3 id="name-token-spending">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-token-spending" class="section-name selfRef">Token Spending</a>
+        </h3>
+<p id="section-4.5-1">Spending lets a client spend <code>d</code> credits from a token of effective balance <code>B =
+t + x</code> (with <code>0 &lt;= d &lt;= B</code>), atomically obtaining a fresh token for the change
+<code>B - d</code>. It is the presentation half of the Fischlin blind signature: the
+client reveals the token's nullifier <code>nf</code>, proves in zero knowledge that it
+holds a valid signature over that token and that a freshly committed change
+token is consistent, and the issuer signs the change commitment in its
+response.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">Spending is a single round trip. The client builds the change commitment <code>c' =
+Com(nf', t + x - d, r')</code> itself and bundles it into the spend request; the
+issuer verifies, ensures the revealed nullifier is fresh, optionally grants an
+additional refund <code>x'</code> bound in the tag, and returns <code>s' = UOV.Sign(sk, Tag(c',
+x'))</code>. In the common case <code>x' = 0</code> and the change is entirely committed; a
+positive <code>x'</code> lets the issuer top the token up without a second message
+(<a href="#commitment-tag" class="auto internal xref">Section 4.3</a>). Setting <code>d = 0</code> re-randomizes a token under a fresh
+nullifier -- a re-anonymization operation useful for transferring a token.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">Let <code>L</code> be the credit byte length (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>), so all balances lie
+in <code>[0, 2^(8*L) - 1]</code> and <code>x, x' in [0, 2^(8*L) - 1]</code>.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-4">The spend relation binds the spent token to a well-formed change token. It is
+specified by the conditions V1--V4 below.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5-5">
+<pre>
+Relation SpendRelation(pk, nf, d, c'):
+  Instance:
+    - pk = P: Issuer public key
+    - nf: nullifier of the spent token
+    - d: amount to spend, in [0, 2^(8*L) - 1]
+    - c': change commitment
+
+  Witness:
+    - t: committed credit of the spent token
+    - r: commitment randomness of the spent token
+    - x: refund carried by the spent token
+    - s: UOV signature over the spent token
+    - nf': nullifier of the change token
+    - r': commitment randomness of the change token
+    - t': committed change balance
+
+  Constraints:
+    - P(s) = Tag(Com(nf, t, r), x)                       // V1: valid signature
+    - c' = Com(nf', t', r')                              // V2: change well-formed
+    - t' = t + x - d                                     // V3: balance conservation
+    - 0 &lt;= t' &lt; 2^(8*L) AND 0 &lt;= x &lt; 2^(8*L) AND 0 &lt;= d &lt; 2^(8*L)  // V4: ranges
+</pre><a href="#section-4.5-5" class="pilcrow">¶</a>
+</div>
+<div id="prove-spend">
+<section id="section-4.5.1">
+          <h4 id="name-client-spend-proof-generati">
+<a href="#section-4.5.1" class="section-number selfRef">4.5.1. </a><a href="#name-client-spend-proof-generati" class="section-name selfRef">Client: Spend Proof Generation</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.5.1-1">
+<pre>
+ProveSpend(tok, d):
+  Input:
+    - tok  = (nf, t, r, x, s): a token of effective balance B = t + x
+    - d in [0, B]: amount to spend
+  Output:
+    - proof = (nf, d, c', pf_spend): spend proof
+    - state = (nf', t', r'): client state for Refund Token Construction
+
+  Steps:
+    1.  if not (0 &lt;= d &lt;= t + x): raise InvalidAmount
+    2.  nf' &lt;- {0,1}^(8*nu)                 // fresh nullifier for the change
+    3.  r'  &lt;- {0,1}^(8*rho)                // fresh commitment randomness
+    4.  t'  := t + x - d                    // committed change balance
+    5.  c'  := Com(nf', t', r')
+    6.  pf_spend := VOLEitH.Prove(
+          SpendRelation,                // relation
+          (pk, nf, d, c'),              // instance
+          (t, r, x, s, nf', r', t'),    // witness
+        )
+    7.  proof := (nf, d, c', pf_spend)    // nf, d, c' public; witness hidden
+    8.  state := (nf', t', r')
+    9.  return (proof, state)
+</pre><a href="#section-4.5.1-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="verify-spend">
+<section id="section-4.5.2">
+          <h4 id="name-issuer-spend-verification-a">
+<a href="#section-4.5.2" class="section-number selfRef">4.5.2. </a><a href="#name-issuer-spend-verification-a" class="section-name selfRef">Issuer: Spend Verification and Refund</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.5.2-1">
+<pre>
+VerifyAndRefund(sk, proof, x'):
+  Input:
+    - sk: Issuer secret key (secret seed seed_sk)
+    - proof = (nf, d, c', pf_spend)
+    - x' in [0, 2^(8*L) - 1]: issuer-granted refund; 0 for no refund
+  Output:
+    - response = (x', s'): granted refund and signature, or INVALID
+  Exceptions:
+    - DoubleSpend, raised when nf has already been accepted
+
+  Steps:
+    1.  if nf has already been accepted: raise DoubleSpend
+    2.  if not (0 &lt;= x' &lt; 2^(8*L)): return INVALID
+    3.  if VerifySpend(pk, proof) = INVALID: return INVALID      // see below
+    4.  mark nf as accepted
+    5.  s' &lt;- UOV.Sign(sk, Tag(c', x'))       // sign the change commitment
+                                              // (reuses issuance signing)
+    6.  return (x', s')
+
+VerifySpend(pk, proof):
+  Input:
+    - pk = P: Issuer public key
+    - proof = (nf, d, c', pf_spend)
+  Output:
+    - VALID or INVALID
+
+  Steps:
+    1.  if not (0 &lt;= d &lt; 2^(8*L)): return INVALID
+    2.  if VOLEitH.Verify(SpendRelation, (pk, nf, d, c'), pf_spend) = 0:
+          return INVALID
+    3.  return VALID
+</pre><a href="#section-4.5.2-1" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.2-2">The issuer <span class="bcp14">MUST</span> mark <code>nf</code> as accepted (step 4) before the signature is
+released, so that a client cannot obtain two change tokens from one spend by
+replaying the request.<a href="#section-4.5.2-2" class="pilcrow">¶</a></p>
+<p id="section-4.5.2-3">Verification checks only the zero-knowledge proof against the public inputs
+<code>(pk, nf, d, c')</code>; conditions V1--V4 of <a href="#prove-spend" class="auto internal xref">Section 4.5.1</a> are enforced inside
+<code>pf_spend</code>. In particular V1 establishes that the client holds an issuer
+signature over some token whose effective balance is <code>t + x</code>, V3 and V4
+establish <code>d &lt;= t + x</code> and that the change <code>t'</code> is a valid balance, and V2 binds
+the change to the commitment <code>c'</code> the issuer is about to sign. The issuer learns
+the spent amount <code>d</code> and the nullifier <code>nf</code>, but neither the effective balance
+<code>B</code> nor the change <code>t'</code>.<a href="#section-4.5.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="refund-token">
+<section id="section-4.5.3">
+          <h4 id="name-client-refund-token-constru">
+<a href="#section-4.5.3" class="section-number selfRef">4.5.3. </a><a href="#name-client-refund-token-constru" class="section-name selfRef">Client: Refund Token Construction</a>
+          </h4>
+<div class="lang-pseudocode sourcecode" id="section-4.5.3-1">
+<pre>
+VerifyRefund(pk, state, response):
+  Input:
+    - pk = P: Issuer public key
+    - state    = (nf', t', r')
+    - response = (x', s')
+  Output:
+    - tok' = (nf', t', r', x', s'): the change token, or INVALID
+
+  Steps:
+    1.  if not (0 &lt;= x' &lt; 2^(8*L)): return INVALID
+    2.  c' := Com(nf', t', r')
+    3.  if P(s') != Tag(c', x'): return INVALID
+    4.  return tok' := (nf', t', r', x', s')
+</pre><a href="#section-4.5.3-1" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.3-2">The change token has effective balance <code>B' = t' + x' = (t + x - d) + x'</code>, and is
+unlinkable to the spent token: the issuer saw only the hiding commitment <code>c'</code>
+and the public <code>(nf, d, x')</code>, none of which reveal <code>nf'</code> or the change balance.<a href="#section-4.5.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="instantiations">
+<section id="section-5">
+      <h2 id="name-instantiations">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-instantiations" class="section-name selfRef">Instantiations</a>
+      </h2>
+<p id="section-5-1">The protocol of <a href="#key-generation" class="auto internal xref">Section 4.2</a> through <a href="#spending" class="auto internal xref">Section 4.5</a> is parameterized by the
+commitment <code>Com</code> and tag <code>Tag</code> of <a href="#commitment-tag" class="auto internal xref">Section 4.3</a>. This section gives the two
+concrete instantiations. A deployment <span class="bcp14">MUST</span> fix exactly one for the lifetime of a
+key (bound into <code>dst</code>); the choice is part of the ciphersuite.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Both realize the same abstract interface, so all of Issuance (<a href="#issuance" class="auto internal xref">Section 4.4</a>),
+Spend (<a href="#spending" class="auto internal xref">Section 4.5</a>), the conditions V1--V4, double-spend handling, and
+blindness are inherited unchanged. They differ only in <code>Com</code>, <code>Tag</code>, the
+deployment-wide parameters derived from <code>dst</code>, and the resulting UOV dimensions
+<code>(n_uov, m_uov)</code>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<div id="hash-commitment">
+<section id="section-5.1">
+        <h3 id="name-hash-commitment-keccak-p800">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-hash-commitment-keccak-p800" class="section-name selfRef">Hash commitment (<code>Keccak-p[800, 12]</code>)</a>
+        </h3>
+<p id="section-5.1-1">Here both <code>Com</code> and <code>Tag</code> are realized by <code>KP800</code>, a TurboSHAKE
+<span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span> sponge over the reduced-round permutation <code>Keccak-p[800, 12]</code>
+          <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>, modeled as a random oracle and domain-separated by <code>dst</code>.
+<code>KP800(M, d)</code> squeezes <code>d</code> bytes of output, and <code>KP800(M)</code> defaults to
+<code>d = 2*lambda/8</code> bytes (i.e. <code>2*lambda</code> bits). Distinct one-byte
+labels separate commitment hashing from UOV-target hashing. In the Spend
+relation (<a href="#prove-spend" class="auto internal xref">Section 4.5.1</a>), V1 evaluates <code>Com</code> and <code>Tag</code> for the old token, while
+V2 evaluates <code>Com</code> for the change token. A spend therefore evaluates
+<code>Keccak-p[800, 12]</code> three times in-circuit. The MQ instantiation
+(<a href="#mq-commitment" class="auto internal xref">Section 5.2</a>) removes these evaluations entirely.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">The <code>800</code>-bit permutation, rather than TurboSHAKE128's <code>1600</code>-bit
+<code>Keccak-p[1600, 12]</code>, halves the in-circuit state. Its 256-bit capacity leaves a
+544-bit (<code>68</code>-byte) rate, which is sufficient for each fixed-length input below
+to fit in one absorb block and for each output to fit in one squeeze block.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.1-3"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
+randomness <code>r</code>:<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.1-4">
+<pre>
+Com(nf, t, r):
+  Input:
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho bytes)
+  Output:
+    - c: Commitment (lambda/4 bytes)
+
+  Steps:
+    1.  return KP800(0xAC || dst || nf || &lt;t&gt;_L || r)
+</pre><a href="#section-5.1-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-5"><strong>Tag.</strong> <code>Tag</code> hashes a commitment and public refund to a full UOV target of
+<code>m_uov</code> bytes, where <code>m_uov</code> is the number of UOV equations (<a href="#system-parameters" class="auto internal xref">Section 4.1</a>):<a href="#section-5.1-5" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.1-6">
+<pre>
+Tag(c, x):
+  Input:
+    - c: Commitment (lambda/4 bytes)
+    - x: Refund in [0, 2^(8*L) - 1]
+  Output:
+    - y: UOV target (m_uov bytes, = m_uov elements of F_256)
+
+  Steps:
+    1.  return KP800(0xAD || dst || c || &lt;x&gt;_L, m_uov)
+</pre><a href="#section-5.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-7">Both preimages have fixed-length fields and parse unambiguously. The <code>Com</code>
+preimage is <code>1 + 18 + 24 + 8 + 16 = 67</code> bytes, leaving the final byte of the
+68-byte rate for the sponge separator and padding. The <code>Tag</code> preimage is <code>1 +
+18 + 32 + 8 = 59</code> bytes. Each call therefore requires one
+<code>Keccak-p[800, 12]</code> permutation. At initial issuance <code>x = 0</code>, but <code>Tag(c, 0)</code> is
+still a separate, domain-separated hash of <code>c</code> and zero.<a href="#section-5.1-7" class="pilcrow">¶</a></p>
+<p id="section-5.1-8"><strong>Security.</strong> Commitment hiding follows from the <code>rho = 16</code> bytes of fresh
+randomness, and binding follows from collision resistance of the domain-separated
+<code>Com</code> random oracle. <code>Tag(c, x)</code> is a full random-oracle image that jointly binds
+the commitment and refund before UOV inversion. This retains hash-and-sign
+target semantics and avoids a chosen-tail or translated-target UOV assumption.
+A complete protocol proof additionally requires knowledge soundness of the
+VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
+(<a href="#security" class="auto internal xref">Section 6</a>).<a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<p id="section-5.1-9"><strong>Parameter selection.</strong> The knobs chosen for the ciphersuite
+<code>RATA-KP800-uovIp</code>:<a href="#section-5.1-9" class="pilcrow">¶</a></p>
+<table class="center" id="table-1">
+          <caption><a href="#table-1" class="selfRef">Table 1</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Security <code>lambda</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>128</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Nullifier <code>nu</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>24</code> bytes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Randomness <code>rho</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>16</code> bytes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Credit width <code>L</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>8</code> (<code>t, x, d in [0, 2^64 - 1]</code>)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Domain-separation tag <code>dst</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>18</code> bytes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Commitment <code>c</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>lambda/4 = 32</code> bytes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">UOV <code>(n_uov, m_uov, q)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>(112, 44, 256)</code> (<code>uov-Ip</code>)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">VOLEitH <code>(tau, w_grind)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>(11, 7)</code> (FAEST-128s)</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-5.1-11"><strong>API sizes.</strong> Everything below is derived from the parameters above and is
+given in bytes.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+          <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Function</th>
+              <th class="text-left" rowspan="1" colspan="1">Input</th>
+              <th class="text-left" rowspan="1" colspan="1">Output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Com(nf, t, r)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">label <code>0xAC</code> = <code>1</code>, <code>dst: 18</code>, <code>nf: 24</code>, <code>&lt;t&gt;_L: 8</code>, <code>r: 16</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>c: 32</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Tag(c, x)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">label <code>0xAD</code> = <code>1</code>, <code>dst: 18</code>, <code>c: 32</code>, <code>&lt;x&gt;_L: 8</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>y: m_uov = 44</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>P(s)</code> (UOV)</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>s: n_uov = 112</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>y: m_uov = 44</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+</section>
+</div>
+<div id="mq-commitment">
+<section id="section-5.2">
+        <h3 id="name-mq-commitment-bfmrsv25a">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-mq-commitment-bfmrsv25a" class="section-name selfRef">MQ commitment (BFMRSV25a)</a>
+        </h3>
+<p id="section-5.2-1">Here <code>Com</code> and <code>Tag</code> are realized by the algebraic multivariate-quadratic (MQ)
+commitment of <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span> over <code>F_256</code>.  This removes the in-circuit hash:
+because both <code>Com</code> and <code>Tag</code> are degree-2 relations over <code>F_256</code>, conditions V1
+and V2 of <a href="#prove-spend" class="auto internal xref">Section 4.5.1</a> are pure <code>F_256</code> arithmetic with no Keccak in-circuit.
+The realization differs from <a href="#hash-commitment" class="auto internal xref">Section 5.1</a> in two ways:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-5.2-2">
+<li id="section-5.2-2.1">
+            <p id="section-5.2-2.1.1"><strong><code>Com</code> is algebraic.</strong> <code>Com(nf, t, r) = (EmbedNullifierBalance(nf, t) +
+F(r), G(r))</code> for public general quadratic maps <code>F</code>, <code>G</code> from the <code>GenerateParameters</code> function defined
+below.<a href="#section-5.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li id="section-5.2-2.2">
+            <p id="section-5.2-2.2.1"><strong><code>Tag</code> is affine and homomorphic.</strong> The MQ commitment is
+constant-additively homomorphic, so the refund is applied by a homomorphic
+addition rather than a hash: <code>Tag(c, x) = c + EmbedRefund(x)</code>, a degree-1 map
+that adds the issuer-granted refund <code>x</code> into a reserved commitment
+coordinate. The signing target <code>P(s) = Tag(Com(nf, t, r), x)</code> is unchanged
+form.<a href="#section-5.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ol>
+<p id="section-5.2-3"><strong>GenerateParameters.</strong> The MQ instantiation needs public commitment maps <code>F</code>,
+<code>G</code>, produced by a routine <code>GenerateParameters</code>. Ours derives <code>F</code>, <code>G</code>
+deterministically from <code>dst</code> by a nothing-up-my-sleeve expansion, so it needs no
+trusted setup. Unlike the hash instantiation of <a href="#hash-commitment" class="auto internal xref">Section 5.1</a> (which evaluates
+<code>Keccak-p[800, 12]</code> for both <code>Com</code> and <code>Tag</code> inside the spend proof), this
+parameter expansion is never proven in zero knowledge. It therefore uses
+standard SHAKE128 (FIPS 202) <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span> -- the more conservatively reviewed
+XOF:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-4.1">
+            <p id="section-5.2-4.1.1">Two general (inhomogeneous) quadratic maps <code>F: F_256^{n_com} -&gt; F_256^k</code> and
+<code>G: F_256^{n_com} -&gt; F_256^{m_uov-k}</code>, obtained as <code>(F, G) =
+GenerateParameters(dst)</code>.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div class="lang-pseudocode sourcecode" id="section-5.2-5">
+<pre>
+GenerateParameters(dst):
+  Input:
+    - dst: deployment domain-separation tag
+  Output:
+    - F: F_256^{n_com} -&gt; F_256^k, G: F_256^{n_com} -&gt; F_256^{m_uov-k}   // public quadratic maps
+  Steps:
+    1.  stream := SHAKE128("RATA-MQ-maps:" || dst)
+    2.  for each output equation i in [m_uov]:
+    3.      M_i := bytesIntoUpper(stream.next(n_com(n_com+1)/2))   // quadratic part, in F_256^{n_com * n_com}
+    4.      l_i := stream.next(n_com)                              // linear part, in F_256^{n_com}
+    5.      Q_i := (M_i, l_i)   such that   Q_i(x) = x^T M_i x + l_i . x
+    6.  F := (Q_0, ..., Q_{k-1})                       // first k equations
+    7.  G := (Q_k, ..., Q_{m_uov-1})                   // remaining m_uov-k equations
+    8.  return (F, G)
+</pre><a href="#section-5.2-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-6"><code>bytesIntoUpper(b)</code> fills the upper triangle of an <code>n_com x n_com</code> matrix over
+<code>F_256</code> row-major from the bytes <code>b</code>, one element per byte, with all other
+entries zero. Each output equation is a general (inhomogeneous) quadratic map
+<code>Q_i(x) = x^T M_i x + l_i . x</code> in the <code>n_com</code> variables, with <code>M_i</code> the quadratic
+part and <code>l_i</code> the linear part. The linear terms are essential: a purely
+homogeneous map (<code>l_i = 0</code>) has <code>F(0) = G(0) = 0</code> and is scaling-covariant
+(<code>Q_i(a x) = a^2 Q_i(x)</code>), which admits a forgery.<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<p id="section-5.2-7"><strong>Commitment.</strong> <code>Com</code> binds a nullifier <code>nf</code> and a credit value <code>t</code> under
+randomness <code>r</code>, following the MQ commitment construction in <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>:<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.2-8">
+<pre>
+Com(nf, t, r):
+  Input:
+    - nf: Nullifier (nu bytes)
+    - t: Credit value in [0, 2^(8*L) - 1]
+    - r: Randomness (rho = n_com bytes, parsed as n_com elements of F_256)
+  Output:
+    - c: Commitment (m_uov elements in F_256)
+  Steps:
+    1.  msg := EmbedNullifierBalance(nf, t)   in F_256^k   // refund coordinate = 0
+    2.  return ( msg + F(r), G(r) )  in F_256^{m_uov}
+</pre><a href="#section-5.2-8" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-9"><code>EmbedNullifierBalance(nf, t)</code> returns a message vector <code>msg in F_256^k</code>, one
+<code>F_256</code> element per byte. The first <code>nu</code> elements hold the nullifier, one byte
+per element (<code>msg[i] = byte(nf[i])</code> for each <code>i in [nu)</code>); the next <code>L</code>
+elements hold the balance encoding <code>&lt;t&gt;_L</code>; the following <code>L</code> elements are the
+refund slot, left zero here and written later by <code>Tag</code>; and the remaining <code>k -
+off_refund - L</code> elements are reserved and set to zero (there are none unless
+<code>k &gt; off_refund + L</code>).<a href="#section-5.2-9" class="pilcrow">¶</a></p>
+<p id="section-5.2-10"><strong>Tag.</strong> The MQ commitment is <em>constant-additively homomorphic</em>: adding a public
+vector to <code>c</code> shifts the committed message without touching the binding block
+<code>G(r)</code> and without knowledge of <code>r</code> <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>. <code>Tag</code> uses this to write the
+issuer-granted refund <code>x</code> into the (zero) refund coordinate:<a href="#section-5.2-10" class="pilcrow">¶</a></p>
+<div class="lang-pseudocode sourcecode" id="section-5.2-11">
+<pre>
+Tag(c, x):
+  Input:
+    - c: Commitment (m_uov elements in F_256)
+    - x: Refund in [0, 2^(8*L) - 1]
+  Output:
+    - y: UOV target (m_uov elements in F_256)
+  Steps:
+    1.  return c + EmbedRefund(x)     in F_256^{m_uov}   // degree-1, no hash
+</pre><a href="#section-5.2-11" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-12"><code>EmbedRefund(x)</code> returns a vector <code>e in F_256^{m_uov}</code> that is zero everywhere except
+the refund slot: its <code>L</code> elements starting at <code>off_refund = nu + L</code> hold
+the refund encoding <code>&lt;x&gt;_L</code>.<a href="#section-5.2-12" class="pilcrow">¶</a></p>
+<p id="section-5.2-13">Because the commitment length exceeds the standard NIST UOV output size, the UOV
+parameters are enlarged to accommodate it, as reflected in the parameters below.<a href="#section-5.2-13" class="pilcrow">¶</a></p>
+<p id="section-5.2-14"><strong>Security.</strong> Hiding is <em>heuristic</em> computational with respect to the
+best-known attack (hybrid exhaustive-search + XL-Wiedemann <span>[<a href="#CCNY12" class="cite xref">CCNY12</a>]</span>). Binding
+is <em>computational</em>, reduced to collision-resistance of <code>G</code> (finding <code>r != r'</code>
+with <code>G(r) = G(r')</code>, a bilinear MQ problem that is NP-complete in the worst
+case). Separately, one-more unforgeability of the signed commitment rests on the
+interactive one-more <em>quadratic-claw</em> assumption, flagged as unexplored in
+<span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>.<a href="#section-5.2-14" class="pilcrow">¶</a></p>
+<p id="section-5.2-15"><strong>Parameter selection.</strong>  The ciphersuite <code>RATA-MQ128-k32</code> takes the aggressive
+<em>heuristic-hiding / computational-binding</em> row of <span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>, Table 3 (<code>q =
+256</code>, so one commitment element is one byte), which minimizes commitment size.
+Here <code>m_uov</code> is pinned by the commitment length rather than chosen for signature
+compactness; with <code>m_uov</code> fixed, the only free UOV knob is the input size <code>n_uov</code>,
+set to the smallest value keeping every known attack at <code>&gt;= 2^lambda</code> under the
+UOV estimator.<a href="#section-5.2-15" class="pilcrow">¶</a></p>
+<table class="center" id="table-3">
+          <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Parameter</th>
+              <th class="text-left" rowspan="1" colspan="1">Value</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Security <code>lambda</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>128</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Commitment <code>(k, n_com, m_uov)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>(32, 83, 131)</code> (<span>[<a href="#BFMRSV25a" class="cite xref">BFMRSV25a</a>]</span>, Table 3)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Nullifier <code>nu</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>28</code> bytes</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">Credit width <code>L</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>2</code> (<code>t, x, d in [0, 2^16 - 1]</code>)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">UOV <code>n_uov</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>275</code> (<code>m_uov = 131</code>, <code>q = 256</code> shared with the commitment)</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">VOLEitH <code>(tau, w_grind)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>(11, 7)</code> (FAEST-128s)</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-5.2-17">Security margins: the binding block satisfies <code>m_uov - k = n_com + lambda/log2(q) =
+n_com + 16</code>. Because <code>m_uov = 131</code> is far larger than a standard UOV set, <code>n_uov =
+275</code> was fixed as the minimum passing a 128-bit check under the
+CryptographicEstimators <code>UOVEstimator</code> (<span>[<a href="#CryptEst" class="cite xref">CryptEst</a>]</span>, which implements the
+<span>[<a href="#UOV" class="cite xref">UOV</a>]</span> Section 4 attacks).<a href="#section-5.2-17" class="pilcrow">¶</a></p>
+<p id="section-5.2-18"><strong>API sizes.</strong> Everything below is derived from the parameters above and is
+given in bytes (one <code>F_256</code> element each). <code>F, G</code> are the public maps from
+<code>GenerateParameters(dst)</code>; there is no in-circuit hash.<a href="#section-5.2-18" class="pilcrow">¶</a></p>
+<table class="center" id="table-4">
+          <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
+<thead>
+            <tr>
+              <th class="text-left" rowspan="1" colspan="1">Function</th>
+              <th class="text-left" rowspan="1" colspan="1">Input</th>
+              <th class="text-left" rowspan="1" colspan="1">Output</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Com(nf, t, r)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>nf: nu = 28</code>, <code>&lt;t&gt;_L: L = 2</code>, <code>r: n_com = 83</code> (<code>= rho</code>)</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>c: m_uov = 131</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>Tag(c, x)</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>c: 131</code>, <code>&lt;x&gt;_L: L = 2</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>y: m_uov = 131</code>
+</td>
+            </tr>
+            <tr>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>P(s)</code> (UOV)</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>s: n_uov = 275</code>
+</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>y: m_uov = 131</code>
+</td>
+            </tr>
+          </tbody>
+        </table>
+<p id="section-5.2-20">The message <code>msg = EmbedNullifierBalance(nf, t)</code> lays out <code>k = 32</code> bytes as <code>nf
+(28) || &lt;t&gt;_L (2) || &lt;x&gt;_L (2)</code>, with the refund slot at <code>off_refund = nu +
+L = 30</code> left zero until <code>Tag</code> writes it (no reserved bytes, since <code>off_refund
++ L = k</code>). Derived map and signature dimensions: <code>F: F_256^83 -&gt; F_256^32</code>,
+<code>G: F_256^83 -&gt; F_256^99</code>, and <code>v = n_uov - m_uov = 144</code>.<a href="#section-5.2-20" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="security">
+<section id="section-6">
       <h2 id="name-security-considerations">
-<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-1.1">
-          <p id="section-4-1.1.1">TODO<a href="#section-4-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6-1.1">
+          <p id="section-6-1.1.1">TODO Security reduction for both variants to (one-more-)UOV problem. As part of this,
+figure out if the constant-addition hommorphism trick for the MQ variant incurs a
+security loss.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-2.1">
+          <p id="section-6-2.1.1">TODO Finalize parameters MQ variant (including the UOV parameters used), pending further cryptanalysis of the commitment.
+TODO Remind the reader here how the current parameters were chosen.<a href="#section-6-2.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
 </div>
 <div id="iana-considerations">
-<section id="section-5">
+<section id="section-7">
       <h2 id="name-iana-considerations">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-5-1">This document has no IANA actions.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-7-1">This document has no IANA actions.<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
-<section id="section-6">
+<section id="section-8">
       <h2 id="name-references">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-references" class="section-name selfRef">References</a>
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
       </h2>
 <div id="sec-normative-references">
-<section id="section-6.1">
+<section id="section-8.1">
         <h3 id="name-normative-references">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
 <dt id="FAEST">[FAEST]</dt>
         <dd>
-<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"The FAEST Signature Scheme"</span>, <span class="seriesInfo">Version 2.0</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://faest.info/faest-spec-v2.0.pdf">https://faest.info/faest-spec-v2.0.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"The FAEST Signature Scheme"</span>, <span class="seriesInfo">Version 2.0</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://faest.info/faest-spec-v2.0.pdf">https://faest.info/faest-spec-v2.0.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FIPS202">[FIPS202]</dt>
         <dd>
@@ -1286,6 +2541,10 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="RFC9861">[RFC9861]</dt>
+        <dd>
+<span class="refAuthor">Viguier, B.</span>, <span class="refAuthor">Wong, D., Ed.</span>, <span class="refAuthor">Van Assche, G., Ed.</span>, <span class="refAuthor">Dang, Q., Ed.</span>, and <span class="refAuthor">J. Daemen, Ed.</span>, <span class="refTitle">"KangarooTwelve and TurboSHAKE"</span>, <span class="seriesInfo">RFC 9861</span>, <span class="seriesInfo">DOI 10.17487/RFC9861</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9861">https://www.rfc-editor.org/rfc/rfc9861</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
       <dd>
 <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
@@ -1294,16 +2553,36 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 </section>
 </div>
 <div id="sec-informative-references">
-<section id="section-6.2">
+<section id="section-8.2">
         <h3 id="name-informative-references">
-<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
 <dt id="ACT">[ACT]</dt>
         <dd>
 <span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">J. Katz</span>, <span class="refTitle">"Anonymous Credit Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-schlesinger-cfrg-act-01</span>, <time datetime="2026-02-13" class="refDate">13 February 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01">https://datatracker.ietf.org/doc/html/draft-schlesinger-cfrg-act-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="POMFRIT">[POMFRIT]</dt>
+<dt id="BFMRSV25a">[BFMRSV25a]</dt>
+        <dd>
+<span class="refAuthor">Bouillaguet, C.</span>, <span class="refAuthor">Feneuil, T.</span>, <span class="refAuthor">Maire, J.</span>, <span class="refAuthor">Rivain, M.</span>, <span class="refAuthor">Sauvage, J.</span>, and <span class="refAuthor">D. Vergnaud</span>, <span class="refTitle">"Multivariate Commitments and Signatures with Efficient Protocols"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2025/2035</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://eprint.iacr.org/2025/2035">https://eprint.iacr.org/2025/2035</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BNPS03">[BNPS03]</dt>
+        <dd>
+<span class="refAuthor">Bellare, M.</span>, <span class="refAuthor">Namprempre, C.</span>, <span class="refAuthor">Pointcheval, D.</span>, and <span class="refAuthor">M. Semanko</span>, <span class="refTitle">"The One-More-RSA-Inversion Problems and the Security of Chaum's Blind Signature Scheme"</span>, <span class="seriesInfo">Journal of Cryptology 16(3), pp. 185-215</span>, <time datetime="2003" class="refDate">2003</time>, <span>&lt;<a href="https://eprint.iacr.org/2001/002">https://eprint.iacr.org/2001/002</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CCNY12">[CCNY12]</dt>
+        <dd>
+<span class="refAuthor">Cheng, C.</span>, <span class="refAuthor">Chou, T.</span>, <span class="refAuthor">Niederhagen, R.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"Solving Quadratic Equations with XL on Parallel Architectures"</span>, <span class="seriesInfo">CHES 2012, LNCS 7428, pp. 356-373</span>, <time datetime="2012" class="refDate">2012</time>, <span>&lt;<a href="https://eprint.iacr.org/2016/412">https://eprint.iacr.org/2016/412</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="CryptEst">[CryptEst]</dt>
+        <dd>
+<span class="refAuthor">Esser, A.</span>, <span class="refAuthor">Verbel, J.</span>, <span class="refAuthor">Zweydinger, F.</span>, and <span class="refAuthor">E. Bellini</span>, <span class="refTitle">"CryptographicEstimators: A Software Library for Cryptographic Hardness Estimation"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2023/589</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://eprint.iacr.org/2023/589">https://eprint.iacr.org/2023/589</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Fischlin">[Fischlin]</dt>
+        <dd>
+<span class="refAuthor">Fischlin, M.</span>, <span class="refTitle">"Round-Optimal Composable Blind Signatures in the Common Reference String Model"</span>, <span class="seriesInfo">CRYPTO 2006, LNCS 4117, pp. 60-77</span>, <time datetime="2006" class="refDate">2006</time>, <span>&lt;<a href="https://doi.org/10.1007/11818175_4">https://doi.org/10.1007/11818175_4</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PoMFRIT">[PoMFRIT]</dt>
       <dd>
 <span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
 <dd class="break"></dd>
@@ -1317,7 +2596,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-A-1">The use of Keccak-p[800,12] in this application was proposed by Bas Westerbaan.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-1">The use of <code>Keccak-p[800,12]</code> in this application was proposed by Bas Westerbaan.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">
