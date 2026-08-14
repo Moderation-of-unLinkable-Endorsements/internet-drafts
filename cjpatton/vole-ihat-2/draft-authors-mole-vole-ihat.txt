@@ -136,7 +136,7 @@ Table of Contents
       NOTE(cjpatton) These numbers aren't based on an actual
       implementation.  They are the result of an analysis from Claude
       Opus 5 looking at the FAEST spec and an arithmetization of Keccak
-      in an work in progress implementation.
+      in a work in progress implementation.
 
       NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH
       proofs (one for issuance and another for redemption) using the
@@ -293,23 +293,22 @@ Table of Contents
    is the instance, using the VOLE-in-the-Head proof system defined in
    [FAEST].  We write v := VOLEitH.Verify(R, X, pf) to denote
    verification of pf under the same relation and instance, where the
-   output v is a bit.  The components of X and W are passed in the order
-   in which they are declared by R.
+   output v is a bit.
 
    Relations are specified in the style of Section 3.4 of [SIGMA] as a
    sequence of constraints.  Each constraint is an equation of the
    instance and witness variables.  Unlike [SIGMA], these equations need
-   not be linear: each side of the equation is a polynomial of
-   arbitrary.  However, because the degree of the polynomial influences
-   the size of the proof, the relation needs to be designed to balance
-   the size of the witness with the degree of the constraints.
+   not be linear: each side of the equation is a polynomial of arbitrary
+   degree.  However, because the degree of the polynomial influences the
+   size of the proof, the relation needs to be designed to balance the
+   size of the witness with the degree of the constraints.
 
       TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
       Ideally it specifies a compiler of constraints into a proof, as in
       [SIGMA], but this is currently beyond the scope of what the FAEST
       spec does.  The degree of constraints is coupled tightly to the
       proof generation procedure, which means I think we'll end up
-      pulling some details of the proof construction into this document,
+      pulling some details of the proof construction into this document.
 
 5.  Protocol
 
@@ -438,7 +437,7 @@ Table of Contents
        1. (t, pf_iss) := request  // commitment, issuance proof
        2. v := VOLEitH.Verify(
             IssueRelation,  // relation
-            (ctx_iss, t),   // instance
+            (t, ctx_iss),   // instance
             pf_iss,
           )
        3. if v = 0: return INVALID
