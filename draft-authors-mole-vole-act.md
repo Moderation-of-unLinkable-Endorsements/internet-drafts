@@ -992,8 +992,7 @@ and V2 of {{prove-spend}} are pure `F_256` arithmetic with no Keccak in-circuit.
 The realization differs from {{hash-commitment}} in two ways:
 
 1. **`Com` is algebraic.** `Com(nf, t, r) = (EmbedNullifierBalance(nf, t) +
-   F(r), G(r))` for public general (inhomogeneous) quadratic maps `F`, `G` --
-   each with a linear term -- from the `GenerateParameters` function defined
+   F(r), G(r))` for public general quadratic maps `F`, `G` from the `GenerateParameters` function defined
    below.
 2. **`Tag` is affine and homomorphic.** The MQ commitment is
    constant-additively homomorphic, so the refund is applied by a homomorphic
