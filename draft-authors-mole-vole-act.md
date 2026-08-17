@@ -129,6 +129,7 @@ normative:
 
 informative:
   ACT: I-D.draft-schlesinger-cfrg-act-01
+  SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
 
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
@@ -354,123 +355,31 @@ adopters.
 
 This document uses the following notation:
 
-* `||`: Concatenation of bit strings.
-* `x <- S`: Sampling `x` uniformly at random from the finite set `S`. Also
-  written `x <- A(...)` for assigning to `x` the output of a randomized
-  algorithm `A`.
-* `x := y`: Assignment of the value `y` to the variable `x`.
-* `[n]`: The set of integers `{0, 1, ..., n-1}`; `[a, b]` denotes the closed
+- `x <- S`: Sampling `x` uniformly at random from the finite set `S`.
+
+- `x := y`: Assignment of the value `y` to the variable `x`.
+
+- `x || y`: Concatenation of byte strings `x` and `y`.
+
+- `x[i]`: The `i`-th element of byte string or vector `x`. Indexing begins at
+  `0`, i.e., `x[0], ..., x[|x|-1]` are the elements of `x`.
+
+- `x[i..j]`: The slice of byte string or vector `x` from index `i` to index
+  `j-1`.
+
+- `[n]`: The set of integers `{0, 1, ..., n-1}`; `[a, b]` denotes the closed
   integer interval `{a, a+1, ..., b}`.
-* `F_2`: The binary field `{0, 1}`. Bits are elements of `F_2`.
-* `F_q`: The finite field with `q` elements. This document fixes `q = 256`, so
-  `F_256 = F_{2^8}` is the field of bytes, in which the UOV signature operates.
-* `F_{2^lambda}`: The degree-`lambda` extension field of `F_2`, in which the
-  VOLE-in-the-Head proof operates. Because `lambda` is a multiple of 8, the
-  fields are nested by subfield inclusion: `F_2 subset F_q subset
-  F_{2^lambda}`. The same wire value over the circuit can be viewed as bits,
-  bytes, or a single `F_{2^lambda}` element as needed.
-* Vectors are written in lower case (e.g., `s`) and matrices in upper case
-  (e.g., `P`). `F_q^n` denotes the set of length-`n` column vectors over `F_q`.
-* `P(s)`: Application of a quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}` to a
-  vector `s`, yielding `(s^T P_0 s, ..., s^T P_{m_uov-1} s) in F_q^{m_uov}`,
-  where each `P_i` is an upper-triangular matrix over `F_q`.
-* `<t>_L`: The `L`-byte big-endian encoding of a nonnegative integer `t < 2^(8*L)`
-  as an element of `F_256^L` (equivalently `F_2^(8*L)`).
-* `H`: A cryptographic extendable-output hash function, modeled as a random
-  oracle (see {{protocol}}). Domain separation is applied by prefixing a
-  distinct label and the deployment tag `dst` to each use.
 
-## Data Types
+- `F_q`: The finite field with `q` elements. `F_2` is the binary field,
+  i.e., `{0, 1}`. In this document, `q` is always a power of two so that `F_q`
+  is an extension field of `F_2`.
 
-The protocol uses the following primitive data types:
+- `<t>_L`: The `L`-byte big-endian encoding of a non-negative integer `t <
+  2^(8*L)` as an element of `F_256^L` (equivalently `F_2^(8*L)`).
 
-* **Bit**: An element of `F_2`.
-* **Field element**: An element of `F_q` or `F_{2^lambda}`.
-* **Field vector**: A tuple of field elements, e.g., an element of `F_q^n`.
-* **Credit value**: A nonnegative integer in the range `[0, 2^(8*L) - 1]`
-  representing an amount of credits, encoded as `<t>_L`.
-* **Nullifier**: A uniformly random byte string of length `nu`, denoted `nf`,
-  that identifies a token for double-spend detection. Its length is governed by
-  collision resistance across all tokens issued under one key (see
-  {{parameters}}).
-* **Randomness**: A uniformly random byte string of length `rho`, denoted `r`,
-  used to hide a commitment. Its length is governed by the hiding of the
-  commitment scheme.
-* **ByteString**: A sequence of bytes.
-
-From these, the protocol builds the following objects, each defined in
-{{protocol}}:
-
-* **Signature**: A UOV signature `s in F_q^{n_uov}` satisfying `P(s) = y` for a
-  target `y in F_q^{m_uov}`. The target is the domain-separated hash `y =
-  Tag(Com(nf, t, r), x)` of the token commitment and refund.
-* **Commitment**: `c = Com(nf, t, r)`, binding a nullifier `nf` and credit
-  value `t` under randomness `r`. We instantiate the commitment scheme in one
-  of two ways: see {{instantiations}}.
-* **Tag**: `Tag(c, x) in F_q^{m_uov}`, the UOV signing target derived from a
-  commitment `c` and a refund amount `x`.
-* **Token**: `tok = (nf, t, r, x, s)`, the state a client holds for one credit
-  token.
-* **Proof**: `pf`, a VOLE-in-the-Head zero-knowledge proof for the presentation
-  relation of {{spending}}.
-
-## VOLE-in-the-Head Proofs of Knowledge
-
-We write `pf := VOLEitH.Prove(R, X, W)` to denote proving knowledge of a witness
-`W` for which the pair `(X, W)` is in the relation `R`, where `X` is the
-instance, using the VOLE-in-the-Head proof system of {{FAEST}}. We write `v :=
-VOLEitH.Verify(R, X, pf)` to denote verification of `pf` under the same relation
-and instance, where the output `v` is a bit.
-
-Relations are specified as a sequence of constraints. Each constraint is an
-equation of the instance and witness variables; unlike a linear system, each
-side of the equation may be a polynomial over `F_q` of arbitrary degree. Because
-the degree of a constraint influences the size of the proof, a relation is
-designed to balance the size of the witness against the degree of its
-constraints.
-
-> TODO Give a high level overview of VOLEitH. Define any terms we use here, such
-> as "small VOLE", "big VOLE", and "grinding".
-
-## Cryptographic Parameters {#parameters}
-
-The protocol is parameterized by the following values, whose concrete
-instantiations (ciphersuites) are given in {{instantiations}}:
-
-~~~
-Parameters:
-  - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
-            F_{2^lambda} and the default for nu and rho.
-  - nu: Nullifier length in bytes. Chosen so that random nullifiers do not
-        collide across all tokens issued under one key (see below).
-  - rho: Commitment randomness length in bytes. Chosen for commitment hiding.
-  - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
-  - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
-            N leaves per GGM tree (with tau * log2(N) = lambda), and a
-            proof-of-work grinding parameter w_grind.
-  - L: Byte width of credit values (1 <= L <= 16). The maximum credit a
-       token can hold is 2^(8*L) - 1.
-  - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
-       of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
-       lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
-~~~
-
-The issuer's public key is a UOV quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}`; the
-secret key is a trapdoor for sampling a solution `s` for a given target `P(s) =
-t` (see {{UOV}}, Section 3.2). The UOV and VOLE-in-the-Head security levels must
-match, so neither weakens the token's overall security ({{system-parameters}}).
-
-The lengths `nu` and `rho` are independent. The nullifier is revealed and must
-not collide across tokens issued under one key, so a birthday bound motivates
-`nu >= lambda/4` bytes (`= 2*lambda` bits), and a ciphersuite defaults to `nu =
-lambda/4`; a compact ciphersuite MAY use a smaller `nu` (e.g., `24` bytes in
-{{hash-commitment}} and `28` bytes in the MQ instantiation of
-{{mq-commitment}}), trading collision margin for size. The randomness only hides
-the commitment; its length is instantiation-dependent -- `rho = lambda/8` bytes
-for the hash commitment ({{hash-commitment}}) and `rho = n_com` (the `F_256`
-input length, i.e. `n_com` elements of `F_256`) for the MQ commitment
-({{mq-commitment}}). Credit values are exactly `L` bytes: the issuer MAY choose
-any initial amount in `[1, 2^(8*L) - 1]`, with no cap beyond `L`.
+Each element of `F_256` has a natural representation as a byte. We sometimes
+write `F_256^k` to denote the set of length-`k` byte strings, e.g., `r <-
+F_256^k` means to choose `k` random bytes and assign them to `r`.
 
 # Protocol Overview {#overview}
 
@@ -508,9 +417,51 @@ remain hidden.
 
 # Preliminaries {#preliminaries}
 
-> TODO
+Define `KP800(state)` as the output of applying `Keccak-p[800,12]`
+{{FIPS202}} to `state in F_q^100`. Note that this is a non-standard size for
+the Keccak permutation; see {{security}} for discussion.
+
+We write `(cpk, csk) := UOV.CompactKeyGen()` to denote execution of the compact
+key generation algorithm of {{UOV}}, Figure 2. Output `cpk` is the public key
+and `csk` is the secret key. The input parameters are omitted and are instead
+hard-coded to the uov-Ip parameter set (see {{UOV}}, Table 4).
+
+We write `P := UOV.ExpandPK(cpk)` to denote expansion of the public key into the
+UOV map `P : F_q^n -> F_q^m` using the procedure in {{UOV}}, Figure 2.
+Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of the secret
+key into the trapdoor `td` for `P`.
+
+We write `s := UOV.SPre(td, t)` to denote sampling a preimage of target `t`
+under `P`, i.e., an `s` for which `P(s) = t`. This is the same procedure as used
+in the signing algorithm in {{UOV}}, Figure 2.
+
+We write `pf := VOLEitH.Prove(R, X, W)` to denote proving knowledge of a
+witness `W` for which the pair `(X, W)` is in the relation `R`, where `X` is
+the instance, using the VOLE-in-the-Head proof system defined in {{FAEST}}. We
+write `v := VOLEitH.Verify(R, X, pf)` to denote verification of `pf` under the
+same relation and instance, where the output `v` is a bit.
+
+Relations are specified in the style of {{Section 3.4 of SIGMA}} as a sequence
+of constraints. Each constraint is an equation of the instance and witness
+variables. Unlike {{SIGMA}}, these equations need not be linear: each side of
+the equation is a polynomial of arbitrary degree. However, because the degree
+of the polynomial influences the size of the proof, the relation must be
+designed to balance the size of the witness with the degree of the constraints.
+
+> TODO(cjpatton) Figure out how to cite {{FAEST}} more precisely. Ideally it
+> specifies a compiler of constraints into a proof, as in {{SIGMA}}, but this
+> is currently beyond the scope of what the FAEST spec does. The degree of
+> constraints is coupled tightly to the proof generation procedure, which means
+> I think we'll end up pulling some details of the proof construction into this
+> document.
 
 # Protocol Specification {#protocol}
+
+> TODO Specify wire formats for each of the messages. For now we will ignore
+> how things are encoded until we're more certain of the shape of the protocol.
+>
+> TODO Make all of these algorithms deterministic, passing any randomness they
+> would generate as input. This will make it easier to generate test vectors.
 
 This section specifies the protocol algorithms once, over an abstract
 commitment `Com` and tag `Tag` ({{commitment-tag}}). This document defines two
@@ -533,6 +484,46 @@ relation proved during spending is specified as conditions V1--V4 in
 {{prove-spend}}; the proof system that establishes it is the VOLE-in-the-Head
 proof of {{FAEST}} with parameters fixed by the ciphersuite
 ({{system-parameters}}).
+
+## Cryptographic Parameters {#parameters}
+
+The protocol is parameterized by the following values, whose concrete
+instantiations (ciphersuites) are given in {{instantiations}}:
+
+~~~
+Parameters:
+  - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
+            F_{2^lambda} and the default for nu and rho.
+  - nu: Nullifier length in bytes. Chosen so that random nullifiers do not
+        collide across all tokens issued under one key (see below).
+  - rho: Commitment randomness length in bytes. Chosen for commitment hiding.
+  - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
+  - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
+            N leaves per GGM tree (with tau * log2(N) = lambda), and a
+            proof-of-work grinding parameter w_grind.
+  - L: Byte width of credit values (1 <= L <= 16). The maximum credit a
+       token can hold is 2^(8*L) - 1.
+  - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
+       of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
+       lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
+~~~
+
+The issuer's public key is a UOV quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}`.
+The secret key is a trapdoor for sampling a solution `s` for a given target `P(s) =
+t` (see {{UOV}}, Section 3.2). The UOV and VOLE-in-the-Head security levels must
+match, so neither weakens the token's overall security ({{system-parameters}}).
+
+The lengths `nu` and `rho` are independent. The nullifier is revealed and must
+not collide across tokens issued under one key, so a birthday bound motivates
+`nu >= lambda/4` bytes (`= 2*lambda` bits), and a ciphersuite defaults to `nu =
+lambda/4`; a compact ciphersuite MAY use a smaller `nu` (e.g., `24` bytes in
+{{hash-commitment}} and `28` bytes in the MQ instantiation of
+{{mq-commitment}}), trading collision resistance for smaller size. The randomness only hides
+the commitment; its length is instantiation-dependent -- `rho = lambda/8` bytes
+for the hash commitment ({{hash-commitment}}) and `rho = n_com` (the `F_256`
+input length, i.e., `n_com` elements of `F_256`) for the MQ commitment
+({{mq-commitment}}). Credit values are exactly `L` bytes: the issuer MAY choose
+any initial amount in `[1, 2^(8*L) - 1]`, with no cap beyond `L`.
 
 ## System Parameters {#system-parameters}
 
