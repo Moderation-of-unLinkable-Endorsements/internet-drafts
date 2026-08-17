@@ -1,0 +1,2867 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>MoLE Cryptography</title>
+<meta content="John Doe" name="author">
+<meta content="
+       This document specifies the cryptographic construction used to produce and
+consume MoLE Endorsements. An Endorsement is an anonymous token that an Anchor
+issues to a Client, and that the Client later redeems at a Moderator without
+the Anchor being able to link the redemption to the issuance. 
+       This document defines the endorsement issuance protocol, built from a
+pairing-free partially blind signature scheme, together with the group,
+encoding, and context-binding rules that both the Anchor and the Client follow. 
+    " name="description">
+<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="moderation" name="keyword">
+<meta content="endorsement" name="keyword">
+<meta content="unlinkability" name="keyword">
+<meta content="privacy" name="keyword">
+<meta content="draft-authors-mole-crypto-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.0
+    Python 3.14.5
+    ConfigArgParse 1.7.5
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.0
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.2
+-->
+<link href="draft-authors-mole-crypto.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">MoLE Cryptography</td>
+<td class="right">August 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Doe</td>
+<td class="center">Expires 18 February 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-authors-mole-crypto-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-08-17" class="published">17 August 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-02-18">18 February 2027</time></dd>
+<dt class="label-authors">Author:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">J. Doe</div>
+<div class="org">ACME</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">MoLE Cryptography</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies the cryptographic construction used to produce and
+consume MoLE Endorsements. An Endorsement is an anonymous token that an Anchor
+issues to a Client, and that the Client later redeems at a Moderator without
+the Anchor being able to link the redemption to the issuance.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">This document defines the endorsement issuance protocol, built from a
+pairing-free partially blind signature scheme, together with the group,
+encoding, and context-binding rules that both the Anchor and the Client follow.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-crypto/">https://datatracker.ietf.org/doc/draft-authors-mole-crypto/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 18 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-scope" class="internal xref">Scope</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-preliminaries" class="internal xref">Preliminaries</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-prime-order-group" class="internal xref">Prime-Order Group</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-errors" class="internal xref">Errors</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-the-endorsement-scheme" class="internal xref">The Endorsement Scheme</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-configuration-and-protocol-" class="internal xref">Configuration and Protocol Context</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-deriving-scalars" class="internal xref">Deriving Scalars</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-context-binding" class="internal xref">Context Binding</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-endorsement-issuance" class="internal xref">Endorsement Issuance</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-anchor-commitment" class="internal xref">Anchor Commitment</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-client-challenge" class="internal xref">Client Challenge</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-anchor-response" class="internal xref">Anchor Response</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.4">
+                <p id="section-toc.1-1.5.2.4.1"><a href="#section-5.4" class="auto internal xref">5.4</a>.  <a href="#name-client-finalization" class="internal xref">Client Finalization</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.5">
+                <p id="section-toc.1-1.5.2.5.1"><a href="#section-5.5" class="auto internal xref">5.5</a>.  <a href="#name-endorsement-verification" class="internal xref">Endorsement Verification</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6">
+                <p id="section-toc.1-1.5.2.6.1"><a href="#section-5.6" class="auto internal xref">5.6</a>.  <a href="#name-encodings" class="internal xref">Encodings</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6.2.1">
+                    <p id="section-toc.1-1.5.2.6.2.1.1"><a href="#section-5.6.1" class="auto internal xref">5.6.1</a>.  <a href="#name-issuance-messages" class="internal xref">Issuance Messages</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6.2.2">
+                    <p id="section-toc.1-1.5.2.6.2.2.1"><a href="#section-5.6.2" class="auto internal xref">5.6.2</a>.  <a href="#name-session-identifier" class="internal xref">Session Identifier</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.6.2.3">
+                    <p id="section-toc.1-1.5.2.6.2.3.1"><a href="#section-5.6.3" class="auto internal xref">5.6.3</a>.  <a href="#name-endorsement" class="internal xref">Endorsement</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.7">
+                <p id="section-toc.1-1.5.2.7.1"><a href="#section-5.7" class="auto internal xref">5.7</a>.  <a href="#name-session-handling" class="internal xref">Session Handling</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-endorsement-redemption" class="internal xref">Endorsement Redemption</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-ihatp-256-sha-256" class="internal xref">IHAT(P-256, SHA-256)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ihatristretto255-sha-512" class="internal xref">IHAT(ristretto255, SHA-512)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
+                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.1">
+                <p id="section-toc.1-1.10.2.1.1"><a href="#section-10.1" class="auto internal xref">10.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10.2.2">
+                <p id="section-toc.1-1.10.2.2.1"><a href="#section-10.2" class="auto internal xref">10.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-test-vectors" class="internal xref">Test Vectors</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-address" class="internal xref">Author's Address</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">MoLE Endorsements have a number of constraints imposed by the architecture
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. They must be unlinkable by the Anchor that issued them, they must be
+publicly verifiable, and a redemption must hide which Anchor issued the
+Endorsement among the set of Anchors a Moderator accepts. Existing systems do
+not meet all of these needs. This document defines such a system, the
+Issuer-Hiding Anonymous Token (IHAT), which is endorsement type <code>0x0002</code> in
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The construction is a pairing-free partially blind signature <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>. An
+Anchor holds a signing key and issues, in three moves, a signature on a
+Client-chosen message that the Anchor never sees. Each Endorsement is also bound
+at issuance time to two contexts. These may be used to limit the validity scope
+of each Endorsement, i.e., when and for whom it may later be used.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1-3.1">
+          <p id="section-1-3.1.1">The issuance context <code>ctx_iss</code> is agreed out of band among the Client, the
+Anchors, and the Moderator. <code>ctx_iss</code> can encode, for instance, the time
+period in which the Endorsement is issued, allowing us to capture Endorsement
+expiry.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-1-3.2">
+          <p id="section-1-3.2.1">The redemption context <code>ctx_red</code> is agreed out of band between the Client
+and the Moderator. For example, it may be a long-term identity of the target
+Moderator. This may be used to prevent Endorsement reuse across Moderators
+without requiring a synchronized state between them.<a href="#section-1-3.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<div id="scope">
+<section id="section-1.1">
+        <h3 id="name-scope">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-scope" class="section-name selfRef">Scope</a>
+        </h3>
+<p id="section-1.1-1">This document is a work in progress. This revision specifies:<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-2.1">
+            <p id="section-1.1-2.1.1">the prime-order group interface and encodings (<a href="#preliminaries" class="auto internal xref">Section 3</a>);<a href="#section-1.1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.2">
+            <p id="section-1.1-2.2.1">the protocol context, scalar derivation, Anchor key generation, and context
+binding (<a href="#scheme" class="auto internal xref">Section 4</a>);<a href="#section-1.1-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.3">
+            <p id="section-1.1-2.3.1">the endorsement issuance protocol, that is, the four algorithms <code>Commit</code>,
+<code>Challenge</code>, <code>Respond</code>, and <code>Finalize</code>, along with the wire messages they
+exchange, and the endorsement verification equation (<a href="#issuance" class="auto internal xref">Section 5</a>);<a href="#section-1.1-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-2.4">
+            <p id="section-1.1-2.4.1">two ciphersuites, over P-256 and ristretto255 (<a href="#ciphersuites" class="auto internal xref">Section 7</a>).<a href="#section-1.1-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-1.1-3">The following are <strong>not yet specified</strong> and are marked as such in the text:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-1.1-4.1">
+            <p id="section-1.1-4.1.1">endorsement redemption, including the issuer-hiding proof over a
+Moderator's Anchor Set (<a href="#redemption" class="auto internal xref">Section 6</a>);<a href="#section-1.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-4.2">
+            <p id="section-1.1-4.2.1">the full security considerations (<a href="#security-considerations" class="auto internal xref">Section 8</a>);<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-1.1-4.3">
+            <p id="section-1.1-4.3.1">test vectors (<a href="#test-vectors" class="auto internal xref">Appendix A</a>).<a href="#section-1.1-4.3.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1.1-5.1">
+            <p id="section-1.1-5.1.1"><strong>Editorial note.</strong> <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> currently names the grant functions
+<code>Prepare</code>, <code>Sign</code>, <code>RequestProof</code>, <code>Prove</code>, and <code>Finalize</code>, which assume the
+Client sends the first message. In the construction specified here the Anchor
+sends the first message, so the algorithms are named <code>Commit</code>, <code>Challenge</code>,
+<code>Respond</code>, and <code>Finalize</code>. <strong>TODO:</strong> rename these in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. The number
+of HTTP exchanges (two) and the endorsement type are unchanged.<a href="#section-1.1-5.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1.1-6.1">
+            <p id="section-1.1-6.1.1"><strong>Editorial note.</strong> This document binds an Endorsement to two contexts, an
+<em>issuance context</em> and a <em>redemption context</em> (<a href="#context-binding" class="auto internal xref">Section 4.4</a>), whereas
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> currently defines only a single <code>endorsement_context</code>.
+<strong>TODO:</strong> <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> is expected to define both contexts and to fix their
+encodings; until it does, this document treats them as opaque byte strings and
+gives only non-normative examples. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> is then to be updated to
+match.<a href="#section-1.1-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The terms Client, Anchor, Moderator, Endorsement, Credential, and Anchor Set
+are used as defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">Unless otherwise specified, this document encodes protocol messages in TLS
+notation (<span><a href="https://rfc-editor.org/rfc/rfc9846#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte
+order.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">The following functions and notation are used throughout this document.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">For two byte strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation.<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-7">For a byte string <code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at
+its byte with index <code>i</code> and ends just before its byte with index <code>j</code>, where
+indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-7" class="pilcrow">¶</a></p>
+<p id="section-2-8"><code>I2OSP(x, xLen)</code> converts a nonnegative integer <code>x</code> into a byte string of
+length <code>xLen</code> in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>.<a href="#section-2-8" class="pilcrow">¶</a></p>
+<p id="section-2-9"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
+them with a cryptographically secure random number generator. It is the only
+source of randomness in this document: every other value that has to be
+unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-9" class="pilcrow">¶</a></p>
+<p id="section-2-10">String values in monospace and quotes, such as <code>"Challenge"</code>, are ASCII string
+literals and do not include a terminating NUL byte.<a href="#section-2-10" class="pilcrow">¶</a></p>
+<p id="section-2-11">All algorithms are laid out in Python-like pseudocode. Each algorithm takes a
+set of inputs and parameters and produces a set of outputs. Parameters become
+constant values once the ciphersuite is fixed. An algorithm that can fail
+raises an error; the errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="preliminaries">
+<section id="section-3">
+      <h2 id="name-preliminaries">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
+      </h2>
+<p id="section-3-1">The construction has two dependencies:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-2">
+        <dt id="section-3-2.1">Group:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.2">
+          <p id="section-3-2.2.1">A prime-order group implementing the interface in <a href="#group" class="auto internal xref">Section 3.1</a>. <a href="#ciphersuites" class="auto internal xref">Section 7</a>
+gives concrete instances.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.3">Hash:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.4">
+          <p id="section-3-2.4.1">A cryptographic hash function whose output length is <code>Nh</code> bytes.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<div id="group">
+<section id="section-3.1">
+        <h3 id="name-prime-order-group">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prime-order-group" class="section-name selfRef">Prime-Order Group</a>
+        </h3>
+<p id="section-3.1-1">This document uses an additive, prime-order group, denoted <code>G</code>, of order <code>p</code>,
+as described in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. The types <code>Element</code> and <code>Scalar</code>
+denote elements of the group and of its scalar field respectively. Group
+elements are added with <code>+</code> and subtracted with <code>-</code>; scalar multiplication of
+an <code>Element</code> <code>A</code> by a <code>Scalar</code> <code>r</code> is written <code>r * A</code>. Scalars are added,
+subtracted, and multiplied modulo <code>p</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">The following member functions are used. Except where noted, they are as
+defined in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-3">
+          <dt id="section-3.1-3.1">Order():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.2">
+            <p id="section-3.1-3.2.1">Outputs the order <code>p</code> of the group.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.3">Identity():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.4">
+            <p id="section-3.1-3.4.1">Outputs the identity element of the group.<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.5">Generator():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.6">
+            <p id="section-3.1-3.6.1">Outputs the generator element <code>B</code> of the group.<a href="#section-3.1-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.7">ScalarMultGen(r):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.8">
+            <p id="section-3.1-3.8.1">Outputs <code>r * B</code>, where <code>B</code> is the group generator.<a href="#section-3.1-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.9">HashToGroup(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.10">
+            <p id="section-3.1-3.10.1">Deterministically maps a byte string <code>x</code> to an <code>Element</code>. Parameterized by a
+domain separation tag (DST); see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.11">HashToScalar(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.12">
+            <p id="section-3.1-3.12.1">Deterministically maps a byte string <code>x</code> to a <code>Scalar</code>. Parameterized by a
+DST; see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.13">ScalarInverse(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.14">
+            <p id="section-3.1-3.14.1">Outputs the multiplicative inverse of the nonzero <code>Scalar</code> <code>s</code> modulo <code>p</code>.<a href="#section-3.1-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.15">SerializeElement(A):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.16">
+            <p id="section-3.1-3.16.1">Maps an <code>Element</code> <code>A</code> to a canonical byte string of fixed length <code>Ne</code>.<a href="#section-3.1-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.17">DeserializeElement(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.18">
+            <p id="section-3.1-3.18.1">Attempts to map a byte string <code>buf</code> to an <code>Element</code>. Raises a
+<code>DeserializeError</code> if <code>buf</code> is not the canonical encoding of a group element,
+or if it encodes the identity element.<a href="#section-3.1-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.19">SerializeScalar(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.20">
+            <p id="section-3.1-3.20.1">Maps a <code>Scalar</code> <code>s</code> to a canonical byte string of fixed length <code>Ns</code>.<a href="#section-3.1-3.20.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.1-3.21">DeserializeScalar(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-3.22">
+            <p id="section-3.1-3.22.1">Attempts to map a byte string <code>buf</code> to a <code>Scalar</code>. Raises a
+<code>DeserializeError</code> if <code>buf</code> does not encode a <code>Scalar</code> in the range
+<code>[0, p-1]</code>.<a href="#section-3.1-3.22.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.1-4">This document does not use the <code>RandomScalar()</code> member of
+<span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Every scalar that has to be unpredictable is instead
+obtained from <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which is deterministic in a
+random seed. This makes each algorithm reproducible from the seed it is given,
+which is what allows the test vectors of <a href="#test-vectors" class="auto internal xref">Appendix A</a> to pin the randomness
+of an otherwise randomized protocol.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="errors">
+<section id="section-3.2">
+        <h3 id="name-errors">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-errors" class="section-name selfRef">Errors</a>
+        </h3>
+<p id="section-3.2-1">The following errors are used.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.2-2">
+          <dt id="section-3.2-2.1">DeserializeError:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">A received byte string is not a valid encoding of the expected type.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-2.3">VerifyError:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.4">
+            <p id="section-3.2-2.4.1">A received value failed a verification check.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-2.5">SessionError:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.6">
+            <p id="section-3.2-2.6.1">A message was received for a session that is not in the expected state.<a href="#section-3.2-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-3.2-2.7">DeriveError:</dt>
+          <dd style="margin-left: 1.5em" id="section-3.2-2.8">
+            <p id="section-3.2-2.8.1">A deterministic derivation from a seed failed to produce a usable value. See
+<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>.<a href="#section-3.2-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+<p id="section-3.2-3">An implementation that raises an error <span class="bcp14">MUST</span> abort the protocol run. Errors are
+fatal to the affected session; see <a href="#sessions" class="auto internal xref">Section 5.7</a>.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="scheme">
+<section id="section-4">
+      <h2 id="name-the-endorsement-scheme">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-the-endorsement-scheme" class="section-name selfRef">The Endorsement Scheme</a>
+      </h2>
+<p id="section-4-1">Issuance is a three-move protocol between a Client and an Anchor, followed by a
+local finalization step at the Client. The Anchor moves first and holds
+per-session state between its two moves.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<span id="name-endorsement-issuance-overvi"></span><div id="fig-issuance">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-4-2.1">
+<pre>
+   Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
+ ---------------------------------------------------------------------
+                               state, commitment = Commit(skA, ctx_iss)
+
+                             commitment
+                              &lt;--------
+
+   state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
+
+                              challenge
+                              --------&gt;
+
+                          response = Respond(skA, state, challenge)
+
+                              response
+                              &lt;--------
+
+   endorsement = Finalize(pkA, state, response)
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-endorsement-issuance-overvi" class="selfRef">Endorsement issuance overview</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-3">The Anchor speaks first. This document does not say how the three messages are
+carried, nor how a Client that wants an Endorsement reaches an Anchor in the
+first place; both are the business of the transport, and a Client will in
+general have to signal its intent by some means that carries no protocol data.
+For example, over HTTP a Client might ask for issuance in a request with an
+empty body, receive the commitment in the response, send the challenge in a
+second request, and receive the response in the reply to that. <a href="#wire" class="auto internal xref">Section 5.6</a>
+specifies the encoding of the three messages and their mapping onto the
+exchanges of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">Neither context is carried in these messages. Both parties already hold the
+issuance context, having agreed on it out of band; the redemption context is
+known only to the Client.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The Client's output is an Endorsement that is publicly verifiable under the
+Anchor's public key <code>pkA</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>). The Anchor learns neither the nullifier
+nor the redemption context bound into it, and cannot link the Endorsement to
+the session that produced it.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<div id="config">
+<section id="section-4.1">
+        <h3 id="name-configuration-and-protocol-">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-configuration-and-protocol-" class="section-name selfRef">Configuration and Protocol Context</a>
+        </h3>
+<p id="section-4.1-1">A ciphersuite (<a href="#ciphersuites" class="auto internal xref">Section 7</a>) is identified by an ASCII string
+<code>identifier</code>. Both parties <span class="bcp14">MUST</span> agree on the ciphersuite before running the
+protocol; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> describes how this agreement is reached.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<p id="section-4.1-2">The <em>protocol context</em>, written <code>ctx_proto</code>, is the domain separation tag that
+this document derives from that identifier:<a href="#section-4.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-3">
+<pre>
+def CreateProtocolContext(identifier):
+  return "IHATv1-" || identifier
+</pre><a href="#section-4.1-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-4">Throughout the remainder of this document, <code>ctx_proto</code> denotes the output of
+<code>CreateProtocolContext</code> for the ciphersuite in use. It is distinct from the
+issuance and redemption contexts of <a href="#context-binding" class="auto internal xref">Section 4.4</a>: those are inputs to
+the protocol, chosen by its participants, whereas <code>ctx_proto</code> is fixed by the
+ciphersuite.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">Every hash this document computes is domain-separated by <code>ctx_proto</code>, which it
+carries in its DST rather than in its input: <code>HashToGroup</code> and <code>HashToScalar</code>
+are so parameterized (<a href="#ciphersuites" class="auto internal xref">Section 7</a>), and so is <code>DeriveScalar</code>
+(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). Every algorithm below therefore depends on <code>ctx_proto</code>,
+including those in which it does not appear explicitly, and a value produced
+under one ciphersuite does not verify under another. Each algorithm lists
+<code>ctx_proto</code> among its parameters where it has this dependence.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="derive-scalar">
+<section id="section-4.2">
+        <h3 id="name-deriving-scalars">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
+        </h3>
+<p id="section-4.2-1">Scalars that have to be unpredictable are not sampled directly. They are
+derived from a random seed, so that an algorithm is a deterministic function of
+the seed it is given:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">Input:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2-3">
+<pre>
+  opaque seed[Nseed]
+  PublicInput info
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-4">Output:<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2-5">
+<pre>
+  Scalar s
+</pre><a href="#section-4.2-5" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-6">Parameters:<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2-7">
+<pre>
+  Group G
+  PublicInput ctx_proto
+</pre><a href="#section-4.2-7" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-8">Errors: <code>DeriveError</code><a href="#section-4.2-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2-9">
+<pre>
+def DeriveScalar(seed, info):
+  derive_input = seed || I2OSP(len(info), 2) || info
+  counter = 0
+  s = 0
+
+  while s == 0:
+    if counter &gt; 255:
+      raise DeriveError
+    s = G.HashToScalar(derive_input || I2OSP(counter, 1),
+                       DST = "DeriveScalar-" || ctx_proto)
+    counter = counter + 1
+
+  return s
+</pre><a href="#section-4.2-9" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-10">The output is never zero, so a caller that needs a nonzero scalar needs no
+further check. The loop terminates after one iteration except with probability
+approximately <code>1/p</code>, and <code>DeriveError</code> is raised only if 256 consecutive
+iterations yield zero; neither is expected to be observed.<a href="#section-4.2-10" class="pilcrow">¶</a></p>
+<p id="section-4.2-11">A seed <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of <code>random</code> output, and <span class="bcp14">MUST NOT</span> be used for more
+than one derivation. An algorithm that needs several scalars therefore draws
+<code>Nseed</code> bytes for each of them, and additionally separates them by <code>info</code>.
+<code>Nseed</code> is larger than <code>Ns</code> (<a href="#ciphersuites" class="auto internal xref">Section 7</a>) so that the derived scalar is
+statistically close to uniform rather than merely unpredictable; deriving
+several scalars from one seed instead would cap their joint entropy at the
+length of that seed, which the unlinkability argument of
+<a href="#security-considerations" class="auto internal xref">Section 8</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 7.3</a>.<a href="#section-4.2-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="keygen">
+<section id="section-4.3">
+        <h3 id="name-key-generation">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
+        </h3>
+<p id="section-4.3-1">An Anchor holds a key pair <code>(skA, pkA)</code>. It is derived from a seed, which is
+what allows the test vectors in <a href="#test-vectors" class="auto internal xref">Appendix A</a> to fix a key. The procedure is
+the key generation of <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Note that, by design, knowledge
+of both <code>seed</code> and <code>info</code> is required, so the secrecy of <code>skA</code> rests on the
+secrecy of <code>seed</code>; <code>info</code> is public.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<p id="section-4.3-2">Input:<a href="#section-4.3-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-3">
+<pre>
+  opaque seed[Nseed]
+  PublicInput info
+</pre><a href="#section-4.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-4">Output:<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-5">
+<pre>
+  Scalar skA
+  Element pkA
+</pre><a href="#section-4.3-5" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-6">Parameters:<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-7">
+<pre>
+  Group G
+  PublicInput ctx_proto
+</pre><a href="#section-4.3-7" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-8">Errors: <code>DeriveError</code><a href="#section-4.3-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-9">
+<pre>
+def DeriveKeyPair(seed, info):
+  skA = DeriveScalar(seed, info)
+  pkA = G.ScalarMultGen(skA)
+
+  return (skA, pkA)
+</pre><a href="#section-4.3-9" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-10">The derivation is the one <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> performs inline: hash
+<code>seed || I2OSP(len(info), 2) || info</code> together with a counter, rejecting zero
+(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). It differs only in its domain separation tag, which comes
+from the protocol context of this document rather than from an OPRF context
+string, and in the length of the seed.<a href="#section-4.3-10" class="pilcrow">¶</a></p>
+<p id="section-4.3-11">A fresh key pair is generated by deriving one from a random seed.<a href="#section-4.3-11" class="pilcrow">¶</a></p>
+<p id="section-4.3-12">Input:<a href="#section-4.3-12" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-13">
+<pre>
+  None
+</pre><a href="#section-4.3-13" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-14">Output:<a href="#section-4.3-14" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-15">
+<pre>
+  Scalar skA
+  Element pkA
+</pre><a href="#section-4.3-15" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-16">Parameters:<a href="#section-4.3-16" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-17">
+<pre>
+  Group G
+  PublicInput ctx_proto
+</pre><a href="#section-4.3-17" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-18">Errors: <code>DeriveError</code><a href="#section-4.3-18" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.3-19">
+<pre>
+def GenerateKeyPair():
+  seed = random(Nseed)
+
+  return DeriveKeyPair(seed, "GenerateKeyPair")
+</pre><a href="#section-4.3-19" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-20">The Anchor publishes <code>SerializeElement(pkA)</code> in its configuration; see
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4.3-20" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="context-binding">
+<section id="section-4.4">
+        <h3 id="name-context-binding">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-context-binding" class="section-name selfRef">Context Binding</a>
+        </h3>
+<p id="section-4.4-1">Each Endorsement is bound at issuance to two contexts, the issuance context and
+the redemption context, and a redemption succeeds only if the Client and the
+Moderator agree on both values. Both are opaque byte strings of at most
+<code>2^16 - 1</code> bytes, a bound that follows from the two-byte length prefixes used
+below. The two are bound by deliberately different means, reflecting who is
+trusted to choose each.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.4-2.1">
+            <p id="section-4.4-2.1.1"><strong>TODO.</strong> <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> is expected to fix what these two byte strings contain.
+Until then this document treats them as opaque, and the examples below are
+illustrative only, not normative.<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.4-3">The issuance context, written <code>ctx_iss</code>, restricts <em>when</em> an Endorsement may be
+redeemed; it might for example name the epoch the Endorsement was issued in.
+Both parties hold it. It is bound by deriving the second commitment base from
+it:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4-4">
+<pre>
+def CreateContextBase(ctx_iss):
+  context_base_input =
+    I2OSP(len(ctx_iss), 2) || ctx_iss ||
+    "ContextBase"
+
+  return G.HashToGroup(context_base_input)
+</pre><a href="#section-4.4-4" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-5">The Anchor forms its commitment under this base, and the base is recomputed at
+verification time. The Client and the Anchor <span class="bcp14">MUST</span> agree on the issuance context.
+Disagreement causes issuance to fail: a Client that uses any other value fails
+the commitment-opening check in <code>Finalize</code>. The binding is therefore enforced by
+the construction rather than by an explicit check, and a Client cannot bind an
+Endorsement to an issuance context of its own choosing.<a href="#section-4.4-5" class="pilcrow">¶</a></p>
+<p id="section-4.4-6">The redemption context, written <code>ctx_red</code>, restricts <em>where</em> an Endorsement
+may be redeemed: a redemption succeeds only under the value the Endorsement was
+issued under. It might for example identify the Moderator the Client intends to
+redeem at, in which case the Endorsement is redeemable at that Moderator and at
+no other. It is chosen by the Client and is hidden from the Anchor. It is bound
+by placing it, together with a fresh Client-chosen nullifier <code>nf</code> of <code>Nn = 32</code>
+bytes, in the signed message:<a href="#section-4.4-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.4-7">
+<pre>
+def Message(nf, ctx_red):
+  return I2OSP(len(nf), 2) || nf ||
+         I2OSP(len(ctx_red), 2) || ctx_red
+</pre><a href="#section-4.4-7" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4-8">A redemption under a different redemption context recomputes a different
+message, for which the Client holds no valid signature. Two consequences
+follow. A Client has to fix <code>ctx_red</code> before it runs <code>Challenge</code>, that is,
+before the Endorsement exists; and an Endorsement cannot afterwards be re-bound
+to another value, so a Client that needs to redeem under several redemption
+contexts needs a separate Endorsement, and so a separate issuance, for each.
+Anchors bound how many Endorsements they grant a given Client in order to keep
+Endorsements scarce (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>), so that budget is consumed per redemption
+context rather than per Client.<a href="#section-4.4-8" class="pilcrow">¶</a></p>
+<p id="section-4.4-9">The nullifier <code>nf</code> <span class="bcp14">MUST</span> be a fresh string of <code>Nn</code> uniformly random bytes,
+generated by the Client, and <span class="bcp14">MUST NOT</span> be reused across Endorsements. It is
+revealed at redemption, where the Moderator uses it to enforce that each
+Endorsement is redeemed at most once.<a href="#section-4.4-9" class="pilcrow">¶</a></p>
+<p id="section-4.4-10">The values the two contexts take determine the anonymity set a Client redeems
+in, and a deployment can destroy the unlinkability the construction provides
+without breaking any of its cryptographic properties; see
+<a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-4.4-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="issuance">
+<section id="section-5">
+      <h2 id="name-endorsement-issuance">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-endorsement-issuance" class="section-name selfRef">Endorsement Issuance</a>
+      </h2>
+<p id="section-5-1">Issuance produces a signature on the message <code>Message(nf, ctx_red)</code> relative to
+the public input <code>ctx_iss</code>. It consists of four algorithms, run in the order<a href="#section-5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5-2">
+<pre>
+  Commit -&gt; Challenge -&gt; Respond -&gt; Finalize
+</pre><a href="#section-5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5-3"><code>Commit</code> and <code>Respond</code> are run by the Anchor; <code>Challenge</code> and <code>Finalize</code> are
+run by the Client. Both parties input the issuance context <code>ctx_iss</code>; only the
+Client inputs the redemption context <code>ctx_red</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">Each of the first three algorithms outputs one protocol message, and the next
+algorithm takes that message as a single input. The messages are the
+<em>commitment</em>, the pair <code>(A, C)</code>; the <em>challenge</em>, a single scalar; and the
+<em>response</em>, the triple <code>(s, y, t)</code>. The types <code>Commitment</code> and <code>Response</code> denote
+the first and the last of these. The wire format of each message is defined in
+<a href="#wire" class="auto internal xref">Section 5.6</a>.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<p id="section-5-5">All four algorithms take the group <code>G</code> as a parameter, and all of them except
+<code>Respond</code>, which computes no hash, take the protocol context <code>ctx_proto</code>
+(<a href="#config" class="auto internal xref">Section 4.1</a>). Parameters are listed with each algorithm and are omitted from
+the argument lists in the pseudocode.<a href="#section-5-5" class="pilcrow">¶</a></p>
+<div id="commit">
+<section id="section-5.1">
+        <h3 id="name-anchor-commitment">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-anchor-commitment" class="section-name selfRef">Anchor Commitment</a>
+        </h3>
+<p id="section-5.1-1">The Anchor opens a session by committing to the values it will later reveal.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Input:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-3">
+<pre>
+  Scalar skA
+  PublicInput ctx_iss
+</pre><a href="#section-5.1-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-4">Output:<a href="#section-5.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-5">
+<pre>
+  AnchorState state
+  Commitment commitment
+</pre><a href="#section-5.1-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-6">Parameters:<a href="#section-5.1-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-7">
+<pre>
+  Group G
+  PublicInput ctx_proto
+  Nseed
+</pre><a href="#section-5.1-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-8">Errors: <code>DeriveError</code><a href="#section-5.1-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-9">
+<pre>
+def Commit(skA, ctx_iss):
+  Z = CreateContextBase(ctx_iss)
+
+  rand = random(3 * Nseed)
+  a = DeriveScalar(rand[0 .. Nseed], "a")
+  t = DeriveScalar(rand[Nseed .. 2 * Nseed], "t")
+  y = DeriveScalar(rand[2 * Nseed .. 3 * Nseed], "y")
+
+  A = G.ScalarMultGen(a)
+  C = G.ScalarMultGen(t) + y * Z
+
+  state = (a, y, t)
+  commitment = (A, C)
+
+  return state, commitment
+</pre><a href="#section-5.1-9" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-10">The Anchor stores <code>state</code> for the duration of the session and sends <code>commitment</code>
+to the Client in a <code>CommitMessage</code> (<a href="#wire" class="auto internal xref">Section 5.6</a>). Note that <code>skA</code> is not used in
+<code>Commit</code>; it appears in the interface because an implementation <span class="bcp14">MAY</span> choose to
+carry it in the session state rather than reload it in <code>Respond</code>.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+<p id="section-5.1-11"><code>Commit</code> draws all of its randomness in one call and splits it into one seed
+per scalar (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). A test vector fixes the single value <code>rand</code>;
+<code>y</code> is nonzero by construction.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="challenge">
+<section id="section-5.2">
+        <h3 id="name-client-challenge">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-client-challenge" class="section-name selfRef">Client Challenge</a>
+        </h3>
+<p id="section-5.2-1">The Client blinds the Anchor's commitment, derives the challenge over the
+blinded values, and returns the challenge in blinded form.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">Input:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-3">
+<pre>
+  Element pkA
+  PublicInput ctx_iss
+  PrivateInput ctx_red
+  Commitment commitment
+</pre><a href="#section-5.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-4">Output:<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-5">
+<pre>
+  ClientState state
+  Scalar challenge
+</pre><a href="#section-5.2-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-6">Parameters:<a href="#section-5.2-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-7">
+<pre>
+  Group G
+  PublicInput ctx_proto
+  Nn
+  Nseed
+</pre><a href="#section-5.2-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-8">Errors: <code>VerifyError</code>, <code>DeriveError</code><a href="#section-5.2-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-9">
+<pre>
+def Challenge(pkA, ctx_iss, ctx_red, commitment):
+  (A, C) = commitment
+
+  rand = random(Nn + 4 * Nseed)
+  nf = rand[0 .. Nn]
+  seeds = rand[Nn .. Nn + 4 * Nseed]
+
+  r1     = DeriveScalar(seeds[0 .. Nseed], "r1")
+  r2     = DeriveScalar(seeds[Nseed .. 2 * Nseed], "r2")
+  gamma1 = DeriveScalar(seeds[2 * Nseed .. 3 * Nseed], "gamma1")
+  gamma2 = DeriveScalar(seeds[3 * Nseed .. 4 * Nseed], "gamma2")
+
+  m = Message(nf, ctx_red)
+  gamma = gamma1 * G.ScalarInverse(gamma2)
+
+  blinded_A = G.ScalarMultGen(r1) + gamma * A
+  blinded_C = gamma1 * C + G.ScalarMultGen(r2)
+  blinded_commitment = (blinded_A, blinded_C)
+
+  c = ComputeChallenge(ctx_iss, blinded_commitment, m)
+  if c == 0:
+    raise VerifyError
+
+  challenge = c * gamma2
+
+  state = (nf, ctx_iss, ctx_red, commitment,
+           r1, r2, gamma1, gamma2, challenge, c)
+
+  return state, challenge
+</pre><a href="#section-5.2-9" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-10">As in <code>Commit</code>, all randomness is drawn in one call and split: the first <code>Nn</code>
+bytes are the nullifier, and the remaining <code>4 * Nseed</code> bytes are four seeds,
+one per blinding scalar. <code>ComputeChallenge</code> is as follows.<a href="#section-5.2-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.2-11">
+<pre>
+def ComputeChallenge(ctx_iss, commitment, m):
+  (A, C) = commitment
+
+  Am = G.SerializeElement(A)
+  Cm = G.SerializeElement(C)
+
+  challenge_transcript =
+    I2OSP(len(ctx_iss), 2) || ctx_iss ||
+    I2OSP(len(Am), 2) || Am ||
+    I2OSP(len(Cm), 2) || Cm ||
+    I2OSP(len(m), 2) || m ||
+    "Challenge"
+
+  c = G.HashToScalar(challenge_transcript)
+
+  return c
+</pre><a href="#section-5.2-11" class="pilcrow">¶</a>
+</div>
+<p id="section-5.2-12">Two challenge values appear here and it matters which is which. <code>c</code> is computed
+over the <em>blinded</em> commitment and is the value that ends up in the Endorsement
+(<a href="#finalize" class="auto internal xref">Section 5.4</a>); it never leaves the Client. The <code>challenge</code> message the Anchor
+receives is its blinded form <code>c * gamma2</code>, and the Anchor cannot recover <code>c</code>
+from it because <code>gamma2</code> is uniform and secret.<a href="#section-5.2-12" class="pilcrow">¶</a></p>
+<p id="section-5.2-13"><code>HashToScalar</code> can return zero, whereas the construction requires a nonzero
+challenge. <code>Challenge</code> therefore aborts in that case rather than resampling, so
+that the challenge remains a deterministic function of the transcript. The
+abort occurs with probability approximately <code>1/p</code> and is not expected to be
+observed in practice; see <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-5.2-13" class="pilcrow">¶</a></p>
+<p id="section-5.2-14">The Client sends <code>challenge</code> to the Anchor in a <code>ChallengeMessage</code> (<a href="#wire" class="auto internal xref">Section 5.6</a>)
+and retains <code>state</code>.<a href="#section-5.2-14" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="respond">
+<section id="section-5.3">
+        <h3 id="name-anchor-response">
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-anchor-response" class="section-name selfRef">Anchor Response</a>
+        </h3>
+<p id="section-5.3-1">The Anchor answers the challenge and closes the session.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">Input:<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3-3">
+<pre>
+  Scalar skA
+  AnchorState state
+  Scalar challenge
+</pre><a href="#section-5.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3-4">Output:<a href="#section-5.3-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3-5">
+<pre>
+  Response response
+</pre><a href="#section-5.3-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3-6">Errors: <code>VerifyError</code>, <code>SessionError</code><a href="#section-5.3-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.3-7">
+<pre>
+def Respond(skA, state, challenge):
+  (a, y, t) = state
+
+  if challenge == 0:
+    raise VerifyError
+
+  s = a + challenge * y * skA
+  response = (s, y, t)
+
+  return response
+</pre><a href="#section-5.3-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.3-8">An Anchor <span class="bcp14">MUST</span> call <code>Respond</code> at most once per session state produced by
+<code>Commit</code>, and <span class="bcp14">MUST</span> destroy that state immediately afterwards. Answering two
+distinct challenges on the same state discloses the signing key: from
+<code>s1 = a + c1 * y * skA</code> and <code>s2 = a + c2 * y * skA</code> with <code>c1 != c2</code>, and <code>y</code>
+revealed in the response, an attacker recovers
+<code>skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)</code>. An Anchor that receives a
+second <code>ChallengeMessage</code> for a session it has already answered <span class="bcp14">MUST</span> raise a
+<code>SessionError</code> and <span class="bcp14">MUST NOT</span> compute a response.<a href="#section-5.3-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="finalize">
+<section id="section-5.4">
+        <h3 id="name-client-finalization">
+<a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-client-finalization" class="section-name selfRef">Client Finalization</a>
+        </h3>
+<p id="section-5.4-1">The Client checks the Anchor's response and unblinds it into an Endorsement.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">Input:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-3">
+<pre>
+  Element pkA
+  ClientState state
+  Response response
+</pre><a href="#section-5.4-3" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-4">Output:<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-5">
+<pre>
+  Endorsement endorsement
+</pre><a href="#section-5.4-5" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-6">Parameters:<a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-7">
+<pre>
+  Group G
+  PublicInput ctx_proto
+</pre><a href="#section-5.4-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-8">Errors: <code>VerifyError</code><a href="#section-5.4-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-9">
+<pre>
+def Finalize(pkA, state, response):
+  (nf, ctx_iss, ctx_red, commitment,
+   r1, r2, gamma1, gamma2, challenge, c) = state
+  (A, C) = commitment
+  (s, y, t) = response
+
+  Z = CreateContextBase(ctx_iss)
+
+  if y == 0:
+    raise VerifyError
+  if C != G.ScalarMultGen(t) + y * Z:
+    raise VerifyError
+  if G.ScalarMultGen(s) != A + (challenge * y) * pkA:
+    raise VerifyError
+
+  gamma = gamma1 * G.ScalarInverse(gamma2)
+
+  s_final = gamma * s + r1
+  y_final = gamma1 * y
+  t_final = gamma1 * t + r2
+
+  return Endorsement(c, s_final, y_final, t_final, nf)
+</pre><a href="#section-5.4-9" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-10">The three checks verify that the Anchor opened its commitment honestly and
+answered the challenge under its published key. A Client whose <code>Finalize</code>
+raises an error <span class="bcp14">MUST</span> discard the session state and <span class="bcp14">MUST NOT</span> retry the exchange
+with the same state; it may start a fresh session.<a href="#section-5.4-10" class="pilcrow">¶</a></p>
+<p id="section-5.4-11">An Endorsement consists of the signature <code>(c, s, y, t)</code> together with the
+nullifier; its encoding is given in <a href="#endorsement-encoding" class="auto internal xref">Section 5.6.3</a>. The contexts it
+is bound to are not part of it. They are inputs to verification, supplied by
+the verifier, and a Client keeps its own copy of them for as long as it holds
+the Endorsement.<a href="#section-5.4-11" class="pilcrow">¶</a></p>
+<p id="section-5.4-12">The Endorsement is held privately by the Client until it is redeemed
+(<a href="#redemption" class="auto internal xref">Section 6</a>). The Anchor never sees it.<a href="#section-5.4-12" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="verify">
+<section id="section-5.5">
+        <h3 id="name-endorsement-verification">
+<a href="#section-5.5" class="section-number selfRef">5.5. </a><a href="#name-endorsement-verification" class="section-name selfRef">Endorsement Verification</a>
+        </h3>
+<p id="section-5.5-1">An Endorsement is publicly verifiable under the issuing Anchor's public key.
+Verification requires no interaction with the Anchor and no pairing.<a href="#section-5.5-1" class="pilcrow">¶</a></p>
+<p id="section-5.5-2">The two contexts are inputs to <code>Verify</code>, not fields of the Endorsement. A
+verifier therefore states the pair it is willing to accept and learns whether
+the Endorsement was issued under it, rather than being told by the Client which
+pair to check against.<a href="#section-5.5-2" class="pilcrow">¶</a></p>
+<p id="section-5.5-3">Input:<a href="#section-5.5-3" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.5-4">
+<pre>
+  Element pkA
+  Endorsement endorsement
+  PublicInput ctx_iss
+  PublicInput ctx_red
+</pre><a href="#section-5.5-4" class="pilcrow">¶</a>
+</div>
+<p id="section-5.5-5">Output:<a href="#section-5.5-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.5-6">
+<pre>
+  boolean verified
+</pre><a href="#section-5.5-6" class="pilcrow">¶</a>
+</div>
+<p id="section-5.5-7">Parameters:<a href="#section-5.5-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.5-8">
+<pre>
+  Group G
+  PublicInput ctx_proto
+</pre><a href="#section-5.5-8" class="pilcrow">¶</a>
+</div>
+<div class="alignLeft art-text artwork" id="section-5.5-9">
+<pre>
+def Verify(pkA, endorsement, ctx_iss, ctx_red):
+  (c, s, y, t, nf) = endorsement
+
+  if y == 0 or c == 0:
+    return false
+
+  Z = CreateContextBase(ctx_iss)
+  m = Message(nf, ctx_red)
+
+  C = G.ScalarMultGen(t) + y * Z
+  A = G.ScalarMultGen(s) - (c * y) * pkA
+  commitment = (A, C)
+
+  return c == ComputeChallenge(ctx_iss, commitment, m)
+</pre><a href="#section-5.5-9" class="pilcrow">¶</a>
+</div>
+<p id="section-5.5-10"><code>Verify</code> is stated here for completeness and for use in test vectors. A
+Moderator does not call it directly: a redemption does not reveal which Anchor
+issued the Endorsement, so the check is instead carried out under an
+issuer-hiding proof (<a href="#redemption" class="auto internal xref">Section 6</a>). The Client <span class="bcp14">MUST NOT</span> reveal the Anchor's
+public key to the Moderator.<a href="#section-5.5-10" class="pilcrow">¶</a></p>
+<p id="section-5.5-11">An honestly produced Endorsement always verifies. Writing <code>gamma</code> for
+<code>gamma1 * ScalarInverse(gamma2)</code>, and <code>A_anchor</code> and <code>C_anchor</code> for the two
+elements of the Anchor's commitment, the commitment reconstructed by <code>Verify</code> is
+exactly the blinded commitment the Client hashed in <code>Challenge</code>:<a href="#section-5.5-11" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.5-12">
+<pre>
+  C = t_final * B + y_final * Z
+    = gamma1 * (t * B + y * Z) + r2 * B
+    = gamma1 * C_anchor + r2 * B
+    = blinded_C
+
+  A = s_final * B - (c * y_final) * pkA
+    = (gamma * s + r1) * B - (c * gamma1 * y) * pkA
+    = r1 * B + gamma * A_anchor
+    = blinded_A
+</pre><a href="#section-5.5-12" class="pilcrow">¶</a>
+</div>
+<p id="section-5.5-13">where the last step uses <code>s = a + challenge * y * skA</code> and
+<code>challenge = c * gamma2</code>, so that the two terms in <code>skA</code> cancel.<a href="#section-5.5-13" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="wire">
+<section id="section-5.6">
+        <h3 id="name-encodings">
+<a href="#section-5.6" class="section-number selfRef">5.6. </a><a href="#name-encodings" class="section-name selfRef">Encodings</a>
+        </h3>
+<p id="section-5.6-1">This section gives the encoding of the three messages exchanged during
+issuance, of the session identifier that correlates them, and of the
+Endorsement they produce.<a href="#section-5.6-1" class="pilcrow">¶</a></p>
+<p id="section-5.6-2"><code>Element</code> and <code>Scalar</code> are the fixed-length encodings produced by
+<code>SerializeElement</code> and <code>SerializeScalar</code>, of <code>Ne</code> and <code>Ns</code> bytes respectively.
+A recipient <span class="bcp14">MUST</span> deserialize every received <code>Element</code> and <code>Scalar</code>, and <span class="bcp14">MUST</span>
+abort the session with a <code>DeserializeError</code> if deserialization fails. In
+particular, deserializing an <code>Element</code> rejects the group identity element.<a href="#section-5.6-2" class="pilcrow">¶</a></p>
+<div id="issuance-messages">
+<section id="section-5.6.1">
+          <h4 id="name-issuance-messages">
+<a href="#section-5.6.1" class="section-number selfRef">5.6.1. </a><a href="#name-issuance-messages" class="section-name selfRef">Issuance Messages</a>
+          </h4>
+<p id="section-5.6.1-1">The three messages exchanged during issuance are carried in the
+<code>EndorsementRequest</code> and <code>EndorsementResponse</code> bodies defined in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>,
+whose transport is HTTP.<a href="#section-5.6.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.6.1-2">Issuance has three messages, but the Anchor sends the first of them, and HTTP is
+client-initiated. The Client therefore opens the session with a request whose
+<code>body</code> is <strong>empty</strong>: it is a trigger, not a protocol message, and the three moves
+of <a href="#scheme" class="auto internal xref">Section 4</a> are executed after it. The "Exchanges" field of the IHAT
+registration in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> counts HTTP exchanges, of which there are still
+two. Neither context appears on the wire (<a href="#context-binding" class="auto internal xref">Section 4.4</a>).<a href="#section-5.6.1-2" class="pilcrow">¶</a></p>
+<span id="name-mapping-of-the-three-issuan"></span><table class="center" id="table-1">
+            <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-mapping-of-the-three-issuan" class="selfRef">Mapping of the three issuance messages onto the two HTTP exchanges</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Exchange</th>
+                <th class="text-left" rowspan="1" colspan="1">Request body</th>
+                <th class="text-left" rowspan="1" colspan="1">Response body</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">1</td>
+                <td class="text-left" rowspan="1" colspan="1">empty</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>CommitMessage</code>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">2</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>ChallengeMessage</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>ResponseMessage</code>
+</td>
+              </tr>
+            </tbody>
+          </table>
+<p id="section-5.6.1-4">An Anchor <span class="bcp14">MUST</span> reject a first request whose <code>body</code> is non-empty. There is
+nothing for a Client to say in it, and accepting Client-supplied bytes there
+would invite a Client to try to influence the issuance context.<a href="#section-5.6.1-4" class="pilcrow">¶</a></p>
+<p id="section-5.6.1-5">The Anchor opens the session with its commitment, whose two elements are carried
+as separate fields:<a href="#section-5.6.1-5" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.6.1-6">
+<pre>
+struct {
+  opaque session_id&lt;V&gt;;
+  Element A;
+  Element C;
+} CommitMessage;
+</pre><a href="#section-5.6.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-5.6.1-7">The Client replies with the blinded challenge, echoing the session identifier:<a href="#section-5.6.1-7" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.6.1-8">
+<pre>
+struct {
+  opaque session_id&lt;V&gt;;
+  Scalar challenge;
+} ChallengeMessage;
+</pre><a href="#section-5.6.1-8" class="pilcrow">¶</a>
+</div>
+<p id="section-5.6.1-9">The Anchor replies with its response, which closes the session:<a href="#section-5.6.1-9" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.6.1-10">
+<pre>
+struct {
+  Scalar s;
+  Scalar y;
+  Scalar t;
+} ResponseMessage;
+</pre><a href="#section-5.6.1-10" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="session-id">
+<section id="section-5.6.2">
+          <h4 id="name-session-identifier">
+<a href="#section-5.6.2" class="section-number selfRef">5.6.2. </a><a href="#name-session-identifier" class="section-name selfRef">Session Identifier</a>
+          </h4>
+<p id="section-5.6.2-1">The Anchor holds secret state between its two moves (<a href="#sessions" class="auto internal xref">Section 5.7</a>), so the two
+exchanges have to be correlated. <code>session_id</code> does that. It is generated by
+the Anchor, opaque to the Client, and echoed unmodified in <code>ChallengeMessage</code>.<a href="#section-5.6.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.6.2-2">An Anchor <span class="bcp14">MUST NOT</span> have two open sessions with the same <code>session_id</code>, and <span class="bcp14">SHOULD</span>
+generate it with a cryptographically secure random number generator so that a
+Client cannot guess, and so collide with, another Client's session. An Anchor
+that receives a <code>ChallengeMessage</code> whose <code>session_id</code> does not correspond to one
+of its open sessions <span class="bcp14">MUST</span> raise a <code>SessionError</code>.<a href="#section-5.6.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.6.2-3">The session identifier <span class="bcp14">MUST NOT</span> be bound into the challenge transcript, and it is
+not an input to any algorithm in <a href="#issuance" class="auto internal xref">Section 5</a>. It is a value the Anchor chose and
+therefore recognises; anything the Anchor recognises that also reached the
+Endorsement would let it link a redemption back to the issuance session, which is
+exactly the property the construction exists to prevent. It is transport
+bookkeeping only.<a href="#section-5.6.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.6.2-4">Correlating by connection reuse instead was considered and is not specified. It
+does not survive deployments in which the Client has no stable connection to the
+Anchor, including the use of Oblivious HTTP, which <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> contemplates.<a href="#section-5.6.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="endorsement-encoding">
+<section id="section-5.6.3">
+          <h4 id="name-endorsement">
+<a href="#section-5.6.3" class="section-number selfRef">5.6.3. </a><a href="#name-endorsement" class="section-name selfRef">Endorsement</a>
+          </h4>
+<p id="section-5.6.3-1">The output of <code>Finalize</code> is encoded as follows.<a href="#section-5.6.3-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.6.3-2">
+<pre>
+struct {
+  Scalar c;
+  Scalar s;
+  Scalar y;
+  Scalar t;
+  opaque nf[Nn];
+} Endorsement;
+</pre><a href="#section-5.6.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.6.3-3">This structure is never sent to an Anchor. The Client holds it until it is
+redeemed, and <a href="#redemption" class="auto internal xref">Section 6</a> defines what is sent to a Moderator then. The
+issuance and redemption contexts are not carried in it: they are inputs to
+<code>Verify</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>) and to redemption, held by the verifier.<a href="#section-5.6.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="sessions">
+<section id="section-5.7">
+        <h3 id="name-session-handling">
+<a href="#section-5.7" class="section-number selfRef">5.7. </a><a href="#name-session-handling" class="section-name selfRef">Session Handling</a>
+        </h3>
+<p id="section-5.7-1">An Anchor is stateful: it holds the secret state produced by <code>Commit</code> from the
+moment it sends <code>CommitMessage</code> until it answers or discards the session. That
+state is single-use; see <a href="#respond" class="auto internal xref">Section 5.3</a> and <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-5.7-1" class="pilcrow">¶</a></p>
+<p id="section-5.7-2">An Anchor <span class="bcp14">SHOULD</span> bound both the number of concurrent open sessions per Client
+and the lifetime of an open session, and <span class="bcp14">SHOULD</span> discard state for sessions that
+are not completed within that lifetime. Discarding state early is always safe:
+it causes the Client's <code>Finalize</code> to be unreachable, but cannot produce an
+invalid Endorsement.<a href="#section-5.7-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="redemption">
+<section id="section-6">
+      <h2 id="name-endorsement-redemption">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-endorsement-redemption" class="section-name selfRef">Endorsement Redemption</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-1.1">
+          <p id="section-6-1.1.1"><strong>TODO.</strong> This section is not yet written. It will specify how a Client
+redeems an Endorsement at a Moderator, that is, the <code>Present</code> and <code>Verify</code>
+functions that <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> refers to. This document calls the operation
+<em>redemption</em>, following <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>, which reserves <em>Presentation</em> for the
+Credential flow; the message a Client sends is nonetheless the <code>Presentation</code>
+of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. It needs to cover at least:<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-1.1.2.1">
+              <p id="section-6-1.1.2.1.1"><em>Issuer hiding.</em> The construction above is verifiable under a single
+Anchor key, so redeeming it as-is would reveal the issuing Anchor. The
+intended approach is for the Client to present the signature under a
+rerandomized key and prove, in zero knowledge, that the rerandomized key
+corresponds to some key in the Moderator's Anchor Set: a 1-of-n OR proof
+composed from Sigma protocols <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>. The Anchor Set is ordered, and
+proof branches are matched to keys by position (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-1.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-1.1.2.2">
+              <p id="section-6-1.1.2.2.1"><em>Challenge binding.</em> <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> requires that a redemption be bound to
+the <code>challenge_digest</code> of the challenge that triggered it, and that
+verification fail under any other digest. Note that this <code>challenge</code> is the
+Moderator's, and is unrelated to the issuance challenge of <a href="#challenge" class="auto internal xref">Section 5.2</a>.<a href="#section-6-1.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-1.1.2.3">
+              <p id="section-6-1.1.2.3.1"><em>What the Moderator learns.</em> Both contexts are inputs to verification
+(<a href="#verify" class="auto internal xref">Section 5.5</a>), so a Moderator states the pair it accepts rather than being
+told it by the Client; a Client whose Endorsement was issued under any other
+pair simply fails. The redemption reveals <code>nf</code>, which the Moderator checks
+it has not seen before.<a href="#section-6-1.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</li>
+      </ul>
+</section>
+</div>
+<div id="ciphersuites">
+<section id="section-7">
+      <h2 id="name-ciphersuites">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
+      </h2>
+<p id="section-7-1">A ciphersuite fixes the group, the hash functions, and the associated encodings
+and domain separation tags. Both parties are assumed to agree on the
+ciphersuite in use (<a href="#config" class="auto internal xref">Section 4.1</a>).<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">For each ciphersuite, <code>ctx_proto</code> is as computed in <a href="#config" class="auto internal xref">Section 4.1</a>. The nullifier
+length is <code>Nn = 32</code> bytes and the seed length is <code>Nseed = Ns + 16</code> bytes, that
+is 48 bytes, for both ciphersuites below. The 16 bytes in excess of <code>Ns</code> are
+what makes a derived scalar statistically close to uniform (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>),
+on the same grounds that <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> oversamples by 128 bits when it maps a
+byte string to a field element.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<div id="ihatp-256-sha-256">
+<section id="section-7.1">
+        <h3 id="name-ihatp-256-sha-256">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-ihatp-256-sha-256" class="section-name selfRef">IHAT(P-256, SHA-256)</a>
+        </h3>
+<p id="section-7.1-1">This ciphersuite uses P-256 (secp256r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span> for the group and
+SHA-256 for the hash function, with <code>Nh = 32</code>. The value of the ciphersuite
+identifier is <code>"P256-SHA256"</code>.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">The interface of <a href="#group" class="auto internal xref">Section 3.1</a> is instantiated as follows.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.1-3">
+          <dt id="section-7.1-3.1">Order():</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.2">
+            <p id="section-7.1-3.2.1">Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-7.1-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.3">Identity(), Generator(), ScalarMultGen(r):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.4">
+            <p id="section-7.1-3.4.1">As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-7.1-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.5">HashToGroup(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.6">
+            <p id="section-7.1-3.6.1">Use <code>hash_to_curve</code> with suite <code>P256_XMD:SHA-256_SSWU_RO_</code> <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> and
+<code>DST = "HashToGroup-" || ctx_proto</code>.<a href="#section-7.1-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.7">HashToScalar(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.8">
+            <p id="section-7.1-3.8.1">Use <code>hash_to_field</code> from <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> with <code>L = 48</code>, <code>expand_message_xmd</code>
+with SHA-256, <code>DST = "HashToScalar-" || ctx_proto</code>, and a prime modulus
+equal to <code>Order()</code>.<a href="#section-7.1-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.9">ScalarInverse(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.10">
+            <p id="section-7.1-3.10.1">The multiplicative inverse of <code>s</code> modulo <code>Order()</code>.<a href="#section-7.1-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.11">SerializeElement(A):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.12">
+            <p id="section-7.1-3.12.1">The compressed Elliptic-Curve-Point-to-Octet-String method of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>;
+<code>Ne = 33</code>.<a href="#section-7.1-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.13">DeserializeElement(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.14">
+            <p id="section-7.1-3.14.1">Deserialize a 33-byte input using the compressed
+Octet-String-to-Elliptic-Curve-Point method of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>, then perform partial
+public key validation as in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-4.3" class="relref">Section 4.3</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. This includes checking
+that the coordinates are in range, that the point is on the curve, and that
+the point is not the identity element. Raise a <code>DeserializeError</code> if any
+check fails.<a href="#section-7.1-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.15">SerializeScalar(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.16">
+            <p id="section-7.1-3.16.1">The Field-Element-to-Octet-String conversion of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; <code>Ns = 32</code>.<a href="#section-7.1-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.17">DeserializeScalar(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.18">
+            <p id="section-7.1-3.18.1">Deserialize a 32-byte input using Octet-String-to-Field-Element from
+<span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. Raise a <code>DeserializeError</code> if the result is not in
+<code>[0, Order()-1]</code>.<a href="#section-7.1-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="ihatristretto255-sha-512">
+<section id="section-7.2">
+        <h3 id="name-ihatristretto255-sha-512">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-ihatristretto255-sha-512" class="section-name selfRef">IHAT(ristretto255, SHA-512)</a>
+        </h3>
+<p id="section-7.2-1">This ciphersuite uses ristretto255 <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span> for the group and SHA-512 for
+the hash function, with <code>Nh = 64</code>. The value of the ciphersuite identifier is
+<code>"ristretto255-SHA512"</code>.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">The interface of <a href="#group" class="auto internal xref">Section 3.1</a> is instantiated as follows.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-7.2-3">
+          <dt id="section-7.2-3.1">Order():</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.2">
+            <p id="section-7.2-3.2.1">Return 2^252 + 27742317777372353535851937790883648493, as defined in
+<span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-7.2-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.3">Identity(), Generator(), ScalarMultGen(r):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.4">
+            <p id="section-7.2-3.4.1">As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-7.2-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.5">HashToGroup(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.6">
+            <p id="section-7.2-3.6.1">Use <code>hash_to_ristretto255</code> <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> with
+<code>DST = "HashToGroup-" || ctx_proto</code> and <code>expand_message_xmd</code> using
+SHA-512.<a href="#section-7.2-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.7">HashToScalar(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.8">
+            <p id="section-7.2-3.8.1">Compute <code>uniform_bytes</code> using <code>expand_message_xmd</code> with SHA-512,
+<code>DST = "HashToScalar-" || ctx_proto</code>, and an output length of 64 bytes;
+interpret <code>uniform_bytes</code> as a 512-bit integer in little-endian order and
+reduce it modulo <code>Order()</code>.<a href="#section-7.2-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.9">ScalarInverse(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.10">
+            <p id="section-7.2-3.10.1">The multiplicative inverse of <code>s</code> modulo <code>Order()</code>.<a href="#section-7.2-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.11">SerializeElement(A):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.12">
+            <p id="section-7.2-3.12.1">The <code>Encode</code> function of <span><a href="https://rfc-editor.org/rfc/rfc9496#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; <code>Ne = 32</code>.<a href="#section-7.2-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.13">DeserializeElement(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.14">
+            <p id="section-7.2-3.14.1">The <code>Decode</code> function of <span><a href="https://rfc-editor.org/rfc/rfc9496#section-4.3.1" class="relref">Section 4.3.1</a> of [<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>, additionally
+validating that the result is not the identity element. Raise a
+<code>DeserializeError</code> if any check fails.<a href="#section-7.2-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.15">SerializeScalar(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.16">
+            <p id="section-7.2-3.16.1">The little-endian 32-byte encoding of the <code>Scalar</code>, with the top three bits
+set to zero; <code>Ns = 32</code>.<a href="#section-7.2-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.17">DeserializeScalar(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.18">
+            <p id="section-7.2-3.18.1">Deserialize a <code>Scalar</code> from a little-endian 32-byte string. Raise a
+<code>DeserializeError</code> if the result is not in <code>[0, Order()-1]</code>; note that this
+requires the top three bits of the input to be zero.<a href="#section-7.2-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="randomness">
+<section id="section-7.3">
+        <h3 id="name-randomness">
+<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
+        </h3>
+<p id="section-7.3-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
+<code>random</code> and consumed by <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>); no scalar is
+sampled directly. Implementations <span class="bcp14">MUST</span> draw seeds with a cryptographically
+secure random number generator and <span class="bcp14">MUST NOT</span> reuse a seed across derivations.
+They <span class="bcp14">SHOULD</span> treat a seed as being as sensitive as the values derived from it,
+and <span class="bcp14">SHOULD</span> handle both in constant time: the seed drawn in <code>Commit</code> determines
+the Anchor's session state, and the seed drawn in <code>Challenge</code> determines the
+Client's blinding factors, so recovering either undoes the property that
+algorithm provides.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.3-2.1">
+            <p id="section-7.3-2.1.1"><strong>Editorial note.</strong> This document does not use the <code>RandomScalar()</code> member of
+<span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>'s group interface, and so does not have to resolve an inconsistency
+in it: <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> defines <code>RandomScalar()</code> as "Chooses at random
+a nonzero element in GF(p)", while each of its ciphersuites defines it as "a
+uniformly random Scalar in the range <code>[0, G.Order() - 1]</code>", which includes
+zero. <strong>TODO:</strong> report the inconsistency against <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-7.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-8">
+      <h2 id="name-security-considerations">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-8-1.1">
+          <p id="section-8-1.1.1"><strong>TODO.</strong> This section is a summary of the properties the construction is
+intended to provide and of the requirements implementations must meet. Formal
+statements, the corresponding reductions, and the treatment of endorsement
+redemption are not yet written.<a href="#section-8-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-8-2">The issuance protocol is the partially blind signature scheme of Tessaro and
+Zhu <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>, instantiated with the public input set to the issuance context.
+Its security is analysed in the random oracle model, and one-more
+unforgeability additionally in the algebraic group model under the discrete
+logarithm assumption. Notably, its concurrent security does not rely on the
+hardness of the ROS problem, which is broken in polynomial time, nor on the
+mROS problem, which admits sub-exponential attacks.<a href="#section-8-2" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-8-3">
+        <dt id="section-8-3.1">Blindness:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.2">
+          <p id="section-8-3.2.1">The Anchor's view of a session is the blinded challenge <code>c</code> alone. Because
+<code>gamma2</code> is uniform and nonzero, <code>c</code> is uniformly distributed and independent
+of the message and of the resulting signature. The scheme is perfectly blind
+<span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>, so an Anchor cannot link an Endorsement to the session that
+produced it, even with unbounded computation. This is what makes endorsement
+grants and redemptions unlinkable as required by <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>, including against
+an attacker with a quantum computer that records transcripts today.<a href="#section-8-3.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.3">Derived blinding factors:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.4">
+          <p id="section-8-3.4.1">Blindness is unconditional only if the blinding factors are. <code>Challenge</code>
+derives them from seeds rather than sampling them, so the guarantee is
+statistical rather than perfect: an Endorsement and a session are linkable
+by an adversary that can find a seed consistent with both. Two properties of
+<a href="#derive-scalar" class="auto internal xref">Section 4.2</a> keep the loss negligible. Each scalar gets its own seed, so
+a seed consistent with any given value exists with overwhelming probability
+and finding one therefore separates nothing; and each seed is <code>Ns + 16</code> bytes,
+so each derived scalar is within about <code>2^-128</code> of uniform. Deriving several
+scalars from one seed, or from a seed of <code>Ns</code> bytes, would break this: the
+blinding factors of a session would then be jointly determined by fewer bits
+than they contain, an exhaustive search over seeds would identify the one
+session consistent with a given Endorsement, and unlinkability would hold
+only against a bounded adversary. Implementations <span class="bcp14">MUST NOT</span> do either.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.5">One-more unforgeability:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.6">
+          <p id="section-8-3.6.1">A Client that completes <code>n</code> issuance sessions under a given issuance context
+cannot produce <code>n+1</code> distinct valid Endorsements under that context,
+regardless of how many sessions it has completed under <em>other</em> issuance
+contexts <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>. This is what allows a Moderator to conclude that an
+accepted Endorsement corresponds to exactly one grant by a trusted Anchor.<a href="#section-8-3.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.7">Single-use sessions:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.8">
+          <p id="section-8-3.8.1"><strong>Implementations <span class="bcp14">MUST</span> ensure that the session state produced by <code>Commit</code> is
+never used more than once.</strong> This requirement is load-bearing, not defensive.
+If an Anchor answers two distinct challenges <code>c1 != c2</code> on one <code>Commit</code> state,
+then from the two responses <code>s1 = a + c1*y*skA</code> and <code>s2 = a + c2*y*skA</code>, with
+<code>y</code> revealed in both, anyone recovers the signing key as
+<code>skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)</code>. The requirement extends to
+process restarts, to replicas sharing a signing key, and to any retry or
+replay of a <code>ChallengeMessage</code>: an Anchor <span class="bcp14">MUST</span> treat a session as closed the
+moment it emits a response, and <span class="bcp14">MUST</span> answer a repeated <code>session_id</code> with a
+<code>SessionError</code> rather than recomputing. Anchors are stateful for this reason,
+and this state cannot be made stateless by sealing it into a cookie handed to
+the Client: sealing preserves the secrecy of <code>(a, y, t)</code> but not their
+single use, and single use is the property that matters here.<a href="#section-8-3.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.9">Context binding:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.10">
+          <p id="section-8-3.10.1">The issuance context enters both the commitment base and the challenge
+transcript, and the redemption context enters the signed message, so an
+Endorsement does not verify under any other pair of contexts. Neither context
+is carried in the Endorsement; both are supplied by the verifier
+(<a href="#verify" class="auto internal xref">Section 5.5</a>), so a Client cannot assert the pair its Endorsement is checked
+against. A Client also cannot select the issuance context unilaterally: it is
+never sent from the Client to the Anchor, and using a value other than the one
+the Anchor committed under fails the opening check in <code>Finalize</code>.<a href="#section-8-3.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.11">Nullifier reuse:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.12">
+          <p id="section-8-3.12.1">A Client that reuses a nullifier across Endorsements links those Endorsements
+to each other at redemption and, depending on the Moderator's nullifier
+store, causes all but the first redemption to be rejected. Nullifiers <span class="bcp14">MUST</span> be
+freshly generated.<a href="#section-8-3.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.13">Aborts on zero:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.14">
+          <p id="section-8-3.14.1"><code>Challenge</code> aborts when the challenge hashes to zero and <code>Respond</code> aborts on
+a zero challenge. Both events occur with probability approximately <code>1/p</code> for
+honest parties, where <code>p</code> is the order of the group. A Client that observes
+such an abort learns nothing and <span class="bcp14">SHOULD</span> start a fresh session.<a href="#section-8-3.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.15">Context granularity:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.16">
+          <p id="section-8-3.16.1">The unlinkability arguments above are cryptographic; the anonymity set they
+operate over is set by the contexts. Both contexts are visible at redemption,
+the issuance context directly and the redemption context through the fact
+that the Endorsement verifies under it, so each partitions Clients into the
+set that shares its value. Whatever <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> eventually specifies them to be
+(<a href="#context-binding" class="auto internal xref">Section 4.4</a>), both values must therefore be <strong>coarse</strong>. Every Client
+holding an Endorsement issued under a given issuance context <span class="bcp14">MUST</span> derive the
+byte-identical <code>ctx_iss</code>, and every Client redeeming under a given
+redemption context <span class="bcp14">MUST</span> derive the byte-identical <code>ctx_red</code>. A deployment
+that refines either value, for instance by using a per-request timestamp
+rather than a shared epoch, or a per-Client identifier rather than a value
+shared by every Client redeeming in the same place, reduces the anonymity set
+accordingly, in the limit to a single Client, and does so without violating
+any cryptographic property of the construction. Implementations <span class="bcp14">MUST NOT</span> do
+so.<a href="#section-8-3.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.17">Session identifiers:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.18">
+          <p id="section-8-3.18.1">The <code>session_id</code> of <a href="#session-id" class="auto internal xref">Section 5.6.2</a> is chosen by the Anchor and so is a value
+the Anchor recognises. It is confined to the transport: it is not an input to
+any algorithm of <a href="#issuance" class="auto internal xref">Section 5</a> and <span class="bcp14">MUST NOT</span> enter the challenge transcript. Were
+it bound into the Endorsement, the Anchor could recognise its own identifier at
+redemption and link the redemption to the issuance session.<a href="#section-8-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-8-3.19">Anonymity sets:</dt>
+        <dd style="margin-left: 1.5em" id="section-8-3.20">
+          <p id="section-8-3.20.1">The effective privacy a Client obtains also depends on deployment properties
+beyond this document, in particular the number of Clients an Anchor serves per
+epoch and the size of a Moderator's Anchor Set; see <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-8-3.20.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="iana">
+<section id="section-9">
+      <h2 id="name-iana-considerations">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-9-1">This document has no IANA actions. The endorsement type for the scheme
+specified here is registered by <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-9-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-10">
+      <h2 id="name-references">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-10.1">
+        <h3 id="name-normative-references">
+<a href="#section-10.1" class="section-number selfRef">10.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ARCH">[ARCH]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HASH2CURVE">[HASH2CURVE]</dt>
+        <dd>
+<span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="I2OSP">[I2OSP]</dt>
+        <dd>
+<span class="refAuthor">Moriarty, K., Ed.</span>, <span class="refAuthor">Kaliski, B.</span>, <span class="refAuthor">Jonsson, J.</span>, and <span class="refAuthor">A. Rusch</span>, <span class="refTitle">"PKCS #1: RSA Cryptography Specifications Version 2.2"</span>, <span class="seriesInfo">RFC 8017</span>, <span class="seriesInfo">DOI 10.17487/RFC8017</span>, <time datetime="2016-11" class="refDate">November 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8017">https://www.rfc-editor.org/rfc/rfc8017</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="NISTCurves">[NISTCurves]</dt>
+        <dd>
+<span class="refAuthor">National Institute of Standards and Technology (NIST)</span>, <span class="refTitle">"Digital Signature Standard (DSS)"</span>, <span class="seriesInfo">FIPS PUB 186-5</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.186-5">https://doi.org/10.6028/NIST.FIPS.186-5</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="OPRF">[OPRF]</dt>
+        <dd>
+<span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Sullivan, N.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Oblivious Pseudorandom Functions (OPRFs) Using Prime-Order Groups"</span>, <span class="seriesInfo">RFC 9497</span>, <span class="seriesInfo">DOI 10.17487/RFC9497</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9497">https://www.rfc-editor.org/rfc/rfc9497</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PROTOCOLS">[PROTOCOLS]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RISTRETTO">[RISTRETTO]</dt>
+        <dd>
+<span class="refAuthor">de Valence, H.</span>, <span class="refAuthor">Grigg, J.</span>, <span class="refAuthor">Hamburg, M.</span>, <span class="refAuthor">Lovecruft, I.</span>, <span class="refAuthor">Tankersley, G.</span>, and <span class="refAuthor">F. Valsorda</span>, <span class="refTitle">"The ristretto255 and decaf448 Groups"</span>, <span class="seriesInfo">RFC 9496</span>, <span class="seriesInfo">DOI 10.17487/RFC9496</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9496">https://www.rfc-editor.org/rfc/rfc9496</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SEC1">[SEC1]</dt>
+        <dd>
+<span class="refAuthor">Standards for Efficient Cryptography Group (SECG)</span>, <span class="refTitle">"SEC 1: Elliptic Curve Cryptography"</span>, <time datetime="2009" class="refDate">2009</time>, <span>&lt;<a href="https://www.secg.org/sec1-v2.pdf">https://www.secg.org/sec1-v2.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TLS13">[TLS13]</dt>
+      <dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 9846</span>, <span class="seriesInfo">DOI 10.17487/RFC9846</span>, <time datetime="2026-07" class="refDate">July 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9846">https://www.rfc-editor.org/rfc/rfc9846</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-10.2">
+        <h3 id="name-informative-references">
+<a href="#section-10.2" class="section-number selfRef">10.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="SIGMA">[SIGMA]</dt>
+        <dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Sigma Proofs for Linear Relations"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TESSZHU">[TESSZHU]</dt>
+      <dd>
+<span class="refAuthor">Tessaro, S.</span> and <span class="refAuthor">C. Zhu</span>, <span class="refTitle">"Short Pairing-Free Blind Signatures with Exponential Security"</span>, <span class="seriesInfo">EUROCRYPT 2022</span>, <time datetime="2022" class="refDate">2022</time>, <span>&lt;<a href="https://eprint.iacr.org/2022/047">https://eprint.iacr.org/2022/047</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="test-vectors">
+<section id="appendix-A">
+      <h2 id="name-test-vectors">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-test-vectors" class="section-name selfRef">Test Vectors</a>
+      </h2>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="appendix-A-1.1">
+          <p id="appendix-A-1.1.1"><strong>TODO.</strong> Test vectors for <code>DeriveKeyPair</code>, <code>DeriveScalar</code>, <code>CreateContextBase</code>,
+<code>Message</code>, <code>ComputeChallenge</code>, the four issuance algorithms, and <code>Verify</code>, for
+each ciphersuite in <a href="#ciphersuites" class="auto internal xref">Section 7</a>. Issuance is randomized, but every
+algorithm is a deterministic function of the bytes it draws from <code>random</code>, so
+a vector fixes one value per algorithm: the key seed, the <code>rand</code> of <code>Commit</code>,
+and the <code>rand</code> of <code>Challenge</code>.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-address">
+<a href="#name-authors-address" class="section-name selfRef">Author's Address</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">John Doe</span></div>
+<div dir="auto" class="left"><span class="org">ACME</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:john@example.com" class="email">john@example.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
