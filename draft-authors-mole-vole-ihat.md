@@ -149,7 +149,6 @@ normative:
 
 informative:
   ARCH: I-D.draft-jms-mole-architecture
-  SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
     target: https://eprint.iacr.org/2026/109
@@ -250,25 +249,8 @@ considerations for implementers and adopters.
 
 {::boilerplate bcp14-tagged}
 
-> TODO(cjpatton) Harmonize this section with {{VOLE-ACT}}.
-
 This document follows the same conventions and uses the same notation as
 {{VOLE-ACT}}.
-
-Vectors and sequences are indexed from zero: the elements of a length-`k` vector
-`v` are `v[0], ..., v[k-1]`. For an integer `k > 0`, we write `[k]` to denote
-the set of indices `{0, ..., k-1}`.
-
-We adopt the following notation for byte strings from {{IHAT}}. For two byte
-strings `x` and `y`, `x || y` denotes their concatenation. For a byte string
-`x`, `x[i..j]` denotes the substring of `x` that begins at its byte with index
-`i` and ends just before its byte with index `j`; its length is `j - i` bytes.
-
-We adopt the uov-Ip parameter set (NIST Level 1). That is, in the remainder of
-this document, let `n=112`, `m=44`, and `q=2^8`. Each element of `F_q` has a
-natural representation as a byte. We sometimes write `F_q^k` to denote the set
-of length-`k` byte strings, e.g., `r <- F_q^16` means to choose 16 random bytes
-and assign them to `r`.
 
 # Overview {#overview}
 
@@ -346,55 +328,19 @@ justification.
 
 # Preliminaries {#preliminaries}
 
-> TODO(cjpatton) Align preliminaries with {{VOLE-ACT}}.
-
-> TODO(cjpatton) Make all of these algorithms deterministic, passing any
-> randomness they would generate as input. This will make it easier to generate
-> test vectors.
-
-Define `KP800(state)` to be the output of applying `Keccak-p[800,12]`
-{{FIPS202}} to `state in F_q^100`. Note that this is a non-standard size for
-the Keccak permutation; see {{security}} for discussion.
-
-We write `(cpk, csk) := UOV.CompactKeyGen()` to denote execution of the compact
-key generation algorithm of {{UOV}}, Figure 2. Output `cpk` is the public key
-and `csk` is the secret key. The input parameters are omitted and instead
-hard-coded as uov-Ip (see {{UOV}}, Table 4).
-
-We write `P := UOV.ExpandPK(cpk)` to denote expansion of the public key into the
-UOV map `P : F_q^n -> F_q^m` using the procedure in {{UOV}}, Figure 2.
-Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of the secret
-key into the trapdoor `td` for `P`.
-
-We write `s := UOV.SPre(td, t)` to denote sampling a pre-image of target `t`
-under `P`, i.e., an `s` for which `P(s) = t`. This is the same procedure as used
-in the signing algorithm in {{UOV}}, Figure 2.
-
-We write `pf := VOLEitH.Prove(R, X, W)` to denote proving knowledge of a
-witness `W` for which the pair `(X, W)` is in the relation `R`, where `X` is
-the instance, using the VOLE-in-the-Head proof system defined in {{FAEST}}. We
-write `v := VOLEitH.Verify(R, X, pf)` to denote verification of `pf` under the
-same relation and instance, where the output `v` is a bit.
-
-Relations are specified in the style of {{Section 3.4 of SIGMA}} as a sequence
-of constraints. Each constraint is an equation of the instance and witness
-variables. Unlike {{SIGMA}}, these equations need not be linear: each side of
-the equation is a polynomial of arbitrary degree. However, because the degree
-of the polynomial influences the size of the proof, the relation needs to be
-designed to balance the size of the witness with the degree of the constraints.
-
-> TODO(cjpatton) Figure out how to cite {{FAEST}} more precisely. Ideally it
-> specifies a compiler of constraints into a proof, as in {{SIGMA}}, but this
-> is currently beyond the scope of what the FAEST spec does. The degree of
-> constraints is coupled tightly to the proof generation procedure, which means
-> I think we'll end up pulling some details of the proof construction into this
-> document.
+The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
+`UOV.ExpandSK()`, `UOV.SPre()`, `VOLEitH.Prove()`, and `VOLEitH.Verify()` are
+defined as in {{VOLE-ACT}}. We adopt the uov-Ip parameter set (NIST Level 1) for
+UOV. That is, for the remainder of this document, let `n=112`, `m=44`, and
+`q=2^8`.
 
 # Protocol {#protocol}
 
-> TODO(cjpatton) Specify wire formats for each of the messages. For now we will
-> ignore how things are encoded until we're more certain of the shape of the
-> protocol.
+> TODO Specify wire formats for each of the messages. For now we will ignore
+> how things are encoded until we're more certain of the shape of the protocol.
+>
+> TODO Make all of these algorithms deterministic, passing any randomness they
+> would generate as input. This will make it easier to generate test vectors.
 
 The constant `VERSION`, an element of `F_q`, is used for versioning and is meant
 to be kept in sync with revisions to this document. Its current value SHALL be
