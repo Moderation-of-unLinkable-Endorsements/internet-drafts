@@ -128,6 +128,7 @@ normative:
         name: Bo-Yin Yang
 
 informative:
+  ARCHITECTURE: I-D.draft-jms-mole-architecture
   ACT: I-D.draft-schlesinger-cfrg-act-01
   SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
 
@@ -381,39 +382,103 @@ Each element of `F_256` has a natural representation as a byte. We sometimes
 write `F_256^k` to denote the set of length-`k` byte strings, e.g., `r <-
 F_256^k` means to choose `k` random bytes and assign them to `r`.
 
-# Protocol Overview {#overview}
+# Overview {#overview}
 
-The protocol involves two parties: an **issuer** (typically a service provider)
-and **clients** (typically users of the service). The issuer holds a long-lived
-UOV key pair and maintains a set of accepted nullifiers. The interaction
-follows three main phases:
+Ratatouille makes use of three cryptographic primitives:
 
-1. **Setup**: The issuer generates a UOV key pair and publishes the public key.
-   The UOV signature has relative large public key size, but its signature size
-   is small leading to small communication size.
-2. **Issuance**: A client requests credits from the issuer. The client commits
-   to a fresh random nullifier and to an initial credit count, and the issuer
-   blindly signs the message (i.e., signs the hiding commitment of the
-   message). The result is a credit token that the issuer cannot link to future
-   spends.
-3. **Spending (Present-and-Reissue)**: To spend credits, the client reveals the
-   nullifier of its current token and proves, in zero knowledge, that (a) it
-   holds a valid signature over that token, (b) the token's balance suffices,
-   and (c) it has correctly formed a fresh commitment for the remaining
-   balance. The issuer checks the proof, checks that the nullifier has not been
-   accepted before, records it, and blindly signs the new commitment -- issuing
-   change as a new, unlinkable token.
+1. The Unbalanced Oil and Vinegar {{UOV}} digital signature scheme. The Issuer,
+   such as a MoLE Moderator {{ARCHITECTURE}}, uses a long-lived UOV secret key
+   to issue tokens, and the Client uses the corresponding public key to
+   generate proofs of knowledge.
 
-> TODO Specify a state-update variant that skips the balance-sufficiency check
-> (b), allowing arbitrary hidden updates to the token value (blind-signature-like:
-> the client still proves the token exists and is valid, but the value is not
-> read). Clarify that "balance suffices" still includes the always-required
-> `balance >= 0` (non-negativity) check.
+1. The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a component of
+   the FAEST digital signature scheme {{FAEST}}.
 
-Because each spend simultaneously presents an old token and obtains a new one
-for the change, spending and re-issuance are a single combined step. Only the
-spend amount is revealed to the issuer; the balance and the client's identity
-remain hidden.
+1. A commitment scheme, instantiated either with the Keccak permutation
+   {{FIPS202}} or with the Multivariate Quadratic (MQ) commitment of
+   {{BFMRSV25}}.
+
+A UOV public key is a map `P` from `F_q^n` to `F_q^m`. A UOV signature is a
+solution `s` to an equation `P(s) = y`, where `y` is called the target and is
+normally computed by hashing the message to be signed. The UOV secret key is a
+trapdoor for `P` that can be used to efficiently sample signatures for a given
+target.
+
+A token is a tuple `(nf, t, r, x, s)` that binds a nullifier`nf`  to the
+Client's current state. The state is an effective balance `t + x`, where `t` is
+the credit held by the Client and `x` is a refund chosen by the Issuer. `r` is
+the opening of a commitment `c = Com(nf, t, r)` and `s` is a signature `P(s) =
+Tag(c, x)` that certifies the state committed to by `c` and binds the refund to
+the state.
+
+Initially `t = T_init`, where `T_init` is a parameter agreed upon out of band
+by the Client and Issuer, and `x = 0`. The initial issuance protocol is as
+follows:
+
+1. The Client samples a nullifier `nf` and an opening `r`, then constructs a
+   commitment `c = Com(nf, T_init, r)` and VOLEitH proof `pf_init` of knowledge
+   of the `nf, r` for which `c = Com(nf, T_init, r)`. It then sends `c, pf_init`
+   to the Issuer.
+
+1. The Issuer verifies `pf_init`, samples a solution `s` to `P(s) = Tag(c, 0)`,
+   then sends `s` to the Client.
+
+1. The Client finalizes issuance by checking that `P(s) = Tag(c, 0)`.
+
+To spend credits, the Client reveals the nullifier `nf` for the current state,
+commits to an updated state, and proves the updated state is consistent with
+the previous state and the requested spend. It must do so without revealing the
+current state, as this would allow the Issuer to link the spend to the initial
+issuance or to a previous spend. To spend `d` credits from a token with
+effective balance `t + x`:
+
+1. The Client samples a fresh nullifier `nf'` and opening `r'`, then constructs
+   a commitment `c' = Com(nf', t', r')` to the change `t' = t + x - d`. It then
+   constructs a VOLEitH proof `pf_spend` of knowledge of `t, r, x, s, nf', r',
+   t'` for which:
+
+   - the current state was certified by the Issuer, i.e.,
+     `P(s) = Tag(Com(nf, t, r), x)`;
+
+   - the updated state is consistent, i.e., `c' = Com(nf', t', r')` and
+     `t' = t + x - d`; and
+
+   - the updated state is valid, i.e., `t'` is at least `0` but no greater than
+     a maximum value specified by the parameters of the protocol.
+
+   Finally, the Client sends `nf, d, c', pf_spend` to the Issuer.
+
+1. The Issuer checks that `nf` has not been spent and verifies `pf_spend`. It
+   then chooses a refund `x'`, certifies the updated state by sampling a
+   solution `s'` to `P(s') = Tag(c', x')`, then sends `x', s'` to the Client.
+
+1. The Client finalizes the spend by checking that `P(s') = Tag(c', x')`. Its
+   new token is `(nf', t', r', x', s')`.
+
+The commitment `Com()` and tag `Tag()` are instantiated in one of two ways.
+
+In the hash-based variant of Ratatouille ({{hash-commitment}}), both are
+instantiated with a single evaluation of the `Keccak-p[800,12]` permutation
+{{FIPS202}}. Similar to TurboSHAKE {{!RFC9861}}, this parameterization of
+Keccak uses half as many rounds as SHA-3. However, its state is also half the
+size of the state used by either SHA-3 or TurboSHAKE. This helps reduce the
+size of the VOLEitH proof. See {{security}} for justification.
+
+> NOTE The size of the spend proof is dominated by Keccak evaluations, of which
+> there are three: one `Tag()` and two `Com()`s. If we can forego the refund
+> feature, then we don't need the `Tag()` at all. Refunding can be emulated at
+> the protocol level by having the Client and Issuer negotiate the requested
+> spend so that it accounts for the refund.
+>
+> We need to make sure there is domain separation between commitments in these
+> two variants of the protocol.
+
+The MQ-based variant of Ratatouille ({{mq-commitment}}) uses the MQ commitment
+of {{BFMRSV25}} to instantiate `Com()`. The tag function `Tag()` updates the
+commitment homomorphically with the refund.
+
+> TODO Determine if this homomorphic trick is sound. See {{security}} for
+> discussion.
 
 # Preliminaries {#preliminaries}
 
@@ -1133,12 +1198,35 @@ L = 30` left zero until `Tag` writes it (no reserved bytes, since `off_refund
 
 # Security Considerations {#security}
 
-> TODO Security reduction for both variants to (one-more-)UOV problem. As part of this,
-> figure out if the constant-addition hommorphism trick for the MQ variant incurs a
-> security loss.
+> TODO Prove the following claims.
+
+Unlinkability of Ratatouille reduces to the zero-knowledge property of the
+VOLEitH proof system and the hiding property of the commitment.
+One-more-unforgeability reduces to witness-extractability of VOLEitH, binding
+of the commitment, and the one-more-UOV assumption ({{PoMFRIT}}, Definition 8).
+The one-more-UOV assumption is a stronger assumption than standard UOV
+({{UOV}}, Definition 2) that requires some scrutiny before we rely on it too
+heavily.
+
+> NOTE A few observations we've made so far:
+>
+> 1. One-more-UOV reduction likely treats `Com()` and `Tag()` as random
+>    oracles. This is reasonable for Keccak, but we would need to figure out
+>    something else for the MQ variant.
+>
+> 2. If we add a randomizer to `Tag()` and instantiate it with Keccak, then we
+>    might even be able to reduce to standard UOV rather than one-more-UOV.
+>
+> 3. For the MQ variant, Figure out if the homomorphic tagging trick for the MQ
+>    variant is sound. We likely need the commitment to be pseudorandom, in
+>    which case allowing the attacker to select the tag probably incurs a
+>    security loss multiplicative in the number of bits of the refund.
 
 > TODO Finalize parameters MQ variant (including the UOV parameters used), pending further cryptanalysis of the commitment.
 > TODO Remind the reader here how the current parameters were chosen.
+
+> TODO Justify halving the Keccak state from 1600 to 800 (relative to
+> TurboSHAKE).
 
 # IANA Considerations
 
