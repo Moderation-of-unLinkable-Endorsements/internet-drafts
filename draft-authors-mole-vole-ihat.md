@@ -207,14 +207,15 @@ quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.
 
 This document specifies Moussaka, a variant of IHAT that is plausibly fully
-post-quantum secure. Its design is based on the PoMFRIT blind signature scheme
-{{PoMFRIT}}, which combines a post-quantum signature scheme with a suitable
-zero-knowledge proof system and commitment scheme. Specifically, the signer
-signs a commitment to the message, and the verifier checks a zero-knowledge
-proof-of-knowledge of the signature and the opening of the commitment. Moussaka
-extends this paradigm in the natural way: rather than prove knowledge of a
-signature under the public key of a particular Anchor, the Client proves
-knowledge of a signature under some public key in the Anchor Set.
+post-quantum secure. Similar to {{VOLE-ACT}}, its design is based on the
+PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a post-quantum
+signature scheme with a suitable zero-knowledge proof system and commitment
+scheme. Specifically, the signer signs a commitment to the message, and the
+verifier checks a zero-knowledge proof-of-knowledge of the signature and the
+opening of the commitment. Moussaka extends this paradigm in the natural way:
+rather than prove knowledge of a signature under the public key of a particular
+Anchor, the Client proves knowledge of a signature under some public key in the
+Anchor Set.
 
 Moussaka has significantly higher bandwidth cost compared to IHAT:
 

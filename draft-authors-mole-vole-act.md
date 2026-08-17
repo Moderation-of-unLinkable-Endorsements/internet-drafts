@@ -164,7 +164,7 @@ informative:
         ins: M. Fischlin
         name: Marc Fischlin
 
-  BFMRSV25a:
+  BFMRSV25:
     title: "Multivariate Commitments and Signatures with Efficient Protocols"
     target: https://eprint.iacr.org/2025/2035
     date: 2025
@@ -274,93 +274,77 @@ and another in which a UOV-friendly commitment scheme is used instead.
 Modern web services face a fundamental tension between operational needs and
 user privacy. Services need to implement rate limiting to prevent abuse, charge
 for API usage to sustain operations, and allocate computational resources
-fairly. However, traditional approaches require tracking client identities and
-creating detailed logs of client behavior, raising significant privacy concerns
+fairly. However, traditional approaches require tracking user identities and
+creating detailed logs of user behavior, raising significant privacy concerns
 in an era of increasing data protection awareness and regulation.
 
 The Anonymous Credit Token (ACT) protocol {{ACT}} resolves this tension by
-enabling credit-based systems without client tracking: an issuer can grant a
-client a token worth some number of credits, and the client can later spend
-those credits anonymously, in whole or in part, without the issuer being able
-to link the spend to the issuance or to any other spend by the same client.
+enabling credit-based systems without user tracking: an Issuer can grant a
+Client a token worth some number of credits, and the Client can later spend
+those credits anonymously, in whole or in part, without the Issuer being able
+to link the spend to the issuance or to any other spend by the same Client.
 
-ACT {{ACT}} builds on BBS MACs over prime-order groups. Its
-*unlinkability* (the issuer cannot correlate transactions) is
-information-theoretic, following from the perfectly hiding commitments, so it
-already holds against unbounded and hence quantum adversaries. Its
-*unforgeability* (clients cannot mint or over-spend credits), however, rests on
-the strong Diffie-Hellman assumption that Shor's algorithm breaks. What
-remains, then, is to make unforgeability post-quantum as well.
+ACT achieves this privacy goal information-theoretically, meaning no attacker,
+regardless of its computational resources, can link the presentation of a token
+to its issuance. However, ACT is based on elliptic curve cryptography, which
+means a quantum attacker can forge a token by recovering the Issuer's secret
+key from its public key.
 
-This document specifies Ratatouille, a **post-quantum** variant of ACT, whose
-security rests on assumptions believed to resist quantum attack: the hardness
-of structured multivariate quadratic (MQ) problems, via the Unbalanced Oil and
-Vinegar (UOV) signature scheme {{UOV}}, and the security of symmetric
-primitives (hash functions and pseudorandom generators), via the
-VOLE-in-the-Head (VOLEitH) zero-knowledge proof system {{FAEST}}. We build on
-the Fischlin blind-signature paradigm {{Fischlin}}, in which a client sends the
-issuer a hiding commitment to a message, the issuer signs the
-commitment, and the client later proves knowledge of a signature on the
-committed message. Ratatouille generalizes this from a one-time signature to a
-spendable balance: the commitment binds a nullifier together with the remaining
+This document specifies Ratatouille, a variant of ACT that is plausibly fully
+post-quantum secure. Its design is based on the PoMFRIT blind signature scheme
+{{PoMFRIT}}, which combines a post-quantum signature scheme with a suitable
+zero-knowledge proof system and commitment scheme. Specifically, the signer
+signs a commitment to the message, and the verifier checks a zero-knowledge
+proof-of-knowledge of the signature and the opening of the commitment.
+Ratatouille generalizes this from a one-time use token to a token with
+updatable state: the commitment binds a nullifier together with the remaining
 credits, and each presentation additionally proves that the spend was
-subtracted correctly and the balance stays in range, with the issuer re-signing
+subtracted correctly and the balance stays in range, with the Issuer re-signing
 the updated commitment so that every spend chains into the next token.
 
-Ratatouille is inspired by PoMFRIT {{PoMFRIT}}, which builds a post-quantum
-blind signature from the MAYO signature (another MQ signature) and optimizes
-the VOLEitH proof for SHAKE hashing, and by Bouillaguet et al. {{BFMRSV25a}},
-which builds a post-quantum blind signature from an MQ commitment. In both, the
-multivariate building block is chosen to be efficiently provable in VOLEitH --
-the same principle Ratatouille follows.
+Ratatouille uses {{UOV}} as its signature scheme. Two instantiations of the
+commitment are defined, one based on the Keccak permutation {{FIPS202}} and
+another based on the Multivariate Quadratic (MQ) problem {{BFMRSV25}}. The
+latter composes more naturally with UOV, is much simpler to evaluate in zero
+knowledge, and, with its current parameterization, has significantly lower
+communication cost than the hash-based variant.
 
-## Key Properties and Use Cases
+> WARNING Adopters should not implement the MQ variant just yet. MQ commitments
+> are understudied, and we don't know if the parameters we've chosen are
+> sufficient for either unlinkability or unforgeability. Our goal for this
+> variant is to give researchers a sense of the parameter regime for which MQ
+> commitments are useful in our application. In particular, if communication
+> cost is at or below hash-based commitments, then their relative simplicity
+> makes them a good choice.
 
-Ratatouille inherits the properties and use cases of ACT {{ACT}}; we refer the
-reader there for their definitions. In particular, it provides
-**unlinkability**, **flexible spending and refunding**, **balance privacy**, and
-**double-spend prevention** (if a single database is shared across issuers), and it supports the same use cases, such as
-**rate limiting** and **API credits**.
+Both variants of Ratatouille have higher bandwidth cost than ACT:
 
-Beyond ACT, Ratatouille additionally achieves **Full Post-Quantum Security**: All security properties -- unforgeability,
-unlinkability, and double-spend prevention -- are conjectured to hold against
-adversaries equipped with a large-scale quantum computer. Security reduces to
-the UOV and MQ problems and to the security of standard symmetric primitives.
+1. the Issuer's public key is 42.6 KB, which corresponds to the uov-Ip
+   parameter set for UOV (the MQ instantiation has a larger public key in
+   order to accommodate the commitment parameters);
 
-This post-quantum security comes at a cost in **performance**: presentation proofs
-are larger than in the classical construction, on the order of kilobytes to tens
-of kilobytes. At the 128-bit security level, Ratatouille has significantly higher
-communication cost than the classical ACT:
+1. the Client uploads 7.8 KB during initial issuance (4.3 KB for the MQ
+   variant); and
 
-1. the issuer's public key is a UOV map -- approximately 42.6 KB for the hash
-   instantiation ({{hash-commitment}}, the uov-Ip parameter set {{UOV}}), and
-   larger for the MQ instantiation ({{mq-commitment}}), which widens the UOV map;
+1. the Client uploads 14.2 KB during a spend (9.0 KB for the MQ variant).
 
-2. ~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance; and
+In both the initial issuance and a spend, the Issuer's reply is a single UOV
+signature, which is below a couple of hundred bytes for both instantiations.
 
-3. ~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend; and
+Unlike ACT, Ratatouille tokens are publicly verifiable, meaning they can be
+presented to any party with the Issuer's public key. Of course, this has
+implications for privacy, since the token necessarily reveals the identity of
+the Moderator that issued it.
 
-4. the issuer's reply is a single UOV signature -- about 112 B (hash) or 275 B
-   (MQ), plus a few bytes of granted refund on a spend.
-
-Nonetheless, the protocol remains practical for modern web services,
-with efficient signing, verification, and proof generation.
-
-Unlike ACT, Ratatouille tokens are publicly verifiable in the sense that it can be presented to any Moderator, not just the Moderator that issued it. Of course, this has implications for privacy, since the token necessarily reveals the identity of the Moderator that issued it.
-
-## Building Blocks
-
-Ratatouille builds on the following cryptographic primitives:
-
-* **UOV Signatures {{UOV}}**: Unbalanced Oil and Vinegar is a multivariate
-  hash-and-sign signature scheme and a Round 2 candidate in the NIST additional
-  post-quantum signatures process. Its public key is a system of multivariate
-  quadratic equations, and signature verification is a degree-2 check over a
-  small field -- a structure that is especially friendly to VOLEitH proofs.
-* **VOLE-in-the-Head {{FAEST}}**: A zero-knowledge proof and signature
-  framework, used here as the proof system for spending. Its proofs are
-  publicly verifiable, are built entirely from symmetric primitives, and are
-  concretely small and fast for circuits over small binary fields.
+The remainder of this document is structured as follows. {{conventions}}
+defines some conventions and notation. {{overview}} provides a high-level
+overview of the protocol. {{preliminaries}} defines the relevant interfaces for
+the signature scheme, commitment scheme, and proof system used by Ratatouille,
+and provides normative references for their specifications. {{protocol}}
+specifies the protocol in terms of a generic commitment scheme;
+{{instantiations}} gives our two instantiations of the commitment. Finally,
+{{security}} enumerates some security considerations for implementers and
+adopters.
 
 # Conventions and Definitions {#conventions}
 
@@ -522,13 +506,17 @@ for the change, spending and re-issuance are a single combined step. Only the
 spend amount is revealed to the issuer; the balance and the client's identity
 remain hidden.
 
+# Preliminaries {#preliminaries}
+
+> TODO
+
 # Protocol Specification {#protocol}
 
 This section specifies the protocol algorithms once, over an abstract
 commitment `Com` and tag `Tag` ({{commitment-tag}}). This document defines two
 constructions of these primitives -- a hash commitment (a TurboSHAKE-style
 sponge over `Keccak-p[800, 12]`) and the algebraic multivariate-quadratic (MQ)
-commitment of {{BFMRSV25a}} over `F_256`: they share the token structure `(nf,
+commitment of {{BFMRSV25}} over `F_256`: they share the token structure `(nf,
 t, r, x, s)` with effective balance `B = t + x`, and the Issuance and Spend
 flows. They differ only in how `Com` and `Tag` are realized. Both
 instantiations are given in {{instantiations}}; a deployment MUST fix exactly
@@ -1002,10 +990,10 @@ given in bytes.
 | `Tag(c, x)` | label `0xAD` = `1`, `dst: 18`, `c: 32`, `<x>_L: 8` | `y: m_uov = 44` |
 | `P(s)` (UOV) | `s: n_uov = 112` | `y: m_uov = 44` |
 
-## MQ commitment (BFMRSV25a) {#mq-commitment}
+## MQ commitment (BFMRSV25) {#mq-commitment}
 
 Here `Com` and `Tag` are realized by the algebraic multivariate-quadratic (MQ)
-commitment of {{BFMRSV25a}} over `F_256`.  This removes the in-circuit hash:
+commitment of {{BFMRSV25}} over `F_256`.  This removes the in-circuit hash:
 because both `Com` and `Tag` are degree-2 relations over `F_256`, conditions V1
 and V2 of {{prove-spend}} are pure `F_256` arithmetic with no Keccak in-circuit.
 The realization differs from {{hash-commitment}} in two ways:
@@ -1059,7 +1047,7 @@ homogeneous map (`l_i = 0`) has `F(0) = G(0) = 0` and is scaling-covariant
 (`Q_i(a x) = a^2 Q_i(x)`), which admits a forgery.
 
 **Commitment.** `Com` binds a nullifier `nf` and a credit value `t` under
-randomness `r`, following the MQ commitment construction in {{BFMRSV25a}}:
+randomness `r`, following the MQ commitment construction in {{BFMRSV25}}:
 
 ~~~~pseudocode
 Com(nf, t, r):
@@ -1084,7 +1072,7 @@ off_refund - L` elements are reserved and set to zero (there are none unless
 
 **Tag.** The MQ commitment is *constant-additively homomorphic*: adding a public
 vector to `c` shifts the committed message without touching the binding block
-`G(r)` and without knowledge of `r` {{BFMRSV25a}}. `Tag` uses this to write the
+`G(r)` and without knowledge of `r` {{BFMRSV25}}. `Tag` uses this to write the
 issuer-granted refund `x` into the (zero) refund coordinate:
 
 ~~~~pseudocode
@@ -1111,10 +1099,10 @@ is *computational*, reduced to collision-resistance of `G` (finding `r != r'`
 with `G(r) = G(r')`, a bilinear MQ problem that is NP-complete in the worst
 case). Separately, one-more unforgeability of the signed commitment rests on the
 interactive one-more *quadratic-claw* assumption, flagged as unexplored in
-{{BFMRSV25a}}.
+{{BFMRSV25}}.
 
 **Parameter selection.**  The ciphersuite `RATA-MQ128-k32` takes the aggressive
-*heuristic-hiding / computational-binding* row of {{BFMRSV25a}}, Table 3 (`q =
+*heuristic-hiding / computational-binding* row of {{BFMRSV25}}, Table 3 (`q =
 256`, so one commitment element is one byte), which minimizes commitment size.
 Here `m_uov` is pinned by the commitment length rather than chosen for signature
 compactness; with `m_uov` fixed, the only free UOV knob is the input size `n_uov`,
@@ -1124,7 +1112,7 @@ UOV estimator.
 | Parameter | Value |
 |-----------|-------|
 | Security `lambda` | `128` |
-| Commitment `(k, n_com, m_uov)` | `(32, 83, 131)` ({{BFMRSV25a}}, Table 3) |
+| Commitment `(k, n_com, m_uov)` | `(32, 83, 131)` ({{BFMRSV25}}, Table 3) |
 | Nullifier `nu` | `28` bytes |
 | Credit width `L` | `2` (`t, x, d in [0, 2^16 - 1]`) |
 | UOV `n_uov` | `275` (`m_uov = 131`, `q = 256` shared with the commitment) |
