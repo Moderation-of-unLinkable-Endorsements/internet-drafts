@@ -1503,8 +1503,8 @@ Finally, the Client sends <code>nf, d, c', pf_spend</code> to the Issuer.<a href
 </li>
         <li id="section-3-9.2">
           <p id="section-3-9.2.1">The Issuer checks that <code>nf</code> is fresh and verifies <code>pf_spend</code>. It then
-chooses a refund <code>x'</code>, samples a solution <code>s'</code> to <code>P(s') = Tag(c', x')</code>,
-then sends <code>x', s'</code> to the Client.<a href="#section-3-9.2.1" class="pilcrow">¶</a></p>
+chooses a refund <code>x'</code>, certifies the updated state by sampling a solution
+<code>s'</code> to <code>P(s') = Tag(c', x')</code>, then sends <code>x', s'</code> to the Client.<a href="#section-3-9.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-3-9.3">
           <p id="section-3-9.3.1">The Client finalizes the spend by checking that <code>P(s') = Tag(c', x')</code>. Its
@@ -1525,6 +1525,8 @@ there are three: one <code>Tag()</code> and two <code>Com()</code>s. If we can f
 feature, then we don't need the <code>Tag()</code> at all. Refunding can be emulated at
 the protocol level by having the Client and Issuer negotiate the requested
 spend so that it accounts for the refund.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
+<p id="section-3-12.1.2">We need to make sure there is domain separation between commitments in these
+two variants of the protocol.<a href="#section-3-12.1.2" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-3-13">The MQ-based variant of Ratatouille (<a href="#mq-commitment" class="auto internal xref">Section 6.2</a>) uses the MQ commitment
@@ -2488,25 +2490,38 @@ L = 30</code> left zero until <code>Tag</code> writes it (no reserved bytes, sin
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-7-1">Unlinkability of Ratatouille reduces to the zero-knowledge property of the
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7-1.1">
+          <p id="section-7-1.1.1">TODO Prove the following claims.<a href="#section-7-1.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-7-2">Unlinkability of Ratatouille reduces to the zero-knowledge property of the
 VOLEitH proof system and the hiding property of the commitment.
 One-more-unforgeability reduces to witness-extractability of VOLEitH, binding
 of the commitment, and the one-more-UOV assumption (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8).
 The one-more-UOV assumption is a stronger assumption than standard UOV
 (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some scrutiny before we rely on it too
-heavily.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-2.1">
-          <p id="section-7-2.1.1">TODO Make sure this reduction works. It seems like one-more-UOV should work;
-if we add a randomizer to the tag, we might even be to reduce to plain UOV.<a href="#section-7-2.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
+heavily.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-7-3.1">
-          <p id="section-7-3.1.1">TODO Figure out if the homomorphic tagging trick for the MQ variant is sound.
-We likely need the commitment to be pseudorandom, in which case allowing the
-attacker to select the tag probably incurs a security loss multiplicative in
-the number of bits of the refund.<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
+          <p id="section-7-3.1.1">NOTE A few observations we've made so far:<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7-3.1.2">
+<li id="section-7-3.1.2.1">
+              <p id="section-7-3.1.2.1.1">One-more-UOV reduction likely treats <code>Com()</code> and <code>Tag()</code> as random
+oracles. This is reasonable for Keccak, but we would need to figure out
+something else for the MQ variant.<a href="#section-7-3.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-7-3.1.2.2">
+              <p id="section-7-3.1.2.2.1">If we add a randomizer to <code>Tag()</code> and instantiate it with Keccak, then we
+might even be able to reduce to standard UOV rather than one-more-UOV.<a href="#section-7-3.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-7-3.1.2.3">
+              <p id="section-7-3.1.2.3.1">For the MQ variant, Figure out if the homomorphic tagging trick for the MQ
+variant is sound. We likely need the commitment to be pseudorandom, in
+which case allowing the attacker to select the tag probably incurs a
+security loss multiplicative in the number of bits of the refund.<a href="#section-7-3.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
 </li>
       </ul>
 <ul class="normal ulEmpty">
