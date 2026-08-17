@@ -253,25 +253,16 @@ Table of Contents
    UOV secret key is a trapdoor for P that can be used to efficiently
    sample signatures for a given target.
 
-   A token binds a nullifier to a credit balance.  The Client's state is
-   a tuple (nf, t, r, x, s), where:
+   A token is a tuple (nf, t, r, x, s) that binds a nullifiernf to the
+   Client's current state.  The state is an effective balance t + x,
+   where t is the credit held by the Client and x is a refund chosen by
+   the Issuer. r is the opening of a commitment c = Com(nf, t, r) and s
+   is a signature P(s) = Tag(c, x) that certifies the state committed to
+   by c and binds the refund to the state.
 
-   *  nf is the nullifier;
-
-   *  t is the credit;
-
-   *  r is the opening of the commitment c = Com(nf, t, r);
-
-   *  x is the refund granted by the Issuer; and
-
-   *  s is a UOV signature, i.e., P(s) = y for some target y.
-
-   The target is equal to Tag(c, x), where c is a commitment generated
-   by the Client and x is the refund chosen by the Issuer.  The
-   effective balance of the token, i.e., the amount the Client may
-   spend, is B = t + x.  Initially t = T_init, where T_init is a
-   parameter agreed upon out of band by the Client and Issuer, and x =
-   0.  The initial issuance protocol is as follows:
+   Initially t = T_init, where T_init is a parameter agreed upon out of
+   band by the Client and Issuer, and x = 0.  The initial issuance
+   protocol is as follows:
 
    1.  The Client samples a nullifier nf and an opening r, then
        constructs a commitment c = Com(nf, T_init, r) and VOLEitH proof
@@ -286,10 +277,9 @@ Table of Contents
    To spend credits, the Client reveals the nullifier nf for the current
    state, commits to an updated state, and proves the updated state is
    consistent with the previous state and the requested spend.  It must
-   do so without revealing the current state (i.e., the commitment or
-   effective balance), as this would allow the Issuer to link the spend
-   to the initial issuance or to a previous spend.  To spend d credits
-   from a token with effective balance B = t + x:
+   do so without revealing the current state, as this would allow the
+   Issuer to link the spend to the initial issuance or to a previous
+   spend.  To spend d credits from a token with effective balance t + x:
 
    1.  The Client samples a fresh nullifier nf' and opening r', then
        constructs a commitment c' = Com(nf', t', r') to the change t' =
@@ -308,10 +298,10 @@ Table of Contents
 
        Finally, the Client sends nf, d, c', pf_spend to the Issuer.
 
-   2.  The Issuer checks that nf is fresh and verifies pf_spend.  It
-       then chooses a refund x', certifies the updated state by sampling
-       a solution s' to P(s') = Tag(c', x'), then sends x', s' to the
-       Client.
+   2.  The Issuer checks that nf has not been spent and verifies
+       pf_spend.  It then chooses a refund x', certifies the updated
+       state by sampling a solution s' to P(s') = Tag(c', x'), then
+       sends x', s' to the Client.
 
    3.  The Client finalizes the spend by checking that P(s') = Tag(c',
        x').  Its new token is (nf', t', r', x', s').
