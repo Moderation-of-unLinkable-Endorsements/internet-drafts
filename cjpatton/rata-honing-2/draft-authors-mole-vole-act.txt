@@ -220,7 +220,7 @@ Table of Contents
       closed integer interval {a, a+1, ..., b}.
 
    *  F_q: The finite field with q elements.  F_2 is the binary field,
-      i.e.,{0, 1}. In this document, q is always a power of two so that
+      i.e., {0, 1}. In this document, q is always a power of two so that
       F_q is an extension field of F_2.
 
    *  <t>_L: The L-byte big-endian encoding of a non-negative integer t
@@ -272,23 +272,24 @@ Table of Contents
 
 4.  Preliminaries
 
-   Define KP800(state) to be the output of applying Keccak-p[800,12]
+   Define KP800(state) as the output of applying Keccak-p[800,12]
    [FIPS202] to state in F_q^100.  Note that this is a non-standard size
    for the Keccak permutation; see Section 7 for discussion.
 
    We write (cpk, csk) := UOV.CompactKeyGen() to denote execution of the
    compact key generation algorithm of [UOV], Figure 2.  Output cpk is
    the public key and csk is the secret key.  The input parameters are
-   omitted and instead hard-coded as uov-Ip (see [UOV], Table 4).
+   omitted and are instead hard-coded to the uov-Ip parameter set (see
+   [UOV], Table 4).
 
    We write P := UOV.ExpandPK(cpk) to denote expansion of the public key
    into the UOV map P : F_q^n -> F_q^m using the procedure in [UOV],
    Figure 2.  Likewise, we write td := UOV.ExpandSK(csk) to denote
    expansion of the secret key into the trapdoor td for P.
 
-   We write s := UOV.SPre(td, t) to denote sampling a pre-image of
-   target t under P, i.e., an s for which P(s) = t.  This is the same
-   procedure as used in the signing algorithm in [UOV], Figure 2.
+   We write s := UOV.SPre(td, t) to denote sampling a preimage of target
+   t under P, i.e., an s for which P(s) = t.  This is the same procedure
+   as used in the signing algorithm in [UOV], Figure 2.
 
    We write pf := VOLEitH.Prove(R, X, W) to denote proving knowledge of
    a witness W for which the pair (X, W) is in the relation R, where X
@@ -302,8 +303,8 @@ Table of Contents
    instance and witness variables.  Unlike [SIGMA], these equations need
    not be linear: each side of the equation is a polynomial of arbitrary
    degree.  However, because the degree of the polynomial influences the
-   size of the proof, the relation needs to be designed to balance the
-   size of the witness with the degree of the constraints.
+   size of the proof, the relation must be designed to balance the size
+   of the witness with the degree of the constraints.
 
       TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
       Ideally it specifies a compiler of constraints into a proof, as in
@@ -366,7 +367,7 @@ Parameters:
        lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
 
    The issuer's public key is a UOV quadratic map P: F_q^{n_uov} ->
-   F_q^{m_uov}; the secret key is a trapdoor for sampling a solution s
+   F_q^{m_uov}. The secret key is a trapdoor for sampling a solution s
    for a given target P(s) = t (see [UOV], Section 3.2).  The UOV and
    VOLE-in-the-Head security levels must match, so neither weakens the
    token's overall security (Section 5.2).
@@ -376,11 +377,11 @@ Parameters:
    birthday bound motivates nu >= lambda/4 bytes (= 2*lambda bits), and
    a ciphersuite defaults to nu = lambda/4; a compact ciphersuite MAY
    use a smaller nu (e.g., 24 bytes in Section 6.1 and 28 bytes in the
-   MQ instantiation of Section 6.2), trading collision margin for size.
-   The randomness only hides the commitment; its length is
-   instantiation-dependent -- rho = lambda/8 bytes for the hash
+   MQ instantiation of Section 6.2), trading collision resistance for
+   smaller size.  The randomness only hides the commitment; its length
+   is instantiation-dependent -- rho = lambda/8 bytes for the hash
    commitment (Section 6.1) and rho = n_com (the F_256 input length,
-   i.e. n_com elements of F_256) for the MQ commitment (Section 6.2).
+   i.e., n_com elements of F_256) for the MQ commitment (Section 6.2).
    Credit values are exactly L bytes: the issuer MAY choose any initial
    amount in [1, 2^(8*L) - 1], with no cap beyond L.
 
