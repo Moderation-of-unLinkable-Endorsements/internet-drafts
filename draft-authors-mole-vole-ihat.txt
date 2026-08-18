@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 15 February 2027                                     Cloudflare
-                                                          14 August 2026
+Expires: 19 February 2027                                     Cloudflare
+                                                          18 August 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 February 2027.
+   This Internet-Draft will expire on 19 February 2027.
 
 Copyright Notice
 
@@ -112,16 +112,16 @@ Table of Contents
    recovering the Anchor's secret key from its public key.
 
    This document specifies Moussaka, a variant of IHAT that is plausibly
-   fully post-quantum secure.  Its design is based on the PoMFRIT blind
-   signature scheme [PoMFRIT], which combines a post-quantum signature
-   scheme with a suitable zero-knowledge proof system and commitment
-   scheme.  Specifically, the signer signs a commitment to the message,
-   and the verifier checks a zero-knowledge proof-of-knowledge of the
-   signature and the opening of the commitment.  Moussaka extends this
-   paradigm in the natural way: rather than prove knowledge of a
-   signature under the public key of a particular Anchor, the Client
-   proves knowledge of a signature under some public key in the Anchor
-   Set.
+   fully post-quantum secure.  Similar to [VOLE-ACT], its design is
+   based on the PoMFRIT blind signature scheme [PoMFRIT], which combines
+   a post-quantum signature scheme with a suitable zero-knowledge proof
+   system and commitment scheme.  Specifically, the signer signs a
+   commitment to the message, and the verifier checks a zero-knowledge
+   proof-of-knowledge of the signature and the opening of the
+   commitment.  Moussaka extends this paradigm in the natural way:
+   rather than prove knowledge of a signature under the public key of a
+   particular Anchor, the Client proves knowledge of a signature under
+   some public key in the Anchor Set.
 
    Moussaka has significantly higher bandwidth cost compared to IHAT:
 
@@ -694,10 +694,11 @@ Table of Contents
               RFC 9861, DOI 10.17487/RFC9861, October 2025,
               <https://www.rfc-editor.org/rfc/rfc9861>.
 
-   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
-              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
-              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
-              draft-irtf-cfrg-sigma-protocols-02>.
+   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
+              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
+              protocols-03, 16 August 2026,
+              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
+              sigma-protocols-03>.
 
 Acknowledgments
 

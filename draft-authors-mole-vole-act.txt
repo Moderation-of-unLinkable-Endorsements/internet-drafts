@@ -5,10 +5,10 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 15 February 2027                                     Cloudflare
+Expires: 19 February 2027                                     Cloudflare
                                                           S. Schlesinger
                                                                   Google
-                                                          14 August 2026
+                                                          18 August 2026
 
 
                               Ratatouille
@@ -56,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 February 2027.
+   This Internet-Draft will expire on 19 February 2027.
 
 Copyright Notice
 
@@ -75,34 +75,33 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-     1.1.  Key Properties and Use Cases
-     1.2.  Building Blocks
    2.  Conventions and Definitions
      2.1.  Notation
      2.2.  Data Types
      2.3.  VOLE-in-the-Head Proofs of Knowledge
      2.4.  Cryptographic Parameters
    3.  Protocol Overview
-   4.  Protocol Specification
-     4.1.  System Parameters
-     4.2.  Key Generation
-     4.3.  Commitment and Tag
-     4.4.  Token Issuance
-       4.4.1.  Client: Issuance Request
-       4.4.2.  Issuer: Issuance Response
-       4.4.3.  Client: Token Verification
-     4.5.  Token Spending
-       4.5.1.  Client: Spend Proof Generation
-       4.5.2.  Issuer: Spend Verification and Refund
-       4.5.3.  Client: Refund Token Construction
-   5.  Instantiations
-     5.1.  Hash commitment (Keccak-p[800, 12])
-     5.2.  MQ commitment (BFMRSV25a)
-   6.  Security Considerations
-   7.  IANA Considerations
-   8.  References
-     8.1.  Normative References
-     8.2.  Informative References
+   4.  Preliminaries
+   5.  Protocol Specification
+     5.1.  System Parameters
+     5.2.  Key Generation
+     5.3.  Commitment and Tag
+     5.4.  Token Issuance
+       5.4.1.  Client: Issuance Request
+       5.4.2.  Issuer: Issuance Response
+       5.4.3.  Client: Token Verification
+     5.5.  Token Spending
+       5.5.1.  Client: Spend Proof Generation
+       5.5.2.  Issuer: Spend Verification and Refund
+       5.5.3.  Client: Refund Token Construction
+   6.  Instantiations
+     6.1.  Hash commitment (Keccak-p[800, 12])
+     6.2.  MQ commitment (BFMRSV25)
+   7.  Security Considerations
+   8.  IANA Considerations
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
    Acknowledgments
    Authors' Addresses
 
@@ -116,113 +115,84 @@ Table of Contents
    needs and user privacy.  Services need to implement rate limiting to
    prevent abuse, charge for API usage to sustain operations, and
    allocate computational resources fairly.  However, traditional
-   approaches require tracking client identities and creating detailed
-   logs of client behavior, raising significant privacy concerns in an
-   era of increasing data protection awareness and regulation.
+   approaches require tracking user identities and creating detailed
+   logs of user behavior, raising significant privacy concerns in an era
+   of increasing data protection awareness and regulation.
 
    The Anonymous Credit Token (ACT) protocol [ACT] resolves this tension
-   by enabling credit-based systems without client tracking: an issuer
-   can grant a client a token worth some number of credits, and the
-   client can later spend those credits anonymously, in whole or in
-   part, without the issuer being able to link the spend to the issuance
-   or to any other spend by the same client.
+   by enabling credit-based systems without user tracking: an Issuer can
+   grant a Client a token worth some number of credits, and the Client
+   can later spend those credits anonymously, in whole or in part,
+   without the Issuer being able to link the spend to the issuance or to
+   any other spend by the same Client.
 
-   ACT [ACT] builds on BBS MACs over prime-order groups.  Its
-   _unlinkability_ (the issuer cannot correlate transactions) is
-   information-theoretic, following from the perfectly hiding
-   commitments, so it already holds against unbounded and hence quantum
-   adversaries.  Its _unforgeability_ (clients cannot mint or over-spend
-   credits), however, rests on the strong Diffie-Hellman assumption that
-   Shor's algorithm breaks.  What remains, then, is to make
-   unforgeability post-quantum as well.
+   ACT achieves this privacy goal information-theoretically, meaning no
+   attacker, regardless of its computational resources, can link the
+   presentation of a token to its issuance.  However, ACT is based on
+   elliptic curve cryptography, which means a quantum attacker can forge
+   a token by recovering the Issuer's secret key from its public key.
 
-   This document specifies Ratatouille, a *post-quantum* variant of ACT,
-   whose security rests on assumptions believed to resist quantum
-   attack: the hardness of structured multivariate quadratic (MQ)
-   problems, via the Unbalanced Oil and Vinegar (UOV) signature scheme
-   [UOV], and the security of symmetric primitives (hash functions and
-   pseudorandom generators), via the VOLE-in-the-Head (VOLEitH) zero-
-   knowledge proof system [FAEST].  We build on the Fischlin blind-
-   signature paradigm [Fischlin], in which a client sends the issuer a
-   hiding commitment to a message, the issuer signs the commitment, and
-   the client later proves knowledge of a signature on the committed
-   message.  Ratatouille generalizes this from a one-time signature to a
-   spendable balance: the commitment binds a nullifier together with the
-   remaining credits, and each presentation additionally proves that the
-   spend was subtracted correctly and the balance stays in range, with
-   the issuer re-signing the updated commitment so that every spend
+   This document specifies Ratatouille, a variant of ACT that is
+   plausibly fully post-quantum secure.  Its design is based on the
+   PoMFRIT blind signature scheme [PoMFRIT], which combines a post-
+   quantum signature scheme with a suitable zero-knowledge proof system
+   and commitment scheme.  Specifically, the signer signs a commitment
+   to the message, and the verifier checks a zero-knowledge proof-of-
+   knowledge of the signature and the opening of the commitment.
+   Ratatouille generalizes this from a one-time use token to a token
+   with updatable state: the commitment binds a nullifier together with
+   the remaining credits, and each presentation additionally proves that
+   the spend was subtracted correctly and the balance stays in range,
+   with the Issuer re-signing the updated commitment so that every spend
    chains into the next token.
 
-   Ratatouille is inspired by PoMFRIT [PoMFRIT], which builds a post-
-   quantum blind signature from the MAYO signature (another MQ
-   signature) and optimizes the VOLEitH proof for SHAKE hashing, and by
-   Bouillaguet et al.  [BFMRSV25a], which builds a post-quantum blind
-   signature from an MQ commitment.  In both, the multivariate building
-   block is chosen to be efficiently provable in VOLEitH -- the same
-   principle Ratatouille follows.
+   Ratatouille uses [UOV] as its signature scheme.  Two instantiations
+   of the commitment are defined, one based on the Keccak permutation
+   [FIPS202] and another based on the Multivariate Quadratic (MQ)
+   problem [BFMRSV25].  The latter composes more naturally with UOV, is
+   much simpler to evaluate in zero knowledge, and, with its current
+   parameterization, has significantly lower communication cost than the
+   hash-based variant.
 
-1.1.  Key Properties and Use Cases
+      WARNING Adopters should not implement the MQ variant just yet.  MQ
+      commitments are understudied, and we don't know if the parameters
+      we've chosen are sufficient for either unlinkability or
+      unforgeability.  Our goal for this variant is to give researchers
+      a sense of the parameter regime for which MQ commitments are
+      useful in our application.  In particular, if communication cost
+      is at or below hash-based commitments, then their relative
+      simplicity makes them a good choice.
 
-   Ratatouille inherits the properties and use cases of ACT [ACT]; we
-   refer the reader there for their definitions.  In particular, it
-   provides *unlinkability*, *flexible spending and refunding*, *balance
-   privacy*, and *double-spend prevention* (if a single database is
-   shared across issuers), and it supports the same use cases, such as
-   *rate limiting* and *API credits*.
+   Both variants of Ratatouille have higher bandwidth cost than ACT:
 
-   Beyond ACT, Ratatouille additionally achieves *Full Post-Quantum
-   Security*: All security properties -- unforgeability, unlinkability,
-   and double-spend prevention -- are conjectured to hold against
-   adversaries equipped with a large-scale quantum computer.  Security
-   reduces to the UOV and MQ problems and to the security of standard
-   symmetric primitives.
+   1.  the Issuer's public key is 42.6 KB, which corresponds to the uov-
+       Ip parameter set for UOV (the MQ instantiation has a larger
+       public key in order to accommodate the commitment parameters);
 
-   This post-quantum security comes at a cost in *performance*:
-   presentation proofs are larger than in the classical construction, on
-   the order of kilobytes to tens of kilobytes.  At the 128-bit security
-   level, Ratatouille has significantly higher communication cost than
-   the classical ACT:
+   2.  the Client uploads 7.8 KB during initial issuance (4.3 KB for the
+       MQ variant); and
 
-   1.  the issuer's public key is a UOV map -- approximately 42.6 KB for
-       the hash instantiation (Section 5.1, the uov-Ip parameter set
-       [UOV]), and larger for the MQ instantiation (Section 5.2), which
-       widens the UOV map;
+   3.  the Client uploads 14.2 KB during a spend (9.0 KB for the MQ
+       variant).
 
-   2.  ~7.8 KB (hash) or ~4.3 KB (MQ) are transmitted during issuance;
-       and
+   In both the initial issuance and a spend, the Issuer's reply is a
+   single UOV signature, which is below a couple of hundred bytes for
+   both instantiations.
 
-   3.  ~14.2 KB (hash) or ~9.0 KB (MQ) are transmitted during a spend;
-       and
+   Unlike ACT, Ratatouille tokens are publicly verifiable, meaning they
+   can be presented to any party with the Issuer's public key.  Of
+   course, this has implications for privacy, since the token
+   necessarily reveals the identity of the Moderator that issued it.
 
-   4.  the issuer's reply is a single UOV signature -- about 112 B
-       (hash) or 275 B (MQ), plus a few bytes of granted refund on a
-       spend.
-
-   Nonetheless, the protocol remains practical for modern web services,
-   with efficient signing, verification, and proof generation.
-
-   Unlike ACT, Ratatouille tokens are publicly verifiable in the sense
-   that it can be presented to any Moderator, not just the Moderator
-   that issued it.  Of course, this has implications for privacy, since
-   the token necessarily reveals the identity of the Moderator that
-   issued it.
-
-1.2.  Building Blocks
-
-   Ratatouille builds on the following cryptographic primitives:
-
-   *  *UOV Signatures [UOV]*: Unbalanced Oil and Vinegar is a
-      multivariate hash-and-sign signature scheme and a Round 2
-      candidate in the NIST additional post-quantum signatures process.
-      Its public key is a system of multivariate quadratic equations,
-      and signature verification is a degree-2 check over a small field
-      -- a structure that is especially friendly to VOLEitH proofs.
-
-   *  *VOLE-in-the-Head [FAEST]*: A zero-knowledge proof and signature
-      framework, used here as the proof system for spending.  Its proofs
-      are publicly verifiable, are built entirely from symmetric
-      primitives, and are concretely small and fast for circuits over
-      small binary fields.
+   The remainder of this document is structured as follows.  Section 2
+   defines some conventions and notation.  Section 3 provides a high-
+   level overview of the protocol.  Section 4 defines the relevant
+   interfaces for the signature scheme, commitment scheme, and proof
+   system used by Ratatouille, and provides normative references for
+   their specifications.  Section 5 specifies the protocol in terms of a
+   generic commitment scheme; Section 6 gives our two instantiations of
+   the commitment.  Finally, Section 7 enumerates some security
+   considerations for implementers and adopters.
 
 2.  Conventions and Definitions
 
@@ -272,7 +242,7 @@ Table of Contents
       2^(8*L) as an element of F_256^L (equivalently F_2^(8*L)).
 
    *  H: A cryptographic extendable-output hash function, modeled as a
-      random oracle (see Section 4).  Domain separation is applied by
+      random oracle (see Section 5).  Domain separation is applied by
       prefixing a distinct label and the deployment tag dst to each use.
 
 2.2.  Data Types
@@ -301,7 +271,7 @@ Table of Contents
    *  *ByteString*: A sequence of bytes.
 
    From these, the protocol builds the following objects, each defined
-   in Section 4:
+   in Section 5:
 
    *  *Signature*: A UOV signature s in F_q^{n_uov} satisfying P(s) = y
       for a target y in F_q^{m_uov}. The target is the domain-separated
@@ -309,7 +279,7 @@ Table of Contents
 
    *  *Commitment*: c = Com(nf, t, r), binding a nullifier nf and credit
       value t under randomness r.  We instantiate the commitment scheme
-      in one of two ways: see Section 5.
+      in one of two ways: see Section 6.
 
    *  *Tag*: Tag(c, x) in F_q^{m_uov}, the UOV signing target derived
       from a commitment c and a refund amount x.
@@ -318,7 +288,7 @@ Table of Contents
       credit token.
 
    *  *Proof*: pf, a VOLE-in-the-Head zero-knowledge proof for the
-      presentation relation of Section 4.5.
+      presentation relation of Section 5.5.
 
 2.3.  VOLE-in-the-Head Proofs of Knowledge
 
@@ -341,7 +311,7 @@ Table of Contents
 2.4.  Cryptographic Parameters
 
    The protocol is parameterized by the following values, whose concrete
-   instantiations (ciphersuites) are given in Section 5:
+   instantiations (ciphersuites) are given in Section 6:
 
 Parameters:
   - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
@@ -363,18 +333,18 @@ Parameters:
    F_q^{m_uov}; the secret key is a trapdoor for sampling a solution s
    for a given target P(s) = t (see [UOV], Section 3.2).  The UOV and
    VOLE-in-the-Head security levels must match, so neither weakens the
-   token's overall security (Section 4.1).
+   token's overall security (Section 5.1).
 
    The lengths nu and rho are independent.  The nullifier is revealed
    and must not collide across tokens issued under one key, so a
    birthday bound motivates nu >= lambda/4 bytes (= 2*lambda bits), and
    a ciphersuite defaults to nu = lambda/4; a compact ciphersuite MAY
-   use a smaller nu (e.g., 24 bytes in Section 5.1 and 28 bytes in the
-   MQ instantiation of Section 5.2), trading collision margin for size.
+   use a smaller nu (e.g., 24 bytes in Section 6.1 and 28 bytes in the
+   MQ instantiation of Section 6.2), trading collision margin for size.
    The randomness only hides the commitment; its length is
    instantiation-dependent -- rho = lambda/8 bytes for the hash
-   commitment (Section 5.1) and rho = n_com (the F_256 input length,
-   i.e. n_com elements of F_256) for the MQ commitment (Section 5.2).
+   commitment (Section 6.1) and rho = n_com (the F_256 input length,
+   i.e. n_com elements of F_256) for the MQ commitment (Section 6.2).
    Credit values are exactly L bytes: the issuer MAY choose any initial
    amount in [1, 2^(8*L) - 1], with no cap beyond L.
 
@@ -417,35 +387,39 @@ Parameters:
    combined step.  Only the spend amount is revealed to the issuer; the
    balance and the client's identity remain hidden.
 
-4.  Protocol Specification
+4.  Preliminaries
+
+      TODO
+
+5.  Protocol Specification
 
    This section specifies the protocol algorithms once, over an abstract
-   commitment Com and tag Tag (Section 4.3).  This document defines two
+   commitment Com and tag Tag (Section 5.3).  This document defines two
    constructions of these primitives -- a hash commitment (a TurboSHAKE-
    style sponge over Keccak-p[800, 12]) and the algebraic multivariate-
-   quadratic (MQ) commitment of [BFMRSV25a] over F_256: they share the
+   quadratic (MQ) commitment of [BFMRSV25] over F_256: they share the
    token structure (nf, t, r, x, s) with effective balance B = t + x,
    and the Issuance and Spend flows.  They differ only in how Com and
-   Tag are realized.  Both instantiations are given in Section 5; a
+   Tag are realized.  Both instantiations are given in Section 6; a
    deployment MUST fix exactly one for the lifetime of a key, as part of
-   the ciphersuite (Section 5) and bound into dst.
+   the ciphersuite (Section 6) and bound into dst.
 
    This section begins with the deployment-wide system parameters
-   (Section 4.1) and the issuer's key generation (Section 4.2), defines
+   (Section 5.1) and the issuer's key generation (Section 5.2), defines
    the abstract commitment and tag that binds a token's contents
-   (Section 4.3), gives the interactive Issuance and Spend-and-Reissue
-   protocols (Section 4.4 and Section 4.5), and then specifies the two
-   concrete instantiations of Com and Tag (Section 5).  The zero-
+   (Section 5.3), gives the interactive Issuance and Spend-and-Reissue
+   protocols (Section 5.4 and Section 5.5), and then specifies the two
+   concrete instantiations of Com and Tag (Section 6).  The zero-
    knowledge relation proved during spending is specified as conditions
-   V1--V4 in Section 4.5.1; the proof system that establishes it is the
+   V1--V4 in Section 5.5.1; the proof system that establishes it is the
    VOLE-in-the-Head proof of [FAEST] with parameters fixed by the
-   ciphersuite (Section 4.1).
+   ciphersuite (Section 5.1).
 
-4.1.  System Parameters
+5.1.  System Parameters
 
    A deployment fixes two things:
 
-   1.  A *ciphersuite* (Section 5), which determines (lambda, nu, rho,
+   1.  A *ciphersuite* (Section 6), which determines (lambda, nu, rho,
        n_uov, m_uov, tau, N, w_grind, L, H).
 
    2.  A *domain separation tag* dst, a byte string that identifies the
@@ -463,7 +437,7 @@ Parameters:
 
    "example-corp:rate-limiter:production:2026-01-15"
 
-4.2.  Key Generation
+5.2.  Key Generation
 
    Key generation is run once by the issuer to produce a long-lived UOV
    key pair.  The routines UOV.CompactKeyGen, UOV.ExpandPK, and
@@ -492,10 +466,10 @@ Parameters:
    accepted nullifiers for rejecting any nullifier it has already
    accepted.
 
-4.3.  Commitment and Tag
+5.3.  Commitment and Tag
 
    The protocol is stated over two abstract primitives, Com and Tag,
-   whose concrete realizations are given in Section 5.  Both are domain-
+   whose concrete realizations are given in Section 6.  Both are domain-
    separated by dst.  Any instantiation MUST provide the following
    interface.
 
@@ -541,7 +515,7 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
    signature.  The token's *effective balance* -- the amount the client
    may spend -- is B = t + x.
 
-4.4.  Token Issuance
+5.4.  Token Issuance
 
    Issuance mints a fresh token carrying an initial credit balance
    T_init in [1, 2^(8*L) - 1] agreed between the client and issuer.  It
@@ -559,11 +533,11 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
 
    Blindness does *not* come from masking the signing target.  The
    issuer sees c at issuance (which hides nf via r) and sees nf only at
-   presentation (where the zero-knowledge proof of Section 4.5 hides c);
+   presentation (where the zero-knowledge proof of Section 5.5 hides c);
    because Com is hiding, the issuer cannot link a presented nf to the c
    it signed.  Every later presentation proves knowledge of (nf, t, r,
    x, s) satisfying P(s) = Tag(Com(nf, t, r), x) -- the UOV relation of
-   Section 4.3 -- without revealing c.
+   Section 5.3 -- without revealing c.
 
    The issuance relation proves that the commitment c opens to the
    agreed initial balance T_init:
@@ -580,7 +554,7 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
      Constraints:
        - c = Com(nf, T_init, r)
 
-4.4.1.  Client: Issuance Request
+5.4.1.  Client: Issuance Request
 
    IssueRequest(T_init):
      Input:
@@ -602,7 +576,7 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
        6.  state   := (nf, r)
        7.  return (request, state)
 
-4.4.2.  Issuer: Issuance Response
+5.4.2.  Issuer: Issuance Response
 
    IssueResponse(sk, request, T_init):
      Input:
@@ -619,7 +593,7 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
                                           // rejection sampling on singular system
        4.  return s
 
-4.4.3.  Client: Token Verification
+5.4.3.  Client: Token Verification
 
    VerifyIssuance(pk, state, response, T_init):
      Input:
@@ -639,9 +613,9 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
    formedness proof pf_init, and the signature s it produced.
    Unlinkability of issuance to any later spend follows from the hiding
    of Com and the zero-knowledge of the presentation proof
-   (Section 4.5).
+   (Section 5.5).
 
-4.5.  Token Spending
+5.5.  Token Spending
 
    Spending lets a client spend d credits from a token of effective
    balance B = t + x (with 0 <= d <= B), atomically obtaining a fresh
@@ -658,11 +632,11 @@ Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
    in the tag, and returns s' = UOV.Sign(sk, Tag(c', x')).  In the
    common case x' = 0 and the change is entirely committed; a positive
    x' lets the issuer top the token up without a second message
-   (Section 4.3).  Setting d = 0 re-randomizes a token under a fresh
+   (Section 5.3).  Setting d = 0 re-randomizes a token under a fresh
    nullifier -- a re-anonymization operation useful for transferring a
    token.
 
-   Let L be the credit byte length (Section 4.1), so all balances lie in
+   Let L be the credit byte length (Section 5.1), so all balances lie in
    [0, 2^(8*L) - 1] and x, x' in [0, 2^(8*L) - 1].
 
    The spend relation binds the spent token to a well-formed change
@@ -690,7 +664,7 @@ Relation SpendRelation(pk, nf, d, c'):
     - t' = t + x - d                                     // V3: balance conservation
     - 0 <= t' < 2^(8*L) AND 0 <= x < 2^(8*L) AND 0 <= d < 2^(8*L)  // V4: ranges
 
-4.5.1.  Client: Spend Proof Generation
+5.5.1.  Client: Spend Proof Generation
 
    ProveSpend(tok, d):
      Input:
@@ -715,7 +689,7 @@ Relation SpendRelation(pk, nf, d, c'):
        8.  state := (nf', t', r')
        9.  return (proof, state)
 
-4.5.2.  Issuer: Spend Verification and Refund
+5.5.2.  Issuer: Spend Verification and Refund
 
    VerifyAndRefund(sk, proof, x'):
      Input:
@@ -754,7 +728,7 @@ Relation SpendRelation(pk, nf, d, c'):
    spend by replaying the request.
 
    Verification checks only the zero-knowledge proof against the public
-   inputs (pk, nf, d, c'); conditions V1--V4 of Section 4.5.1 are
+   inputs (pk, nf, d, c'); conditions V1--V4 of Section 5.5.1 are
    enforced inside pf_spend.  In particular V1 establishes that the
    client holds an issuer signature over some token whose effective
    balance is t + x, V3 and V4 establish d <= t + x and that the change
@@ -763,7 +737,7 @@ Relation SpendRelation(pk, nf, d, c'):
    and the nullifier nf, but neither the effective balance B nor the
    change t'.
 
-4.5.3.  Client: Refund Token Construction
+5.5.3.  Client: Refund Token Construction
 
    VerifyRefund(pk, state, response):
      Input:
@@ -784,21 +758,21 @@ Relation SpendRelation(pk, nf, d, c'):
    hiding commitment c' and the public (nf, d, x'), none of which reveal
    nf' or the change balance.
 
-5.  Instantiations
+6.  Instantiations
 
-   The protocol of Section 4.2 through Section 4.5 is parameterized by
-   the commitment Com and tag Tag of Section 4.3.  This section gives
+   The protocol of Section 5.2 through Section 5.5 is parameterized by
+   the commitment Com and tag Tag of Section 5.3.  This section gives
    the two concrete instantiations.  A deployment MUST fix exactly one
    for the lifetime of a key (bound into dst); the choice is part of the
    ciphersuite.
 
    Both realize the same abstract interface, so all of Issuance
-   (Section 4.4), Spend (Section 4.5), the conditions V1--V4, double-
+   (Section 5.4), Spend (Section 5.5), the conditions V1--V4, double-
    spend handling, and blindness are inherited unchanged.  They differ
    only in Com, Tag, the deployment-wide parameters derived from dst,
    and the resulting UOV dimensions (n_uov, m_uov).
 
-5.1.  Hash commitment (Keccak-p[800, 12])
+6.1.  Hash commitment (Keccak-p[800, 12])
 
    Here both Com and Tag are realized by KP800, a TurboSHAKE [RFC9861]
    sponge over the reduced-round permutation Keccak-p[800, 12]
@@ -806,10 +780,10 @@ Relation SpendRelation(pk, nf, d, c'):
    KP800(M, d) squeezes d bytes of output, and KP800(M) defaults to d =
    2*lambda/8 bytes (i.e. 2*lambda bits).  Distinct one-byte labels
    separate commitment hashing from UOV-target hashing.  In the Spend
-   relation (Section 4.5.1), V1 evaluates Com and Tag for the old token,
+   relation (Section 5.5.1), V1 evaluates Com and Tag for the old token,
    while V2 evaluates Com for the change token.  A spend therefore
    evaluates Keccak-p[800, 12] three times in-circuit.  The MQ
-   instantiation (Section 5.2) removes these evaluations entirely.
+   instantiation (Section 6.2) removes these evaluations entirely.
 
    The 800-bit permutation, rather than TurboSHAKE128's 1600-bit Keccak-
    p[1600, 12], halves the in-circuit state.  Its 256-bit capacity
@@ -833,7 +807,7 @@ Relation SpendRelation(pk, nf, d, c'):
 
    *Tag.* Tag hashes a commitment and public refund to a full UOV target
    of m_uov bytes, where m_uov is the number of UOV equations
-   (Section 4.1):
+   (Section 5.1):
 
    Tag(c, x):
      Input:
@@ -861,7 +835,7 @@ Relation SpendRelation(pk, nf, d, c'):
    chosen-tail or translated-target UOV assumption.  A complete protocol
    proof additionally requires knowledge soundness of the VOLEitH proof,
    faithful integer arithmetic, and atomic nullifier handling
-   (Section 6).
+   (Section 7).
 
    *Parameter selection.* The knobs chosen for the ciphersuite RATA-
    KP800-uovIp:
@@ -906,14 +880,14 @@ Relation SpendRelation(pk, nf, d, c'):
 
                                   Table 2
 
-5.2.  MQ commitment (BFMRSV25a)
+6.2.  MQ commitment (BFMRSV25)
 
    Here Com and Tag are realized by the algebraic multivariate-quadratic
-   (MQ) commitment of [BFMRSV25a] over F_256.  This removes the in-
+   (MQ) commitment of [BFMRSV25] over F_256.  This removes the in-
    circuit hash: because both Com and Tag are degree-2 relations over
-   F_256, conditions V1 and V2 of Section 4.5.1 are pure F_256
+   F_256, conditions V1 and V2 of Section 5.5.1 are pure F_256
    arithmetic with no Keccak in-circuit.  The realization differs from
-   Section 5.1 in two ways:
+   Section 6.1 in two ways:
 
    1.  *Com is algebraic.* Com(nf, t, r) = (EmbedNullifierBalance(nf, t)
        + F(r), G(r)) for public general quadratic maps F, G from the
@@ -930,7 +904,7 @@ Relation SpendRelation(pk, nf, d, c'):
    maps F, G, produced by a routine GenerateParameters.  Ours derives F,
    G deterministically from dst by a nothing-up-my-sleeve expansion, so
    it needs no trusted setup.  Unlike the hash instantiation of
-   Section 5.1 (which evaluates Keccak-p[800, 12] for both Com and Tag
+   Section 6.1 (which evaluates Keccak-p[800, 12] for both Com and Tag
    inside the spend proof), this parameter expansion is never proven in
    zero knowledge.  It therefore uses standard SHAKE128 (FIPS 202)
    [FIPS202] -- the more conservatively reviewed XOF:
@@ -964,8 +938,7 @@ Relation SpendRelation(pk, nf, d, c'):
    which admits a forgery.
 
    *Commitment.* Com binds a nullifier nf and a credit value t under
-   randomness r, following the MQ commitment construction in
-   [BFMRSV25a]:
+   randomness r, following the MQ commitment construction in [BFMRSV25]:
 
    Com(nf, t, r):
      Input:
@@ -988,7 +961,7 @@ Relation SpendRelation(pk, nf, d, c'):
 
    *Tag.* The MQ commitment is _constant-additively homomorphic_: adding
    a public vector to c shifts the committed message without touching
-   the binding block G(r) and without knowledge of r [BFMRSV25a].  Tag
+   the binding block G(r) and without knowledge of r [BFMRSV25].  Tag
    uses this to write the issuer-granted refund x into the (zero) refund
    coordinate:
 
@@ -1015,12 +988,12 @@ Relation SpendRelation(pk, nf, d, c'):
    (finding r != r' with G(r) = G(r'), a bilinear MQ problem that is NP-
    complete in the worst case).  Separately, one-more unforgeability of
    the signed commitment rests on the interactive one-more _quadratic-
-   claw_ assumption, flagged as unexplored in [BFMRSV25a].
+   claw_ assumption, flagged as unexplored in [BFMRSV25].
 
    *Parameter selection.* The ciphersuite RATA-MQ128-k32 takes the
    aggressive _heuristic-hiding / computational-binding_ row of
-   [BFMRSV25a], Table 3 (q = 256, so one commitment element is one
-   byte), which minimizes commitment size.  Here m_uov is pinned by the
+   [BFMRSV25], Table 3 (q = 256, so one commitment element is one byte),
+   which minimizes commitment size.  Here m_uov is pinned by the
    commitment length rather than chosen for signature compactness; with
    m_uov fixed, the only free UOV knob is the input size n_uov, set to
    the smallest value keeping every known attack at >= 2^lambda under
@@ -1031,7 +1004,7 @@ Relation SpendRelation(pk, nf, d, c'):
       +==============================+=============================+
       | Security lambda              | 128                         |
       +------------------------------+-----------------------------+
-      | Commitment (k, n_com, m_uov) | (32, 83, 131) ([BFMRSV25a], |
+      | Commitment (k, n_com, m_uov) | (32, 83, 131) ([BFMRSV25],  |
       |                              | Table 3)                    |
       +------------------------------+-----------------------------+
       | Nullifier nu                 | 28 bytes                    |
@@ -1079,7 +1052,7 @@ Relation SpendRelation(pk, nf, d, c'):
    dimensions: F: F_256^83 -> F_256^32, G: F_256^83 -> F_256^99, and v =
    n_uov - m_uov = 144.
 
-6.  Security Considerations
+7.  Security Considerations
 
       TODO Security reduction for both variants to (one-more-)UOV
       problem.  As part of this, figure out if the constant-addition
@@ -1089,13 +1062,13 @@ Relation SpendRelation(pk, nf, d, c'):
       used), pending further cryptanalysis of the commitment.  TODO
       Remind the reader here how the current parameters were chosen.
 
-7.  IANA Considerations
+8.  IANA Considerations
 
    This document has no IANA actions.
 
-8.  References
+9.  References
 
-8.1.  Normative References
+9.1.  Normative References
 
    [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
               Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
@@ -1130,7 +1103,7 @@ Relation SpendRelation(pk, nf, d, c'):
               pqc-dig-sig/documents/round-2/spec-files/uov-spec-
               round2-web.pdf>.
 
-8.2.  Informative References
+9.2.  Informative References
 
    [ACT]      Schlesinger, S. and J. Katz, "Anonymous Credit Tokens",
               Work in Progress, Internet-Draft, draft-schlesinger-cfrg-
@@ -1138,8 +1111,7 @@ Relation SpendRelation(pk, nf, d, c'):
               <https://datatracker.ietf.org/doc/html/draft-schlesinger-
               cfrg-act-01>.
 
-   [BFMRSV25a]
-              Bouillaguet, C., Feneuil, T., Maire, J., Rivain, M.,
+   [BFMRSV25] Bouillaguet, C., Feneuil, T., Maire, J., Rivain, M.,
               Sauvage, J., and D. Vergnaud, "Multivariate Commitments
               and Signatures with Efficient Protocols", Cryptology
               ePrint Archive Paper 2025/2035, 2025,
