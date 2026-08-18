@@ -404,7 +404,7 @@ normally computed by hashing the message to be signed. The UOV secret key is a
 trapdoor for `P` that can be used to efficiently sample signatures for a given
 target.
 
-A token is a tuple `(nf, t, r, x, s)` that binds a nullifier`nf`  to the
+A token is a tuple `(nf, t, r, x, s)` that binds a nullifier `nf` to the
 Client's current state. The state is an effective balance `t + x`, where `t` is
 the credit held by the Client and `x` is a refund chosen by the Issuer. `r` is
 the opening of a commitment `c = Com(nf, t, r)` and `s` is a signature `P(s) =
@@ -527,77 +527,89 @@ designed to balance the size of the witness with the degree of the constraints.
 >
 > TODO Make all of these algorithms deterministic, passing any randomness they
 > would generate as input. This will make it easier to generate test vectors.
+> We'll also need to plumb this through VOLEitH proving and UOV signing.
 
-This section specifies the protocol algorithms once, over an abstract
-commitment `Com` and tag `Tag` ({{commitment-tag}}). This document defines two
-constructions of these primitives -- a hash commitment (a TurboSHAKE-style
-sponge over `Keccak-p[800, 12]`) and the algebraic multivariate-quadratic (MQ)
-commitment of {{BFMRSV25}} over `F_256`: they share the token structure `(nf,
-t, r, x, s)` with effective balance `B = t + x`, and the Issuance and Spend
-flows. They differ only in how `Com` and `Tag` are realized. Both
-instantiations are given in {{instantiations}}; a deployment MUST fix exactly
-one for the lifetime of a key, as part of the ciphersuite ({{instantiations}})
-and bound into `dst`.
+This section specifies Ratatouille in terms of a generic configuration:
+{{parameters}} defines the various parameters and functions that are determined
+by a concrete configuration, and {{instantiations}} specifies two concrete
+configurations, called Ratatouille-Keccak and Ratatouille-MQ. A deployment MUST
+fix its configuration for the lifetime of an Issuer key.
 
-This section begins with the deployment-wide system parameters
-({{system-parameters}}) and the issuer's key generation ({{key-generation}}),
-defines the abstract commitment and tag that binds a token's contents
-({{commitment-tag}}), gives the interactive Issuance and Spend-and-Reissue
-protocols ({{issuance}} and {{spending}}), and then specifies the two concrete
-instantiations of `Com` and `Tag` ({{instantiations}}). The zero-knowledge
-relation proved during spending is specified as conditions V1--V4 in
-{{prove-spend}}; the proof system that establishes it is the VOLE-in-the-Head
-proof of {{FAEST}} with parameters fixed by the ciphersuite
-({{system-parameters}}).
+> TODO(cjpatton) Bind the variant to key derivation and the various key
+> operations to mitigate confusion attacks properly.
 
-## Cryptographic Parameters {#parameters}
+The rest of this section is organized as follows: {{key-generation}} specifies
+Issuer key generation; {{issuance}} specifies initial token issuance; and
+{{spending}} specifies token spending.
 
-The protocol is parameterized by the following values, whose concrete
-instantiations (ciphersuites) are given in {{instantiations}}:
+## Parameters {#parameters}
 
-~~~
-Parameters:
-  - lambda: Security parameter in bits (e.g., 128). Sets the big VOLE field
-            F_{2^lambda} and the default for nu and rho.
-  - nu: Nullifier length in bytes. Chosen so that random nullifiers do not
-        collide across all tokens issued under one key (see below).
-  - rho: Commitment randomness length in bytes. Chosen for commitment hiding.
-  - (n_uov, m_uov): UOV dimensions -- n_uov variables, m_uov equations -- over `F_q`.
-  - (tau, N, w_grind): VOLE-in-the-Head parameters -- tau VOLE instances,
-            N leaves per GGM tree (with tau * log2(N) = lambda), and a
-            proof-of-work grinding parameter w_grind.
-  - L: Byte width of credit values (1 <= L <= 16). The maximum credit a
-       token can hold is 2^(8*L) - 1.
-  - H: Extendable-output hash function, written H(M, d) to take input M and squeeze d bytes
-       of output (e.g., the KP800 sponge over Keccak-p[800, 12] for
-       lambda = 128; see hash commitment). (TODO: does this belong to Parameters?)
-~~~
+A Ratatouille configuration specifies the following constants:
 
-The issuer's public key is a UOV quadratic map `P: F_q^{n_uov} -> F_q^{m_uov}`.
-The secret key is a trapdoor for sampling a solution `s` for a given target `P(s) =
-t` (see {{UOV}}, Section 3.2). The UOV and VOLE-in-the-Head security levels must
-match, so neither weakens the token's overall security ({{system-parameters}}).
+- `L`: The credit width in bytes. It determines the largest credit value or
+  refund the configuration can carry, i.e., `t, x in [2^(8*L)]`.
 
-The lengths `nu` and `rho` are independent. The nullifier is revealed and must
-not collide across tokens issued under one key, so a birthday bound motivates
-`nu >= lambda/4` bytes (`= 2*lambda` bits), and a ciphersuite defaults to `nu =
-lambda/4`; a compact ciphersuite MAY use a smaller `nu` (e.g., `24` bytes in
-{{hash-commitment}} and `28` bytes in the MQ instantiation of
-{{mq-commitment}}), trading collision resistance for smaller size. The randomness only hides
-the commitment; its length is instantiation-dependent -- `rho = lambda/8` bytes
-for the hash commitment ({{hash-commitment}}) and `rho = n_com` (the `F_256`
-input length, i.e., `n_com` elements of `F_256`) for the MQ commitment
-({{mq-commitment}}). Credit values are exactly `L` bytes: the issuer MAY choose
-any initial amount in `[1, 2^(8*L) - 1]`, with no cap beyond `L`.
+- `nu`: The nullifier length in bytes.
 
-## System Parameters {#system-parameters}
+- `rho`: The commitment randomness length in bytes.
 
-A deployment fixes two things:
+- `q`: The size of the finite field `F_q` over which UOV signatures are
+  defined. `q` MUST be a power of two; typically `q=256`.
 
-1. A **ciphersuite** ({{instantiations}}), which determines `(lambda, nu, rho,
-   n_uov, m_uov, tau, N, w_grind, L, H)`.
-2. A **domain separation tag** `dst`, a byte string that identifies the
-   deployment and isolates it cryptographically from every other deployment.
+  > TODO(cjpatton) Consider hardcoding this like we do in Moussaka.
+
+- `n_uov, m_uov`: The dimensions of the UOV map. The Issuer's public key is
+  a map `P: F_q^{n_uov} -> F_q^{m_uov}`. Ratatouille-Keccak uses the uov-Ip
+  parameter set (NIST Level 1) from {{UOV}}. Ratatouille-MQ uses larger
+  parameters in order to accommodate MQ commitments.
+
+### Commitment {#commitment}
+
+A Ratatouille configuration specifies a function `Com()` that commits the Client
+to a nullifier and a credit value:
+
+~~~~pseudocode
+Com(nf, t, r):
+  Input:
+    - nf: nullifier, in F_256^nu
+    - t: credit value, in [2^(8*L)]
+    - r: commitment opening, in F_256^rho
+  Output:
+    - c: commitment
+~~~~
+
+The commitment must be (computationally) hiding, meaning that for a random
+opening `r`, no (efficient) attacker can distinguish commitments to different
+values. It must also be (computationally) binding, meaning that no (efficient)
+attacker can open a commitment to two distinct values.
+
+### Tag {#tag}
+
+A Ratatouille configuration specifies a tagging function `Tag()` that binds a
+commitment to a refund and returns a UOV target:
+
+~~~~pseudocode
+Tag(c, x):
+  Input:
+    - c: commitment
+    - x: refund, in [2^(8*L)]
+  Output:
+    - y: UOV target, in F_q^{m_uov}
+~~~~
+
+The Issuer signs `Tag(c, x)` with its UOV trapdoor, so a single signature binds
+both the contents committed by `c` and the refund `x`. The refund is an input to
+`Tag` rather than `Com`, which lets the Issuer add credits at signing time
+without the Client re-committing.
+
+## Domain Separation Tag
+
+> TODO(cjpatton) Drop this and align with domain separation in Moussaka. We
+> also need to include the configuration in the domain.
+
+A deployment fixes a **domain separation tag** `dst`, a byte string that
+identifies the deployment and isolates it cryptographically from every other
+deployment.
 
 The `dst` encodes the version of this specification and an application context
 string agreed upon by the client and issuer:
@@ -621,8 +633,6 @@ The routines `UOV.CompactKeyGen`, `UOV.ExpandPK`, and `UOV.ExpandSK` are those o
 `(cpk, csk)`, `ExpandPK` expands `cpk` into the public UOV map `P`, and
 `ExpandSK` expands `csk` into the trapdoor for `P`.
 
-> TODO Ensure all algorithms are deterministic (the caller provides the initial randomness). This way we can easily generate consistent test vectors. We'll also need to plumb this through VOLEitH proving and UOV signing.
-
 ~~~~pseudocode
 KeyGen():
   Output:
@@ -638,59 +648,6 @@ KeyGen():
 
 The issuer publishes `pk`. The issuer additionally maintains a set of accepted
 nullifiers for rejecting any nullifier it has already accepted.
-
-## Commitment and Tag {#commitment-tag}
-
-The protocol is stated over two abstract primitives, `Com` and `Tag`, whose
-concrete realizations are given in {{instantiations}}. Both are
-domain-separated by `dst`. Any instantiation MUST provide the following
-interface.
-
-**Commitment.** `Com` binds a nullifier `nf` and a credit value `t` under
-randomness `r`:
-
-~~~~pseudocode
-Com(nf, t, r):
-  Input:
-    - nf: Nullifier (nu bytes)
-    - t: Credit value in [0, 2^(8*L) - 1]
-    - r: Randomness (rho bytes)
-  Output:
-    - c: Commitment
-~~~~
-
-`Com` MUST be computationally **hiding** -- given `c`, the pair `(nf, t)` is
-concealed by `r` -- and computationally **binding** -- no efficient party can
-open one `c` to two distinct `(nf, t)`.
-
-**Tag.** `Tag` derives the UOV signing target from a commitment `c` and a public
-refund `x`:
-
-~~~~pseudocode
-Tag(c, x):
-  Input:
-    - c: Commitment
-    - x: Refund in [0, 2^(8*L) - 1]
-  Output:
-    - y: UOV target in F_q^{m_uov}
-~~~~
-
-`Tag` hashes the commitment and issuer-granted refund to a full UOV target.
-The issuer signs `Tag(c, x)` with the UOV trapdoor, so a single signature jointly
-binds the committed contents `(nf, t)` through `c` and the refund `x`. The refund
-is an input to `Tag` rather than `Com`, which lets the issuer add credits at
-signing time without the client re-committing; at initial issuance `x = 0`.
-
-**Token.** A token is the client-side state carried between presentations:
-
-~~~
-Token = (nf, t, r, x, s)     such that     P(s) = Tag( Com(nf, t, r), x )
-~~~
-
-where `nf` is the nullifier, `t` the committed credit, `r in {0,1}^(8*rho)` the
-commitment randomness, `x` the refund amount, and `s` the UOV signature. The
-token's **effective balance** -- the amount the client may spend -- is `B = t +
-x`.
 
 ## Token Issuance {#issuance}
 
@@ -712,7 +669,7 @@ Blindness does **not** come from masking the signing target. The issuer sees
 (where the zero-knowledge proof of {{spending}} hides `c`); because `Com` is
 hiding, the issuer cannot link a presented `nf` to the `c` it signed. Every
 later presentation proves knowledge of `(nf, t, r, x, s)` satisfying `P(s) =
-Tag(Com(nf, t, r), x)` -- the UOV relation of {{commitment-tag}} -- without
+Tag(Com(nf, t, r), x)` -- the UOV relation of {{parameters}} -- without
 revealing `c`.
 
 The issuance relation proves that the commitment `c` opens to the agreed initial
@@ -814,11 +771,11 @@ issuer verifies, ensures the revealed nullifier is fresh, optionally grants an
 additional refund `x'` bound in the tag, and returns `s' = UOV.Sign(sk, Tag(c',
 x'))`. In the common case `x' = 0` and the change is entirely committed; a
 positive `x'` lets the issuer top the token up without a second message
-({{commitment-tag}}). Setting `d = 0` re-randomizes a token under a fresh
-nullifier -- a re-anonymization operation useful for transferring a token.
+({{tag}}). Setting `d = 0` re-randomizes a token under a fresh nullifier -- a
+re-anonymization operation useful for transferring a token.
 
-Let `L` be the credit byte length ({{system-parameters}}), so all balances lie
-in `[0, 2^(8*L) - 1]` and `x, x' in [0, 2^(8*L) - 1]`.
+Recall from {{parameters}} that the credit width `L` bounds every balance,
+refund, and spend: they all lie in `[2^(8*L)]`.
 
 The spend relation binds the spent token to a well-formed change token. It is
 specified by the conditions V1--V4 below.
@@ -948,9 +905,9 @@ and the public `(nf, d, x')`, none of which reveal `nf'` or the change balance.
 # Instantiations {#instantiations}
 
 The protocol of {{key-generation}} through {{spending}} is parameterized by the
-commitment `Com` and tag `Tag` of {{commitment-tag}}. This section gives the two
-concrete instantiations. A deployment MUST fix exactly one for the lifetime of a
-key (bound into `dst`); the choice is part of the ciphersuite.
+commitment `Com` ({{commitment}}) and tag `Tag` ({{tag}}). This section gives
+the two concrete instantiations. A deployment MUST fix exactly one for the
+lifetime of a key (bound into `dst`); the choice is part of the configuration.
 
 Both realize the same abstract interface, so all of Issuance ({{issuance}}),
 Spend ({{spending}}), the conditions V1--V4, double-spend handling, and
@@ -958,18 +915,17 @@ blindness are inherited unchanged. They differ only in `Com`, `Tag`, the
 deployment-wide parameters derived from `dst`, and the resulting UOV dimensions
 `(n_uov, m_uov)`.
 
-## Hash commitment (`Keccak-p[800, 12]`) {#hash-commitment}
+## Ratatouille-Keccak {#hash-commitment}
 
 Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE
 {{!RFC9861}} sponge over the reduced-round permutation `Keccak-p[800, 12]`
 {{FIPS202}}, modeled as a random oracle and domain-separated by `dst`.
-`KP800(M, d)` squeezes `d` bytes of output, and `KP800(M)` defaults to
-`d = 2*lambda/8` bytes (i.e. `2*lambda` bits). Distinct one-byte
-labels separate commitment hashing from UOV-target hashing. In the Spend
-relation ({{prove-spend}}), V1 evaluates `Com` and `Tag` for the old token, while
-V2 evaluates `Com` for the change token. A spend therefore evaluates
-`Keccak-p[800, 12]` three times in-circuit. The MQ instantiation
-({{mq-commitment}}) removes these evaluations entirely.
+`KP800(M, d)` squeezes `d` bytes of output, and `KP800(M)` defaults to `d = 32`
+bytes. Distinct one-byte labels separate commitment hashing from UOV-target
+hashing. In the Spend relation ({{prove-spend}}), V1 evaluates `Com` and `Tag`
+for the old token, while V2 evaluates `Com` for the change token. A spend
+therefore evaluates `Keccak-p[800, 12]` three times in-circuit. The MQ
+instantiation ({{mq-commitment}}) removes these evaluations entirely.
 
 The `800`-bit permutation, rather than TurboSHAKE128's `1600`-bit
 `Keccak-p[1600, 12]`, halves the in-circuit state. Its 256-bit capacity leaves a
@@ -982,26 +938,26 @@ randomness `r`:
 ~~~~pseudocode
 Com(nf, t, r):
   Input:
-    - nf: Nullifier (nu bytes)
-    - t: Credit value in [0, 2^(8*L) - 1]
-    - r: Randomness (rho bytes)
+    - nf: nullifier, in F_256^nu
+    - t: credit value, in [2^(8*L)]
+    - r: commitment opening, in F_256^rho
   Output:
-    - c: Commitment (lambda/4 bytes)
+    - c: commitment, in F_256^32
 
   Steps:
     1.  return KP800(0xAC || dst || nf || <t>_L || r)
 ~~~~
 
 **Tag.** `Tag` hashes a commitment and public refund to a full UOV target of
-`m_uov` bytes, where `m_uov` is the number of UOV equations ({{system-parameters}}):
+`m_uov` bytes, where `m_uov` is the number of UOV equations ({{parameters}}):
 
 ~~~~pseudocode
 Tag(c, x):
   Input:
-    - c: Commitment (lambda/4 bytes)
-    - x: Refund in [0, 2^(8*L) - 1]
+    - c: commitment, in F_256^32
+    - x: refund, in [2^(8*L)]
   Output:
-    - y: UOV target (m_uov bytes, = m_uov elements of F_256)
+    - y: UOV target, in F_256^{m_uov}
 
   Steps:
     1.  return KP800(0xAD || dst || c || <x>_L, m_uov)
@@ -1023,19 +979,16 @@ A complete protocol proof additionally requires knowledge soundness of the
 VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
 ({{security}}).
 
-**Parameter selection.** The knobs chosen for the ciphersuite
-`RATA-KP800-uovIp`:
+**Parameter selection.** The knobs chosen for Ratatouille-Keccak:
 
 | Parameter | Value |
 |-----------|-------|
-| Security `lambda` | `128` |
 | Nullifier `nu` | `24` bytes |
 | Randomness `rho` | `16` bytes |
 | Credit width `L` | `8` (`t, x, d in [0, 2^64 - 1]`) |
 | Domain-separation tag `dst` | `18` bytes |
-| Commitment `c` | `lambda/4 = 32` bytes |
+| Commitment `c` | `32` bytes |
 | UOV `(n_uov, m_uov, q)` | `(112, 44, 256)` (`uov-Ip`) |
-| VOLEitH `(tau, w_grind)` | `(11, 7)` (FAEST-128s) |
 
 **API sizes.** Everything below is derived from the parameters above and is
 given in bytes.
@@ -1046,10 +999,10 @@ given in bytes.
 | `Tag(c, x)` | label `0xAD` = `1`, `dst: 18`, `c: 32`, `<x>_L: 8` | `y: m_uov = 44` |
 | `P(s)` (UOV) | `s: n_uov = 112` | `y: m_uov = 44` |
 
-## MQ commitment (BFMRSV25) {#mq-commitment}
+## Ratatouille-MQ {#mq-commitment}
 
 Here `Com` and `Tag` are realized by the algebraic multivariate-quadratic (MQ)
-commitment of {{BFMRSV25}} over `F_256`.  This removes the in-circuit hash:
+commitment of {{BFMRSV25}} over `F_256`. This removes the in-circuit hash:
 because both `Com` and `Tag` are degree-2 relations over `F_256`, conditions V1
 and V2 of {{prove-spend}} are pure `F_256` arithmetic with no Keccak in-circuit.
 The realization differs from {{hash-commitment}} in two ways:
@@ -1108,11 +1061,11 @@ randomness `r`, following the MQ commitment construction in {{BFMRSV25}}:
 ~~~~pseudocode
 Com(nf, t, r):
   Input:
-    - nf: Nullifier (nu bytes)
-    - t: Credit value in [0, 2^(8*L) - 1]
-    - r: Randomness (rho = n_com bytes, parsed as n_com elements of F_256)
+    - nf: nullifier, in F_256^nu
+    - t: credit value, in [2^(8*L)]
+    - r: commitment opening, in F_256^rho (rho = n_com)
   Output:
-    - c: Commitment (m_uov elements in F_256)
+    - c: commitment, in F_256^{m_uov}
   Steps:
     1.  msg := EmbedNullifierBalance(nf, t)   in F_256^k   // refund coordinate = 0
     2.  return ( msg + F(r), G(r) )  in F_256^{m_uov}
@@ -1120,7 +1073,7 @@ Com(nf, t, r):
 
 `EmbedNullifierBalance(nf, t)` returns a message vector `msg in F_256^k`, one
 `F_256` element per byte. The first `nu` elements hold the nullifier, one byte
-per element (`msg[i] = byte(nf[i])` for each `i in [nu)`); the next `L`
+per element (`msg[i] = byte(nf[i])` for each `i in [nu]`); the next `L`
 elements hold the balance encoding `<t>_L`; the following `L` elements are the
 refund slot, left zero here and written later by `Tag`; and the remaining `k -
 off_refund - L` elements are reserved and set to zero (there are none unless
@@ -1134,10 +1087,10 @@ issuer-granted refund `x` into the (zero) refund coordinate:
 ~~~~pseudocode
 Tag(c, x):
   Input:
-    - c: Commitment (m_uov elements in F_256)
-    - x: Refund in [0, 2^(8*L) - 1]
+    - c: commitment, in F_256^{m_uov}
+    - x: refund, in [2^(8*L)]
   Output:
-    - y: UOV target (m_uov elements in F_256)
+    - y: UOV target, in F_256^{m_uov}
   Steps:
     1.  return c + EmbedRefund(x)     in F_256^{m_uov}   // degree-1, no hash
 ~~~~
@@ -1157,24 +1110,22 @@ case). Separately, one-more unforgeability of the signed commitment rests on the
 interactive one-more *quadratic-claw* assumption, flagged as unexplored in
 {{BFMRSV25}}.
 
-**Parameter selection.**  The ciphersuite `RATA-MQ128-k32` takes the aggressive
+**Parameter selection.** Ratatouille-MQ takes the aggressive
 *heuristic-hiding / computational-binding* row of {{BFMRSV25}}, Table 3 (`q =
 256`, so one commitment element is one byte), which minimizes commitment size.
 Here `m_uov` is pinned by the commitment length rather than chosen for signature
 compactness; with `m_uov` fixed, the only free UOV knob is the input size `n_uov`,
-set to the smallest value keeping every known attack at `>= 2^lambda` under the
-UOV estimator.
+set to the smallest value that keeps the cost of every known attack at `>= 2^128`
+under the UOV estimator.
 
 | Parameter | Value |
 |-----------|-------|
-| Security `lambda` | `128` |
 | Commitment `(k, n_com, m_uov)` | `(32, 83, 131)` ({{BFMRSV25}}, Table 3) |
 | Nullifier `nu` | `28` bytes |
 | Credit width `L` | `2` (`t, x, d in [0, 2^16 - 1]`) |
 | UOV `n_uov` | `275` (`m_uov = 131`, `q = 256` shared with the commitment) |
-| VOLEitH `(tau, w_grind)` | `(11, 7)` (FAEST-128s) |
 
-Security margins: the binding block satisfies `m_uov - k = n_com + lambda/log2(q) =
+Security margins: the binding block satisfies `m_uov - k = n_com + 128/log2(q) =
 n_com + 16`. Because `m_uov = 131` is far larger than a standard UOV set, `n_uov =
 275` was fixed as the minimum passing a 128-bit check under the
 CryptographicEstimators `UOVEstimator` ({{CryptEst}}, which implements the
