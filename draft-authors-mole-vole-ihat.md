@@ -30,8 +30,12 @@ author:
     email: chrispatton+ietf@gmail.com
 
 normative:
-  IHAT: I-D.draft-authors-mole-crypto
-  VOLE-ACT: I-D.draft-authors-mole-vole-act
+  IHAT:
+    title: "TODO Publish I-D.draft-authors-mole-crypto"
+
+  VOLE-ACT:
+    title: "TODO I-D.draft-authors-mole-vole-act"
+
   FIPS202:  # TurboShortSHAKE128(M,d) = Sponge[Keccak-p[800, 12], pad10*1, 800–256](M||1111,d)
     title: "SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"
     target: https://doi.org/10.6028/NIST.FIPS.202
@@ -148,7 +152,6 @@ normative:
         name: Bo-Yin Yang
 
 informative:
-  ARCH: I-D.draft-jms-mole-architecture
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
     target: https://eprint.iacr.org/2026/109
@@ -400,8 +403,9 @@ inputs relative to {{IHAT}}: `nu` is 24 bytes, whereas {{IHAT}} uses a 32-byte
 nullifier, and the contexts are 16 bytes, whereas {{IHAT}} allows them to be
 arbitrary byte strings.
 
-> TODO(cjpatton) Add guidelines for choosing the context strings. Honestly,
-> truncating a hash to 16 bytes is not terrible.
+> TODO(cjpatton) Consider bumping `nu` to `32` to match {{IHAT}} and add
+> guidelines for choosing the context strings. Honestly, truncating a hash to
+> 16 bytes is not terrible.
 
 ## Issuance
 
