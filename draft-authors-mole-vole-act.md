@@ -368,8 +368,9 @@ This document uses the following notation:
 - `x[i..j]`: The slice of byte string or vector `x` from index `i` to index
   `j-1`.
 
-- `[n]`: The set of integers `{0, 1, ..., n-1}`; `[a, b]` denotes the closed
-  integer interval `{a, a+1, ..., b}`.
+- `[a..b]`: The set of integers `{a, a+1, ..., b-1}`, i.e., the upper bound is
+  exclusive, as for slices. `[n]` is shorthand for `[0..n]`, the set of integers
+  `{0, 1, ..., n-1}`.
 
 - `F_q`: The finite field with `q` elements. `F_2` is the binary field,
   i.e., `{0, 1}`. In this document, `q` is always a power of two so that `F_q`
@@ -434,8 +435,8 @@ effective balance `t + x`:
 
 1. The Client samples a fresh nullifier `nf'` and opening `r'`, then constructs
    a commitment `c' = Com(nf', t', r')` to the change `t' = t + x - d`. It then
-   constructs a VOLEitH proof `pf_spend` of knowledge of `t, r, x, s, nf', r',
-   t'` for which:
+   constructs a VOLEitH proof `pf_spend` of knowledge of `t, r, x, s, nf', t',
+   r'` for which:
 
    - the current state was certified by the Issuer, i.e.,
      `P(s) = Tag(Com(nf, t, r), x)`;
@@ -625,282 +626,273 @@ organization, the service, the deployment environment, and so on. For example:
 "example-corp:rate-limiter:production:2026-01-15"
 ~~~
 
-## Key Generation {#key-generation}
+## Issuer Key Generation {#key-generation}
 
-Key generation is run once by the issuer to produce a long-lived UOV key pair.
-The routines `UOV.CompactKeyGen`, `UOV.ExpandPK`, and `UOV.ExpandSK` are those of
-{{UOV}} (Section 3.2, Figure 2): `CompactKeyGen` samples a compact key pair
-`(cpk, csk)`, `ExpandPK` expands `cpk` into the public UOV map `P`, and
-`ExpandSK` expands `csk` into the trapdoor for `P`.
+Each Issuer generates its public and secret key pair using the procedure below.
 
 ~~~~pseudocode
 KeyGen():
   Output:
-    - sk: Issuer secret key, a UOV trapdoor for P
-    - pk: Issuer public key, a UOV map P from F_q^{n_uov} to F_q^{m_uov}
+    - P: a public UOV map from F_q^{n_uov} to F_q^{m_uov}
+    - td: a secret UOV trapdoor for P
 
   Steps:
-    1.  (cpk, csk) := UOV.CompactKeyGen()
-    2.  pk := UOV.ExpandPK(cpk)
-    3.  sk := UOV.ExpandSK(csk)
-    4.  return (sk, pk)
+    1. (cpk, csk) := UOV.CompactKeyGen()
+    2. P := UOV.ExpandPK(cpk)
+    3. td := UOV.ExpandSK(csk)
+    4. return (P, td)
 ~~~~
 
-The issuer publishes `pk`. The issuer additionally maintains a set of accepted
-nullifiers for rejecting any nullifier it has already accepted.
+> TODO(cjpatton) `n_uov` and `m_uov` are meant to be determined by the
+> Ratatouille configuration ({{parameters}}), but the UOV parameters are fixed
+> in {{preliminaries}}.
 
-## Token Issuance {#issuance}
+## Initial Issuance {#issuance}
 
-Issuance mints a fresh token carrying an initial credit balance `T_init in [1,
-2^(8*L) - 1]` agreed between the client and issuer. It is a two-message interactive
-protocol, structured as the Fischlin blind signature {{Fischlin}} -- commit,
-sign, prove-knowledge -- instantiated with UOV and VOLE-in-the-Head.
-
-The client commits to both its nullifier `nf` and the credit balance `t =
-T_init`, and sends the commitment `c` to the issuer, who signs it directly via
-its UOV target `Tag(c, 0)`. Because `Com` is opaque to the issuer, the client
-attaches a zero-knowledge proof that `c` opens to the agreed balance `T_init`;
-without it, a malicious client could commit to an arbitrary balance. The
-signature `s` is a genuine UOV preimage of `Tag(c, 0)`, which the client stores
-in its token.
-
-Blindness does **not** come from masking the signing target. The issuer sees
-`c` at issuance (which hides `nf` via `r`) and sees `nf` only at presentation
-(where the zero-knowledge proof of {{spending}} hides `c`); because `Com` is
-hiding, the issuer cannot link a presented `nf` to the `c` it signed. Every
-later presentation proves knowledge of `(nf, t, r, x, s)` satisfying `P(s) =
-Tag(Com(nf, t, r), x)` -- the UOV relation of {{parameters}} -- without
-revealing `c`.
-
-The issuance relation proves that the commitment `c` opens to the agreed initial
-balance `T_init`:
+Issuance mints a fresh token carrying an initial credit balance `T_init in
+[1..2^(8*L)]` agreed between the Client and Issuer. The Client commits to both
+its nullifier `nf` and the credit balance `t = T_init`, and sends the
+commitment `c` to the Issuer. It also sends along a zero-knowledge proof of the
+following relation:
 
 ~~~
 Relation IssueRelation(c, T_init):
   Instance:
     - c: commitment
-    - T_init: agreed initial credit balance, in [1, 2^(8*L) - 1]
+    - T_init: agreed initial credit balance, in [1..2^(8*L)]
 
   Witness:
-    - nf: nullifier
-    - r: commitment randomness
+    - nf: nullifier, in F_256^nu
+    - r: commitment opening, in F_256^rho
 
   Constraints:
     - c = Com(nf, T_init, r)
 ~~~
 
-### Client: Issuance Request {#issue-request}
+### Issue Request
+
+To request a Ratatouille token from the Issuer, the Client runs the following
+procedure.
 
 ~~~~pseudocode
 IssueRequest(T_init):
   Input:
-    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
+    - T_init: initial credit balance, in [1..2^(8*L)]
+
   Output:
-    - request = (c, pf_init): commitment and well-formedness proof
-    - state   = (nf, r): client state for Token Verification
+    - pending_token: Client state
+    - request: issuance request
 
   Steps:
-    1.  nf     <- {0,1}^(8*nu)                 // nullifier
-    2.  r      <- {0,1}^(8*rho)                // commitment randomness
-    3.  c      := Com(nf, T_init, r)           // see Commitment and Tag
-    4.  pf_init := VOLEitH.Prove(
-          IssueRelation,   // relation
-          (c, T_init),     // instance
-          (nf, r),         // witness
-        )
-    5.  request := (c, pf_init)
-    6.  state   := (nf, r)
-    7.  return (request, state)
+    1. nf <- F_256^nu
+    2. r  <- F_256^rho
+    3. c  := Com(nf, T_init, r)
+    4. pf_init := VOLEitH.Prove(
+         IssueRelation,  // relation
+         (c, T_init),    // instance
+         (nf, r),        // witness
+       )
+    5. request := (c, pf_init)
+    6. pending_token := (nf, r)
+    7. return (pending_token, request)
 ~~~~
 
-### Issuer: Issuance Response {#issue-response}
+### Issue Response
+
+To issue a token, the Issuer runs the following procedure on the request, the
+trapdoor for its public key, and the agreed initial credit balance.
 
 ~~~~pseudocode
-IssueResponse(sk, request, T_init):
+IssueResponse(td, request, T_init):
   Input:
-    - sk: Issuer secret key (secret seed seed_sk)
-    - request = (c, pf_init)
-    - T_init in [1, 2^(8*L) - 1]: agreed initial credit balance
+    - td: Issuer secret key
+    - request: issuance request
+    - T_init: initial credit balance, in [1..2^(8*L)]
+
   Output:
-    - response = s: UOV signature, or INVALID
+    - s: Issuer signature, in F_q^{n_uov}, or INVALID
 
   Steps:
-    1.  if not (0 < T_init < 2^(8*L)): return INVALID
-    2.  if VOLEitH.Verify(IssueRelation, (c, T_init), pf_init) = 0: return INVALID
-    3.  s <- UOV.Sign(sk, Tag(c, 0))   // preimage of Tag(c, 0): P(s) = Tag(c, 0),
-                                       // rejection sampling on singular system
-    4.  return s
+    1. (c, pf_init) := request  // commitment, issuance proof
+    2. v := VOLEitH.Verify(
+         IssueRelation,  // relation
+         (c, T_init),    // instance
+         pf_init,
+       )
+    3. if v = 0: return INVALID
+    4. s := UOV.SPre(td, Tag(c, 0))
+    5. return s
 ~~~~
 
-### Client: Token Verification {#verify-issuance}
+### Token Verification
+
+To complete token issuance, the Client runs the following procedure using the
+Issuer's public key.
 
 ~~~~pseudocode
-VerifyIssuance(pk, state, response, T_init):
+VerifyIssuance(P, pending_token, s, T_init):
   Input:
-    - pk = P: Issuer public key
-    - state  = (nf, r)
-    - response = s
-    - T_init: agreed initial credit balance
+    - P: Issuer public key
+    - pending_token: Client state
+    - s: Issuer signature, in F_q^{n_uov}
+    - T_init: initial credit balance, in [1..2^(8*L)]
+
   Output:
-    - tok = (nf, T_init, r, x = 0, s): a fresh token, or INVALID
+    - token: the issued token, or INVALID
 
   Steps:
-    1.  c := Com(nf, T_init, r)
-    2.  if P(s) != Tag(c, 0): return INVALID
-    3.  return tok := (nf, T_init, r, 0, s)
+    1. (nf, r) := pending_token
+    2. if P(s) != Tag(Com(nf, T_init, r), 0): return INVALID
+    3. token := (nf, T_init, r, 0, s)
+    4. return token
 ~~~~
 
-The issuer's view of a single issuance is the commitment `c`, the
-well-formedness proof `pf_init`, and the signature `s` it produced.
-Unlinkability of issuance to any later spend follows from the hiding of `Com`
-and the zero-knowledge of the presentation proof ({{spending}}).
+## Spending {#spending}
 
-## Token Spending {#spending}
+Spending lets the Client spend `d` credits from a token of effective balance
+`t + x`, obtaining a fresh token for the change `t + x - d` in the same round
+trip. The Client reveals the nullifier `nf` of the current state and commits to
+the updated state, then proves in zero knowledge that the current state was
+certified by the Issuer and that the updated state is consistent with the
+current state and the requested spend. The Issuer checks the proof, ensures
+`nf` has not been spent, and certifies the updated state. The Issuer may also
+grant a refund `x'`, which it binds to the updated state via the tag ({{tag}}).
 
-Spending lets a client spend `d` credits from a token of effective balance `B =
-t + x` (with `0 <= d <= B`), atomically obtaining a fresh token for the change
-`B - d`. It is the presentation half of the Fischlin blind signature: the
-client reveals the token's nullifier `nf`, proves in zero knowledge that it
-holds a valid signature over that token and that a freshly committed change
-token is consistent, and the issuer signs the change commitment in its
-response.
-
-Spending is a single round trip. The client builds the change commitment `c' =
-Com(nf', t + x - d, r')` itself and bundles it into the spend request; the
-issuer verifies, ensures the revealed nullifier is fresh, optionally grants an
-additional refund `x'` bound in the tag, and returns `s' = UOV.Sign(sk, Tag(c',
-x'))`. In the common case `x' = 0` and the change is entirely committed; a
-positive `x'` lets the issuer top the token up without a second message
-({{tag}}). Setting `d = 0` re-randomizes a token under a fresh nullifier -- a
-re-anonymization operation useful for transferring a token.
-
-Recall from {{parameters}} that the credit width `L` bounds every balance,
-refund, and spend: they all lie in `[2^(8*L)]`.
-
-The spend relation binds the spent token to a well-formed change token. It is
-specified by the conditions V1--V4 below.
+The witness for the spend proof is the current state, the signature that
+certifies it, and the updated state. The relation checks that the current state
+was certified by the Issuer (V1), that the updated state is consistent with the
+current state and the requested spend (V2 and V3), and that the updated state is
+valid (V4):
 
 ~~~
-Relation SpendRelation(pk, nf, d, c'):
+Relation SpendRelation(P, nf, d, c'):
   Instance:
-    - pk = P: Issuer public key
-    - nf: nullifier of the spent token
-    - d: amount to spend, in [0, 2^(8*L) - 1]
-    - c': change commitment
+    - P: Issuer public key
+    - nf: nullifier of the current state, in F_256^nu
+    - d: credits to spend, in [2^(8*L)]
+    - c': commitment to the updated state
 
   Witness:
-    - t: committed credit of the spent token
-    - r: commitment randomness of the spent token
-    - x: refund carried by the spent token
-    - s: UOV signature over the spent token
-    - nf': nullifier of the change token
-    - r': commitment randomness of the change token
-    - t': committed change balance
+    - t: credit of the current state
+    - r: commitment opening of the current state, in F_256^rho
+    - x: refund carried by the current state
+    - s: Issuer signature over the current state, in F_q^{n_uov}
+    - nf': nullifier of the updated state, in F_256^nu
+    - t': credit of the updated state
+    - r': commitment opening of the updated state, in F_256^rho
 
   Constraints:
-    - P(s) = Tag(Com(nf, t, r), x)                       // V1: valid signature
-    - c' = Com(nf', t', r')                              // V2: change well-formed
-    - t' = t + x - d                                     // V3: balance conservation
-    - 0 <= t' < 2^(8*L) AND 0 <= x < 2^(8*L) AND 0 <= d < 2^(8*L)  // V4: ranges
+    - P(s) = Tag(Com(nf, t, r), x)  // V1: the current state was certified
+    - c' = Com(nf', t', r')         // V2: c' commits to the updated state
+    - t' = t + x - d                // V3: credits are conserved
+    - t', x, d in [2^(8*L)]         // V4: credits are in range
 ~~~
 
-### Client: Spend Proof Generation {#prove-spend}
+### Spend Proof Generation
+
+To spend `d` credits from a token, the Client runs the following procedure using
+the Issuer's public key.
 
 ~~~~pseudocode
-ProveSpend(tok, d):
+ProveSpend(P, token, d):
   Input:
-    - tok  = (nf, t, r, x, s): a token of effective balance B = t + x
-    - d in [0, B]: amount to spend
+    - P: Issuer public key
+    - token: the token to spend
+    - d: credits to spend, in [2^(8*L)]
+
   Output:
-    - proof = (nf, d, c', pf_spend): spend proof
-    - state = (nf', t', r'): client state for Refund Token Construction
+    - pending_token: Client state
+    - request: spend request, or INVALID
 
   Steps:
-    1.  if not (0 <= d <= t + x): raise InvalidAmount
-    2.  nf' <- {0,1}^(8*nu)                 // fresh nullifier for the change
-    3.  r'  <- {0,1}^(8*rho)                // fresh commitment randomness
-    4.  t'  := t + x - d                    // committed change balance
-    5.  c'  := Com(nf', t', r')
-    6.  pf_spend := VOLEitH.Prove(
-          SpendRelation,                // relation
-          (pk, nf, d, c'),              // instance
-          (t, r, x, s, nf', r', t'),    // witness
+    1.  (nf, t, r, x, s) := token
+    2.  if d > t + x: return INVALID  // insufficient balance
+    3.  nf' <- F_256^nu               // nullifier of the updated state
+    4.  r'  <- F_256^rho              // opening of the updated state
+    5.  t'  := t + x - d              // credit of the updated state
+    6.  c'  := Com(nf', t', r')
+    7.  pf_spend := VOLEitH.Prove(
+          SpendRelation,              // relation
+          (P, nf, d, c'),             // instance
+          (t, r, x, s, nf', t', r'),  // witness
         )
-    7.  proof := (nf, d, c', pf_spend)    // nf, d, c' public; witness hidden
-    8.  state := (nf', t', r')
-    9.  return (proof, state)
+    8.  request := (nf, d, c', pf_spend)
+    9.  pending_token := (nf', t', r')
+    10. return (pending_token, request)
 ~~~~
 
-### Issuer: Spend Verification and Refund {#verify-spend}
+### Spend Verification and Refund
+
+To process a spend, the Issuer runs the following procedure on the request, the
+trapdoor for its public key, and the refund `x'` it grants.
 
 ~~~~pseudocode
-VerifyAndRefund(sk, proof, x'):
+VerifyAndRefund(P, td, request, x'):
   Input:
-    - sk: Issuer secret key (secret seed seed_sk)
-    - proof = (nf, d, c', pf_spend)
-    - x' in [0, 2^(8*L) - 1]: issuer-granted refund; 0 for no refund
+    - P: Issuer public key
+    - td: Issuer secret key
+    - request: spend request
+    - x': granted refund, in [2^(8*L)]
+
   Output:
-    - response = (x', s'): granted refund and signature, or INVALID
-  Exceptions:
-    - DoubleSpend, raised when nf has already been accepted
+    - response: spend response, or INVALID
 
   Steps:
-    1.  if nf has already been accepted: raise DoubleSpend
-    2.  if not (0 <= x' < 2^(8*L)): return INVALID
-    3.  if VerifySpend(pk, proof) = INVALID: return INVALID      // see below
-    4.  mark nf as accepted
-    5.  s' <- UOV.Sign(sk, Tag(c', x'))       // sign the change commitment
-                                              // (reuses issuance signing)
-    6.  return (x', s')
+    1. (nf, d, c', pf_spend) := request
+    2. if nf in used_nullifiers: return INVALID  // double spend
+    3. if x' not in [2^(8*L)]: return INVALID
+    4. if VerifySpend(P, request) = INVALID: return INVALID
+    5. used_nullifiers.add(nf)
+    6. s' := UOV.SPre(td, Tag(c', x'))
+    7. response := (x', s')
+    8. return response
 
-VerifySpend(pk, proof):
+VerifySpend(P, request):
   Input:
-    - pk = P: Issuer public key
-    - proof = (nf, d, c', pf_spend)
+    - P: Issuer public key
+    - request: spend request
+
   Output:
     - VALID or INVALID
 
   Steps:
-    1.  if not (0 <= d < 2^(8*L)): return INVALID
-    2.  if VOLEitH.Verify(SpendRelation, (pk, nf, d, c'), pf_spend) = 0:
-          return INVALID
-    3.  return VALID
+    1. (nf, d, c', pf_spend) := request
+    2. if d not in [2^(8*L)]: return INVALID
+    3. v := VOLEitH.Verify(
+         SpendRelation,   // relation
+         (P, nf, d, c'),  // instance
+         pf_spend,
+       )
+    4. if v = 0: return INVALID
+    5. return VALID
 ~~~~
 
-The issuer MUST mark `nf` as accepted (step 4) before the signature is
-released, so that a client cannot obtain two change tokens from one spend by
-replaying the request.
+Here `used_nullifiers` is the set of nullifiers the Issuer has accepted so far,
+which it maintains for the lifetime of its key.
 
-Verification checks only the zero-knowledge proof against the public inputs
-`(pk, nf, d, c')`; conditions V1--V4 of {{prove-spend}} are enforced inside
-`pf_spend`. In particular V1 establishes that the client holds an issuer
-signature over some token whose effective balance is `t + x`, V3 and V4
-establish `d <= t + x` and that the change `t'` is a valid balance, and V2 binds
-the change to the commitment `c'` the issuer is about to sign. The issuer learns
-the spent amount `d` and the nullifier `nf`, but neither the effective balance
-`B` nor the change `t'`.
+### Refund Token Construction
 
-### Client: Refund Token Construction {#refund-token}
+To complete the spend, the Client runs the following procedure using the
+Issuer's public key.
 
 ~~~~pseudocode
-VerifyRefund(pk, state, response):
+VerifyRefund(P, pending_token, response):
   Input:
-    - pk = P: Issuer public key
-    - state    = (nf', t', r')
-    - response = (x', s')
+    - P: Issuer public key
+    - pending_token: Client state
+    - response: spend response
+
   Output:
-    - tok' = (nf', t', r', x', s'): the change token, or INVALID
+    - token: the change token, or INVALID
 
   Steps:
-    1.  if not (0 <= x' < 2^(8*L)): return INVALID
-    2.  c' := Com(nf', t', r')
-    3.  if P(s') != Tag(c', x'): return INVALID
-    4.  return tok' := (nf', t', r', x', s')
+    1. (nf', t', r') := pending_token
+    2. (x', s') := response
+    3. if x' not in [2^(8*L)]: return INVALID
+    4. if P(s') != Tag(Com(nf', t', r'), x'): return INVALID
+    5. token := (nf', t', r', x', s')
+    6. return token
 ~~~~
-
-The change token has effective balance `B' = t' + x' = (t + x - d) + x'`, and is
-unlinkable to the spent token: the issuer saw only the hiding commitment `c'`
-and the public `(nf, d, x')`, none of which reveal `nf'` or the change balance.
 
 # Instantiations {#instantiations}
 
@@ -922,8 +914,8 @@ Here both `Com` and `Tag` are realized by `KP800`, a TurboSHAKE
 {{FIPS202}}, modeled as a random oracle and domain-separated by `dst`.
 `KP800(M, d)` squeezes `d` bytes of output, and `KP800(M)` defaults to `d = 32`
 bytes. Distinct one-byte labels separate commitment hashing from UOV-target
-hashing. In the Spend relation ({{prove-spend}}), V1 evaluates `Com` and `Tag`
-for the old token, while V2 evaluates `Com` for the change token. A spend
+hashing. In the spend relation ({{spending}}), V1 evaluates `Com` and `Tag`
+for the current state, while V2 evaluates `Com` for the updated state. A spend
 therefore evaluates `Keccak-p[800, 12]` three times in-circuit. The MQ
 instantiation ({{mq-commitment}}) removes these evaluations entirely.
 
@@ -985,7 +977,7 @@ VOLEitH proof, faithful integer arithmetic, and atomic nullifier handling
 |-----------|-------|
 | Nullifier `nu` | `24` bytes |
 | Randomness `rho` | `16` bytes |
-| Credit width `L` | `8` (`t, x, d in [0, 2^64 - 1]`) |
+| Credit width `L` | `8` (`t, x, d in [2^64]`) |
 | Domain-separation tag `dst` | `18` bytes |
 | Commitment `c` | `32` bytes |
 | UOV `(n_uov, m_uov, q)` | `(112, 44, 256)` (`uov-Ip`) |
@@ -1004,7 +996,7 @@ given in bytes.
 Here `Com` and `Tag` are realized by the algebraic multivariate-quadratic (MQ)
 commitment of {{BFMRSV25}} over `F_256`. This removes the in-circuit hash:
 because both `Com` and `Tag` are degree-2 relations over `F_256`, conditions V1
-and V2 of {{prove-spend}} are pure `F_256` arithmetic with no Keccak in-circuit.
+and V2 of {{spending}} are pure `F_256` arithmetic with no Keccak in-circuit.
 The realization differs from {{hash-commitment}} in two ways:
 
 1. **`Com` is algebraic.** `Com(nf, t, r) = (EmbedNullifierBalance(nf, t) +
@@ -1122,7 +1114,7 @@ under the UOV estimator.
 |-----------|-------|
 | Commitment `(k, n_com, m_uov)` | `(32, 83, 131)` ({{BFMRSV25}}, Table 3) |
 | Nullifier `nu` | `28` bytes |
-| Credit width `L` | `2` (`t, x, d in [0, 2^16 - 1]`) |
+| Credit width `L` | `2` (`t, x, d in [2^16]`) |
 | UOV `n_uov` | `275` (`m_uov = 131`, `q = 256` shared with the commitment) |
 
 Security margins: the binding block satisfies `m_uov - k = n_com + 128/log2(q) =
