@@ -1,0 +1,480 @@
+
+
+
+
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                Google LLC
+Intended status: Informational                                D. Jackson
+Expires: 19 February 2027                                        Mozilla
+                                                              T. Meunier
+                                                              Cloudflare
+                                                          18 August 2026
+
+
+                          MoLE HTTP Transport
+                  draft-jms-mole-http-transport-latest
+
+Abstract
+
+   MoLE targets browser deployments, so Clients, Anchors, and Moderators
+   need an HTTP transport for the protocol flows defined by the
+   architecture.
+
+   This document defines the Mole HTTP authentication scheme, which
+   carries challenges and presentations for the endorsement and
+   credential flows, and the headers used to return credential material.
+   The grant exchanges with the Anchor are defined per protocol in
+   [PROTOCOLS].
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-
+   http-transport.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-jms-mole-http-
+   transport/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 19 February 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Terminology
+   3.  Presentation Language
+     3.1.  Optional Value
+     3.2.  Variable-Size Vector Length Headers
+   4.  HTTP Authentication Scheme
+   5.  Configuration
+   6.  Error Handling
+     6.1.  Endorsement
+       6.1.1.  Anchor -> Client
+       6.1.2.  Client <-> Anchor
+     6.2.  Issuance
+       6.2.1.  Moderator -> Client
+       6.2.2.  Client -> Moderator
+       6.2.3.  Moderator -> Client
+     6.3.  Presentation
+       6.3.1.  Moderator -> Client - Challenge
+       6.3.2.  Client -> Moderator - Presentation
+       6.3.3.  Moderator -> Client - Update
+   7.  Security Considerations
+   8.  IANA Considerations
+     8.1.  Authentication Scheme
+     8.2.  HTTP Field Names
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   TODO
+
+2.  Terminology
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+3.  Presentation Language
+
+   This document uses the TLS presentation language [TLS13] to describe
+   the structure of protocol messages.  In addition to the base syntax,
+   it uses two additional features: the ability for fields to be
+   optional and the ability for vectors to have variable-size length
+   headers.
+
+3.1.  Optional Value
+
+   An optional value is encoded with a presence-signaling octet,
+   followed by the value itself if present.  When decoding, a presence
+   octet with a value other than 0 or 1 MUST be rejected as malformed.
+
+   struct {
+       uint8 present;
+       select (present) {
+           case 0: struct{};
+           case 1: T value;
+       };
+   } optional<T>;
+
+3.2.  Variable-Size Vector Length Headers
+
+   In the TLS presentation language, vectors are encoded as a sequence
+   of encoded elements prefixed with a length.  The length field has a
+   fixed size set by specifying the minimum and maximum lengths of the
+   encoded sequence of elements.
+
+   In this document, there are several vectors whose sizes vary over
+   significant ranges.  So instead of using a fixed-size length field,
+   it uses a variable-size length using a variable-length integer
+   encoding based on the one described in Section 16 of [QUIC].  They
+   differ only in that the one here requires a minimum-size encoding.
+   Instead of presenting min and max values, the vector description
+   simply includes a V.  For example:
+
+   struct {
+       uint32 fixed<0..255>;
+       opaque variable<V>;
+   } StructWithVectors;
+
+4.  HTTP Authentication Scheme
+
+   We describe the HTTP authentication method used by a Client that has
+   an Endorsement from an Anchor and obtains a Credential from a
+   Moderator.
+
+   The Mole authentication scheme follows the HTTP authentication
+   framework defined in [HTTP].  It carries challenges, redemptions, and
+   presentations: an Anchor or a Moderator challenges the Client, and
+   the Client answers in the Authorization header of a request.  Only
+   the grant exchanges with the Anchor sit outside the scheme.  Their
+   carriage is defined per endorsement protocol in [PROTOCOLS], for
+   example over HTTP POST.
+
+   +--------+                                +-----------+
+   | Client |                                | Moderator |
+   +---+----+                                +-----+-----+
+       |                                           |
+       |<--- WWW-Authenticate: Mole challenge= ----+
+       |                                           |
+   (Redeem & Issue, if needed)                     |
+       |                                           |
+       +--- Authorization: Mole presentation= ---->|
+       |                                           |
+       |<----------------------- Mole-Credential --+
+       |                                           |
+
+   A challenge names a single endorsement or credential type.  To offer
+   a choice, a server sends multiple Mole challenges; the Client picks
+   one it supports and MUST ignore challenges whose type it does not
+   recognize.
+
+   All base64url values in this document are encoded without padding
+   ([BASE64]).
+
+5.  Configuration
+
+   Anchors and Moderators publish configuration used by Clients before
+   running the HTTP authentication flows.  Configuration includes
+   endpoint URLs, supported protocol types, public key material, and the
+   Anchor set associated with each Moderator policy.  Its contents and
+   format are defined in the Key Rotation and Discovery section of
+   [PROTOCOLS].
+
+6.  Error Handling
+
+   Moderators can use MoLE as optional authentication.  A 200 response
+   MAY include a WWW-Authenticate: Mole challenge.  This tells the
+   Client that a later request can include a presentation, for example
+   to get a higher limit or avoid other friction.  In such deployments,
+   Clients SHOULD apply the greasing rules of [PROTOCOLS].
+
+   A 401 response with a WWW-Authenticate: Mole challenge means that the
+   Moderator requires MoLE, or another acceptable authentication scheme,
+   before serving the resource.  A 403 response means that the Moderator
+   understood the presented MoLE material but did not accept it under
+   policy.
+
+6.1.  Endorsement
+
+   The criteria to provide an endorsement is left to the Anchor.  This
+   document only defines the HTTP carriage for the Endorsement protocol
+   messages.
+
+6.1.1.  Anchor -> Client
+
+   struct {
+     uint16 endorsement_type;
+     opaque anchor_context<V>;
+   } EndorsementChallenge;
+
+   *  challenge contains a base64url EndorsementChallenge value, encoded
+      per [BASE64].
+
+   WWW-Authenticate: Mole challenge="<endorsement-challenge>",
+                          realm="anchor"
+
+6.1.2.  Client <-> Anchor
+
+   After receiving a challenge, the Client runs the grant exchanges with
+   the Anchor as defined by the endorsement protocol in [PROTOCOLS], for
+   example HTTP POST requests such as the ones defined there.  The
+   anchor_context from the challenge is carried into the first request
+   as specified by the endorsement type.
+
+6.2.  Issuance
+
+6.2.1.  Moderator -> Client
+
+   struct {
+     uint16 endorsement_type; // always present, see PROTOCOLS
+     opaque challenge<V>;
+   } ModeratorChallenge;
+
+   *  challenge which contains a base64url ModeratorChallenge value,
+      encoded per [BASE64]
+
+   The challenge field carries the Challenge structure of the named
+   endorsement type, defined in [PROTOCOLS].
+
+6.2.1.1.  Example refinement
+
+   The following structure is an example refinement of
+   ModeratorChallenge.
+
+   struct {
+     opaque policy_context<V>; // Moderator-generated policy identifier
+     opaque anchor_set<V>; // Endorsement-type-specific Anchor material
+   } MoleModeratorChallenge;
+
+   In MoleModeratorChallenge, anchor_set is opaque.  Clients MUST NOT
+   assume array semantics unless the endorsement type defines them.
+
+   WWW-Authenticate: Mole challenge="<moderator-challenge>",
+                          realm="moderator"
+
+6.2.2.  Client -> Moderator
+
+   The Client answers with a CredentialRequest ([PROTOCOLS]) in the
+   Authorization header of a request to the Moderator.  It carries the
+   endorsement redemption, bound to this challenge, together with the
+   issuance request.
+
+   Authorization: Mole credential-request="<credential-request>"
+
+6.2.3.  Moderator -> Client
+
+   The Moderator returns the CredentialResponse ([PROTOCOLS]) in the
+   Mole-Credential response header.
+
+   Mole-Credential: response="<credential-response>"
+
+6.3.  Presentation
+
+6.3.1.  Moderator -> Client - Challenge
+
+   struct {
+     uint16 credential_type; // always present, see PROTOCOLS
+     opaque challenge<V>;
+   } CredentialChallenge;
+
+   *  challenge which contains a base64url CredentialChallenge value,
+      encoded per [BASE64]
+
+   The challenge field carries the Challenge structure of the named
+   credential type, defined in [PROTOCOLS].
+
+6.3.1.1.  Example refinement
+
+   The following structures are example refinements of
+   CredentialChallenge.
+
+   struct {
+     opaque moderator_uri<1..2^16-1>; // URI of the moderator
+     opaque presentation_context<V>;
+   } MoleCredentialChallenge;
+
+   struct {
+     opaque policy_context<V>; // Moderator-generated policy identifier
+     opaque request_context<V>; // binding value, analogous to
+                                // redemption_context in RFC 9577
+   } MolePresentationContext;
+
+   The moderator_uri field contains a URI (defined by [URI]).  It names
+   the endpoint where the Client runs Redeem & Issue if it holds no
+   Credential.
+
+   In MolePresentationContext, policy_context identifies the Moderator
+   policy and accepted Anchor set used for this resource.  Different
+   resources MAY use different policy contexts while sharing the same
+   Moderator.  The value MUST be non-empty.
+
+   The request_context field binds the presentation to a request,
+   session, or time window.  A non-empty value affects credential
+   caching and replay handling.
+
+   TODO(thibault): 1. decide exact construction rules for
+   request_context. maybe it should include policy_context.
+
+   WWW-Authenticate: Mole challenge="<credential-challenge>",
+                          realm="moderator"
+
+6.3.2.  Client -> Moderator - Presentation
+
+   struct {
+     uint16 credential_type; // always present, see PROTOCOLS
+     opaque presentation_and_update<V>;
+   } CredentialPresentation;
+
+   The presentation_and_update field carries the PresentationAndUpdate
+   structure of the named credential type, defined in [PROTOCOLS].
+
+   Authorization: Mole presentation="<credential-presentation>"
+
+   A complete instantiation example is given in the appendix of
+   [PROTOCOLS].
+
+6.3.3.  Moderator -> Client - Update
+
+   TODO(thibault) 1.  Headers do not have a fixed protocol limit, but
+   large values are hard to deploy.  Other instantiations may define
+   another method, such as returning a URL that the client can fetch.
+   TBD
+
+   struct {
+     uint16 credential_type;
+     opaque update_response<V>;
+   } CredentialUpdate;
+
+   struct {
+     optional<CredentialUpdate> update;
+   } OptionalCredentialUpdate;
+
+   The update_response field carries the Update structure of the named
+   credential type, defined in [PROTOCOLS].
+
+   Updates use the same Mole-Credential header as issuance: both return
+   credential material from the Moderator.  The parameter distinguishes
+   them, response for issuance and update after a presentation.
+
+   The Moderator MUST send Mole-Credential with the update parameter
+   after a presentation.  It sets the update when the Credential remains
+   usable after presentation.  It marks the update as absent to
+   intentionally consume the Credential.  Clients MUST follow the
+   Credential type semantics for reuse after an omitted update.
+
+   *  update which contains a base64url OptionalCredentialUpdate value,
+      encoded per [BASE64]
+
+   Mole-Credential: update="<optional-credential-update>"
+
+   Each credential type MUST define the challenge fields that partition
+   cached Credentials, or state that Credentials of that type are not
+   cacheable.
+
+7.  Security Considerations
+
+   All exchanges defined in this document MUST be carried over HTTPS.
+
+   TODO.  The list to cover:
+
+   1.  Challenge replay and caching: when a Client may reuse a cached
+       credential against a repeated challenge.
+
+   2.  Header size limits and what happens when updates exceed them.
+
+8.  IANA Considerations
+
+8.1.  Authentication Scheme
+
+   This document registers the Mole authentication scheme, as defined in
+   Section 4, in the "HTTP Authentication Schemes" registry.
+
+8.2.  HTTP Field Names
+
+   This document registers the Mole-Credential field name in the
+   "Hypertext Transfer Protocol (HTTP) Field Name Registry".
+
+   Endorsement and credential type values are registered in [PROTOCOLS],
+   not in this document.
+
+9.  References
+
+9.1.  Normative References
+
+   [HTTP]     Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP Semantics", STD 97, RFC 9110,
+              DOI 10.17487/RFC9110, June 2022,
+              <https://www.rfc-editor.org/rfc/rfc9110>.
+
+   [PROTOCOLS]
+              "MoLE Protocols", n.d., <https://datatracker.ietf.org/doc/
+              draft-jms-mole-protocols/00/>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
+
+   [URI]      Berners-Lee, T., Fielding, R., and L. Masinter, "Uniform
+              Resource Identifier (URI): Generic Syntax", STD 66,
+              RFC 3986, DOI 10.17487/RFC3986, January 2005,
+              <https://www.rfc-editor.org/rfc/rfc3986>.
+
+9.2.  Informative References
+
+   [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
+              Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
+              <https://www.rfc-editor.org/rfc/rfc4648>.
+
+   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+              Multiplexed and Secure Transport", RFC 9000,
+              DOI 10.17487/RFC9000, May 2021,
+              <https://www.rfc-editor.org/rfc/rfc9000>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google LLC
+   Email: sgschlesinger@gmail.com
+
+
+   Dennis Jackson
+   Mozilla
+   Email: ietf@dennis-jackson.uk
+
+
+   Thibault Meunier
+   Cloudflare
+   Email: ot-ietf@thibault.uk
