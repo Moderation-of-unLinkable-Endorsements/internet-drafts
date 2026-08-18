@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-16T01:27:51.185824+00:00",
+  "timestamp": "2026-08-18T01:21:24.050069+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -527,15 +527,15 @@
       "id": "I_kwDOSX6krs8AAAABL6m4Sg",
       "title": "Token types?",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/43",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "We currently think of IHAT and ACT as concrete protocols. It might be useful to reframe them as classes of protocols, of which there may be multiple instances. I suppose this is similar to how blind RSA and VOPRF are Privacy Pass token types, but I'm not 100% certain.\n\nIHAT has a few \"token types\":\n\n1. draft-authors-mole-crypto\n2. Longfellow (as discussed in draft-jms-mole-protocol)\n3. draft-authors-mole-vole-ihat\n\nACT has two:\n\n1. draft-schlesinger-cfrg-act\n2. draft-authors-mole-vole-act\n\nWhat do folks think?",
       "createdAt": "2026-08-07T23:03:41Z",
-      "updatedAt": "2026-08-13T00:11:51Z",
-      "closedAt": null,
+      "updatedAt": "2026-08-18T00:58:02Z",
+      "closedAt": "2026-08-18T00:58:02Z",
       "comments": [
         {
           "author": "wbl",
@@ -571,6 +571,13 @@
           "body": "Consider not doing the negotiation of type at the core protocol layer.  That is something that is better handled at a higher layer.",
           "createdAt": "2026-08-13T00:11:51Z",
           "updatedAt": "2026-08-13T00:11:51Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "@thibmeu pointed out to me today that, modulo reverse Privacy Pass, this notion of token types for IHAT and ACT corresponds exactly to \"MoLE endorsements\" and \"MoLE credentials\" in the protocols draft:\nhttps://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-9\n\nWhat the protocols draft does today is already what I had in mind, except for potentially bikeshedding on naming, which I'm happy to save for later.",
+          "createdAt": "2026-08-18T00:58:02Z",
+          "updatedAt": "2026-08-18T00:58:02Z"
         }
       ]
     },
@@ -6291,6 +6298,90 @@
           ]
         }
       ]
+    },
+    {
+      "number": 49,
+      "id": "PR_kwDOSX6krs8AAAABADdHZA",
+      "title": "vole-act: Pass of intro",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/49",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "1. Align scope and tone with vole-ihat (removes a lot of redundant text)\r\n2. Explain motivation for MQ commitments and add WARNING about their security\r\n3. Add document outline",
+      "createdAt": "2026-08-17T19:20:25Z",
+      "updatedAt": "2026-08-17T19:20:45Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "1b727cf1ac36137f29f39bbf7200be21d103d831",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-1",
+      "headRefOid": "1b0c5ac04aed895a04511e730c34073d5355d525",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 50,
+      "id": "PR_kwDOSX6krs8AAAABAECoZA",
+      "title": "vole: Harmonize notation and preliminaries",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/50",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Based on #49 (merge that first).\r\n\r\n1. Move {{VOLE-IHAT}} Preliminaries and Notation to {{VOLE-ACT}} and remove redundant text from the latter. Apply some copy editing notes from Kimi K2.6 on the finalized text.\r\n\r\n2. Remove unused and redundant notation:\r\n\r\n   - `F_{2^lambda}`, the big VOLE field; we don't specify the algorithm in enough detail for this to matter yet.\r\n\r\n   - `P(s)`, application of a quadratic. Not necessary, and as written is a little misleading.\r\n\r\n   - `H`: Not used.\r\n\r\n3. Remove the data types section entirely. This is functionally a glossary, which may be useful to add back at some point, but we don't need all of these terms.\r\n\r\n4. Move Cryptographic Parameters into the Protocol Specification. This text needs work, but in any case it doesn't belong in Notation.",
+      "createdAt": "2026-08-17T21:00:36Z",
+      "updatedAt": "2026-08-17T21:00:45Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/rata-honing-1",
+      "baseRefOid": "1b0c5ac04aed895a04511e730c34073d5355d525",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-2",
+      "headRefOid": "4fc477d5380d58e6e08a8e1cf2ab22738aa0a4d5",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 51,
+      "id": "PR_kwDOSX6krs8AAAABAE5Kmg",
+      "title": "vole-act: Pass of overview",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/51",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Based on #50 (merge that first).\r\n\r\nHarmonize the overview with the scope and tone of Moussaka. Also, add a NOTE about removing one of the hashes in the spend proof and add some notes about security.",
+      "createdAt": "2026-08-17T23:47:51Z",
+      "updatedAt": "2026-08-18T00:49:34Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/rata-honing-2",
+      "baseRefOid": "4fc477d5380d58e6e08a8e1cf2ab22738aa0a4d5",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-3",
+      "headRefOid": "a96c8a39f906d83e3b5812612ef0d893223dfaeb",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
