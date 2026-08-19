@@ -719,6 +719,16 @@ TODO. The list to cover:
 4. Timing and error side channels during verification, especially
    distinguishing "bad proof" from "spent nullifier".
 
+During redemption of an Endorsement, the Moderator includes the Anchor Set in
+its challenge. If the Client does not have an Endorsement issued by one of the
+Anchors in the Anchor Set, it must either abort the redemption flow or pause it
+until it can obtain a suitable Endorsement. The Client must take care to ensure
+its actions in this case do not inadvertently reveal the issuing Anchor of an
+accepted Endorsement. For example, if the Client attempts initiates two
+concurrent redemption flows, the Moderator can construct Anchor Sets that
+differ by just one Anchor. If one flow aborts but the other does not, then the
+Moderator immediately learns the Anchor of the accepted Endorsement.
+
 # IANA Considerations {#iana}
 
 This document sketches two candidate registries under a future "MoLE"
