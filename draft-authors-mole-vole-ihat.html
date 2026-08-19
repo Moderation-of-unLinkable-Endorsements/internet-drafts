@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang &amp; Patton</td>
-<td class="center">Expires 19 February 2027</td>
+<td class="center">Expires 20 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-18" class="published">18 August 2026</time>
+<time datetime="2026-08-19" class="published">19 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-19">19 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-20">20 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ the moderator. The commitment is instantiated with <code>Keccak-p[800,12]</code>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 19 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 20 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1311,25 +1311,8 @@ considerations for implementers and adopters.<a href="#section-1-10" class="pilc
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-2-2.1">
-          <p id="section-2-2.1.1">TODO(cjpatton) Harmonize this section with <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-2.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-2-3">This document follows the same conventions and uses the same notation as
-<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">Vectors and sequences are indexed from zero: the elements of a length-<code>k</code> vector
-<code>v</code> are <code>v[0], ..., v[k-1]</code>. For an integer <code>k &gt; 0</code>, we write <code>[k]</code> to denote
-the set of indices <code>{0, ..., k-1}</code>.<a href="#section-2-4" class="pilcrow">¶</a></p>
-<p id="section-2-5">We adopt the following notation for byte strings from <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. For two byte
-strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation. For a byte string
-<code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at its byte with index
-<code>i</code> and ends just before its byte with index <code>j</code>; its length is <code>j - i</code> bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
-<p id="section-2-6">We adopt the uov-Ip parameter set (NIST Level 1). That is, in the remainder of
-this document, let <code>n=112</code>, <code>m=44</code>, and <code>q=2^8</code>. Each element of <code>F_q</code> has a
-natural representation as a byte. We sometimes write <code>F_q^k</code> to denote the set
-of length-<code>k</code> byte strings, e.g., <code>r &lt;- F_q^16</code> means to choose 16 random bytes
-and assign them to <code>r</code>.<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-2">This document follows the same conventions and uses the same notation as
+<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1389,12 +1372,12 @@ sends <code>s</code> to the Client.<a href="#section-3-7.2.1" class="pilcrow">¶
 difference is that the Anchor observes the signature <code>s</code> in plaintext. To
 ensure unlinkability, the Client must hide the signature from the Moderator
 during redemption.<a href="#section-3-8" class="pilcrow">¶</a></p>
-<p id="section-3-9">Let <code>P[0], ..., P[L-1]</code> denote the Anchor Set. To redeem a token, the Client
+<p id="section-3-9">Let <code>P[0], ..., P[N-1]</code> denote the Anchor Set. To redeem a token, the Client
 presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 <code>i, s, r</code> for which <code>P[i](s) = t</code> without revealing <code>i</code>. In order to prove this
 statement with VOLEitH, we need to express it as a system of constraints over
 <code>F_q</code>.<a href="#section-3-9" class="pilcrow">¶</a></p>
-<p id="section-3-10">The idea is to extend the witness with a "selector" vector <code>b[0], ..., b[L-1]</code>
+<p id="section-3-10">The idea is to extend the witness with a "selector" vector <code>b[0], ..., b[N-1]</code>
 for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The constraints then check
 that the public key selected by <code>b</code> maps <code>s</code> to <code>Com(nf, ctx_iss, ctx_red, r)</code>
 and that <code>b</code> is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for
@@ -1427,51 +1410,18 @@ another hash evaluation to the redemption proof. See issue 45.<a href="#section-
       <h2 id="name-preliminaries">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
       </h2>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-1.1">
-          <p id="section-4-1.1.1">TODO(cjpatton) Align preliminaries with <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-4-1.1.1" class="pilcrow">¶</a></p>
+<p id="section-4-1">The procedures <code>KP800()</code>, <code>UOV.CompactKeyGen()</code>, <code>UOV.ExpandPK()</code>,
+<code>UOV.ExpandSK()</code>, <code>UOV.SPre()</code>, <code>VOLEitH.Prove()</code>, and <code>VOLEitH.Verify()</code> are
+defined as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. We adopt the uov-Ip parameter set (NIST Level 1) for
+UOV. That is, for the remainder of this document, let <code>n=112</code>, <code>m=44</code>, and
+<code>q=2^8</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">Moussaka also fixes the following parameters, named as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>:<a href="#section-4-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4-3.1">
+          <p id="section-4-3.1.1"><code>nu</code>: the nullifier length in bytes. Its value <span class="bcp14">SHALL</span> be <code>24</code>.<a href="#section-4-3.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-2.1">
-          <p id="section-4-2.1.1">TODO(cjpatton) Make all of these algorithms deterministic, passing any
-randomness they would generate as input. This will make it easier to generate
-test vectors.<a href="#section-4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-4-3">Define <code>KP800(state)</code> to be the output of applying <code>Keccak-p[800,12]</code>
-        <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span> to <code>state in F_q^100</code>. Note that this is a non-standard size for
-the Keccak permutation; see <a href="#security" class="auto internal xref">Section 6</a> for discussion.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">We write <code>(cpk, csk) := UOV.CompactKeyGen()</code> to denote execution of the compact
-key generation algorithm of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2. Output <code>cpk</code> is the public key
-and <code>csk</code> is the secret key. The input parameters are omitted and instead
-hard-coded as uov-Ip (see <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Table 4).<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">We write <code>P := UOV.ExpandPK(cpk)</code> to denote expansion of the public key into the
-UOV map <code>P : F_q^n -&gt; F_q^m</code> using the procedure in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.
-Likewise, we write <code>td := UOV.ExpandSK(csk)</code> to denote expansion of the secret
-key into the trapdoor <code>td</code> for <code>P</code>.<a href="#section-4-5" class="pilcrow">¶</a></p>
-<p id="section-4-6">We write <code>s := UOV.SPre(td, t)</code> to denote sampling a pre-image of target <code>t</code>
-under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. This is the same procedure as used
-in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">We write <code>pf := VOLEitH.Prove(R, X, W)</code> to denote proving knowledge of a
-witness <code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is
-the instance, using the VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We
-write <code>v := VOLEitH.Verify(R, X, pf)</code> to denote verification of <code>pf</code> under the
-same relation and instance, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
-of constraints. Each constraint is an equation of the instance and witness
-variables. Unlike <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, these equations need not be linear: each side of
-the equation is a polynomial of arbitrary degree. However, because the degree
-of the polynomial influences the size of the proof, the relation needs to be
-designed to balance the size of the witness with the degree of the constraints.<a href="#section-4-8" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-9.1">
-          <p id="section-4-9.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
-specifies a compiler of constraints into a proof, as in <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, but this
-is currently beyond the scope of what the FAEST spec does. The degree of
-constraints is coupled tightly to the proof generation procedure, which means
-I think we'll end up pulling some details of the proof construction into this
-document.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-4-3.2">
+          <p id="section-4-3.2.1"><code>rho</code>: the commitment opening length in bytes. Its value <span class="bcp14">SHALL</span> be <code>16</code>.<a href="#section-4-3.2.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1483,9 +1433,10 @@ document.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5-1.1">
-          <p id="section-5-1.1.1">TODO(cjpatton) Specify wire formats for each of the messages. For now we will
-ignore how things are encoded until we're more certain of the shape of the
-protocol.<a href="#section-5-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-5-1.1.1">TODO Specify wire formats for each of the messages. For now we will ignore
+how things are encoded until we're more certain of the shape of the protocol.<a href="#section-5-1.1.1" class="pilcrow">¶</a></p>
+<p id="section-5-1.1.2">TODO Make all of these algorithms deterministic, passing any randomness they
+would generate as input. This will make it easier to generate test vectors.<a href="#section-5-1.1.2" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <p id="section-5-2">The constant <code>VERSION</code>, an element of <code>F_q</code>, is used for versioning and is meant
@@ -1520,35 +1471,37 @@ KeyGen():
         </h3>
 <p id="section-5.2-1">A Moussaka token commits the Client to a nullifier, an issuance context, and a
 redemption context. The commitment is generated by sampling a randomizer <code>r &lt;-
-F_q^16</code> and running the following procedure:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+F_q^rho</code> and running the following procedure:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.2-2">
 <pre>
 Com(nf, ctx_iss, ctx_red, r):
   Input:
-    - nf: the nullifier, in F_q^24
+    - nf: the nullifier, in F_q^nu
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
-    - r: the commitment opening, in F_q^16
+    - r: the commitment opening, in F_q^rho
 
   Output:
     - t: the commitment, in F_q^m
 
   Steps:
-    1. state := "mouss" || VERSION || 0^10 || r ||
-                ctx_iss || ctx_red || 0^12 || nf
+    1. state := "mouss" || VERSION || 0^(26 - rho) || r ||
+                ctx_iss || ctx_red || 0^(36 - nu)  || nf
     2. t := KP800(state)[0..m]
     3. return t
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with a
-single application of the permutation. This constrains the lengths of the
-inputs: <code>nf</code> is 24 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> uses a 32-byte nullifier, and the
-contexts are 16 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> allows them to be arbitrary byte
-strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with
+a single application of the permutation. The zero padding is sized so that
+<code>state</code> is always 100 bytes. This layout also constrains the lengths of the
+inputs relative to <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>: <code>nu</code> is 24 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> uses a 32-byte
+nullifier, and the contexts are 16 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> allows them to be
+arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.2-4.1">
-            <p id="section-5.2-4.1.1">TODO(cjpatton) Add guidelines for choosing the context strings. Honestly,
-truncating a hash to 16 bytes is not terrible.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+            <p id="section-5.2-4.1.1">TODO(cjpatton) Consider bumping <code>nu</code> to <code>32</code> to match <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> and add
+guidelines for choosing the context strings. Honestly, truncating a hash to
+16 bytes is not terrible.<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1568,8 +1521,8 @@ Relation IssueRelation(t, ctx_iss):
     - ctx_iss: issuance context, in F_q^16
 
   Witness:
-    - nf: nullifier, in F_q^24
-    - r: commitment opening, in F_q^16
+    - nf: nullifier, in F_q^nu
+    - r: commitment opening, in F_q^rho
     - ctx_red: redemption context, in F_q^16
 
   Constraints:
@@ -1602,8 +1555,8 @@ IssueRequest(ctx_iss, ctx_red):
     - request: issuance request
 
   Steps:
-    1. nf &lt;- F_q^24
-    2. r  &lt;- F_q^16
+    1. nf &lt;- F_q^nu
+    2. r  &lt;- F_q^rho
     3. t  := Com(nf, ctx_iss, ctx_red, r)
     4. pf_iss := VOLEitH.Prove(
          IssueRelation,     // relation
@@ -1686,9 +1639,9 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
 <a href="#section-5.4" class="section-number selfRef">5.4. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
-of a sequence of UOV public keys <code>P[0], ..., P[L-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span>
-be empty, that is, <code>L &gt; 0</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
-<p id="section-5.4-2">Let <code>i in [L]</code> be the index of the issuing Anchor. The witness for the
+of a sequence of UOV public keys <code>P[0], ..., P[N-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span>
+be empty, that is, <code>N &gt; 0</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.4-2">Let <code>i in [N]</code> be the index of the issuing Anchor. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
 <code>b</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The relation first selects
 the Anchor public key <code>Q</code> with the following procedure:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
@@ -1696,17 +1649,17 @@ the Anchor public key <code>Q</code> with the following procedure:<a href="#sect
 <pre>
 Select(b, P):
   Input:
-    - b: selector vector, in F_q^L
-    - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
+    - b: selector vector, in F_q^N
+    - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
 
   Output:
     - Q: the selected map from F_q^n to F_q^m
 
   Steps:
-    1. N := m * n * (n + 1) / 2
-    2. Q := 0^N
-    3. for u in [L]:
-    4.   for j in [N]:
+    1. M := m * n * (n + 1) / 2
+    2. Q := 0^M
+    3. for u in [N]:
+    4.   for j in [M]:
     5.     Q[j] += b[u] * P[u][j]
     6. return Q
 </pre><a href="#section-5.4-3" class="pilcrow">¶</a>
@@ -1716,27 +1669,27 @@ remaining constraints prove that the selector vector is well-formed, that is,
 exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the weight
 constraint <code>sum(b) = 1</code> only tells us that the number of nonzero entries is
 odd. We also need some parity constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code>
-for all <code>u in [L-1]</code>. The redemption relation is defined as follows:<a href="#section-5.4-4" class="pilcrow">¶</a></p>
+for all <code>u in [N-1]</code>. The redemption relation is defined as follows:<a href="#section-5.4-4" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.4-5">
 <pre>
 Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
   Instance:
-    - P: Anchor Set of length L
-    - nf: nullifier, in F_q^24
+    - P: Anchor Set of length N
+    - nf: nullifier, in F_q^nu
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
 
   Witness:
-    - r: F_q^16
+    - r: F_q^rho
     - s: F_q^n
-    - b: F_q^L
+    - b: F_q^N
 
   Where:
     - Q = Select(b, P)
 
   Constraints:
     - Q(s) = Com(nf, ctx_iss, ctx_red, r)
-    - sum(b[0..u+1]) * b[u+1] = 0            for u in [L-1]
+    - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
     - sum(b) = 1
 </pre><a href="#section-5.4-5" class="pilcrow">¶</a>
 </div>
@@ -1751,8 +1704,8 @@ the following procedure.<a href="#section-5.4.1-1" class="pilcrow">¶</a></p>
 <pre>
 RedeemRequest(P, i, token, ctx_iss, ctx_red):
   Input:
-    - P: Anchor Set of length L
-    - i: index of the issuing Anchor, in [L]
+    - P: Anchor Set of length N
+    - i: index of the issuing Anchor, in [N]
     - token: the issued token
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
@@ -1762,7 +1715,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 
   Steps:
     1. (nf, r, s) := token
-    2. b := 0^L  // selector vector
+    2. b := 0^N  // selector vector
     3. b[i] := 1
     4. pf_red := VOLEitH.Prove(
          RedeemRelation,             // relation
@@ -1785,13 +1738,13 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 <pre>
 FinalizeRedeem(P, request, ctx_iss, ctx_red):
   Input:
-    - P: Anchor Set of length L
+    - P: Anchor Set of length N
     - request: redemption request
     - ctx_iss: issuance context, in F_q^16
     - ctx_red: redemption context, in F_q^16
 
   Output:
-    - nf: the nullifier of the redeemed token, in F_q^24, or INVALID
+    - nf: the nullifier of the redeemed token, in F_q^nu, or INVALID
 
   Steps:
     1. (nf, pf_red) := request
@@ -1906,7 +1859,7 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="IHAT">[IHAT]</dt>
         <dd>
-<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
+<span class="refTitle">"TODO Publish I-D.draft-authors-mole-crypto"</span>, <span>n.d.</span>. </dd>
 <dd class="break"></dd>
 <dt id="MAYO">[MAYO]</dt>
         <dd>
@@ -1926,7 +1879,7 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="VOLE-ACT">[VOLE-ACT]</dt>
       <dd>
-<span class="refTitle">"*** BROKEN REFERENCE ***"</span>. </dd>
+<span class="refTitle">"TODO I-D.draft-authors-mole-vole-act"</span>, <span>n.d.</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1937,10 +1890,6 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
-<dt id="ARCH">[ARCH]</dt>
-        <dd>
-<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="PoMFRIT">[PoMFRIT]</dt>
         <dd>
 <span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>
@@ -1950,12 +1899,8 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <span class="refAuthor">Denis, F.</span>, <span class="refAuthor">Jacobs, F.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"RSA Blind Signatures"</span>, <span class="seriesInfo">RFC 9474</span>, <span class="seriesInfo">DOI 10.17487/RFC9474</span>, <time datetime="2023-10" class="refDate">October 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9474">https://www.rfc-editor.org/rfc/rfc9474</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC9861">[RFC9861]</dt>
-        <dd>
-<span class="refAuthor">Viguier, B.</span>, <span class="refAuthor">Wong, D., Ed.</span>, <span class="refAuthor">Van Assche, G., Ed.</span>, <span class="refAuthor">Dang, Q., Ed.</span>, and <span class="refAuthor">J. Daemen, Ed.</span>, <span class="refTitle">"KangarooTwelve and TurboSHAKE"</span>, <span class="seriesInfo">RFC 9861</span>, <span class="seriesInfo">DOI 10.17487/RFC9861</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9861">https://www.rfc-editor.org/rfc/rfc9861</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="SIGMA">[SIGMA]</dt>
       <dd>
-<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Sigma Proofs for Linear Relations"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03</a>&gt;</span>. </dd>
+<span class="refAuthor">Viguier, B.</span>, <span class="refAuthor">Wong, D., Ed.</span>, <span class="refAuthor">Van Assche, G., Ed.</span>, <span class="refAuthor">Dang, Q., Ed.</span>, and <span class="refAuthor">J. Daemen, Ed.</span>, <span class="refTitle">"KangarooTwelve and TurboSHAKE"</span>, <span class="seriesInfo">RFC 9861</span>, <span class="seriesInfo">DOI 10.17487/RFC9861</span>, <time datetime="2025-10" class="refDate">October 2025</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9861">https://www.rfc-editor.org/rfc/rfc9861</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

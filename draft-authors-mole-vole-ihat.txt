@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 19 February 2027                                     Cloudflare
-                                                          18 August 2026
+Expires: 20 February 2027                                     Cloudflare
+                                                          19 August 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 19 February 2027.
+   This Internet-Draft will expire on 20 February 2027.
 
 Copyright Notice
 
@@ -162,26 +162,8 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-      TODO(cjpatton) Harmonize this section with [VOLE-ACT].
-
    This document follows the same conventions and uses the same notation
    as [VOLE-ACT].
-
-   Vectors and sequences are indexed from zero: the elements of a
-   length-k vector v are v[0], ..., v[k-1].  For an integer k > 0, we
-   write [k] to denote the set of indices {0, ..., k-1}.
-
-   We adopt the following notation for byte strings from [IHAT].  For
-   two byte strings x and y, x || y denotes their concatenation.  For a
-   byte string x, x[i..j] denotes the substring of x that begins at its
-   byte with index i and ends just before its byte with index j; its
-   length is j - i bytes.
-
-   We adopt the uov-Ip parameter set (NIST Level 1).  That is, in the
-   remainder of this document, let n=112, m=44, and q=2^8.  Each element
-   of F_q has a natural representation as a byte.  We sometimes write
-   F_q^k to denote the set of length-k byte strings, e.g., r <- F_q^16
-   means to choose 16 random bytes and assign them to r.
 
 3.  Overview
 
@@ -232,14 +214,14 @@ Table of Contents
    plaintext.  To ensure unlinkability, the Client must hide the
    signature from the Moderator during redemption.
 
-   Let P[0], ..., P[L-1] denote the Anchor Set. To redeem a token, the
+   Let P[0], ..., P[N-1] denote the Anchor Set. To redeem a token, the
    Client presents the nullifier in plaintext along with a VOLEitH proof
    of knowledge of i, s, r for which P[i](s) = t without revealing i.
    In order to prove this statement with VOLEitH, we need to express it
    as a system of constraints over F_q.
 
    The idea is to extend the witness with a "selector" vector b[0], ...,
-   b[L-1] for which b[u] = 1 if u = i and 0 otherwise.  The constraints
+   b[N-1] for which b[u] = 1 if u = i and 0 otherwise.  The constraints
    then check that the public key selected by b maps s to Com(nf,
    ctx_iss, ctx_red, r) and that b is the indicator vector of a single
    Anchor.  See Section 5.4 for details.
@@ -264,57 +246,28 @@ Table of Contents
 
 4.  Preliminaries
 
-      TODO(cjpatton) Align preliminaries with [VOLE-ACT].
+   The procedures KP800(), UOV.CompactKeyGen(), UOV.ExpandPK(),
+   UOV.ExpandSK(), UOV.SPre(), VOLEitH.Prove(), and VOLEitH.Verify() are
+   defined as in [VOLE-ACT].  We adopt the uov-Ip parameter set (NIST
+   Level 1) for UOV.  That is, for the remainder of this document, let
+   n=112, m=44, and q=2^8.
 
-      TODO(cjpatton) Make all of these algorithms deterministic, passing
-      any randomness they would generate as input.  This will make it
-      easier to generate test vectors.
+   Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
 
-   Define KP800(state) to be the output of applying Keccak-p[800,12]
-   [FIPS202] to state in F_q^100.  Note that this is a non-standard size
-   for the Keccak permutation; see Section 6 for discussion.
+   *  nu: the nullifier length in bytes.  Its value SHALL be 24.
 
-   We write (cpk, csk) := UOV.CompactKeyGen() to denote execution of the
-   compact key generation algorithm of [UOV], Figure 2.  Output cpk is
-   the public key and csk is the secret key.  The input parameters are
-   omitted and instead hard-coded as uov-Ip (see [UOV], Table 4).
-
-   We write P := UOV.ExpandPK(cpk) to denote expansion of the public key
-   into the UOV map P : F_q^n -> F_q^m using the procedure in [UOV],
-   Figure 2.  Likewise, we write td := UOV.ExpandSK(csk) to denote
-   expansion of the secret key into the trapdoor td for P.
-
-   We write s := UOV.SPre(td, t) to denote sampling a pre-image of
-   target t under P, i.e., an s for which P(s) = t.  This is the same
-   procedure as used in the signing algorithm in [UOV], Figure 2.
-
-   We write pf := VOLEitH.Prove(R, X, W) to denote proving knowledge of
-   a witness W for which the pair (X, W) is in the relation R, where X
-   is the instance, using the VOLE-in-the-Head proof system defined in
-   [FAEST].  We write v := VOLEitH.Verify(R, X, pf) to denote
-   verification of pf under the same relation and instance, where the
-   output v is a bit.
-
-   Relations are specified in the style of Section 3.4 of [SIGMA] as a
-   sequence of constraints.  Each constraint is an equation of the
-   instance and witness variables.  Unlike [SIGMA], these equations need
-   not be linear: each side of the equation is a polynomial of arbitrary
-   degree.  However, because the degree of the polynomial influences the
-   size of the proof, the relation needs to be designed to balance the
-   size of the witness with the degree of the constraints.
-
-      TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
-      Ideally it specifies a compiler of constraints into a proof, as in
-      [SIGMA], but this is currently beyond the scope of what the FAEST
-      spec does.  The degree of constraints is coupled tightly to the
-      proof generation procedure, which means I think we'll end up
-      pulling some details of the proof construction into this document.
+   *  rho: the commitment opening length in bytes.  Its value SHALL be
+      16.
 
 5.  Protocol
 
-      TODO(cjpatton) Specify wire formats for each of the messages.  For
-      now we will ignore how things are encoded until we're more certain
-      of the shape of the protocol.
+      TODO Specify wire formats for each of the messages.  For now we
+      will ignore how things are encoded until we're more certain of the
+      shape of the protocol.
+
+      TODO Make all of these algorithms deterministic, passing any
+      randomness they would generate as input.  This will make it easier
+      to generate test vectors.
 
    The constant VERSION, an element of F_q, is used for versioning and
    is meant to be kept in sync with revisions to this document.  Its
@@ -340,33 +293,35 @@ Table of Contents
 
    A Moussaka token commits the Client to a nullifier, an issuance
    context, and a redemption context.  The commitment is generated by
-   sampling a randomizer r <- F_q^16 and running the following
+   sampling a randomizer r <- F_q^rho and running the following
    procedure:
 
    Com(nf, ctx_iss, ctx_red, r):
      Input:
-       - nf: the nullifier, in F_q^24
+       - nf: the nullifier, in F_q^nu
        - ctx_iss: issuance context, in F_q^16
        - ctx_red: redemption context, in F_q^16
-       - r: the commitment opening, in F_q^16
+       - r: the commitment opening, in F_q^rho
 
      Output:
        - t: the commitment, in F_q^m
 
      Steps:
-       1. state := "mouss" || VERSION || 0^10 || r ||
-                   ctx_iss || ctx_red || 0^12 || nf
+       1. state := "mouss" || VERSION || 0^(26 - rho) || r ||
+                   ctx_iss || ctx_red || 0^(36 - nu)  || nf
        2. t := KP800(state)[0..m]
        3. return t
 
    The layout of state is chosen so that the entire commitment is
-   computed with a single application of the permutation.  This
-   constrains the lengths of the inputs: nf is 24 bytes, whereas [IHAT]
-   uses a 32-byte nullifier, and the contexts are 16 bytes, whereas
-   [IHAT] allows them to be arbitrary byte strings.
+   computed with a single application of the permutation.  The zero
+   padding is sized so that state is always 100 bytes.  This layout also
+   constrains the lengths of the inputs relative to [IHAT]: nu is 24
+   bytes, whereas [IHAT] uses a 32-byte nullifier, and the contexts are
+   16 bytes, whereas [IHAT] allows them to be arbitrary byte strings.
 
-      TODO(cjpatton) Add guidelines for choosing the context strings.
-      Honestly, truncating a hash to 16 bytes is not terrible.
+      TODO(cjpatton) Consider bumping nu to 32 to match [IHAT] and add
+      guidelines for choosing the context strings.  Honestly, truncating
+      a hash to 16 bytes is not terrible.
 
 5.3.  Issuance
 
@@ -380,8 +335,8 @@ Table of Contents
        - ctx_iss: issuance context, in F_q^16
 
      Witness:
-       - nf: nullifier, in F_q^24
-       - r: commitment opening, in F_q^16
+       - nf: nullifier, in F_q^nu
+       - r: commitment opening, in F_q^rho
        - ctx_red: redemption context, in F_q^16
 
      Constraints:
@@ -407,8 +362,8 @@ Table of Contents
        - request: issuance request
 
      Steps:
-       1. nf <- F_q^24
-       2. r  <- F_q^16
+       1. nf <- F_q^nu
+       2. r  <- F_q^rho
        3. t  := Com(nf, ctx_iss, ctx_red, r)
        4. pf_iss := VOLEitH.Prove(
             IssueRelation,     // relation
@@ -469,27 +424,27 @@ Table of Contents
 5.4.  Redemption
 
    Before redemption, the Client and Moderator agree on an Anchor Set
-   consisting of a sequence of UOV public keys P[0], ..., P[L-1].  The
-   Anchor Set MUST NOT be empty, that is, L > 0.
+   consisting of a sequence of UOV public keys P[0], ..., P[N-1].  The
+   Anchor Set MUST NOT be empty, that is, N > 0.
 
-   Let i in [L] be the index of the issuing Anchor.  The witness for the
+   Let i in [N] be the index of the issuing Anchor.  The witness for the
    redemption proof is the opening r, the signature s, and the selector
    vector b, where b[u] = 1 if u = i and 0 otherwise.  The relation
    first selects the Anchor public key Q with the following procedure:
 
    Select(b, P):
      Input:
-       - b: selector vector, in F_q^L
-       - P: Anchor Set, a sequence of L maps from F_q^n to F_q^m
+       - b: selector vector, in F_q^N
+       - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
 
      Output:
        - Q: the selected map from F_q^n to F_q^m
 
      Steps:
-       1. N := m * n * (n + 1) / 2
-       2. Q := 0^N
-       3. for u in [L]:
-       4.   for j in [N]:
+       1. M := m * n * (n + 1) / 2
+       2. Q := 0^M
+       3. for u in [N]:
+       4.   for j in [M]:
        5.     Q[j] += b[u] * P[u][j]
        6. return Q
 
@@ -498,27 +453,27 @@ Table of Contents
    formed, that is, exactly one entry is set.  Because F_q has
    characteristic 2, the weight constraint sum(b) = 1 only tells us that
    the number of nonzero entries is odd.  We also need some parity
-   constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [L-1].
+   constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [N-1].
    The redemption relation is defined as follows:
 
    Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
      Instance:
-       - P: Anchor Set of length L
-       - nf: nullifier, in F_q^24
+       - P: Anchor Set of length N
+       - nf: nullifier, in F_q^nu
        - ctx_iss: issuance context, in F_q^16
        - ctx_red: redemption context, in F_q^16
 
      Witness:
-       - r: F_q^16
+       - r: F_q^rho
        - s: F_q^n
-       - b: F_q^L
+       - b: F_q^N
 
      Where:
        - Q = Select(b, P)
 
      Constraints:
        - Q(s) = Com(nf, ctx_iss, ctx_red, r)
-       - sum(b[0..u+1]) * b[u+1] = 0            for u in [L-1]
+       - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
        - sum(b) = 1
 
 5.4.1.  Redeem Request
@@ -528,8 +483,8 @@ Table of Contents
 
    RedeemRequest(P, i, token, ctx_iss, ctx_red):
      Input:
-       - P: Anchor Set of length L
-       - i: index of the issuing Anchor, in [L]
+       - P: Anchor Set of length N
+       - i: index of the issuing Anchor, in [N]
        - token: the issued token
        - ctx_iss: issuance context, in F_q^16
        - ctx_red: redemption context, in F_q^16
@@ -539,7 +494,7 @@ Table of Contents
 
      Steps:
        1. (nf, r, s) := token
-       2. b := 0^L  // selector vector
+       2. b := 0^N  // selector vector
        3. b[i] := 1
        4. pf_red := VOLEitH.Prove(
             RedeemRelation,             // relation
@@ -556,13 +511,13 @@ Table of Contents
 
    FinalizeRedeem(P, request, ctx_iss, ctx_red):
      Input:
-       - P: Anchor Set of length L
+       - P: Anchor Set of length N
        - request: redemption request
        - ctx_iss: issuance context, in F_q^16
        - ctx_red: redemption context, in F_q^16
 
      Output:
-       - nf: the nullifier of the redeemed token, in F_q^24, or INVALID
+       - nf: the nullifier of the redeemed token, in F_q^nu, or INVALID
 
      Steps:
        1. (nf, pf_red) := request
@@ -644,7 +599,7 @@ Table of Contents
               Output Functions", FIPS PUB 202, August 2015,
               <https://doi.org/10.6028/NIST.FIPS.202>.
 
-   [IHAT]     "*** BROKEN REFERENCE ***".
+   [IHAT]     "TODO Publish I-D.draft-authors-mole-crypto", n.d..
 
    [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
               Kannwischer, "MAYO: Practical Post-Quantum Signatures from
@@ -669,15 +624,9 @@ Table of Contents
               pqc-dig-sig/documents/round-2/spec-files/uov-spec-
               round2-web.pdf>.
 
-   [VOLE-ACT] "*** BROKEN REFERENCE ***".
+   [VOLE-ACT] "TODO I-D.draft-authors-mole-vole-act", n.d..
 
 8.2.  Informative References
-
-   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
-              of unLinkable Endorsements (MoLE) Architecture", Work in
-              Progress, Internet-Draft, draft-jms-mole-architecture-00,
-              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
-              jms-mole-architecture-00>.
 
    [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
               C. Rechberger, "Concretely Efficient Blind Signatures
@@ -693,12 +642,6 @@ Table of Contents
               Ed., and J. Daemen, Ed., "KangarooTwelve and TurboSHAKE",
               RFC 9861, DOI 10.17487/RFC9861, October 2025,
               <https://www.rfc-editor.org/rfc/rfc9861>.
-
-   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
-              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
-              protocols-03, 16 August 2026,
-              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
-              sigma-protocols-03>.
 
 Acknowledgments
 
