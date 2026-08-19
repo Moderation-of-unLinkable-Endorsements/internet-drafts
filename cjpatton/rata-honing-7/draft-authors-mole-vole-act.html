@@ -1612,11 +1612,11 @@ configurations, called Ratatouille-KP800 and Ratatouille-MQ. A deployment <span 
 fix its configuration for the lifetime of an Issuer key.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">The constant <code>VERSION</code>, an element of <code>F_q</code>, is used for domain separation and
 is meant to be kept in sync with revisions to this document. Its current value
-<span class="bcp14">SHALL</span> be <code>0</code>. The overall template for domain separation is as follows the
-first four bytes of each hash identify the protocol; the next byte is the
-document version (<code>VERSION</code>); the next bytes indicate the usage (commit, tag,
-or MQ map derivation); and the next byte indicates the configuration (Kp800 or
-MQ).<a href="#section-5-3" class="pilcrow">¶</a></p>
+<span class="bcp14">SHALL</span> be <code>0</code>. The overall template for domain separation is as follows: the
+first four bytes of each permutation input identify the protocol; the next byte
+is the document version (<code>VERSION</code>); the next byte indicates the usage (commit,
+tag, or MQ map derivation); and the next byte indicates the configuration
+(KP800 or MQ). The domain is therefore seven bytes in total.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <p id="section-5-4">The rest of this section is organized as follows: <a href="#key-generation" class="auto internal xref">Section 5.2</a> specifies
 Issuer key generation; <a href="#issuance" class="auto internal xref">Section 5.3</a> specifies initial token issuance; and
 <a href="#spending" class="auto internal xref">Section 5.4</a> specifies token spending.<a href="#section-5-4" class="pilcrow">¶</a></p>
@@ -1632,13 +1632,13 @@ Issuer key generation; <a href="#issuance" class="auto internal xref">Section 5.
 refund the configuration can carry, i.e., <code>t, x in [2^(8*L)]</code>.<a href="#section-5.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.2">
-            <p id="section-5.1-2.2.1"><code>nu</code>: The nullifier length in bytes.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.2.1"><code>nf_len</code>: The nullifier length in bytes.<a href="#section-5.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.3">
-            <p id="section-5.1-2.3.1"><code>rho</code>: The commitment randomness length in bytes.<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.3.1"><code>r_len</code>: The commitment randomness length in bytes.<a href="#section-5.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.4">
-            <p id="section-5.1-2.4.1"><code>xi</code>: The issuance context length in bytes.<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
+            <p id="section-5.1-2.4.1"><code>ctx_len</code>: The issuance context length in bytes.<a href="#section-5.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-5.1-2.5">
             <p id="section-5.1-2.5.1"><code>n_uov, m_uov</code>: The UOV signature and target lengths. The Issuer's public key
@@ -1658,10 +1658,10 @@ to a nullifier, the issuance context, and a credit value:<a href="#section-5.1.1
 <pre>
 Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
-    - ctx_iss: issuance context, in F_256^xi
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho
+    - r: commitment opening, in F_q^r_len
   Output:
     - c: commitment
 </pre><a href="#section-5.1.1-2" class="pilcrow">¶</a>
@@ -1742,11 +1742,11 @@ Relation IssueRelation(c, T_init, ctx_iss):
   Instance:
     - c: commitment
     - T_init: agreed initial credit balance, in [1..2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
-    - nf: nullifier, in F_256^nu
-    - r: commitment opening, in F_256^rho
+    - nf: nullifier, in F_q^nf_len
+    - r: commitment opening, in F_q^r_len
 
   Constraints:
     - c = Com(nf, ctx_iss, T_init, r)
@@ -1764,15 +1764,15 @@ procedure.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
 IssueRequest(T_init, ctx_iss):
   Input:
     - T_init: initial credit balance, in [1..2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - pending_token: Client state
     - request: issuance request
 
   Steps:
-    1. nf &lt;- F_256^nu
-    2. r  &lt;- F_256^rho
+    1. nf &lt;- F_q^nf_len
+    2. r  &lt;- F_q^r_len
     3. c  := Com(nf, ctx_iss, T_init, r)
     4. pf_init := VOLEitH.Prove(
          IssueRelation,         // relation
@@ -1800,7 +1800,7 @@ IssueResponse(td, request, T_init, ctx_iss):
     - td: Issuer secret key
     - request: issuance request
     - T_init: initial credit balance, in [1..2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - s: Issuer signature, in F_q^{n_uov}, or INVALID
@@ -1834,7 +1834,7 @@ VerifyIssuance(P, pending_token, s, T_init, ctx_iss):
     - pending_token: Client state
     - s: Issuer signature, in F_q^{n_uov}
     - T_init: initial credit balance, in [1..2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the issued token, or INVALID
@@ -1873,19 +1873,19 @@ valid (V4):<a href="#section-5.4-2" class="pilcrow">¶</a></p>
 Relation SpendRelation(P, nf, d, c', ctx_iss):
   Instance:
     - P: Issuer public key
-    - nf: nullifier of the current state, in F_256^nu
+    - nf: nullifier of the current state, in F_q^nf_len
     - d: credits to spend, in [2^(8*L)]
     - c': commitment to the updated state
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
     - t: credit of the current state
-    - r: commitment opening of the current state, in F_256^rho
+    - r: commitment opening of the current state, in F_q^r_len
     - x: refund carried by the current state
     - s: Issuer signature over the current state, in F_q^{n_uov}
-    - nf': nullifier of the updated state, in F_256^nu
+    - nf': nullifier of the updated state, in F_q^nf_len
     - t': credit of the updated state
-    - r': commitment opening of the updated state, in F_256^rho
+    - r': commitment opening of the updated state, in F_q^r_len
 
   Constraints:
     - P(s) = Tag(Com(nf, ctx_iss, t, r), x)  // V1: current state was certified
@@ -1910,7 +1910,7 @@ ProveSpend(P, token, d, ctx_iss):
     - P: Issuer public key
     - token: the token to spend
     - d: credits to spend, in [2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - pending_token: Client state
@@ -1919,8 +1919,8 @@ ProveSpend(P, token, d, ctx_iss):
   Steps:
     1.  (nf, t, r, x, s) := token
     2.  if d &gt; t + x: return INVALID  // insufficient balance
-    3.  nf' &lt;- F_256^nu               // nullifier of the updated state
-    4.  r'  &lt;- F_256^rho              // opening of the updated state
+    3.  nf' &lt;- F_q^nf_len             // nullifier of the updated state
+    4.  r'  &lt;- F_q^r_len              // opening of the updated state
     5.  t'  := t + x - d              // credit of the updated state
     6.  c'  := Com(nf', ctx_iss, t', r')
     7.  pf_spend := VOLEitH.Prove(
@@ -1951,7 +1951,7 @@ VerifyAndRefund(P, td, request, x', ctx_iss):
     - td: Issuer secret key
     - request: spend request
     - x': granted refund, in [2^(8*L)]
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - response: spend response, or INVALID
@@ -1970,7 +1970,7 @@ VerifySpend(P, request, ctx_iss):
   Input:
     - P: Issuer public key
     - request: spend request
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - VALID or INVALID
@@ -2005,7 +2005,7 @@ VerifyRefund(P, pending_token, response, ctx_iss):
     - P: Issuer public key
     - pending_token: Client state
     - response: spend response
-    - ctx_iss: issuance context, in F_256^xi
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the change token, or INVALID
@@ -2060,21 +2060,21 @@ VerifyRefund(P, pending_token, response, ctx_iss):
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>nu</code> nullifier length</td>
+                <code>nf_len</code> nullifier length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>24</code>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>xi</code> context length</td>
+                <code>ctx_len</code> context length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>16</code>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>rho</code> opening length</td>
+                <code>r_len</code> opening length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>16</code>
 </td>
@@ -2114,16 +2114,16 @@ Keccak evaluation to the witness. We need to define precisely how this works.<a 
 <pre>
 Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
-    - ctx_iss: issuance context, in F_256^xi
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho
+    - r: commitment opening, in F_q^r_len
   Output:
-    - c: commitment, in F_256^32
+    - c: commitment, in F_q^32
 
   Steps:
-    1. state := "rata" || VERSION || "c0" || r || 0^(25 - rho) ||
-                ctx_iss || &lt;t&gt;_L || nf || 0^(68 - nu - xi - L)
+    1. state := "rata" || VERSION || "c0" || r || 0^(25 - r_len) ||
+                ctx_iss || &lt;t&gt;_L || nf || 0^(68 - nf_len - ctx_len - L)
     2. c := KP800(state)[0..32]
     3. return c
 </pre><a href="#section-6.1.1-1" class="pilcrow">¶</a>
@@ -2139,10 +2139,10 @@ Com(nf, ctx_iss, t, r):
 <pre>
 Tag(c, x):
   Input:
-    - c: commitment, in F_256^32
+    - c: commitment, in F_q^32
     - x: refund, in [2^(8*L)]
   Output:
-    - y: UOV target, in F_256^{m_uov}
+    - y: UOV target, in F_q^{m_uov}
 
   Steps:
     1. state := "rata" || VERSION || "t0" || 0^25 ||
@@ -2182,21 +2182,21 @@ Tag(c, x):
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>nu</code> nullifier length</td>
+                <code>nf_len</code> nullifier length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>16</code>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>xi</code> context length</td>
+                <code>ctx_len</code> context length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>12</code>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>rho</code> opening length</td>
+                <code>r_len</code> opening length</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>83</code> (determined by MQ parameters)</td>
             </tr>
@@ -2216,17 +2216,17 @@ Tag(c, x):
         </table>
 </div>
 <p id="section-6.2-2">Ratatouille-MQ is based on the Multivariate Quadratic (MQ) commitment of
-<span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span> over <code>F_256</code>. Its parameters are listed in
+<span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span> over <code>F_q</code>. Its parameters are listed in
 <a href="#ratatouille-mq-parameters" class="auto internal xref">Table 2</a>.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.2-3">Just like the UOV signatures, MQ commitment evaluations can be expressed as
 degree-2 constraints, which makes the issuance and spend proofs more efficient
 than Ratatouille-KP800 (<a href="#hash-commitment" class="auto internal xref">Section 6.1</a>). The commitment involves two
-inhomogeneous quadratic maps <code>F: F_256^{n_com} -&gt; F_256^k</code> and <code>G:
-F_256^{n_com} -&gt; F_256^{m_uov-k}</code>. To commit to a token state, we encode the
-state as <code>msg in F_256^k</code>, generate an opening <code>r &lt;- F_256^{n_com}</code>, and
+inhomogeneous quadratic maps <code>F: F_q^{n_com} -&gt; F_q^k</code> and <code>G:
+F_q^{n_com} -&gt; F_q^{m_uov-k}</code>. To commit to a token state, we encode the
+state as <code>msg in F_q^k</code>, generate an opening <code>r &lt;- F_q^{n_com}</code>, and
 compute <code>c := (F(r) + msg) || G(r)</code>.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.2-4">The tag is an affine, homomorphic operation on the commitment. To tag <code>c</code>, we
-encode the refund as <code>refund in F_256^{m_com}</code> and compute <code>y := refund + c</code> as
+encode the refund as <code>refund in F_q^{m_com}</code> and compute <code>y := refund + c</code> as
 the target to be signed by the Issuer. Thus, the UOV parameters are chosen so
 that the UOV target is the same length as the MQ commitment, i.e., <code>m_uov =
 m_com</code>.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
@@ -2239,13 +2239,13 @@ which is the minimum passing a 128-bit check under the CryptographicEstimators
 <p id="section-6.2-6">The public commitment maps <code>F</code>, <code>G</code> are derived deterministically in a
 nothing-up-my-sleeve manner so that no trusted setup is required.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
 <p id="section-6.2-7">Let <code>bytesIntoUpper(b)</code> denote the upper-triangular, <code>n_com</code>-by-<code>n_com</code> matrix
-over <code>F_256</code> obtained by reading bytes from <code>b</code> in row-major order.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+over <code>F_q</code> obtained by reading bytes from <code>b</code> in row-major order.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-6.2-8">
 <pre>
 GenerateParameters():
   Output:
-    - F: F_256^{n_com} -&gt; F_256^k,
-    - G: F_256^{n_com} -&gt; F_256^{m_uov-k}
+    - F: F_q^{n_com} -&gt; F_q^k,
+    - G: F_q^{n_com} -&gt; F_q^{m_uov-k}
 
   Steps:
     1.  u_com := n_com * (n_com + 1) / 2
@@ -2255,7 +2255,7 @@ GenerateParameters():
     5.    M_i := bytesIntoUpper(stream.next(u_com))
     6.    // linear part
     7.    l_i := stream.next(n_com)
-    8.    // inhomogeneous quadratic map F_256^{n_com} -&gt; F_256
+    8.    // inhomogeneous quadratic map F_q^{n_com} -&gt; F_q
     9.    Q_i(x) := x^T*M_i*x + l_i*x
     10. F := (Q_0, ..., Q_{k-1})
     11. G := (Q_k, ..., Q_{m_uov-1})
@@ -2274,13 +2274,13 @@ and is scaling-covariant (<code>Q_i(a x) = a^2 Q_i(x)</code>), which admits a fo
 <pre>
 Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
-    - ctx_iss: issuance context, in F_256^xi
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho (rho = n_com)
+    - r: commitment opening, in F_q^r_len
 
   Output:
-    - c: commitment, in F_256^{m_uov}
+    - c: commitment, in F_q^{m_uov}
 
   Steps:
     1. (F, G) := GenerateParameters()
@@ -2289,8 +2289,8 @@ Com(nf, ctx_iss, t, r):
     4. return c
 </pre><a href="#section-6.2.1-1" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.1-2">The parameters of Ratatouille-MQ are set so that <code>k = nu + xi + 2*L</code>. Function
-<code>EmbedState(nf, ctx_iss, t)</code> encodes the token state as
+<p id="section-6.2.1-2">The parameters of Ratatouille-MQ are set so that <code>k = nf_len + ctx_len + 2*L</code>.
+Function <code>EmbedState(nf, ctx_iss, t)</code> encodes the token state as
 <code>msg = nf || ctx_iss || &lt;t&gt;_L || 0^L</code>. Note that the last <code>L</code> elements are set
 to <code>0</code> as these are reserved for the refund.<a href="#section-6.2.1-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
@@ -2317,11 +2317,11 @@ coordinate:<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 <pre>
 Tag(c, x):
   Input:
-    - c: commitment, in F_256^{m_uov}
+    - c: commitment, in F_q^{m_uov}
     - x: refund, in [2^(8*L)]
 
   Output:
-    - y: UOV target, in F_256^{m_uov}
+    - y: UOV target, in F_q^{m_uov}
 
   Steps:
     1. refund := EmbedRefund(x)
@@ -2329,9 +2329,9 @@ Tag(c, x):
     3. return y
 </pre><a href="#section-6.2.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-3">Function <code>EmbedRefund(x)</code> returns a vector <code>e in F_256^{m_uov}</code> that is zero
+<p id="section-6.2.2-3">Function <code>EmbedRefund(x)</code> returns a vector <code>e in F_q^{m_uov}</code> that is zero
 everywhere except the refund slot: its <code>L</code> elements starting at <code>off_refund =
-nu + xi + L</code> hold the refund encoding <code>&lt;x&gt;_L</code>.<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
+nf_len + ctx_len + L</code> hold the refund encoding <code>&lt;x&gt;_L</code>.<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
