@@ -1441,7 +1441,7 @@ would generate as input. This will make it easier to generate test vectors.<a hr
       </ul>
 <p id="section-5-2">The constant <code>VERSION</code>, an element of <code>F_q</code>, is used for versioning and is meant
 to be kept in sync with revisions to this document. Its current value <span class="bcp14">SHALL</span> be
-<code>0</code>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<code>0</code>. The template for domain separation is the same as <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <div id="anchor-key-generation">
 <section id="section-5.1">
         <h3 id="name-anchor-key-generation">
@@ -1485,8 +1485,8 @@ Com(nf, ctx_iss, ctx_red, r):
     - t: the commitment, in F_q^m
 
   Steps:
-    1. state := "mous" || VERSION || "c" || 0^(26 - rho) || r ||
-                ctx_iss || ctx_red || 0^(36 - nu)  || nf
+    1. state := "mous" || VERSION || "c0" || r || 0^(25 - rho) ||
+                ctx_iss || ctx_red || nf || 0^(36 - nu)
     2. t := KP800(state)[0..m]
     3. return t
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
@@ -1497,15 +1497,11 @@ a single application of the permutation. The zero padding is sized so that
 inputs relative to <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>: <code>nu</code> is 24 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> uses a 32-byte
 nullifier, and the contexts are 16 bytes, whereas <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> allows them to be
 arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
-<p id="section-5.2-4">The state is prefixed with the 4-byte label <code>"mous"</code>, the <code>VERSION</code> byte, and a
-one-byte usage, following the domain separation scheme of <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. The
-label distinguishes Moussaka commitments from those of Ratatouille, which uses
-the label <code>"rata"</code> in the same position.<a href="#section-5.2-4" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.2-5.1">
-            <p id="section-5.2-5.1.1">TODO(cjpatton) Consider bumping <code>nu</code> to <code>32</code> to match <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> (likewise for
-Ratatouille) and add guidelines for choosing the context strings. Honestly,
-truncating a hash to 16 bytes is not terrible.<a href="#section-5.2-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-5.2-4.1">
+            <p id="section-5.2-4.1.1">TODO(cjpatton) Consider bumping the nullifier length to <code>32</code> to match
+<span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> and guidelines for choosing the context strings. Honestly,
+truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>

@@ -271,7 +271,8 @@ Table of Contents
 
    The constant VERSION, an element of F_q, is used for versioning and
    is meant to be kept in sync with revisions to this document.  Its
-   current value SHALL be 0.
+   current value SHALL be 0.  The template for domain separation is the
+   same as [VOLE-ACT].
 
 5.1.  Anchor Key Generation
 
@@ -307,8 +308,8 @@ Table of Contents
        - t: the commitment, in F_q^m
 
      Steps:
-       1. state := "mous" || VERSION || "c" || 0^(26 - rho) || r ||
-                   ctx_iss || ctx_red || 0^(36 - nu)  || nf
+       1. state := "mous" || VERSION || "c0" || r || 0^(25 - rho) ||
+                   ctx_iss || ctx_red || nf || 0^(36 - nu)
        2. t := KP800(state)[0..m]
        3. return t
 
@@ -319,14 +320,10 @@ Table of Contents
    bytes, whereas [IHAT] uses a 32-byte nullifier, and the contexts are
    16 bytes, whereas [IHAT] allows them to be arbitrary byte strings.
 
-   The state is prefixed with the 4-byte label "mous", the VERSION byte,
-   and a one-byte usage, following the domain separation scheme of
-   [VOLE-ACT].  The label distinguishes Moussaka commitments from those
-   of Ratatouille, which uses the label "rata" in the same position.
-
-      TODO(cjpatton) Consider bumping nu to 32 to match [IHAT] (likewise
-      for Ratatouille) and add guidelines for choosing the context
-      strings.  Honestly, truncating a hash to 16 bytes is not terrible.
+      TODO(cjpatton) Consider bumping the nullifier length to 32 to
+      match [IHAT] and guidelines for choosing the context strings.
+      Honestly, truncating a hash to 16 bytes is not terrible.
+      (Likewise for Ratatouille.)
 
 5.3.  Issuance
 
