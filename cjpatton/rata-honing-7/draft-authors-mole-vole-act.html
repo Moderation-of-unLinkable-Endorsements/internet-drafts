@@ -1610,13 +1610,13 @@ We'll also need to plumb this through VOLEitH proving and UOV signing.<a href="#
 by a concrete configuration, and <a href="#instantiations" class="auto internal xref">Section 6</a> specifies two concrete
 configurations, called Ratatouille-KP800 and Ratatouille-MQ. A deployment <span class="bcp14">MUST</span>
 fix its configuration for the lifetime of an Issuer key.<a href="#section-5-2" class="pilcrow">¶</a></p>
-<p id="section-5-3">The constant <code>VERSION</code>, an element of <code>F_q</code>, is used for domain separation and
-is meant to be kept in sync with revisions to this document. Its current value
-<span class="bcp14">SHALL</span> be <code>0</code>. The overall template for domain separation is as follows: the
-first four bytes of each permutation input identify the protocol; the next byte
-is the document version (<code>VERSION</code>); the next byte indicates the usage (commit,
-tag, or MQ map derivation); and the next byte indicates the configuration
-(KP800 or MQ). The domain is therefore seven bytes in total.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-3">A global constant <code>VERSION in F_q</code> is defined. Its value <span class="bcp14">SHALL</span> be <code>0</code>. This
+constant is used for domain separation and is meant to be kept in sync with
+revisions to this document. The overall template for domain separation is as
+follows: the first four bytes of each permutation input identify the protocol;
+the next byte is the document version (<code>VERSION</code>); the next byte indicates the
+usage (commit, tag, or MQ map derivation); and the next byte indicates the
+configuration (KP800 or MQ). The domain is therefore seven bytes in total.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <p id="section-5-4">The rest of this section is organized as follows: <a href="#key-generation" class="auto internal xref">Section 5.2</a> specifies
 Issuer key generation; <a href="#issuance" class="auto internal xref">Section 5.3</a> specifies initial token issuance; and
 <a href="#spending" class="auto internal xref">Section 5.4</a> specifies token spending.<a href="#section-5-4" class="pilcrow">¶</a></p>
