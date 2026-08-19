@@ -1,0 +1,667 @@
+
+
+
+
+Network Working Group                                           T. Zhang
+Internet-Draft                University of Illinois at Urbana-Champaign
+Intended status: Informational                                 C. Patton
+Expires: 20 February 2027                                     Cloudflare
+                                                          19 August 2026
+
+
+                                Moussaka
+                  draft-authors-mole-vole-ihat-latest
+
+Abstract
+
+   This document specifies Moussaka, a candidate post-quantum variant of
+   the Issuer-Hiding Anonymous Token (IHAT) protocol.  Moussaka is based
+   on the UOV digital signature scheme and the VOLE-in-the-Head proof
+   system (a component of the FAEST signature scheme).  The anchor
+   issues a token by signing a commitment to the client's state; to
+   redeem a token, the client proves knowledge of the opening of this
+   commitment and a signature produced by some anchor trusted by the
+   moderator.  The commitment is instantiated with Keccak-p[800,12].
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-vole-ihat.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-vole-
+   ihat/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 20 February 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Overview
+   4.  Preliminaries
+   5.  Protocol
+     5.1.  Anchor Key Generation
+     5.2.  Commitment
+     5.3.  Issuance
+       5.3.1.  Issue Request
+       5.3.2.  Issue Response
+       5.3.3.  Finalization
+     5.4.  Redemption
+       5.4.1.  Redeem Request
+       5.4.2.  Finalization
+   6.  Security Considerations
+   7.  IANA Considerations
+   8.  References
+     8.1.  Normative References
+     8.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+      WARNING This document specifies a cryptographic protocol that has
+      not yet undergone significant security analysis.  It's not yet
+      suitable for real world applications.  Implement at your own risk.
+
+   The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
+   redeem a token with a Moderator without revealing which Anchor issued
+   the token.  Instead, the client proves the token was issued by some
+   Anchor in the Anchor Set trusted by the Moderator.  IHAT is also
+   designed to be post-issuance unlinkable, meaning the redemption of a
+   token cannot be linked to its issuance.
+
+   IHAT meets these privacy goals unconditionally, meaning regardless of
+   its computational resources, no attacker can learn which Anchor
+   issued a token or to which Client it was issued.  On the other hand,
+   it is well known that a quantum attacker can forge tokens by
+   recovering the Anchor's secret key from its public key.
+
+   This document specifies Moussaka, a variant of IHAT that is plausibly
+   fully post-quantum secure.  Similar to [VOLE-ACT], its design is
+   based on the PoMFRIT blind signature scheme [PoMFRIT], which combines
+   a post-quantum signature scheme with a suitable zero-knowledge proof
+   system and commitment scheme.  Specifically, the signer signs a
+   commitment to the message, and the verifier checks a zero-knowledge
+   proof-of-knowledge of the signature and the opening of the
+   commitment.  Moussaka extends this paradigm in the natural way:
+   rather than prove knowledge of a signature under the public key of a
+   particular Anchor, the Client proves knowledge of a signature under
+   some public key in the Anchor Set.
+
+   Moussaka has significantly higher bandwidth cost compared to IHAT:
+
+   1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
+       parameter set [UOV]);
+
+   2.  ~8KB are transmitted during issuance; and
+
+   3.  ~9KB are transmitted during redemption, plus a couple bytes per
+       Anchor in the Anchor Set.
+
+      NOTE(cjpatton) These numbers aren't based on an actual
+      implementation.  They are the result of an analysis from Claude
+      Opus 5 looking at the FAEST spec and an arithmetization of Keccak
+      in a work in progress implementation.
+
+      NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH
+      proofs (one for issuance and another for redemption) using the
+      more invasive techniques from [PoMFRIT], Algorithm 2.
+
+   On the other hand, Moussaka is round optimal: only two moves are
+   required for issuance, whereas IHAT requires three.
+
+   The remainder of this document is structured as follows.  Section 2
+   defines some conventions and notation.  Section 3 provides a high-
+   level overview of the protocol.  Section 4 defines the relevant
+   interfaces for the signature scheme, commitment scheme, and proof
+   system used by Moussaka and provides normative references for their
+   specifications.  Section 5 specifies the protocol in full detail.
+   Finally, Section 6 enumerates some security considerations for
+   implementers and adopters.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   This document follows the same conventions and uses the same notation
+   as [VOLE-ACT].
+
+3.  Overview
+
+   Moussaka makes use of three cryptographic primitives:
+
+   1.  The Unbalanced Oil and Vinegar [UOV] digital signature scheme.
+       Each Anchor uses a UOV secret key to issue tokens, and during
+       redemption, the Client and Moderator agree on a sequence of UOV
+       public keys to use as the Anchor Set.
+
+   2.  The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a
+       component of the FAEST digital signature scheme [FAEST].
+
+   3.  A commitment scheme based on the Keccak permutation [FIPS202].
+
+   A UOV public key is a map P from F_q^n to F_q^m.  A UOV signature is
+   a solution s to an equation P(s) = t, where t is called the target
+   and is computed by hashing the message to be signed.  The UOV secret
+   key is a trapdoor for P that can be used to efficiently sample
+   signatures for a given target.
+
+   Issuance binds a token to an issuance context ctx_iss agreed upon by
+   the Client, Anchor, and Moderator, and a redemption context ctx_red
+   agreed upon by the Client and Moderator [IHAT].  The protocol commits
+   to both contexts during issuance: the Anchor verifies the ctx_iss
+   binding during issuance, and the Moderator verifies both the ctx_iss
+   and ctx_red binding during redemption.  Note that Moussaka constrains
+   how these values are chosen compared to [IHAT]; see Section 5.2 for
+   details.
+
+   The issuance protocol is as follows:
+
+      TODO(cjpatton) Add an illustration of the issuance flow.
+
+   1.  The Client constructs a commitment t = Com(nf, ctx_iss, ctx_red,
+       r) to a nullifier nf and the intended issuance and redemption
+       context, where r is the opening.  It also constructs a VOLEitH
+       proof pf_iss of knowledge of the nf, r, ctx_red from which t was
+       computed, then sends t, pf_iss to the Anchor.
+
+   2.  The Anchor verifies pf_iss, samples a solution s to P(s) = t,
+       then sends s to the Client.
+
+   3.  The Client finalizes issuance by checking that P(s) = t.
+
+   The process resembles RSA blind signature issuance [RFC9474].  The
+   key difference is that the Anchor observes the signature s in
+   plaintext.  To ensure unlinkability, the Client must hide the
+   signature from the Moderator during redemption.
+
+   Let P[0], ..., P[N-1] denote the Anchor Set. To redeem a token, the
+   Client presents the nullifier in plaintext along with a VOLEitH proof
+   of knowledge of i, s, r for which P[i](s) = t without revealing i.
+   In order to prove this statement with VOLEitH, we need to express it
+   as a system of constraints over F_q.
+
+   The idea is to extend the witness with a "selector" vector b[0], ...,
+   b[N-1] for which b[u] = 1 if u = i and 0 otherwise.  The constraints
+   then check that the public key selected by b maps s to Com(nf,
+   ctx_iss, ctx_red, r) and that b is the indicator vector of a single
+   Anchor.  See Section 5.4 for details.
+
+   The commitment Com() is instantiated with a single evaluation of the
+   Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
+   [RFC9861], this parameterization of Keccak uses half as many rounds
+   as SHA-3.  However, its state is also half the size of the state used
+   by either SHA-3 or TurboSHAKE.  This helps reduce the size of the
+   VOLEitH proof.  See Section 6 for justification.
+
+      NOTE Both issuance and redemption involve a Com() evaluation.  An
+      alternative is to have the Anchor bind the issuance context by
+      applying an outer commit, like Com(Com(nf, ctx_red, r_red),
+      ctx_iss, r_iss).  This way no issuance proof is required.  It
+      would also have the benefit of not requiring the stronger one-
+      more-UOV assumption.  See Section 6 for details.
+
+      NOTE We can add multishow and late binding of redemption context
+      by adding another hash evaluation to the redemption proof.  See
+      issue 45.
+
+4.  Preliminaries
+
+   The procedures KP800(), UOV.CompactKeyGen(), UOV.ExpandPK(),
+   UOV.ExpandSK(), UOV.SPre(), VOLEitH.Prove(), and VOLEitH.Verify() are
+   defined as in [VOLE-ACT].  We adopt the uov-Ip parameter set (NIST
+   Level 1) for UOV.  That is, for the remainder of this document, let
+   n=112, m=44, and q=2^8.
+
+   Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
+
+   *  nu: the nullifier length in bytes.  Its value SHALL be 24.
+
+   *  rho: the commitment opening length in bytes.  Its value SHALL be
+      16.
+
+5.  Protocol
+
+      TODO Specify wire formats for each of the messages.  For now we
+      will ignore how things are encoded until we're more certain of the
+      shape of the protocol.
+
+      TODO Make all of these algorithms deterministic, passing any
+      randomness they would generate as input.  This will make it easier
+      to generate test vectors.
+
+   The constant VERSION, an element of F_q, is used for versioning and
+   is meant to be kept in sync with revisions to this document.  Its
+   current value SHALL be 0.
+
+5.1.  Anchor Key Generation
+
+   Each Anchor generates its public and secret key pair using the
+   procedure below.
+
+   KeyGen():
+     Output:
+       - P: a public UOV map from F_q^n to F_q^m
+       - td: a secret UOV trapdoor for P
+
+     Steps:
+       1. (cpk, csk) := UOV.CompactKeyGen()
+       2. P := UOV.ExpandPK(cpk)
+       3. td := UOV.ExpandSK(csk)
+       4. return (P, td)
+
+5.2.  Commitment
+
+   A Moussaka token commits the Client to a nullifier, an issuance
+   context, and a redemption context.  The commitment is generated by
+   sampling a randomizer r <- F_q^rho and running the following
+   procedure:
+
+   Com(nf, ctx_iss, ctx_red, r):
+     Input:
+       - nf: the nullifier, in F_q^nu
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+       - r: the commitment opening, in F_q^rho
+
+     Output:
+       - t: the commitment, in F_q^m
+
+     Steps:
+       1. state := "mouss" || VERSION || 0^(26 - rho) || r ||
+                   ctx_iss || ctx_red || 0^(36 - nu)  || nf
+       2. t := KP800(state)[0..m]
+       3. return t
+
+   The layout of state is chosen so that the entire commitment is
+   computed with a single application of the permutation.  The zero
+   padding is sized so that state is always 100 bytes.  This layout also
+   constrains the lengths of the inputs relative to [IHAT]: nu is 24
+   bytes, whereas [IHAT] uses a 32-byte nullifier, and the contexts are
+   16 bytes, whereas [IHAT] allows them to be arbitrary byte strings.
+
+      TODO(cjpatton) Consider bumping nu to 32 to match [IHAT] and add
+      guidelines for choosing the context strings.  Honestly, truncating
+      a hash to 16 bytes is not terrible.
+
+5.3.  Issuance
+
+   During issuance the Client proves knowledge of an opening of the
+   commitment t that binds t to the issuance context observed by the
+   Anchor:
+
+   Relation IssueRelation(t, ctx_iss):
+     Instance:
+       - t: commitment, in F_q^m
+       - ctx_iss: issuance context, in F_q^16
+
+     Witness:
+       - nf: nullifier, in F_q^nu
+       - r: commitment opening, in F_q^rho
+       - ctx_red: redemption context, in F_q^16
+
+     Constraints:
+       - t = Com(nf, ctx_iss, ctx_red, r)
+
+      TODO Expand Com() into a set of polynomial constraints.  An
+      optimization that will be important for practice is to commit
+      intermediate states of the Keccak evaluation to the witness.  We
+      need to define precisely how this works.
+
+5.3.1.  Issue Request
+
+   To request a Moussaka token from an Anchor, the Client runs the
+   following procedure.
+
+   IssueRequest(ctx_iss, ctx_red):
+     Input:
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Output:
+       - pending_token: Client state
+       - request: issuance request
+
+     Steps:
+       1. nf <- F_q^nu
+       2. r  <- F_q^rho
+       3. t  := Com(nf, ctx_iss, ctx_red, r)
+       4. pf_iss := VOLEitH.Prove(
+            IssueRelation,     // relation
+            (t, ctx_iss),      // instance
+            (nf, r, ctx_red),  // witness
+          )
+       5. request := (t, pf_iss)
+       6. pending_token := (nf, r)
+       7. return (pending_token, request)
+
+5.3.2.  Issue Response
+
+   To issue a token, the Anchor runs the following procedure on the
+   request, the trapdoor for its public key, and the issuance context.
+
+   IssueResponse(td, request, ctx_iss):
+     Input:
+       - td: Anchor secret key
+       - request: issuance request
+       - ctx_iss: issuance context, in F_q^16
+
+     Output:
+       - s: Anchor signature, in F_q^n, or INVALID
+
+     Steps:
+       1. (t, pf_iss) := request  // commitment, issuance proof
+       2. v := VOLEitH.Verify(
+            IssueRelation,  // relation
+            (t, ctx_iss),   // instance
+            pf_iss,
+          )
+       3. if v = 0: return INVALID
+       4. s := UOV.SPre(td, t)
+       5. return s
+
+5.3.3.  Finalization
+
+   To complete token issuance, the Client runs the following procedure
+   using the Anchor's public key.
+
+   FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
+     Input:
+       - P: Anchor public key
+       - pending_token: Client state
+       - s: Anchor signature, in F_q^n
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Output:
+       - token: the issued token, or INVALID
+
+     Steps:
+       1. (nf, r) := pending_token
+       2. if P(s) != Com(nf, ctx_iss, ctx_red, r): return INVALID
+       3. token := (nf, r, s)
+       4. return token
+
+5.4.  Redemption
+
+   Before redemption, the Client and Moderator agree on an Anchor Set
+   consisting of a sequence of UOV public keys P[0], ..., P[N-1].  The
+   Anchor Set MUST NOT be empty, that is, N > 0.
+
+   Let i in [N] be the index of the issuing Anchor.  The witness for the
+   redemption proof is the opening r, the signature s, and the selector
+   vector b, where b[u] = 1 if u = i and 0 otherwise.  The relation
+   first selects the Anchor public key Q with the following procedure:
+
+   Select(b, P):
+     Input:
+       - b: selector vector, in F_q^N
+       - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
+
+     Output:
+       - Q: the selected map from F_q^n to F_q^m
+
+     Steps:
+       1. M := m * n * (n + 1) / 2
+       2. Q := 0^M
+       3. for u in [N]:
+       4.   for j in [M]:
+       5.     Q[j] += b[u] * P[u][j]
+       6. return Q
+
+   The first constraint is that Q(s) = Com(nf, ctx_iss, ctx_red, r).
+   The remaining constraints prove that the selector vector is well-
+   formed, that is, exactly one entry is set.  Because F_q has
+   characteristic 2, the weight constraint sum(b) = 1 only tells us that
+   the number of nonzero entries is odd.  We also need some parity
+   constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [N-1].
+   The redemption relation is defined as follows:
+
+   Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
+     Instance:
+       - P: Anchor Set of length N
+       - nf: nullifier, in F_q^nu
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Witness:
+       - r: F_q^rho
+       - s: F_q^n
+       - b: F_q^N
+
+     Where:
+       - Q = Select(b, P)
+
+     Constraints:
+       - Q(s) = Com(nf, ctx_iss, ctx_red, r)
+       - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
+       - sum(b) = 1
+
+5.4.1.  Redeem Request
+
+   To redeem a token token = (nf, r, s) issued by Anchor P[i], the
+   Client runs the following procedure.
+
+   RedeemRequest(P, i, token, ctx_iss, ctx_red):
+     Input:
+       - P: Anchor Set of length N
+       - i: index of the issuing Anchor, in [N]
+       - token: the issued token
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Output:
+       - request: redemption request
+
+     Steps:
+       1. (nf, r, s) := token
+       2. b := 0^N  // selector vector
+       3. b[i] := 1
+       4. pf_red := VOLEitH.Prove(
+            RedeemRelation,             // relation
+            (P, nf, ctx_iss, ctx_red),  // instance
+            (r, s, b),                  // witness
+          )
+       5. request := (nf, pf_red)
+       6. return request
+
+5.4.2.  Finalization
+
+   To complete the redemption request, the Moderator runs the following
+   procedure.
+
+   FinalizeRedeem(P, request, ctx_iss, ctx_red):
+     Input:
+       - P: Anchor Set of length N
+       - request: redemption request
+       - ctx_iss: issuance context, in F_q^16
+       - ctx_red: redemption context, in F_q^16
+
+     Output:
+       - nf: the nullifier of the redeemed token, in F_q^nu, or INVALID
+
+     Steps:
+       1. (nf, pf_red) := request
+       2. v := VOLEitH.Verify(
+            RedeemRelation,             // relation
+            (P, nf, ctx_iss, ctx_red),  // instance
+            pf_red,
+          )
+       3. if v = 0: return INVALID
+       4. return nf
+
+6.  Security Considerations
+
+      TODO Prove the following claims.
+
+   Issuer-hiding and post-issuance unlinkability of Moussaka reduce to
+   the zero-knowledge property of the VOLEitH proof system and the
+   hiding property of our commitment.  One-more-unforgeability reduces
+   to witness-extractability of VOLEitH, binding of the commitment, and
+   the one-more-UOV assumption ([PoMFRIT], Definition 8).  The one-more-
+   UOV assumption is a stronger assumption than standard UOV ([UOV],
+   Definition 2) that requires some scrutiny before we rely on it too
+   heavily.
+
+      NOTE Here's a sketch of the reduction to one-more-UOV.  We
+      consider a simplified version of Moussaka, similar to PoMFRIT.
+      During redemption, the Client proves knowledge of s, r for which
+      P(s) = c and c = Com(nf, r).
+
+      Our goal is to transform a one-more-redemption forger B into a
+      one-more-UOV forger A.  We simulate B's RO queries using the
+      random targets we got as input to our one-more-UOV instance; when
+      B requests issuance, we forward the target to our own SPre oracle.
+
+      On input P, t[0], ..., t[Q-1] and with oracle SPre: Run B with P
+      as the issuer public key and respond to its queries as follows:
+
+      -  When B asks Com(nf, r): for the i-th such query, counting from
+         zero, respond with c = t[i].
+
+      -  When B requests issuance for c: respond with s = SPre(c).
+
+      -  When B requests redemption for nf, pf: extract the witness s, r
+         for pf and let c = Com(nf, r).  (If this fails, then witness
+         extractability of VOLEitH implies the Moderator will reject.)
+         If we didn't issue s for c, then B has successfully one-more-
+         forged.  Furthermore, c = t[i] for some i in [Q], hence s is a
+         solution to our one-more-UOV instance.
+
+      NOTE We previously looked at an alternative to the outer
+      commitment in which c was "tagged" with issuance context x via
+      either c || x or c XOR x.  A reduction to one-more-UOV is
+      possible, but it incurs a significant loss in concrete security,
+      since the reduction has to guess x so that it can program the
+      random oracle accordingly.  Matching attack: XORing the tag into
+      the image under the hash means the attacker gets to pick any
+      prefix it wants.  It now only needs to find a collision in the
+      remaining bits of the image.
+
+      TODO Justify halving the Keccak state from 1600 to 800 (relative
+      to TurboSHAKE).
+
+7.  IANA Considerations
+
+   This document has no IANA actions.
+
+8.  References
+
+8.1.  Normative References
+
+   [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
+              Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
+              E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
+              "The FAEST Signature Scheme", Version 2.0, 2025,
+              <https://faest.info/faest-spec-v2.0.pdf>.
+
+   [FIPS202]  National Institute of Standards and Technology (NIST),
+              "SHA-3 Standard: Permutation-Based Hash and Extendable-
+              Output Functions", FIPS PUB 202, August 2015,
+              <https://doi.org/10.6028/NIST.FIPS.202>.
+
+   [IHAT]     "*** BROKEN REFERENCE ***".
+
+   [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
+              Kannwischer, "MAYO: Practical Post-Quantum Signatures from
+              Oil-and-Vinegar Maps", NIST PQC Additional Digital
+              Signatures Round 2 Submission, 5 February 2025,
+              <https://pqmayo.org/assets/specs/mayo-round2.pdf>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
+              M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
+              C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
+              PQC Additional Digital Signatures Round 2 Submission,
+              February 2025, <https://csrc.nist.gov/csrc/media/Projects/
+              pqc-dig-sig/documents/round-2/spec-files/uov-spec-
+              round2-web.pdf>.
+
+   [VOLE-ACT] "*** BROKEN REFERENCE ***".
+
+8.2.  Informative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
+              C. Rechberger, "Concretely Efficient Blind Signatures
+              Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
+              Cryptology ePrint Archive Paper 2026/109, 2026,
+              <https://eprint.iacr.org/2026/109>.
+
+   [RFC9474]  Denis, F., Jacobs, F., and C. A. Wood, "RSA Blind
+              Signatures", RFC 9474, DOI 10.17487/RFC9474, October 2023,
+              <https://www.rfc-editor.org/rfc/rfc9474>.
+
+   [RFC9861]  Viguier, B., Wong, D., Ed., Van Assche, G., Ed., Dang, Q.,
+              Ed., and J. Daemen, Ed., "KangarooTwelve and TurboSHAKE",
+              RFC 9861, DOI 10.17487/RFC9861, October 2025,
+              <https://www.rfc-editor.org/rfc/rfc9861>.
+
+Acknowledgments
+
+   The use of Keccak-p[800,12] in this application was proposed by Bas
+   Westerbaan.  Claude Opus 5 suggested the parity constraints for the
+   redemption proof.
+
+Authors' Addresses
+
+   Tianyu Zhang
+   University of Illinois at Urbana-Champaign
+   Email: tianyuz@illinois.edu
+
+
+   Christopher Patton
+   Cloudflare
+   Email: chrispatton+ietf@gmail.com

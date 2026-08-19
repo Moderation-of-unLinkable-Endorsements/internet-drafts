@@ -1,0 +1,1114 @@
+
+
+
+
+Network Working Group                                           T. Zhang
+Internet-Draft                University of Illinois at Urbana-Champaign
+Intended status: Informational                                 C. Patton
+Expires: 20 February 2027                                     Cloudflare
+                                                          S. Schlesinger
+                                                                  Google
+                                                          19 August 2026
+
+
+                              Ratatouille
+                   draft-authors-mole-vole-act-latest
+
+Abstract
+
+   This document specifies Ratatouille, a candidate post-quantum variant
+   of the Anonymous Credit Token (ACT) protocol.  Ratatouille is based
+   on the UOV digital signature scheme and the VOLE-in-the-Head proof
+   system (a component of the FAEST signature scheme).  The moderator
+   issues a token by signing a commitment to the client's state; to
+   present a token, the client proves knowledge of this signature and
+   the opening of the commitment.  Two variants of the protocol are
+   specified, one in which the commitment is instantiated with Keccak-
+   p[800,12] and another in which a UOV-friendly commitment scheme is
+   used instead.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-vole-act.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-vole-
+   act/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 20 February 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+     2.1.  Notation
+   3.  Overview
+   4.  Preliminaries
+   5.  Protocol Specification
+     5.1.  Parameters
+       5.1.1.  Commitment
+       5.1.2.  Tag
+     5.2.  Domain Separation Tag
+     5.3.  Issuer Key Generation
+     5.4.  Initial Issuance
+       5.4.1.  Issue Request
+       5.4.2.  Issue Response
+       5.4.3.  Token Verification
+     5.5.  Spending
+       5.5.1.  Spend Proof Generation
+       5.5.2.  Spend Verification and Refund
+       5.5.3.  Refund Token Construction
+   6.  Instantiations
+     6.1.  Ratatouille-KP800
+       6.1.1.  Commitment
+       6.1.2.  Tag
+     6.2.  Ratatouille-MQ
+       6.2.1.  Commitment
+       6.2.2.  Tag
+   7.  Security Considerations
+   8.  IANA Considerations
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+      WARNING This document specifies a cryptographic protocol that has
+      not yet undergone significant security analysis.  It's not yet
+      suitable for real world applications.  Implement at your own risk.
+
+   Modern web services face a fundamental tension between operational
+   needs and user privacy.  Services need to implement rate limiting to
+   prevent abuse, charge for API usage to sustain operations, and
+   allocate computational resources fairly.  However, traditional
+   approaches require tracking user identities and creating detailed
+   logs of user behavior, raising significant privacy concerns in an era
+   of increasing data protection awareness and regulation.
+
+   The Anonymous Credit Token (ACT) protocol [ACT] resolves this tension
+   by enabling credit-based systems without user tracking: an Issuer can
+   grant a Client a token worth some number of credits, and the Client
+   can later spend those credits anonymously, in whole or in part,
+   without the Issuer being able to link the spend to the issuance or to
+   any other spend by the same Client.
+
+   ACT achieves this privacy goal information-theoretically, meaning no
+   attacker, regardless of its computational resources, can link the
+   presentation of a token to its issuance.  However, ACT is based on
+   elliptic curve cryptography, which means a quantum attacker can forge
+   a token by recovering the Issuer's secret key from its public key.
+
+   This document specifies Ratatouille, a variant of ACT that is
+   plausibly fully post-quantum secure.  Its design is based on the
+   PoMFRIT blind signature scheme [PoMFRIT], which combines a post-
+   quantum signature scheme with a suitable zero-knowledge proof system
+   and commitment scheme.  Specifically, the signer signs a commitment
+   to the message, and the verifier checks a zero-knowledge proof-of-
+   knowledge of the signature and the opening of the commitment.
+   Ratatouille generalizes this from a one-time use token to a token
+   with updatable state: the commitment binds a nullifier together with
+   the remaining credits, and each presentation additionally proves that
+   the spend was subtracted correctly and the balance stays in range,
+   with the Issuer re-signing the updated commitment so that every spend
+   chains into the next token.
+
+   Ratatouille uses [UOV] as its signature scheme.  Two instantiations
+   of the commitment are defined, one based on the Keccak permutation
+   [FIPS202] and another based on the Multivariate Quadratic (MQ)
+   problem [BFMRSV25].  The latter composes more naturally with UOV, is
+   much simpler to evaluate in zero knowledge, and, with its current
+   parameterization, has significantly lower communication cost than the
+   hash-based variant.
+
+      WARNING Adopters should not implement the MQ variant just yet.  MQ
+      commitments are understudied, and we don't know if the parameters
+      we've chosen are sufficient for either unlinkability or
+      unforgeability.  Our goal for this variant is to give researchers
+      a sense of the parameter regime for which MQ commitments are
+      useful in our application.  In particular, if communication cost
+      is at or below hash-based commitments, then their relative
+      simplicity makes them a good choice.
+
+   Both variants of Ratatouille have higher bandwidth cost than ACT:
+
+   1.  the Issuer's public key is 42.6 KB, which corresponds to the uov-
+       Ip parameter set for UOV (the MQ instantiation has a larger
+       public key in order to accommodate the commitment parameters);
+
+   2.  the Client uploads 7.8 KB during initial issuance (4.3 KB for the
+       MQ variant); and
+
+   3.  the Client uploads 14.2 KB during a spend (9.0 KB for the MQ
+       variant).
+
+   In both the initial issuance and a spend, the Issuer's reply is a
+   single UOV signature, which is below a couple of hundred bytes for
+   both instantiations.
+
+   Unlike ACT, Ratatouille tokens are publicly verifiable, meaning they
+   can be presented to any party with the Issuer's public key.  Of
+   course, this has implications for privacy, since the token
+   necessarily reveals the identity of the Moderator that issued it.
+
+   The remainder of this document is structured as follows.  Section 2
+   defines some conventions and notation.  Section 3 provides a high-
+   level overview of the protocol.  Section 4 defines the relevant
+   interfaces for the signature scheme, commitment scheme, and proof
+   system used by Ratatouille, and provides normative references for
+   their specifications.  Section 5 specifies the protocol in terms of a
+   generic commitment scheme; Section 6 gives our two instantiations of
+   the commitment.  Finally, Section 7 enumerates some security
+   considerations for implementers and adopters.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+2.1.  Notation
+
+   This document uses the following notation:
+
+   *  x <- S: Sampling x uniformly at random from the finite set S.
+
+   *  x := y: Assignment of the value y to the variable x.
+
+   *  x || y: Concatenation of byte strings x and y.
+
+   *  x[i]: The i-th element of byte string or vector x.  Indexing
+      begins at 0, i.e., x[0], ..., x[|x|-1] are the elements of x.
+
+   *  x[i..j]: The slice of byte string or vector x from index i to
+      index j-1.
+
+   *  [a..b]: The set of integers {a, a+1, ..., b-1}, i.e., the upper
+      bound is exclusive, as for slices. [n] is shorthand for [0..n],
+      the set of integers {0, 1, ..., n-1}.
+
+   *  F_q: The finite field with q elements.  F_2 is the binary field,
+      i.e., {0, 1}. In this document, q is always a power of two so that
+      F_q is an extension field of F_2.
+
+   *  <t>_L: The L-byte big-endian encoding of a non-negative integer t
+      < 2^(8*L) as an element of F_256^L (equivalently F_2^(8*L)).
+
+   Each element of F_256 has a natural representation as a byte.  We
+   sometimes write F_256^k to denote the set of length-k byte strings,
+   e.g., r <- F_256^k means to choose k random bytes and assign them to
+   r.
+
+3.  Overview
+
+   Ratatouille makes use of three cryptographic primitives:
+
+   1.  The Unbalanced Oil and Vinegar [UOV] digital signature scheme.
+       The Issuer, such as a MoLE Moderator [ARCHITECTURE], uses a long-
+       lived UOV secret key to issue tokens, and the Client uses the
+       corresponding public key to generate proofs of knowledge.
+
+   2.  The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a
+       component of the FAEST digital signature scheme [FAEST].
+
+   3.  A commitment scheme, instantiated either with the Keccak
+       permutation [FIPS202] or with the Multivariate Quadratic (MQ)
+       commitment of [BFMRSV25].
+
+   A UOV public key is a map P from F_q^n to F_q^m.  A UOV signature is
+   a solution s to an equation P(s) = y, where y is called the target
+   and is normally computed by hashing the message to be signed.  The
+   UOV secret key is a trapdoor for P that can be used to efficiently
+   sample signatures for a given target.
+
+   A token is a tuple (nf, t, r, x, s) that binds a nullifier nf to the
+   Client's current state.  The state is an effective balance t + x,
+   where t is the credit held by the Client and x is a refund chosen by
+   the Issuer. r is the opening of a commitment c = Com(nf, t, r) and s
+   is a signature P(s) = Tag(c, x) that certifies the state committed to
+   by c and binds the refund to the state.
+
+   Initially t = T_init, where T_init is a parameter agreed upon out of
+   band by the Client and Issuer, and x = 0.  The initial issuance
+   protocol is as follows:
+
+   1.  The Client samples a nullifier nf and an opening r, then
+       constructs a commitment c = Com(nf, T_init, r) and VOLEitH proof
+       pf_init of knowledge of the nf, r for which c = Com(nf, T_init,
+       r).  It then sends c, pf_init to the Issuer.
+
+   2.  The Issuer verifies pf_init, samples a solution s to P(s) =
+       Tag(c, 0), then sends s to the Client.
+
+   3.  The Client finalizes issuance by checking that P(s) = Tag(c, 0).
+
+   To spend credits, the Client reveals the nullifier nf for the current
+   state, commits to an updated state, and proves the updated state is
+   consistent with the previous state and the requested spend.  It must
+   do so without revealing the current state, as this would allow the
+   Issuer to link the spend to the initial issuance or to a previous
+   spend.  To spend d credits from a token with effective balance t + x:
+
+   1.  The Client samples a fresh nullifier nf' and opening r', then
+       constructs a commitment c' = Com(nf', t', r') to the change t' =
+       t + x - d.  It then constructs a VOLEitH proof pf_spend of
+       knowledge of t, r, x, s, nf', t', r' for which:
+
+       *  the current state was certified by the Issuer, i.e., P(s) =
+          Tag(Com(nf, t, r), x);
+
+       *  the updated state is consistent, i.e., c' = Com(nf', t', r')
+          and t' = t + x - d; and
+
+       *  the updated state is valid, i.e., t' is at least 0 but no
+          greater than a maximum value specified by the parameters of
+          the protocol.
+
+       Finally, the Client sends nf, d, c', pf_spend to the Issuer.
+
+   2.  The Issuer checks that nf has not been spent and verifies
+       pf_spend.  It then chooses a refund x', certifies the updated
+       state by sampling a solution s' to P(s') = Tag(c', x'), then
+       sends x', s' to the Client.
+
+   3.  The Client finalizes the spend by checking that P(s') = Tag(c',
+       x').  Its new token is (nf', t', r', x', s').
+
+   The commitment Com() and tag Tag() are instantiated in one of two
+   ways.
+
+   In the hash-based variant of Ratatouille (Section 6.1), both are
+   instantiated with a single evaluation of the Keccak-p[800,12]
+   permutation [FIPS202].  Similar to TurboSHAKE [RFC9861], this
+   parameterization of Keccak uses half as many rounds as SHA-3.
+   However, its state is also half the size of the state used by either
+   SHA-3 or TurboSHAKE.  This helps reduce the size of the VOLEitH
+   proof.  See Section 7 for justification.
+
+      NOTE The size of the spend proof is dominated by Keccak
+      evaluations, of which there are three: one Tag() and two Com()s.
+      If we can forego the refund feature, then we don't need the Tag()
+      at all.  Refunding can be emulated at the protocol level by having
+      the Client and Issuer negotiate the requested spend so that it
+      accounts for the refund.
+
+      We need to make sure there is domain separation between
+      commitments in these two variants of the protocol.
+
+   The MQ-based variant of Ratatouille (Section 6.2) uses the MQ
+   commitment of [BFMRSV25] to instantiate Com().  The tag function
+   Tag() updates the commitment homomorphically with the refund.
+
+      TODO Determine if this homomorphic trick is sound.  See Section 7
+      for discussion.
+
+      TODO Consider adding issuance context, similar to Moussaka.
+
+4.  Preliminaries
+
+   We write stream := SHAKE128(msg) to denote the absorb phase of the
+   SHAKE128 eXtendable Output Function (XOF) on input msg [FIPS202].
+   The stream object denotes the XOF state.  We write out :=
+   stream.next(n) to denote squeezing out the next n bytes and assigning
+   them to out in F_256^n.
+
+   Define KP800(state) as the output of applying Keccak-p[800,12]
+   [FIPS202] to state in F_q^100.  Note that this is a non-standard size
+   for the Keccak permutation; see Section 7 for discussion.
+
+   We write (cpk, csk) := UOV.CompactKeyGen() to denote execution of the
+   compact key generation algorithm of [UOV], Figure 2.  Output cpk is
+   the public key and csk is the secret key.  The input parameters are
+   omitted and are instead hard-coded to the uov-Ip parameter set (see
+   [UOV], Table 4).
+
+   We write P := UOV.ExpandPK(cpk) to denote expansion of the public key
+   into the UOV map P : F_q^n -> F_q^m using the procedure in [UOV],
+   Figure 2.  Likewise, we write td := UOV.ExpandSK(csk) to denote
+   expansion of the secret key into the trapdoor td for P.
+
+   We write s := UOV.SPre(td, t) to denote sampling a preimage of target
+   t under P, i.e., an s for which P(s) = t.  This is the same procedure
+   as used in the signing algorithm in [UOV], Figure 2.
+
+   We write pf := VOLEitH.Prove(R, X, W) to denote proving knowledge of
+   a witness W for which the pair (X, W) is in the relation R, where X
+   is the instance, using the VOLE-in-the-Head proof system defined in
+   [FAEST].  We write v := VOLEitH.Verify(R, X, pf) to denote
+   verification of pf under the same relation and instance, where the
+   output v is a bit.
+
+   Relations are specified in the style of Section 3.4 of [SIGMA] as a
+   sequence of constraints.  Each constraint is an equation of the
+   instance and witness variables.  Unlike [SIGMA], these equations need
+   not be linear: each side of the equation is a polynomial of arbitrary
+   degree.  However, because the degree of the polynomial influences the
+   size of the proof, the relation must be designed to balance the size
+   of the witness with the degree of the constraints.
+
+      TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
+      Ideally it specifies a compiler of constraints into a proof, as in
+      [SIGMA], but this is currently beyond the scope of what the FAEST
+      spec does.  The degree of constraints is coupled tightly to the
+      proof generation procedure, which means I think we'll end up
+      pulling some details of the proof construction into this document.
+
+5.  Protocol Specification
+
+      TODO Specify wire formats for each of the messages.  For now we
+      will ignore how things are encoded until we're more certain of the
+      shape of the protocol.
+
+      TODO Make all of these algorithms deterministic, passing any
+      randomness they would generate as input.  This will make it easier
+      to generate test vectors.  We'll also need to plumb this through
+      VOLEitH proving and UOV signing.
+
+   This section specifies Ratatouille in terms of a generic
+   configuration: Section 5.1 defines the various parameters and
+   functions that are determined by a concrete configuration, and
+   Section 6 specifies two concrete configurations, called Ratatouille-
+   KP800 and Ratatouille-MQ.  A deployment MUST fix its configuration
+   for the lifetime of an Issuer key.
+
+      TODO(cjpatton) Bind the variant to key derivation and the various
+      key operations to mitigate confusion attacks properly.
+
+   The rest of this section is organized as follows: Section 5.3
+   specifies Issuer key generation; Section 5.4 specifies initial token
+   issuance; and Section 5.5 specifies token spending.
+
+5.1.  Parameters
+
+   A Ratatouille configuration specifies the following constants:
+
+   *  L: The credit length in bytes.  It determines the largest credit
+      value or refund the configuration can carry, i.e., t, x in
+      [2^(8*L)].
+
+   *  nu: The nullifier length in bytes.
+
+   *  rho: The commitment randomness length in bytes.
+
+   *  q: The size of the finite field F_q over which UOV signatures are
+      defined. q MUST be a power of two; typically q=256.
+
+         TODO(cjpatton) Consider hardcoding this like we do in Moussaka.
+
+   *  n_uov, m_uov: The UOV signature and target lengths.  The Issuer's
+      public key is a map P: F_q^{n_uov} -> F_q^{m_uov}. Ratatouille-
+      KP800 uses the uov-Ip parameter set (NIST Level 1) from [UOV].
+      Ratatouille-MQ uses larger parameters in order to accommodate MQ
+      commitments.
+
+   *  dst_len: The length of the domain separation tag in bytes
+      (Section 5.2).  The state layout of the commitment and tag depends
+      on this length, so a configuration fixes it and a deployment MUST
+      use a dst of exactly this length.
+
+5.1.1.  Commitment
+
+   A Ratatouille configuration specifies a function Com() that commits
+   the Client to a nullifier and a credit value:
+
+   Com(nf, t, r):
+     Input:
+       - nf: nullifier, in F_256^nu
+       - t: credit value, in [2^(8*L)]
+       - r: commitment opening, in F_256^rho
+     Output:
+       - c: commitment
+
+   The commitment must be (computationally) hiding, meaning that for a
+   random opening r, no (efficient) attacker can distinguish commitments
+   to different values.  It must also be (computationally) binding,
+   meaning that no (efficient) attacker can open a commitment to two
+   distinct values.
+
+5.1.2.  Tag
+
+   A Ratatouille configuration specifies a tagging function Tag() that
+   binds a commitment to a refund and returns a UOV target:
+
+   Tag(c, x):
+     Input:
+       - c: commitment
+       - x: refund, in [2^(8*L)]
+     Output:
+       - y: UOV target, in F_q^{m_uov}
+
+   The Issuer signs Tag(c, x) with its UOV trapdoor, so a single
+   signature binds both the contents committed by c and the refund x.
+   The refund is an input to Tag rather than Com, which lets the Issuer
+   add credits at signing time without the Client re-committing.
+
+5.2.  Domain Separation Tag
+
+      TODO(cjpatton) Drop this and align with domain separation in
+      Moussaka.  We also need to include the configuration in the
+      domain.  Also make sure we separate between Moussaka and
+      Ratatouille.
+
+   A deployment fixes a *domain separation tag* dst, a byte string that
+   identifies the deployment and isolates it cryptographically from
+   every other deployment.
+
+   The dst encodes the version of this specification and an application
+   context string agreed upon by the client and issuer:
+
+   dst := "RATA-v1:" || application_context
+
+   This string MUST be unique per deployment.  It might encode
+   information like the organization, the service, the deployment
+   environment, and so on.  For example:
+
+   "example-corp:rate-limiter:production:2026-01-15"
+
+5.3.  Issuer Key Generation
+
+   Each Issuer generates its public and secret key pair using the
+   procedure below.
+
+   KeyGen():
+     Output:
+       - P: a public UOV map from F_q^{n_uov} to F_q^{m_uov}
+       - td: a secret UOV trapdoor for P
+
+     Steps:
+       1. (cpk, csk) := UOV.CompactKeyGen()
+       2. P := UOV.ExpandPK(cpk)
+       3. td := UOV.ExpandSK(csk)
+       4. return (P, td)
+
+      TODO(cjpatton) n_uov and m_uov are meant to be determined by the
+      Ratatouille configuration (Section 5.1), but the UOV parameters
+      are fixed in Section 4.
+
+5.4.  Initial Issuance
+
+   Issuance mints a fresh token carrying an initial credit balance
+   T_init in [1..2^(8*L)] agreed between the Client and Issuer.  The
+   Client commits to both its nullifier nf and the credit balance t =
+   T_init, and sends the commitment c to the Issuer.  It also sends
+   along a zero-knowledge proof of the following relation:
+
+   Relation IssueRelation(c, T_init):
+     Instance:
+       - c: commitment
+       - T_init: agreed initial credit balance, in [1..2^(8*L)]
+
+     Witness:
+       - nf: nullifier, in F_256^nu
+       - r: commitment opening, in F_256^rho
+
+     Constraints:
+       - c = Com(nf, T_init, r)
+
+5.4.1.  Issue Request
+
+   To request a Ratatouille token from the Issuer, the Client runs the
+   following procedure.
+
+   IssueRequest(T_init):
+     Input:
+       - T_init: initial credit balance, in [1..2^(8*L)]
+
+     Output:
+       - pending_token: Client state
+       - request: issuance request
+
+     Steps:
+       1. nf <- F_256^nu
+       2. r  <- F_256^rho
+       3. c  := Com(nf, T_init, r)
+       4. pf_init := VOLEitH.Prove(
+            IssueRelation,  // relation
+            (c, T_init),    // instance
+            (nf, r),        // witness
+          )
+       5. request := (c, pf_init)
+       6. pending_token := (nf, r)
+       7. return (pending_token, request)
+
+5.4.2.  Issue Response
+
+   To issue a token, the Issuer runs the following procedure on the
+   request, the trapdoor for its public key, and the agreed initial
+   credit balance.
+
+   IssueResponse(td, request, T_init):
+     Input:
+       - td: Issuer secret key
+       - request: issuance request
+       - T_init: initial credit balance, in [1..2^(8*L)]
+
+     Output:
+       - s: Issuer signature, in F_q^{n_uov}, or INVALID
+
+     Steps:
+       1. (c, pf_init) := request  // commitment, issuance proof
+       2. v := VOLEitH.Verify(
+            IssueRelation,  // relation
+            (c, T_init),    // instance
+            pf_init,
+          )
+       3. if v = 0: return INVALID
+       4. s := UOV.SPre(td, Tag(c, 0))
+       5. return s
+
+5.4.3.  Token Verification
+
+   To complete token issuance, the Client runs the following procedure
+   using the Issuer's public key.
+
+   VerifyIssuance(P, pending_token, s, T_init):
+     Input:
+       - P: Issuer public key
+       - pending_token: Client state
+       - s: Issuer signature, in F_q^{n_uov}
+       - T_init: initial credit balance, in [1..2^(8*L)]
+
+     Output:
+       - token: the issued token, or INVALID
+
+     Steps:
+       1. (nf, r) := pending_token
+       2. if P(s) != Tag(Com(nf, T_init, r), 0): return INVALID
+       3. token := (nf, T_init, r, 0, s)
+       4. return token
+
+5.5.  Spending
+
+   Spending lets the Client spend d credits from a token of effective
+   balance t + x, obtaining a fresh token for the change t + x - d in
+   the same round trip.  The Client reveals the nullifier nf of the
+   current state and commits to the updated state, then proves in zero
+   knowledge that the current state was certified by the Issuer and that
+   the updated state is consistent with the current state and the
+   requested spend.  The Issuer checks the proof, ensures nf has not
+   been spent, and certifies the updated state.  The Issuer may also
+   grant a refund x', which it binds to the updated state via the tag
+   (Section 5.1.2).
+
+   The witness for the spend proof is the current state, the signature
+   that certifies it, and the updated state.  The relation checks that
+   the current state was certified by the Issuer (V1), that the updated
+   state is consistent with the current state and the requested spend
+   (V2 and V3), and that the updated state is valid (V4):
+
+Relation SpendRelation(P, nf, d, c'):
+  Instance:
+    - P: Issuer public key
+    - nf: nullifier of the current state, in F_256^nu
+    - d: credits to spend, in [2^(8*L)]
+    - c': commitment to the updated state
+
+  Witness:
+    - t: credit of the current state
+    - r: commitment opening of the current state, in F_256^rho
+    - x: refund carried by the current state
+    - s: Issuer signature over the current state, in F_q^{n_uov}
+    - nf': nullifier of the updated state, in F_256^nu
+    - t': credit of the updated state
+    - r': commitment opening of the updated state, in F_256^rho
+
+  Constraints:
+    - P(s) = Tag(Com(nf, t, r), x)  // V1: the current state was certified
+    - c' = Com(nf', t', r')         // V2: c' commits to the updated state
+    - t' = t + x - d                // V3: credits are conserved
+    - t', x, d in [2^(8*L)]         // V4: credits are in range
+
+5.5.1.  Spend Proof Generation
+
+   To spend d credits from a token, the Client runs the following
+   procedure using the Issuer's public key.
+
+   ProveSpend(P, token, d):
+     Input:
+       - P: Issuer public key
+       - token: the token to spend
+       - d: credits to spend, in [2^(8*L)]
+
+     Output:
+       - pending_token: Client state
+       - request: spend request, or INVALID
+
+     Steps:
+       1.  (nf, t, r, x, s) := token
+       2.  if d > t + x: return INVALID  // insufficient balance
+       3.  nf' <- F_256^nu               // nullifier of the updated state
+       4.  r'  <- F_256^rho              // opening of the updated state
+       5.  t'  := t + x - d              // credit of the updated state
+       6.  c'  := Com(nf', t', r')
+       7.  pf_spend := VOLEitH.Prove(
+             SpendRelation,              // relation
+             (P, nf, d, c'),             // instance
+             (t, r, x, s, nf', t', r'),  // witness
+           )
+       8.  request := (nf, d, c', pf_spend)
+       9.  pending_token := (nf', t', r')
+       10. return (pending_token, request)
+
+5.5.2.  Spend Verification and Refund
+
+   To process a spend, the Issuer runs the following procedure on the
+   request, the trapdoor for its public key, and the refund x' it
+   grants.
+
+   VerifyAndRefund(P, td, request, x'):
+     Input:
+       - P: Issuer public key
+       - td: Issuer secret key
+       - request: spend request
+       - x': granted refund, in [2^(8*L)]
+
+     Output:
+       - response: spend response, or INVALID
+
+     Steps:
+       1. (nf, d, c', pf_spend) := request
+       2. if nf in used_nullifiers: return INVALID  // double spend
+       3. if x' not in [2^(8*L)]: return INVALID
+       4. if VerifySpend(P, request) = INVALID: return INVALID
+       5. used_nullifiers.add(nf)
+       6. s' := UOV.SPre(td, Tag(c', x'))
+       7. response := (x', s')
+       8. return response
+
+   VerifySpend(P, request):
+     Input:
+       - P: Issuer public key
+       - request: spend request
+
+     Output:
+       - VALID or INVALID
+
+     Steps:
+       1. (nf, d, c', pf_spend) := request
+       2. if d not in [2^(8*L)]: return INVALID
+       3. v := VOLEitH.Verify(
+            SpendRelation,   // relation
+            (P, nf, d, c'),  // instance
+            pf_spend,
+          )
+       4. if v = 0: return INVALID
+       5. return VALID
+
+   Here used_nullifiers is the set of nullifiers the Issuer has accepted
+   so far, which it maintains for the lifetime of its key.
+
+5.5.3.  Refund Token Construction
+
+   To complete the spend, the Client runs the following procedure using
+   the Issuer's public key.
+
+   VerifyRefund(P, pending_token, response):
+     Input:
+       - P: Issuer public key
+       - pending_token: Client state
+       - response: spend response
+
+     Output:
+       - token: the change token, or INVALID
+
+     Steps:
+       1. (nf', t', r') := pending_token
+       2. (x', s') := response
+       3. if x' not in [2^(8*L)]: return INVALID
+       4. if P(s') != Tag(Com(nf', t', r'), x'): return INVALID
+       5. token := (nf', t', r', x', s')
+       6. return token
+
+6.  Instantiations
+
+   This section specifies two concrete configurations of Ratatouille
+   (Section 5.1): Ratatouille-KP800 (Section 6.1) and Ratatouille-MQ
+   (Section 6.2).
+
+6.1.  Ratatouille-KP800
+
+           +============================+=====================+
+           | Parameter                  | Value               |
+           +============================+=====================+
+           | L credit length            | 8                   |
+           +----------------------------+---------------------+
+           | nu nullifier length        | 24                  |
+           +----------------------------+---------------------+
+           | rho opening length         | 16                  |
+           +----------------------------+---------------------+
+           | q UOV field modulus        | 256 ([UOV], uov-Ip) |
+           +----------------------------+---------------------+
+           | n_uov UOV signature length | 112 ([UOV], uov-Ip) |
+           +----------------------------+---------------------+
+           | m_uov UOV target length    | 44 ([UOV], uov-Ip)  |
+           +----------------------------+---------------------+
+           | dst_len tag length         | 18                  |
+           +----------------------------+---------------------+
+
+                  Table 1: Ratatouille-KP800 Parameters
+
+   Ratatouille-KP800 uses the uov-Ip parameter set for UOV and a
+   reduced-round and state-size variant of Keccak, Keccak-p[800, 12]
+   [FIPS202].  Its parameters are listed in Table 1.
+
+6.1.1.  Commitment
+
+      TODO(cjpatton) Align the state layout with Moussaka.  Likewise for
+      Tag().
+
+   Com(nf, t, r):
+     Input:
+       - nf: nullifier, in F_256^nu
+       - t: credit value, in [2^(8*L)]
+       - r: commitment opening, in F_256^rho
+     Output:
+       - c: commitment, in F_256^32
+
+     Steps:
+       1. state := 0xAC || dst || nf || <t>_L || r || 0x80 || 0x00^32
+       2. c := KP800(state)[0..32]
+       3. return c
+
+6.1.2.  Tag
+
+   Tag(c, x):
+     Input:
+       - c: commitment, in F_256^32
+       - x: refund, in [2^(8*L)]
+     Output:
+       - y: UOV target, in F_256^{m_uov}
+
+     Steps:
+       1. state := 0xAD || dst || c || <x>_L || 0x80 || 0x00^40
+       2. y := KP800(state)[0..m_uov]
+       3. return y
+
+6.2.  Ratatouille-MQ
+
+    +============================+===================================+
+    | Parameter                  | Value                             |
+    +============================+===================================+
+    | L credit length            | 2                                 |
+    +----------------------------+-----------------------------------+
+    | nu nullifier length        | 28                                |
+    +----------------------------+-----------------------------------+
+    | rho opening length         | 83 (determined by MQ parameters)  |
+    +----------------------------+-----------------------------------+
+    | q UOV field modulus        | 256                               |
+    +----------------------------+-----------------------------------+
+    | n_uov UOV signature length | 275 (determined by m_uov)         |
+    +----------------------------+-----------------------------------+
+    | m_uov UOV target length    | 131 (determined by MQ parameters) |
+    +----------------------------+-----------------------------------+
+    | dst_len tag length         | any                               |
+    +----------------------------+-----------------------------------+
+
+                    Table 2: Ratatouille-MQ Parameters
+
+   Ratatouille-MQ is based on the Multivariate Quadratic (MQ) commitment
+   of [BFMRSV25] over F_256.  Its parameters are listed in Table 2.
+
+   Just like the UOV signatures, MQ commitment evaluations can be
+   expressed as degree-2 constraints, which makes the issuance and spend
+   proofs more efficient than Ratatouille-KP800 (Section 6.1).  The
+   commitment involves two inhomogeneous quadratic maps F: F_256^{n_com}
+   -> F_256^k and G: F_256^{n_com} -> F_256^{m_uov-k}. To commit to a
+   token state, we encode the state as msg in F_256^k, generate an
+   opening r <- F_256^{n_com}, and compute c := (F(r) + msg) || G(r).
+
+   The tag is an affine, homomorphic operation on the commitment.  To
+   tag c, we encode the refund as refund in F_256^{m_com} and compute y
+   := refund + c as the target to be signed by the Issuer.  Thus, the
+   UOV parameters are chosen so that the UOV target is the same length
+   as the MQ commitment, i.e., m_uov = m_com.
+
+   We start with the most aggressive parameters of [BFMRSV25] (Table 3):
+   k = 32, n_com = 83, and m_com = 131.  This determines the UOV target
+   length.  Because this is larger than the standard parameters [UOV],
+   we must adjust the signature length accordingly.  The UOV signature
+   length is set to n_uov = 275, which is the minimum passing a 128-bit
+   check under the CryptographicEstimators UOVEstimator ([CryptEst],
+   which implements the [UOV] Section 4 attacks).
+
+   The public commitment maps F, G are derived deterministically in a
+   nothing-up-my-sleeve manner so that no trusted setup is required.
+
+   Let bytesIntoUpper(b) denote the upper-triangular, n_com-by-n_com
+   matrix over F_256 obtained by reading bytes from b in row-major
+   order.
+
+   GenerateParameters(dst):
+     Input:
+       - dst: deployment domain-separation tag
+
+     Output:
+       - F: F_256^{n_com} -> F_256^k,
+       - G: F_256^{n_com} -> F_256^{m_uov-k}
+
+     Steps:
+       1.  u_com := n_com * (n_com + 1) / 2
+       2.  stream := SHAKE128("RATA-MQ-maps:" || dst)
+       3.  for i in [m_uov]:
+       4.    // quadratic part
+       5.    M_i := bytesIntoUpper(stream.next(u_com))
+       6.    // linear part
+       7.    l_i := stream.next(n_com)
+       8.    // inhomogeneous quadratic map F_256^{n_com} -> F_256
+       9.    Q_i(x) := x^T*M_i*x + l_i*x
+       10. F := (Q_0, ..., Q_{k-1})
+       11. G := (Q_k, ..., Q_{m_uov-1})
+       12. return (F, G)
+
+   Each quadratic map has a quadratic component and a linear component.
+   The linear terms are essential: a purely homogeneous map (l_i = 0)
+   has F(0) = G(0) = 0 and is scaling-covariant (Q_i(a x) = a^2 Q_i(x)),
+   which admits a forgery.
+
+6.2.1.  Commitment
+
+   Com(nf, t, r):
+     Input:
+       - nf: nullifier, in F_256^nu
+       - t: credit value, in [2^(8*L)]
+       - r: commitment opening, in F_256^rho (rho = n_com)
+
+     Global:
+       - dst: the domain separation tag
+
+     Output:
+       - c: commitment, in F_256^{m_uov}
+
+     Steps:
+       1. (F, G) := GenerateParameters(dst)
+       2. msg := EmbedNullifierBalance(nf, t)
+       3. c := (F(r) + msg) || G(r)
+       4. return c
+
+   The nullifier and credit value lengths are set so that k = nu + 2*L.
+   Function EmbedNullifierBalance(nf, t) encodes the token state as
+   follows:
+
+   *  The first nu elements hold the nullifier, i.e., msg[i] = nf[i] for
+      i in [nu].
+
+   *  The next L elements hold the credit value, i.e., msg[i+nu] =
+      <t>_L[i] for i in [L].
+
+   *  The remaining L elements are reserved for the refund, i.e.,
+      msg[i+nu+L] = 0 for each i in [L].
+
+      TODO(cjpatton) Set nu = 24 to match Ratatouille-KP800 and set L=4.
+
+6.2.2.  Tag
+
+   An MQ commitment is constant-additively homomorphic, which means
+   adding a public vector to c shifts the committed message without
+   touching the binding block G(r) and without knowledge of r
+   [BFMRSV25].  The tagging function uses this to write the issuer-
+   granted refund x into the (zero) refund coordinate:
+
+   Tag(c, x):
+     Input:
+       - c: commitment, in F_256^{m_uov}
+       - x: refund, in [2^(8*L)]
+
+     Output:
+       - y: UOV target, in F_256^{m_uov}
+
+     Steps:
+       1. refund := EmbedRefund(x)
+       2. y := c + refund
+       3. return y
+
+   Function EmbedRefund(x) returns a vector e in F_256^{m_uov} that is
+   zero everywhere except the refund slot: its L elements starting at
+   off_refund = nu + L hold the refund encoding <x>_L.
+
+7.  Security Considerations
+
+      TODO Prove the following claims.
+
+   Unlinkability of Ratatouille reduces to the zero-knowledge property
+   of the VOLEitH proof system and the hiding property of the
+   commitment.  One-more-unforgeability reduces to witness-
+   extractability of VOLEitH, binding of the commitment, and the one-
+   more-UOV assumption ([PoMFRIT], Definition 8).  The one-more-UOV
+   assumption is a stronger assumption than standard UOV ([UOV],
+   Definition 2) that requires some scrutiny before we rely on it too
+   heavily.
+
+      NOTE A few observations we've made so far:
+
+      1.  One-more-UOV reduction likely treats Com() and Tag() as random
+          oracles.  This is reasonable for Ratatouille-KP800, but we
+          would need to figure out something else for Ratatouille-MQ.
+          It seems to be me (cjpatton) that we probably need a proper
+          hash for Tag() at least.
+
+      2.  If we add a randomizer to Tag() and instantiate it with
+          Keccak, then we might even be able to reduce to standard UOV
+          rather than one-more-UOV.
+
+      3.  For Ratatouille-MQ, figure out if the homomorphic tagging
+          trick for the MQ variant is sound.  We likely need the
+          commitment to be pseudorandom, in which case allowing the
+          attacker to select the tag probably incurs a security loss
+          multiplicative in the number of bits of the refund.
+
+   The parameters of the MQ commitment in Section 6.2 were chosen from a
+   regime for which security is only heuristically justified based on
+   the best known attacks.  Further cryptanalysis is required to
+   determine if these parameters are safe [BFMRSV25].
+
+      TODO Justify halving the Keccak state from 1600 to 800 (relative
+      to TurboSHAKE).
+
+8.  IANA Considerations
+
+   This document has no IANA actions.
+
+9.  References
+
+9.1.  Normative References
+
+   [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
+              Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
+              E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
+              "The FAEST Signature Scheme", Version 2.0, 2025,
+              <https://faest.info/faest-spec-v2.0.pdf>.
+
+   [FIPS202]  National Institute of Standards and Technology (NIST),
+              "SHA-3 Standard: Permutation-Based Hash and Extendable-
+              Output Functions", FIPS PUB 202, August 2015,
+              <https://doi.org/10.6028/NIST.FIPS.202>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RFC9861]  Viguier, B., Wong, D., Ed., Van Assche, G., Ed., Dang, Q.,
+              Ed., and J. Daemen, Ed., "KangarooTwelve and TurboSHAKE",
+              RFC 9861, DOI 10.17487/RFC9861, October 2025,
+              <https://www.rfc-editor.org/rfc/rfc9861>.
+
+   [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
+              M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
+              C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
+              PQC Additional Digital Signatures Round 2 Submission,
+              February 2025, <https://csrc.nist.gov/csrc/media/Projects/
+              pqc-dig-sig/documents/round-2/spec-files/uov-spec-
+              round2-web.pdf>.
+
+9.2.  Informative References
+
+   [ACT]      Schlesinger, S. and J. Katz, "Anonymous Credit Tokens",
+              Work in Progress, Internet-Draft, draft-schlesinger-cfrg-
+              act-01, 13 February 2026,
+              <https://datatracker.ietf.org/doc/html/draft-schlesinger-
+              cfrg-act-01>.
+
+   [ARCHITECTURE]
+              Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [BFMRSV25] Bouillaguet, C., Feneuil, T., Maire, J., Rivain, M.,
+              Sauvage, J., and D. Vergnaud, "Multivariate Commitments
+              and Signatures with Efficient Protocols", Cryptology
+              ePrint Archive Paper 2025/2035, 2025,
+              <https://eprint.iacr.org/2025/2035>.
+
+   [BNPS03]   Bellare, M., Namprempre, C., Pointcheval, D., and M.
+              Semanko, "The One-More-RSA-Inversion Problems and the
+              Security of Chaum's Blind Signature Scheme", Journal of
+              Cryptology 16(3), pp. 185-215, 2003,
+              <https://eprint.iacr.org/2001/002>.
+
+   [CryptEst] Esser, A., Verbel, J., Zweydinger, F., and E. Bellini,
+              "CryptographicEstimators: A Software Library for
+              Cryptographic Hardness Estimation", Cryptology ePrint
+              Archive Paper 2023/589, 2023,
+              <https://eprint.iacr.org/2023/589>.
+
+   [Fischlin] Fischlin, M., "Round-Optimal Composable Blind Signatures
+              in the Common Reference String Model", CRYPTO 2006, LNCS
+              4117, pp. 60-77, 2006,
+              <https://doi.org/10.1007/11818175_4>.
+
+   [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
+              C. Rechberger, "Concretely Efficient Blind Signatures
+              Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor",
+              Cryptology ePrint Archive Paper 2026/109, 2026,
+              <https://eprint.iacr.org/2026/109>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
+              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
+              protocols-03, 16 August 2026,
+              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
+              sigma-protocols-03>.
+
+Acknowledgments
+
+   The use of Keccak-p[800,12] in this application was proposed by Bas
+   Westerbaan.
+
+Authors' Addresses
+
+   Tianyu Zhang
+   University of Illinois at Urbana-Champaign
+   Email: tianyuz@illinois.edu
+
+
+   Christopher Patton
+   Cloudflare
+   Email: chrispatton+ietf@gmail.com
+
+
+   Samuel Schlesinger
+   Google
+   Email: samschlesinger@google.com
