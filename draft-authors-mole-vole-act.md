@@ -388,18 +388,19 @@ target.
 A token is a tuple `(nf, t, r, x, s)` that binds a nullifier `nf` to the
 Client's current state. The state is an effective balance `t + x`, where `t` is
 the credit held by the Client and `x` is a refund chosen by the Issuer. `r` is
-the opening of a commitment `c = Com(nf, t, r)` and `s` is a signature `P(s) =
-Tag(c, x)` that certifies the state committed to by `c` and binds the refund to
-the state.
+the opening of a commitment `c = Com(nf, ctx_iss, t, r)` and `s` is a signature
+`P(s) = Tag(c, x)` that certifies the state committed to by `c` and binds the
+refund to the state. Here `ctx_iss` is the issuance context agreed upon out of
+band by the Client and Issuer.
 
 Initially `t = T_init`, where `T_init` is a parameter agreed upon out of band
 by the Client and Issuer, and `x = 0`. The initial issuance protocol is as
 follows:
 
 1. The Client samples a nullifier `nf` and an opening `r`, then constructs a
-   commitment `c = Com(nf, T_init, r)` and VOLEitH proof `pf_init` of knowledge
-   of the `nf, r` for which `c = Com(nf, T_init, r)`. It then sends `c, pf_init`
-   to the Issuer.
+   commitment `c = Com(nf, ctx_iss, T_init, r)` and VOLEitH proof `pf_init` of
+   knowledge of the `nf, r` for which `c = Com(nf, ctx_iss, T_init, r)`. It then
+   sends `c, pf_init` to the Issuer.
 
 1. The Issuer verifies `pf_init`, samples a solution `s` to `P(s) = Tag(c, 0)`,
    then sends `s` to the Client.
@@ -414,14 +415,14 @@ issuance or to a previous spend. To spend `d` credits from a token with
 effective balance `t + x`:
 
 1. The Client samples a fresh nullifier `nf'` and opening `r'`, then constructs
-   a commitment `c' = Com(nf', t', r')` to the change `t' = t + x - d`. It then
-   constructs a VOLEitH proof `pf_spend` of knowledge of `t, r, x, s, nf', t',
-   r'` for which:
+   a commitment `c' = Com(nf', ctx_iss, t', r')` to the change `t' = t + x - d`.
+   It then constructs a VOLEitH proof `pf_spend` of knowledge of `t, r, x, s,
+   nf', t', r'` for which:
 
    - the current state was certified by the Issuer, i.e.,
-     `P(s) = Tag(Com(nf, t, r), x)`;
+     `P(s) = Tag(Com(nf, ctx_iss, t, r), x)`;
 
-   - the updated state is consistent, i.e., `c' = Com(nf', t', r')` and
+   - the updated state is consistent, i.e., `c' = Com(nf', ctx_iss, t', r')` and
      `t' = t + x - d`; and
 
    - the updated state is valid, i.e., `t'` is at least `0` but no greater than
@@ -450,9 +451,6 @@ size of the VOLEitH proof. See {{security}} for justification.
 > feature, then we don't need the `Tag()` at all. Refunding can be emulated at
 > the protocol level by having the Client and Issuer negotiate the requested
 > spend so that it accounts for the refund.
->
-> We need to make sure there is domain separation between commitments in these
-> two variants of the protocol.
 
 The MQ-based variant of Ratatouille ({{mq-commitment}}) uses the MQ commitment
 of {{BFMRSV25}} to instantiate `Com()`. The tag function `Tag()` updates the
@@ -461,17 +459,15 @@ commitment homomorphically with the refund.
 > TODO Determine if this homomorphic trick is sound. See {{security}} for
 > discussion.
 
-> TODO Consider adding issuance context, similar to Moussaka.
-
 # Preliminaries {#preliminaries}
 
 We write `stream := SHAKE128(msg)` to denote the absorb phase of the SHAKE128
 eXtendable Output Function (XOF) on input `msg` {{FIPS202}}. The `stream`
 object denotes the XOF state. We write `out := stream.next(n)` to denote
-squeezing out the next `n` bytes and assigning them to `out in F_256^n`.
+squeezing out the next `n` bytes and assigning them to `out` in `F_256^n`.
 
 Define `KP800(state)` as the output of applying `Keccak-p[800,12]`
-{{FIPS202}} to `state in F_q^100`. Note that this is a non-standard size for
+{{FIPS202}} to `state` in `F_q^100`. Note that this is a non-standard size for
 the Keccak permutation; see {{security}} for discussion.
 
 We write `(cpk, csk) := UOV.CompactKeyGen()` to denote execution of the compact
@@ -487,6 +483,9 @@ key into the trapdoor `td` for `P`.
 We write `s := UOV.SPre(td, t)` to denote sampling a preimage of target `t`
 under `P`, i.e., an `s` for which `P(s) = t`. This is the same procedure as used
 in the signing algorithm in {{UOV}}, Figure 2.
+
+We consider UOV parameters over `F_256`. That is, for the remainder of this
+document, we let `q = 256`.
 
 We write `pf := VOLEitH.Prove(R, X, W)` to denote proving knowledge of a
 witness `W` for which the pair `(X, W)` is in the relation `R`, where `X` is
@@ -523,8 +522,13 @@ by a concrete configuration, and {{instantiations}} specifies two concrete
 configurations, called Ratatouille-KP800 and Ratatouille-MQ. A deployment MUST
 fix its configuration for the lifetime of an Issuer key.
 
-> TODO(cjpatton) Bind the variant to key derivation and the various key
-> operations to mitigate confusion attacks properly.
+A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
+constant is used for domain separation and is meant to be kept in sync with
+revisions to this document. The overall template for domain separation is as
+follows: the first four bytes of each permutation input identify the protocol;
+the next byte is the document version (`VERSION`); the next byte indicates the
+usage (commit, tag, or MQ map derivation); and the last byte indicates the
+configuration (KP800 or MQ).
 
 The rest of this section is organized as follows: {{key-generation}} specifies
 Issuer key generation; {{issuance}} specifies initial token issuance; and
@@ -535,38 +539,31 @@ Issuer key generation; {{issuance}} specifies initial token issuance; and
 A Ratatouille configuration specifies the following constants:
 
 - `L`: The credit length in bytes. It determines the largest credit value or
-  refund the configuration can carry, i.e., `t, x in [2^(8*L)]`.
+  refund the configuration can carry, i.e., `t, x` in `[2^(8*L)]`.
 
-- `nu`: The nullifier length in bytes.
+- `nf_len`: The nullifier length in bytes.
 
-- `rho`: The commitment randomness length in bytes.
+- `r_len`: The commitment randomness length in bytes.
 
-- `q`: The size of the finite field `F_q` over which UOV signatures are
-  defined. `q` MUST be a power of two; typically `q=256`.
-
-  > TODO(cjpatton) Consider hardcoding this like we do in Moussaka.
+- `ctx_len`: The issuance context length in bytes.
 
 - `n_uov, m_uov`: The UOV signature and target lengths. The Issuer's public key
   is a map `P: F_q^{n_uov} -> F_q^{m_uov}`. Ratatouille-KP800 uses the uov-Ip
   parameter set (NIST Level 1) from {{UOV}}. Ratatouille-MQ uses larger
   parameters in order to accommodate MQ commitments.
 
-- `dst_len`: The length of the domain separation tag in bytes
-  ({{domain-separation}}). The state layout of the commitment and tag depends on
-  this length, so a configuration fixes it and a deployment MUST use a `dst` of
-  exactly this length.
-
 ### Commitment {#commitment}
 
 A Ratatouille configuration specifies a function `Com()` that commits the Client
-to a nullifier and a credit value:
+to a nullifier, the issuance context, and a credit value:
 
 ~~~~pseudocode
-Com(nf, t, r):
+Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho
+    - r: commitment opening, in F_q^r_len
   Output:
     - c: commitment
 ~~~~
@@ -595,30 +592,6 @@ both the contents committed by `c` and the refund `x`. The refund is an input to
 `Tag` rather than `Com`, which lets the Issuer add credits at signing time
 without the Client re-committing.
 
-## Domain Separation Tag {#domain-separation}
-
-> TODO(cjpatton) Drop this and align with domain separation in Moussaka. We
-> also need to include the configuration in the domain. Also make sure we
-> separate between Moussaka and Ratatouille.
-
-A deployment fixes a **domain separation tag** `dst`, a byte string that
-identifies the deployment and isolates it cryptographically from every other
-deployment.
-
-The `dst` encodes the version of this specification and an application context
-string agreed upon by the client and issuer:
-
-~~~
-dst := "RATA-v1:" || application_context
-~~~
-
-This string MUST be unique per deployment. It might encode information like the
-organization, the service, the deployment environment, and so on. For example:
-
-~~~
-"example-corp:rate-limiter:production:2026-01-15"
-~~~
-
 ## Issuer Key Generation {#key-generation}
 
 Each Issuer generates its public and secret key pair using the procedure below.
@@ -638,28 +611,29 @@ KeyGen():
 
 > TODO(cjpatton) `n_uov` and `m_uov` are meant to be determined by the
 > Ratatouille configuration ({{parameters}}), but the UOV parameters are fixed
-> in {{preliminaries}}.
+> in {{preliminaries}}. This is only relevant for Ratatouille-MQ.
 
 ## Initial Issuance {#issuance}
 
 Issuance mints a fresh token carrying an initial credit balance `T_init in
-[1..2^(8*L)]` agreed between the Client and Issuer. The Client commits to both
-its nullifier `nf` and the credit balance `t = T_init`, and sends the
-commitment `c` to the Issuer. It also sends along a zero-knowledge proof of the
-following relation:
+[1..2^(8*L)]` and bound to the issuance context `ctx_iss`, both agreed between
+the Client and Issuer. The Client commits to its nullifier `nf`, the context,
+and the credit balance `t = T_init`, and sends the commitment `c` to the Issuer.
+It also sends along a zero-knowledge proof of the following relation:
 
 ~~~
-Relation IssueRelation(c, T_init):
+Relation IssueRelation(c, T_init, ctx_iss):
   Instance:
     - c: commitment
     - T_init: agreed initial credit balance, in [1..2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
-    - nf: nullifier, in F_256^nu
-    - r: commitment opening, in F_256^rho
+    - nf: nullifier, in F_q^nf_len
+    - r: commitment opening, in F_q^r_len
 
   Constraints:
-    - c = Com(nf, T_init, r)
+    - c = Com(nf, ctx_iss, T_init, r)
 ~~~
 
 ### Issue Request
@@ -668,22 +642,23 @@ To request a Ratatouille token from the Issuer, the Client runs the following
 procedure.
 
 ~~~~pseudocode
-IssueRequest(T_init):
+IssueRequest(T_init, ctx_iss):
   Input:
     - T_init: initial credit balance, in [1..2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - pending_token: Client state
     - request: issuance request
 
   Steps:
-    1. nf <- F_256^nu
-    2. r  <- F_256^rho
-    3. c  := Com(nf, T_init, r)
+    1. nf <- F_q^nf_len
+    2. r  <- F_q^r_len
+    3. c  := Com(nf, ctx_iss, T_init, r)
     4. pf_init := VOLEitH.Prove(
-         IssueRelation,  // relation
-         (c, T_init),    // instance
-         (nf, r),        // witness
+         IssueRelation,         // relation
+         (c, T_init, ctx_iss),  // instance
+         (nf, r),               // witness
        )
     5. request := (c, pf_init)
     6. pending_token := (nf, r)
@@ -696,11 +671,12 @@ To issue a token, the Issuer runs the following procedure on the request, the
 trapdoor for its public key, and the agreed initial credit balance.
 
 ~~~~pseudocode
-IssueResponse(td, request, T_init):
+IssueResponse(td, request, T_init, ctx_iss):
   Input:
     - td: Issuer secret key
     - request: issuance request
     - T_init: initial credit balance, in [1..2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - s: Issuer signature, in F_q^{n_uov}, or INVALID
@@ -708,8 +684,8 @@ IssueResponse(td, request, T_init):
   Steps:
     1. (c, pf_init) := request  // commitment, issuance proof
     2. v := VOLEitH.Verify(
-         IssueRelation,  // relation
-         (c, T_init),    // instance
+         IssueRelation,         // relation
+         (c, T_init, ctx_iss),  // instance
          pf_init,
        )
     3. if v = 0: return INVALID
@@ -723,19 +699,20 @@ To complete token issuance, the Client runs the following procedure using the
 Issuer's public key.
 
 ~~~~pseudocode
-VerifyIssuance(P, pending_token, s, T_init):
+VerifyIssuance(P, pending_token, s, T_init, ctx_iss):
   Input:
     - P: Issuer public key
     - pending_token: Client state
     - s: Issuer signature, in F_q^{n_uov}
     - T_init: initial credit balance, in [1..2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the issued token, or INVALID
 
   Steps:
     1. (nf, r) := pending_token
-    2. if P(s) != Tag(Com(nf, T_init, r), 0): return INVALID
+    2. if P(s) != Tag(Com(nf, ctx_iss, T_init, r), 0): return INVALID
     3. token := (nf, T_init, r, 0, s)
     4. return token
 ~~~~
@@ -758,28 +735,32 @@ current state and the requested spend (V2 and V3), and that the updated state is
 valid (V4):
 
 ~~~
-Relation SpendRelation(P, nf, d, c'):
+Relation SpendRelation(P, nf, d, c', ctx_iss):
   Instance:
     - P: Issuer public key
-    - nf: nullifier of the current state, in F_256^nu
+    - nf: nullifier of the current state, in F_q^nf_len
     - d: credits to spend, in [2^(8*L)]
     - c': commitment to the updated state
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
     - t: credit of the current state
-    - r: commitment opening of the current state, in F_256^rho
+    - r: commitment opening of the current state, in F_q^r_len
     - x: refund carried by the current state
     - s: Issuer signature over the current state, in F_q^{n_uov}
-    - nf': nullifier of the updated state, in F_256^nu
+    - nf': nullifier of the updated state, in F_q^nf_len
     - t': credit of the updated state
-    - r': commitment opening of the updated state, in F_256^rho
+    - r': commitment opening of the updated state, in F_q^r_len
 
   Constraints:
-    - P(s) = Tag(Com(nf, t, r), x)  // V1: the current state was certified
-    - c' = Com(nf', t', r')         // V2: c' commits to the updated state
-    - t' = t + x - d                // V3: credits are conserved
-    - t', x, d in [2^(8*L)]         // V4: credits are in range
+    - P(s) = Tag(Com(nf, ctx_iss, t, r), x)  // V1: current state was certified
+    - c' = Com(nf', ctx_iss, t', r')         // V2: c' commits to updated state
+    - t' = t + x - d                         // V3: credits are conserved
+    - t', x, d in [2^(8*L)]                  // V4: credits are in range
 ~~~
+
+Note that the same `ctx_iss` appears in V1 and V2, so the updated token is
+necessarily bound to the context the token was issued under.
 
 ### Spend Proof Generation
 
@@ -787,11 +768,12 @@ To spend `d` credits from a token, the Client runs the following procedure using
 the Issuer's public key.
 
 ~~~~pseudocode
-ProveSpend(P, token, d):
+ProveSpend(P, token, d, ctx_iss):
   Input:
     - P: Issuer public key
     - token: the token to spend
     - d: credits to spend, in [2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - pending_token: Client state
@@ -800,13 +782,13 @@ ProveSpend(P, token, d):
   Steps:
     1.  (nf, t, r, x, s) := token
     2.  if d > t + x: return INVALID  // insufficient balance
-    3.  nf' <- F_256^nu               // nullifier of the updated state
-    4.  r'  <- F_256^rho              // opening of the updated state
+    3.  nf' <- F_q^nf_len             // nullifier of the updated state
+    4.  r'  <- F_q^r_len              // opening of the updated state
     5.  t'  := t + x - d              // credit of the updated state
-    6.  c'  := Com(nf', t', r')
+    6.  c'  := Com(nf', ctx_iss, t', r')
     7.  pf_spend := VOLEitH.Prove(
           SpendRelation,              // relation
-          (P, nf, d, c'),             // instance
+          (P, nf, d, c', ctx_iss),    // instance
           (t, r, x, s, nf', t', r'),  // witness
         )
     8.  request := (nf, d, c', pf_spend)
@@ -817,15 +799,17 @@ ProveSpend(P, token, d):
 ### Spend Verification and Refund
 
 To process a spend, the Issuer runs the following procedure on the request, the
-trapdoor for its public key, and the refund `x'` it grants.
+trapdoor for its public key, the refund `x'` it grants, and the issuance context
+it expects.
 
 ~~~~pseudocode
-VerifyAndRefund(P, td, request, x'):
+VerifyAndRefund(P, td, request, x', ctx_iss):
   Input:
     - P: Issuer public key
     - td: Issuer secret key
     - request: spend request
     - x': granted refund, in [2^(8*L)]
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - response: spend response, or INVALID
@@ -834,16 +818,17 @@ VerifyAndRefund(P, td, request, x'):
     1. (nf, d, c', pf_spend) := request
     2. if nf in used_nullifiers: return INVALID  // double spend
     3. if x' not in [2^(8*L)]: return INVALID
-    4. if VerifySpend(P, request) = INVALID: return INVALID
+    4. if VerifySpend(P, request, ctx_iss) = INVALID: return INVALID
     5. used_nullifiers.add(nf)
     6. s' := UOV.SPre(td, Tag(c', x'))
     7. response := (x', s')
     8. return response
 
-VerifySpend(P, request):
+VerifySpend(P, request, ctx_iss):
   Input:
     - P: Issuer public key
     - request: spend request
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - VALID or INVALID
@@ -852,8 +837,8 @@ VerifySpend(P, request):
     1. (nf, d, c', pf_spend) := request
     2. if d not in [2^(8*L)]: return INVALID
     3. v := VOLEitH.Verify(
-         SpendRelation,   // relation
-         (P, nf, d, c'),  // instance
+         SpendRelation,            // relation
+         (P, nf, d, c', ctx_iss),  // instance
          pf_spend,
        )
     4. if v = 0: return INVALID
@@ -869,11 +854,12 @@ To complete the spend, the Client runs the following procedure using the
 Issuer's public key.
 
 ~~~~pseudocode
-VerifyRefund(P, pending_token, response):
+VerifyRefund(P, pending_token, response, ctx_iss):
   Input:
     - P: Issuer public key
     - pending_token: Client state
     - response: spend response
+    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the change token, or INVALID
@@ -882,7 +868,7 @@ VerifyRefund(P, pending_token, response):
     1. (nf', t', r') := pending_token
     2. (x', s') := response
     3. if x' not in [2^(8*L)]: return INVALID
-    4. if P(s') != Tag(Com(nf', t', r'), x'): return INVALID
+    4. if P(s') != Tag(Com(nf', ctx_iss, t', r'), x'): return INVALID
     5. token := (nf', t', r', x', s')
     6. return token
 ~~~~
@@ -898,33 +884,37 @@ This section specifies two concrete configurations of Ratatouille
 | Parameter                    | Value                   |
 |:-----------------------------|:------------------------|
 | `L` credit length            | `8`                     |
-| `nu` nullifier length        | `24`                    |
-| `rho` opening length         | `16`                    |
-| `q` UOV field modulus        | `256` ({{UOV}}, uov-Ip) |
+| `nf_len` nullifier length    | `24`                    |
+| `ctx_len` context length     | `16`                    |
+| `r_len` opening length       | `16`                    |
 | `n_uov` UOV signature length | `112` ({{UOV}}, uov-Ip) |
 | `m_uov` UOV target length    | `44` ({{UOV}}, uov-Ip)  |
-| `dst_len` tag length         | `18`                    |
 {: #ratatouille-kp800-parameters title="Ratatouille-KP800 Parameters" }
 
 Ratatouille-KP800 uses the uov-Ip parameter set for UOV and a reduced-round and
 state-size variant of Keccak, `Keccak-p[800, 12]` {{FIPS202}}. Its parameters
 are listed in {{ratatouille-kp800-parameters}}.
 
+> TODO Expand `Com()` and `Tag()` into sets of polynomial constraints for the
+> issuance ({{issuance}}) and spend ({{spending}}) relations. An optimization
+> that will be important for practice is to commit intermediate states of the
+> Keccak evaluation to the witness. We need to define precisely how this works.
+
 ### Commitment {#kp800-commitment}
 
-> TODO(cjpatton) Align the state layout with Moussaka. Likewise for `Tag()`.
-
 ~~~~pseudocode
-Com(nf, t, r):
+Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho
+    - r: commitment opening, in F_q^r_len
   Output:
-    - c: commitment, in F_256^32
+    - c: commitment, in F_q^32
 
   Steps:
-    1. state := 0xAC || dst || nf || <t>_L || r || 0x80 || 0x00^32
+    1. state := "rata" || VERSION || "c0" || r || 0^(25 - r_len) ||
+                ctx_iss || <t>_L || nf || 0^(68 - nf_len - ctx_len - L)
     2. c := KP800(state)[0..32]
     3. return c
 ~~~~
@@ -934,13 +924,14 @@ Com(nf, t, r):
 ~~~~pseudocode
 Tag(c, x):
   Input:
-    - c: commitment, in F_256^32
+    - c: commitment, in F_q^32
     - x: refund, in [2^(8*L)]
   Output:
-    - y: UOV target, in F_256^{m_uov}
+    - y: UOV target, in F_q^{m_uov}
 
   Steps:
-    1. state := 0xAD || dst || c || <x>_L || 0x80 || 0x00^40
+    1. state := "rata" || VERSION || "t0" || 0^25 ||
+                c || <x>_L || 0^(36 - L)
     2. y := KP800(state)[0..m_uov]
     3. return y
 ~~~~
@@ -950,28 +941,27 @@ Tag(c, x):
 | Parameter                    | Value                               |
 |:-----------------------------|:------------------------------------|
 | `L` credit length            | `2`                                 |
-| `nu` nullifier length        | `28`                                |
-| `rho` opening length         | `83` (determined by MQ parameters)  |
-| `q` UOV field modulus        | `256`                               |
+| `nf_len` nullifier length    | `16`                                |
+| `ctx_len` context length     | `12`                                |
+| `r_len` opening length       | `83` (determined by MQ parameters)  |
 | `n_uov` UOV signature length | `275` (determined by `m_uov`)       |
 | `m_uov` UOV target length    | `131` (determined by MQ parameters) |
-| `dst_len` tag length         | any                                 |
 {: #ratatouille-mq-parameters title="Ratatouille-MQ Parameters" }
 
 Ratatouille-MQ is based on the Multivariate Quadratic (MQ) commitment of
-{{BFMRSV25}} over `F_256`. Its parameters are listed in
+{{BFMRSV25}} over `F_q`. Its parameters are listed in
 {{ratatouille-mq-parameters}}.
 
 Just like the UOV signatures, MQ commitment evaluations can be expressed as
 degree-2 constraints, which makes the issuance and spend proofs more efficient
 than Ratatouille-KP800 ({{hash-commitment}}). The commitment involves two
-inhomogeneous quadratic maps `F: F_256^{n_com} -> F_256^k` and `G:
-F_256^{n_com} -> F_256^{m_uov-k}`. To commit to a token state, we encode the
-state as `msg in F_256^k`, generate an opening `r <- F_256^{n_com}`, and
+inhomogeneous quadratic maps `F: F_q^{n_com} -> F_q^k` and `G:
+F_q^{n_com} -> F_q^{m_uov-k}`. To commit to a token state, we encode the
+state as `msg` in `F_q^k`, generate an opening `r <- F_q^{n_com}`, and
 compute `c := (F(r) + msg) || G(r)`.
 
 The tag is an affine, homomorphic operation on the commitment. To tag `c`, we
-encode the refund as `refund in F_256^{m_com}` and compute `y := refund + c` as
+encode the refund as `refund` in `F_q^{m_com}` and compute `y := refund + c` as
 the target to be signed by the Issuer. Thus, the UOV parameters are chosen so
 that the UOV target is the same length as the MQ commitment, i.e., `m_uov =
 m_com`.
@@ -987,26 +977,23 @@ The public commitment maps `F`, `G` are derived deterministically in a
 nothing-up-my-sleeve manner so that no trusted setup is required.
 
 Let `bytesIntoUpper(b)` denote the upper-triangular, `n_com`-by-`n_com` matrix
-over `F_256` obtained by reading bytes from `b` in row-major order.
+over `F_q` obtained by reading bytes from `b` in row-major order.
 
 ~~~~pseudocode
-GenerateParameters(dst):
-  Input:
-    - dst: deployment domain-separation tag
-
+GenerateParameters():
   Output:
-    - F: F_256^{n_com} -> F_256^k,
-    - G: F_256^{n_com} -> F_256^{m_uov-k}
+    - F: F_q^{n_com} -> F_q^k,
+    - G: F_q^{n_com} -> F_q^{m_uov-k}
 
   Steps:
     1.  u_com := n_com * (n_com + 1) / 2
-    2.  stream := SHAKE128("RATA-MQ-maps:" || dst)
+    2.  stream := SHAKE128("rata" || VERSION || "m1")
     3.  for i in [m_uov]:
     4.    // quadratic part
     5.    M_i := bytesIntoUpper(stream.next(u_com))
     6.    // linear part
     7.    l_i := stream.next(n_com)
-    8.    // inhomogeneous quadratic map F_256^{n_com} -> F_256
+    8.    // inhomogeneous quadratic map F_q^{n_com} -> F_q
     9.    Q_i(x) := x^T*M_i*x + l_i*x
     10. F := (Q_0, ..., Q_{k-1})
     11. G := (Q_k, ..., Q_{m_uov-1})
@@ -1020,38 +1007,32 @@ and is scaling-covariant (`Q_i(a x) = a^2 Q_i(x)`), which admits a forgery.
 ### Commitment {#mq-com}
 
 ~~~~pseudocode
-Com(nf, t, r):
+Com(nf, ctx_iss, t, r):
   Input:
-    - nf: nullifier, in F_256^nu
+    - nf: nullifier, in F_q^nf_len
+    - ctx_iss: issuance context, in F_q^ctx_len
     - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_256^rho (rho = n_com)
-
-  Global:
-    - dst: the domain separation tag
+    - r: commitment opening, in F_q^r_len
 
   Output:
-    - c: commitment, in F_256^{m_uov}
+    - c: commitment, in F_q^{m_uov}
 
   Steps:
-    1. (F, G) := GenerateParameters(dst)
-    2. msg := EmbedNullifierBalance(nf, t)
+    1. (F, G) := GenerateParameters()
+    2. msg := EmbedState(nf, ctx_iss, t)
     3. c := (F(r) + msg) || G(r)
     4. return c
 ~~~~
 
-The nullifier and credit value lengths are set so that `k = nu + 2*L`. Function
-`EmbedNullifierBalance(nf, t)` encodes the token state as follows:
+The parameters of Ratatouille-MQ are set so that `k = nf_len + ctx_len + 2*L`.
+Function `EmbedState(nf, ctx_iss, t)` encodes the token state as
+`msg = nf || ctx_iss || <t>_L || 0^L`. Note that the last `L` elements are set
+to `0` as these are reserved for the refund.
 
-- The first `nu` elements hold the nullifier, i.e., `msg[i] = nf[i]` for
-  `i in [nu]`.
-
-- The next `L` elements hold the credit value, i.e., `msg[i+nu] = <t>_L[i]`
-  for `i in [L]`.
-
-- The remaining `L` elements are reserved for the refund, i.e.,
-  `msg[i+nu+L] = 0` for each `i in [L]`.
-
-> TODO(cjpatton) Set `nu = 24` to match Ratatouille-KP800 and set `L=4`.
+> TODO(cjpatton) Figure out if we can safely bind the issuance context to `F,
+> G` derivation. This would save some bytes in the commitment, which would
+> allow us to bump nullifier length match Ratatouille-KP800. (Likewise for the
+> credit length.)
 
 ### Tag {#mq-tag}
 
@@ -1064,11 +1045,11 @@ coordinate:
 ~~~~pseudocode
 Tag(c, x):
   Input:
-    - c: commitment, in F_256^{m_uov}
+    - c: commitment, in F_q^{m_uov}
     - x: refund, in [2^(8*L)]
 
   Output:
-    - y: UOV target, in F_256^{m_uov}
+    - y: UOV target, in F_q^{m_uov}
 
   Steps:
     1. refund := EmbedRefund(x)
@@ -1076,9 +1057,9 @@ Tag(c, x):
     3. return y
 ~~~~
 
-Function `EmbedRefund(x)` returns a vector `e in F_256^{m_uov}` that is zero
+Function `EmbedRefund(x)` returns a vector `e` in `F_q^{m_uov}` that is zero
 everywhere except the refund slot: its `L` elements starting at `off_refund =
-nu + L` hold the refund encoding `<x>_L`.
+nf_len + ctx_len + L` hold the refund encoding `<x>_L`.
 
 # Security Considerations {#security}
 
