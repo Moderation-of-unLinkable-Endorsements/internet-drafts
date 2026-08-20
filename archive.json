@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-18T01:21:24.050069+00:00",
+  "timestamp": "2026-08-20T01:22:39.005025+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -596,7 +596,7 @@
       ],
       "body": "Right now IHAT has roughly the following syntax:\n\n* Issuance: `Client(ctx_red, ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` That is, the client and anchor agree on the anchor's key and issuance context (client keeps the redemption context secret) and interact over some number of moves (2-3).\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Client and moderator agree on the issuance and redemption context and the anchor set. The client sends an endorsement covered by the anchor set.\n\nEach IHAT token can be used just once. In some situations, it may be useful to instead be able to present the same token once (or perhaps multiple times) to many Moderators. Something like this:\n\n* Issuance: `Client(ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` Same as above, except `ctx_red` isn't determined until redemption time.\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Same as above. \n\nWe know roughly how to do this with both Longfellow and Moussaka. In both cases, the solution involves adding an additional hash to the circuit that's used as a PRF applied to the redemption context (and perhaps presentation count, as in ARC). We can do the same thing for plain IHAT as well, but it would use the non-PQ-private trick in ARC.\n\n\n\n\n",
       "createdAt": "2026-08-10T15:49:29Z",
-      "updatedAt": "2026-08-12T08:43:30Z",
+      "updatedAt": "2026-08-18T10:56:09Z",
       "closedAt": null,
       "comments": [
         {
@@ -612,8 +612,33 @@
           "body": "Relates to #28: multishow with a presentation context would allow for the moderator identity to \"scope\" the presentation",
           "createdAt": "2026-08-12T08:43:30Z",
           "updatedAt": "2026-08-12T08:43:30Z"
+        },
+        {
+          "author": "cryptphil",
+          "authorAssociation": "NONE",
+          "body": "Supporting Multi-Show IHAT would also require to adapt the privacy goals `Endorsement Grants and Redemptions are Unlinkable` to capture unlinkability across multiple presentations with distinct presentation contexts, right? I believe it currently only states unlinkability to its endorsement issuance session.",
+          "createdAt": "2026-08-18T10:56:09Z",
+          "updatedAt": "2026-08-18T10:56:09Z"
         }
       ]
+    },
+    {
+      "number": 52,
+      "id": "I_kwDOSX6krs8AAAABNQNwZw",
+      "title": "Endorsement request and response should indicate the round number",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/52",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Endorsement issuance has multiple rounds depending on the endorsement type: Moussaka has one, while IHAT has two. I think EndorsementRequest and EndorsementResponse ought to have a field (following the token type) indicating the round round number. Otherwise we have to deal with this at the crypto layer, which somewhat complicates code design since we'd have to plumb the Anchor's protocol state through the protocol layer.",
+      "createdAt": "2026-08-18T17:13:26Z",
+      "updatedAt": "2026-08-18T17:13:26Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -6304,7 +6329,7 @@
       "id": "PR_kwDOSX6krs8AAAABADdHZA",
       "title": "vole-act: Pass of intro",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/49",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6313,26 +6338,42 @@
       ],
       "body": "1. Align scope and tone with vole-ihat (removes a lot of redundant text)\r\n2. Explain motivation for MQ commitments and add WARNING about their security\r\n3. Add document outline",
       "createdAt": "2026-08-17T19:20:25Z",
-      "updatedAt": "2026-08-17T19:20:45Z",
+      "updatedAt": "2026-08-18T18:25:29Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "1b727cf1ac36137f29f39bbf7200be21d103d831",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/rata-honing-1",
       "headRefOid": "1b0c5ac04aed895a04511e730c34073d5355d525",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-08-18T18:25:29Z",
+      "mergedAt": "2026-08-18T18:25:29Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "5108658214ea41be27b45f8edc6ebc34c575ff30"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJ9xk8A",
+          "commit": {
+            "abbreviatedOid": "1b0c5ac"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-18T17:07:54Z",
+          "updatedAt": "2026-08-18T17:07:54Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 50,
       "id": "PR_kwDOSX6krs8AAAABAECoZA",
       "title": "vole: Harmonize notation and preliminaries",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/50",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6341,26 +6382,42 @@
       ],
       "body": "Based on #49 (merge that first).\r\n\r\n1. Move {{VOLE-IHAT}} Preliminaries and Notation to {{VOLE-ACT}} and remove redundant text from the latter. Apply some copy editing notes from Kimi K2.6 on the finalized text.\r\n\r\n2. Remove unused and redundant notation:\r\n\r\n   - `F_{2^lambda}`, the big VOLE field; we don't specify the algorithm in enough detail for this to matter yet.\r\n\r\n   - `P(s)`, application of a quadratic. Not necessary, and as written is a little misleading.\r\n\r\n   - `H`: Not used.\r\n\r\n3. Remove the data types section entirely. This is functionally a glossary, which may be useful to add back at some point, but we don't need all of these terms.\r\n\r\n4. Move Cryptographic Parameters into the Protocol Specification. This text needs work, but in any case it doesn't belong in Notation.",
       "createdAt": "2026-08-17T21:00:36Z",
-      "updatedAt": "2026-08-17T21:00:45Z",
+      "updatedAt": "2026-08-18T18:37:58Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
-      "baseRefName": "cjpatton/rata-honing-1",
-      "baseRefOid": "1b0c5ac04aed895a04511e730c34073d5355d525",
+      "baseRefName": "main",
+      "baseRefOid": "5108658214ea41be27b45f8edc6ebc34c575ff30",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/rata-honing-2",
-      "headRefOid": "4fc477d5380d58e6e08a8e1cf2ab22738aa0a4d5",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "6e9b5727ca9e95d615f43060254d1fb45aa4d940",
+      "closedAt": "2026-08-18T18:37:58Z",
+      "mergedAt": "2026-08-18T18:37:58Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "2283d7e5b4eabe8615aaad873793948edb41ba63"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABJ9x2Rg",
+          "commit": {
+            "abbreviatedOid": "4fc477d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-18T17:08:20Z",
+          "updatedAt": "2026-08-18T17:08:20Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 51,
       "id": "PR_kwDOSX6krs8AAAABAE5Kmg",
       "title": "vole-act: Pass of overview",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/51",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6369,13 +6426,217 @@
       ],
       "body": "Based on #50 (merge that first).\r\n\r\nHarmonize the overview with the scope and tone of Moussaka. Also, add a NOTE about removing one of the hashes in the spend proof and add some notes about security.",
       "createdAt": "2026-08-17T23:47:51Z",
-      "updatedAt": "2026-08-18T00:49:34Z",
+      "updatedAt": "2026-08-19T15:24:26Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
-      "baseRefName": "cjpatton/rata-honing-2",
-      "baseRefOid": "4fc477d5380d58e6e08a8e1cf2ab22738aa0a4d5",
+      "baseRefName": "main",
+      "baseRefOid": "2283d7e5b4eabe8615aaad873793948edb41ba63",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/rata-honing-3",
-      "headRefOid": "a96c8a39f906d83e3b5812612ef0d893223dfaeb",
+      "headRefOid": "2863b190f2db3a38c1200999cd3eeb7f8b3a4a41",
+      "closedAt": "2026-08-19T15:24:26Z",
+      "mergedAt": "2026-08-19T15:24:26Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "b0e432233edaf0730665762dc467dfb2c94509c1"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKHVGgw",
+          "commit": {
+            "abbreviatedOid": "2863b19"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "overall unblocking so that we can have a clear verison to review",
+          "createdAt": "2026-08-19T15:16:47Z",
+          "updatedAt": "2026-08-19T15:16:47Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 54,
+      "id": "PR_kwDOSX6krs8AAAABAL0r6w",
+      "title": "vole: Clean up parameters",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/54",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Replace the Cryptographic and System Parameters sections in Ratatouille with a Configuration section and a Domain Separation Tag section. The former encapsulates all parameters of the two instantiations; the latter just defines the DST. Previously the System Parameters section also defined a cipher suite, but not very clearly.\r\n\r\nWhile at it:\r\n\r\n1. Name the variants Ratatouille-Keccak and Ratatouille-MQ.\r\n\r\n2. Remove VOLEitH parameters that are irrelevant to the configuration, namely `lambda`, `tau`, and `w_grind`.\r\n\r\n3. Harmonize notation between Moussaka and Ratatouille, namely `nu`, `rho`, and `L`.",
+      "createdAt": "2026-08-18T18:36:42Z",
+      "updatedAt": "2026-08-19T15:24:27Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/rata-honing-3",
+      "baseRefOid": "2863b190f2db3a38c1200999cd3eeb7f8b3a4a41",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-4",
+      "headRefOid": "3eefe717e356865a8e0ae6688d8218ba27680b03",
+      "closedAt": "2026-08-19T15:24:27Z",
+      "mergedAt": "2026-08-19T15:24:27Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "84017ee7e6e8c297cae7bc11ec8e0d39bc752151"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKHV1bA",
+          "commit": {
+            "abbreviatedOid": "3eefe71"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-19T15:18:06Z",
+          "updatedAt": "2026-08-19T15:18:06Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 55,
+      "id": "PR_kwDOSX6krs8AAAABAM84dA",
+      "title": "vole-act: Pass of protocol specification",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/55",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Harmonize the protocol spec with Moussaka. Minor things:\r\n\r\n1. Add `[a..b] = {a, ..., b}` to notation.\r\n\r\n2. Remove the observation about \"re-randomizing a token under a fresh nullifier, which is useful for transferring a token\". \"Transferring a token\" is not a use case described anywhere.\r\n\r\n3. Remove some text that just re-iterates what's in Overview.\r\n\r\n4. Rename \"change token\" to \"updated state\".",
+      "createdAt": "2026-08-18T21:25:22Z",
+      "updatedAt": "2026-08-19T15:24:28Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/rata-honing-4",
+      "baseRefOid": "3eefe717e356865a8e0ae6688d8218ba27680b03",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-5",
+      "headRefOid": "8effa8006a65d1ef045b1c6d593107daada4b441",
+      "closedAt": "2026-08-19T15:24:28Z",
+      "mergedAt": "2026-08-19T15:24:27Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "6bba1a7d57dd6e886025134f18d20d5a6cae4eeb"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKHXJug",
+          "commit": {
+            "abbreviatedOid": "8effa80"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-19T15:20:05Z",
+          "updatedAt": "2026-08-19T15:20:05Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 56,
+      "id": "PR_kwDOSX6krs8AAAABAODmCg",
+      "title": "vole-act: Pass of instantiations",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/56",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "The only substantive change is to clarify an ambiguity with the usage of `KP800()`. The input is supposed to be 100 bytes of state, but Ratatouille expects it be variable length and to deal with domain separation of different length inputs internally. We now do this externally.\r\n\r\nEditorial changes:\r\n\r\n1. Consolidate the parameters of each configuration into tables and create subsections for the commitment and tag of each.\r\n\r\n2. Simplify the security claims\r\n\r\n3. Add SHAKE128 XOF syntax to preliminaries.\r\n\r\n4. Rename Ratatouille-Keccak to -KP800, in case anyone wants to specify more conservative parameters.\r\n\r\n5. Rename credit width to credit length to match other configuration parameters.\r\n\r\n6. Add DST length to parameters.\r\n\r\n7. Revise pseudocode blocks so that the art wraps at 70 characters.\r\n\r\n8. Add a TODO about issuance context.\r\n\r\n9. Add an observation about the security of Ratatouille-MQ.\r\n\r\n10. Fix references.",
+      "createdAt": "2026-08-19T01:01:34Z",
+      "updatedAt": "2026-08-19T15:24:29Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/rata-honing-5",
+      "baseRefOid": "8effa8006a65d1ef045b1c6d593107daada4b441",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-6",
+      "headRefOid": "50aa17e897606827eccbaf0dfc23dac3ae2324b7",
+      "closedAt": "2026-08-19T15:24:28Z",
+      "mergedAt": "2026-08-19T15:24:28Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKHXBkA",
+          "commit": {
+            "abbreviatedOid": "50aa17e"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-19T15:19:53Z",
+          "updatedAt": "2026-08-19T15:19:53Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 57,
+      "id": "PR_kwDOSX6krs8AAAABAVr-cA",
+      "title": "vole-act: Opinionated changes",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/57",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Harmonize domain separation between Ratatouille and Moussaka, removing the \"application context\" from the former. Also, add issuance context to Ratatouille. Its length is 16 bytes to match Moussaka.\r\n\r\nMinor things:\r\n\r\n1. Hardcode `q=256` as in Moussaka. We're unlikely to make a different choice (such as `q=16`, which matches the uov-Is parameter set) given how nice it is to work with bytes.\r\n\r\n2. Replace Greek letter names with more meaningful names, e.g., `nu` -> `nf_len`.\r\n\r\n3. Add variable to define the length of context strings.\r\n\r\n4.  Update TODOs.",
+      "createdAt": "2026-08-19T21:30:53Z",
+      "updatedAt": "2026-08-19T21:30:53Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/rata-honing-7",
+      "headRefOid": "1cfbede918a417b4c29e1ac9d82ac631bb356622",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 58,
+      "id": "PR_kwDOSX6krs8AAAABAV0Ljg",
+      "title": "protocols: Warn about Anchor Set intersection attacks",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/58",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "",
+      "createdAt": "2026-08-19T21:53:53Z",
+      "updatedAt": "2026-08-19T21:53:53Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/proto-intersect-attacks",
+      "headRefOid": "8fcb4dca60bfec1bc96d5accc2d334d5d7b5ad34",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
