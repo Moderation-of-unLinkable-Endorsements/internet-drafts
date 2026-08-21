@@ -248,6 +248,24 @@ provides normative references for their specifications. {{protocol}} specifies
 the protocol in full detail. Finally, {{security}} enumerates some security
 considerations for implementers and adopters.
 
+> TODO(cjpatton) Resolve gaps with {{IHAT}}:
+>
+> 1. The protocol wants to bind the challenge that triggered redemption to the
+>    redemption process so that the Client and Moderator confirm agreement.
+>    This is a 32-byte `challenge_digest`. Since this value isn't determined
+>    until redemption time, we can't include it in the commitment. The most
+>    natural solution is analogous to IHAT: include `challenge_digest` in the
+>    VOLEitH transcript. This is mildly invasive, but shouldn't be too bad to
+>    support. PoMFRIT does a similar thing with the public key.
+>
+> 2. The APIs are a bit misaligned. This is unavoidable to some extent for
+>    issuance, since our protocol is 2 moves and theirs is 3, but it should be
+>    possible to align redemption precisely.
+>
+> 3. Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
+>    Perhaps all MoLE drafts should use the same pseudocode eventually?
+>    Likewise for Ratatouille.
+
 # Conventions and Definitions {#conventions}
 
 {::boilerplate bcp14-tagged}
