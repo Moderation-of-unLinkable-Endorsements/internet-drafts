@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-20T01:22:39.005025+00:00",
+  "timestamp": "2026-08-23T01:34:54.032987+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -510,7 +510,7 @@
       "labels": [],
       "body": "It is possible to add late binding for the Tessaro and Zhu partial blind signature scheme such that the user can derive the nullifier for a specific moderator only during the endorsement redemption and must not decide on the redemption context already upfront during the endorsement issuance.\n\nConcretely, during the Client Challenge phase, the Client samples one-time key `k`, computes its public value `K`, and puts K in the signed-message slot instead of Message(nf, ctx_red):\n```\nk = DeriveScalar(seeds[...], \"k\")\nK = G.ScalarMultGen(k)\nm = G.SerializeElement(K)\n...\nc = ComputeChallenge(ctx_iss, blinded_commitment, m)\n```\n\nDuring the Endorsement Redemption for a redemption context `ctx_red`, the Client derives the nullifier and proves its correctness:\n```\nR = CreateRedemptionBase(ctx_red)\nnf = ScalarInverse(k) * R\npi_k = PoK{(k): K = G.ScalarMultGen(k) \u2227 R = k * nf}\n```\n\nThe Moderator recomputes `R` from `ctx_red`, verifies `pi_k` for `(K, nf, R)`, and checks the signature challenge over `m = SerializeElement(K)`, and whether `nf` is fresh.\n\n**Note:** Endorsements remain single-show, each endorsement must only redeemed once as unlinkability is only guaranteed for one showing.",
       "createdAt": "2026-08-05T10:49:48Z",
-      "updatedAt": "2026-08-10T08:02:36Z",
+      "updatedAt": "2026-08-20T09:54:27Z",
       "closedAt": "2026-08-10T08:02:36Z",
       "comments": [
         {
@@ -637,6 +637,22 @@
       "body": "Endorsement issuance has multiple rounds depending on the endorsement type: Moussaka has one, while IHAT has two. I think EndorsementRequest and EndorsementResponse ought to have a field (following the token type) indicating the round round number. Otherwise we have to deal with this at the crypto layer, which somewhat complicates code design since we'd have to plumb the Anchor's protocol state through the protocol layer.",
       "createdAt": "2026-08-18T17:13:26Z",
       "updatedAt": "2026-08-18T17:13:26Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 59,
+      "id": "I_kwDOSX6krs8AAAABNhEpAg",
+      "title": "Longfellow endorsement profile",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/59",
+      "state": "OPEN",
+      "author": "cryptphil",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "A few points in the Longfellow section (4.2) of MoLE protocols could be clarified:\n\n- Replace \u201ccircuit\u201d with \u201ccircuit artifact\u201d or \u201ccircuits\u201d as Longfellow uses two circuits packaged into one compressed artifact. So instead the circuit_id should identify this artifact, one could still keep `circuit_id` or rename it to `circuit_artifact_id`. The artifact specification containing the version, circuit IDs, and proof parameters should also be distributed out of band.\n\n- Why is the Longfellow `Challenge` empty? One could also include a challenge digest into the Fiat-Shamir transcript, to explicitly bind the proof to the redemption (without making it a circuit public input).\n- Should the credential expiry be considered? The Moderator could provide the currently accepted  `verification_time` in the Moderator configuration, which is used as a public circuit input to prove `validFrom <= verification_time <= validUntil`.\n- The scarcity discussion may be a bit too broad and maybe needs some clarification. One might need Anchors to \u201cparticipate in MoLE\u201d, by adapting the issuance to allow for embedding commitment on a secret, which is provided by the Client, for deriving the nullifier. However, there might be existing credentials that already allow for the Client to embed a secret in some way; for instance in a nonce in OIDC (ref. [zk-login](https://arxiv.org/pdf/2401.11735)) or even in the seed for deriving the deviceKey in mdocs.\n\nOnce we publish the Longfellow MoLE prototype with the respective circuits under the cloudflare-research organization, we can also update the reference here.",
+      "createdAt": "2026-08-20T09:48:39Z",
+      "updatedAt": "2026-08-20T09:55:09Z",
       "closedAt": null,
       "comments": []
     }
@@ -6593,7 +6609,7 @@
       "id": "PR_kwDOSX6krs8AAAABAVr-cA",
       "title": "vole-act: Opinionated changes",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/57",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6602,19 +6618,167 @@
       ],
       "body": "Harmonize domain separation between Ratatouille and Moussaka, removing the \"application context\" from the former. Also, add issuance context to Ratatouille. Its length is 16 bytes to match Moussaka.\r\n\r\nMinor things:\r\n\r\n1. Hardcode `q=256` as in Moussaka. We're unlikely to make a different choice (such as `q=16`, which matches the uov-Is parameter set) given how nice it is to work with bytes.\r\n\r\n2. Replace Greek letter names with more meaningful names, e.g., `nu` -> `nf_len`.\r\n\r\n3. Add variable to define the length of context strings.\r\n\r\n4.  Update TODOs.",
       "createdAt": "2026-08-19T21:30:53Z",
-      "updatedAt": "2026-08-19T21:30:53Z",
+      "updatedAt": "2026-08-21T18:10:11Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/rata-honing-7",
-      "headRefOid": "1cfbede918a417b4c29e1ac9d82ac631bb356622",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "65ac15124ffe95059fda4147d5bf9c1262afea0e",
+      "closedAt": "2026-08-21T18:10:11Z",
+      "mergedAt": "2026-08-21T18:10:11Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "4abc160ade0814a22103b6a19f550399b5b3f27b"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKQHR2Q",
+          "commit": {
+            "abbreviatedOid": "1cfbede"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T12:59:18Z",
+          "updatedAt": "2026-08-20T13:03:47Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "nit: `VERSION` in `F_q`.",
+              "createdAt": "2026-08-20T12:59:18Z",
+              "updatedAt": "2026-08-20T13:03:47Z"
+            },
+            {
+              "originalPosition": 87,
+              "body": "This strikes me as too small for domain separation, should we not permit a deployment ID which is a longer string?",
+              "createdAt": "2026-08-20T13:00:30Z",
+              "updatedAt": "2026-08-20T13:03:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKSL5Mg",
+          "commit": {
+            "abbreviatedOid": "1cfbede"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T16:33:06Z",
+          "updatedAt": "2026-08-20T16:33:06Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "I took the liberty of including it in the ticks because we also use `in` as a keyword in our pseudocde :) \r\n\r\nHappy to fix though!",
+              "createdAt": "2026-08-20T16:33:06Z",
+              "updatedAt": "2026-08-20T16:33:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKSNJeA",
+          "commit": {
+            "abbreviatedOid": "1cfbede"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T16:35:16Z",
+          "updatedAt": "2026-08-20T16:35:16Z",
+          "comments": [
+            {
+              "originalPosition": 81,
+              "body": "Reasonable, leave as is.",
+              "createdAt": "2026-08-20T16:35:16Z",
+              "updatedAt": "2026-08-20T16:35:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKSMnXQ",
+          "commit": {
+            "abbreviatedOid": "1cfbede"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T16:34:21Z",
+          "updatedAt": "2026-08-20T16:41:43Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "Unfortunately we don't have a ton of bytes to work with. In any case, I think a deployment ID could be covered by the issuance context?",
+              "createdAt": "2026-08-20T16:34:21Z",
+              "updatedAt": "2026-08-20T16:41:43Z"
+            },
+            {
+              "originalPosition": 81,
+              "body": "Done, here and everywhere else.",
+              "createdAt": "2026-08-20T16:41:37Z",
+              "updatedAt": "2026-08-20T16:41:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKSWihw",
+          "commit": {
+            "abbreviatedOid": "4d2828d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T16:54:13Z",
+          "updatedAt": "2026-08-20T16:54:13Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "I believe I misunderstood, I thought we were talking about domain separation at the protocol level.",
+              "createdAt": "2026-08-20T16:54:13Z",
+              "updatedAt": "2026-08-20T16:54:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKSjVHQ",
+          "commit": {
+            "abbreviatedOid": "1cfbede"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-20T17:18:39Z",
+          "updatedAt": "2026-08-20T17:18:40Z",
+          "comments": [
+            {
+              "originalPosition": 87,
+              "body": "I'm thinking more about modeling `KP800()` as a random oracle. When working in the ROM, it's usually helpful to be able to easily distinguish RO queries made for different purposes.\r\n\r\nI'm also thinking about cross protocol attacks. Imagine an Anchor re-used its Moussaka key for Ratatouille. We don't want to encourage this obviously, but if it happens, we want to make sure a message sent in one protocol can't be used to attack the other.\r\n\r\nI'm not sure the domain separation scheme I'm sufficient for either of these purposes ... we would need to work out the security proof to be certain. I'm just making an educated guess based on prior experience.",
+              "createdAt": "2026-08-20T17:18:39Z",
+              "updatedAt": "2026-08-20T17:18:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKcU19Q",
+          "commit": {
+            "abbreviatedOid": "4d2828d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-08-21T17:21:28Z",
+          "updatedAt": "2026-08-21T17:21:28Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 58,
@@ -6637,6 +6801,315 @@
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/proto-intersect-attacks",
       "headRefOid": "8fcb4dca60bfec1bc96d5accc2d334d5d7b5ad34",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 60,
+      "id": "PR_kwDOSX6krs8AAAABAiOvKg",
+      "title": "crypto: Add Stacking Sigmas and Endorsement Redemption",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/60",
+      "state": "OPEN",
+      "author": "deep-inder",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Specified endorsement redemption in the crypto draft: additive key rerandomization plus an issuer-hiding proof over the Moderator's Anchor Set, built from Stacking Sigmas (eprint 2021/422).\r\n\r\nSpecified: key rerandomization; the Schnorr branch proof; the partially binding vector commitment from discrete log composed into a binary tree; the Fiat-Shamir transcript; the algorithms ProveIssuer, VerifyIssuer, Redeem and VerifyRedemption, and the Redemption wire format; and the security considerations as prose. \r\n\r\nNot yet specified, and marked TODO in the text: formal security statements and the corresponding reductions, and test vectors.",
+      "createdAt": "2026-08-21T10:08:41Z",
+      "updatedAt": "2026-08-21T23:12:32Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
+      "headRepository": "deep-inder/internet-drafts",
+      "headRefName": "crypto-draft",
+      "headRefOid": "d46f201fd54f279afc179b6611a011ac0654c8cd",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKbxigA",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T16:04:40Z",
+          "updatedAt": "2026-08-21T16:04:40Z",
+          "comments": [
+            {
+              "originalPosition": 424,
+              "body": "We should make a TODO to handle non-powers of two. I know this is ugly, and nonblocking",
+              "createdAt": "2026-08-21T16:04:40Z",
+              "updatedAt": "2026-08-21T16:04:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKbyiHQ",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Looks good. I think there are some choices to think about/useful enhancements\n- Ristretto and a permutation based approach to getting the keys can shrink the openings, not sure how it apply to P256 if we want to stick with that\n- Non powers of two are handled with padding, but there are more efficient ways that make only n-1 compressions for n elements.\n- The security discussion ignores OMUF as far as I can tell",
+          "createdAt": "2026-08-21T16:06:50Z",
+          "updatedAt": "2026-08-21T16:25:44Z",
+          "comments": [
+            {
+              "originalPosition": 444,
+              "body": "Oh, is this how the construction shakes out for the 1-of-2 scheme when you apply the start of the paper? We used the permutation scheme in the appendix.",
+              "createdAt": "2026-08-21T16:06:50Z",
+              "updatedAt": "2026-08-21T16:25:44Z"
+            },
+            {
+              "originalPosition": 793,
+              "body": "Should we note the shared work at each level?",
+              "createdAt": "2026-08-21T16:12:51Z",
+              "updatedAt": "2026-08-21T16:25:44Z"
+            },
+            {
+              "originalPosition": 1003,
+              "body": "The permutation based one uses only q scalars",
+              "createdAt": "2026-08-21T16:14:09Z",
+              "updatedAt": "2026-08-21T16:25:44Z"
+            },
+            {
+              "originalPosition": 1116,
+              "body": "That's not exactly the reason: rather we'd have an equation that makes life hard for showing it binds",
+              "createdAt": "2026-08-21T16:17:14Z",
+              "updatedAt": "2026-08-21T16:25:44Z"
+            },
+            {
+              "originalPosition": 1143,
+              "body": "I have crossover before 4 with the implementation choices I made",
+              "createdAt": "2026-08-21T16:19:36Z",
+              "updatedAt": "2026-08-21T16:25:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKdZXtQ",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "deep-inder",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T19:49:04Z",
+          "updatedAt": "2026-08-21T19:49:04Z",
+          "comments": [
+            {
+              "originalPosition": 1003,
+              "body": "Yes, but that approach requires some group permutation that I'm not sure I quite understand, and I wasn't fully sure how to write it out in the spec. Happy to switch to that approach, but will need some help in figuring out how to write it.",
+              "createdAt": "2026-08-21T19:49:04Z",
+              "updatedAt": "2026-08-21T19:49:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKd16nw",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "Thanks @deep-inder! I mostly didn't follow the math, but left some comments mostly about presentation. On that I have two high level bits of feedback:\n\n1. Stacked Sigmas is quite involved. I think the specification could use some sign posting to make it easier to digest. First, we should include a high level overview somewhere. Second, every once in a while we need to remind the reader of how the part they're reading relate to the bigger picture.\n\n2. Not for this PR, but: I'm quite worried about the maintenance burden we're creating for ourselves. In the likely scenario that we need to make changes, it's going to be very difficult to propagate those changes correctly throughout the entire document. In the near future, I think we should transcribe the pseudocode here into a pure Python implementation that we can write tests for and generate test vectors from. We can then replace the psuedcode in the draft with Python snippets from the reference implementation. [This worked out really well for VDAF, which has a similar level of complexity](https://www.ietf.org/archive/id/draft-irtf-cfrg-vdaf-22.html#section-7.3.3). For what it's worth, this is something that Claude or GPT would be able to handle quite easily.",
+          "createdAt": "2026-08-21T20:51:15Z",
+          "updatedAt": "2026-08-21T22:10:42Z",
+          "comments": [
+            {
+              "originalPosition": 215,
+              "body": "nit: wrap at 80 columns",
+              "createdAt": "2026-08-21T20:51:15Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 259,
+              "body": "I don't think this needs to be said.\n\n```suggestion\nA Client redeems an Endorsement at a Moderator.\n```",
+              "createdAt": "2026-08-21T20:52:28Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 290,
+              "body": "syntax: For Moussaka we we went with `IssueRequest()`/`IssueResponse()`/`FinalizeIssue()` for issuance and `RedeemRequest()`/`FinalizeRedeem()` redemption. The extra move for issuance means we can't align there, but I think it would be worth aligning on redemption.\n\nI think my only strongly held view here is that the Moderator's redemption function should output the nullifier it's meant to use for double spend prevention (or else raise an error if redemption fails).",
+              "createdAt": "2026-08-21T21:01:36Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 296,
+              "body": "Redundant \n```suggestion\nThe Moderator carries it in the `Challenge` structure of {{PROTOCOLS}}. Both\n```",
+              "createdAt": "2026-08-21T21:02:38Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 299,
+              "body": "\"proof is shaped\" is confusing. In any case, isn't it the case that the proof wouldn't verify if the anchor sets don't match? In this case, MUST is inappropriate.\n```suggestion\nparties MUST use the same list in the same order.\n```",
+              "createdAt": "2026-08-21T21:04:01Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 316,
+              "body": "nit: In Moussaka we put the nullifier in the first position of the token tuple.",
+              "createdAt": "2026-08-21T21:26:19Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 340,
+              "body": " \"On its own it also proves nothing\": This sounds like a Claudism to me",
+              "createdAt": "2026-08-21T21:28:23Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 341,
+              "body": "Here you want to answer the question: \"proof of what\"?\n\nAlso, wrap at 80 columns",
+              "createdAt": "2026-08-21T21:29:10Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 367,
+              "body": "```suggestion\nwork in progress. \n\n> TODO Revisit once {{SIGMA}} is stable.\n```",
+              "createdAt": "2026-08-21T21:33:01Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 371,
+              "body": "Worth hoisting to conventions?",
+              "createdAt": "2026-08-21T21:36:56Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 388,
+              "body": "nit: too much emphasis?\n\n```suggestion\nRead the other way around, this check determines the commitment from the\n```",
+              "createdAt": "2026-08-21T21:38:15Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 3,
+              "body": "This document needs more editors. @wbl and @SamuelSchlesinger correct?",
+              "createdAt": "2026-08-21T21:39:39Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 403,
+              "body": "I don't follow. \"a uniformly distributed scalar whatever the statement and the witness\"",
+              "createdAt": "2026-08-21T21:41:41Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 419,
+              "body": "what do you mean by honest here?",
+              "createdAt": "2026-08-21T21:44:39Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 601,
+              "body": "Wrap at 80 columns\n\n```suggestion\n`anchor_set_enc` and `ck_enc` are unambiguous without length prefixes of their\nown; `q`, and with it the number of commitment keys, is determined by `n`. The\nlabel `\"IssuerProof\"` separates this transcript from the issuance transcript of\n{{challenge}}, which is hashed with the same function.\n```",
+              "createdAt": "2026-08-21T21:49:50Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 603,
+              "body": "What does \"nonzero requirement\" mean?\n",
+              "createdAt": "2026-08-21T21:50:28Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 424,
+              "body": "I don't understand, does this mean the length of the anchor set needs to be a power of 2? Could we just pad with fake keys up to the next power of 2?",
+              "createdAt": "2026-08-21T21:53:32Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 820,
+              "body": "Verifies what? The equation below? The \".\" is throwing me I think",
+              "createdAt": "2026-08-21T21:55:10Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            },
+            {
+              "originalPosition": 1074,
+              "body": "Combine to make what?",
+              "createdAt": "2026-08-21T22:00:23Z",
+              "updatedAt": "2026-08-21T22:10:42Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKeUzaw",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T22:20:43Z",
+          "updatedAt": "2026-08-21T22:20:43Z",
+          "comments": [
+            {
+              "originalPosition": 424,
+              "body": "We do pad now (it's later in the doc), but that does a whole bunch of extra work. It's possible to change the shape of the tree to do exactly n-1 reductions for n inputs, with the same number of openings (logarithmic), but the text to do that is a bit complex. It's worth doing as otherwise you end up with really uneven performance as you cross power of two boundaries. I was lazy in the implementation now.",
+              "createdAt": "2026-08-21T22:20:43Z",
+              "updatedAt": "2026-08-21T22:20:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABKejGVg",
+          "commit": {
+            "abbreviatedOid": "d46f201"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-08-21T23:12:32Z",
+          "updatedAt": "2026-08-21T23:12:32Z",
+          "comments": [
+            {
+              "originalPosition": 898,
+              "body": "It would be useful if this were at least possible mechanically. We're likely going to have an early test deployment or two for which there is just one anchor in the world.",
+              "createdAt": "2026-08-21T23:12:32Z",
+              "updatedAt": "2026-08-21T23:12:32Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 61,
+      "id": "PR_kwDOSX6krs8AAAABAmw7eA",
+      "title": "vole-ihat: Document a few gaps with IHAT",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/61",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "",
+      "createdAt": "2026-08-21T22:19:54Z",
+      "updatedAt": "2026-08-21T22:19:54Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "4abc160ade0814a22103b6a19f550399b5b3f27b",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/vole-ihat-gaps",
+      "headRefOid": "1762e04c150c9b3fcc5860900cd6d1c2ec44aafb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
