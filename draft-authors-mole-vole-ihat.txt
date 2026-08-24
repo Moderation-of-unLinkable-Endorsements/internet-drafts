@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 22 February 2027                                     Cloudflare
-                                                          21 August 2026
+Expires: 25 February 2027                                     Cloudflare
+                                                          24 August 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 February 2027.
+   This Internet-Draft will expire on 25 February 2027.
 
 Copyright Notice
 
@@ -153,6 +153,26 @@ Table of Contents
    specifications.  Section 5 specifies the protocol in full detail.
    Finally, Section 6 enumerates some security considerations for
    implementers and adopters.
+
+      TODO(cjpatton) Resolve gaps with [IHAT]:
+
+      1.  The protocol wants to bind the challenge that triggered
+          redemption to the redemption process so that the Client and
+          Moderator confirm agreement.  This is a 32-byte
+          challenge_digest.  Since this value isn't determined until
+          redemption time, we can't include it in the commitment.  The
+          most natural solution is analogous to IHAT: include
+          challenge_digest in the VOLEitH transcript.  This is mildly
+          invasive, but shouldn't be too bad to support.  PoMFRIT does a
+          similar thing with the public key.
+
+      2.  The APIs are a bit misaligned.  This is unavoidable to some
+          extent for issuance, since our protocol is 2 moves and theirs
+          is 3, but it should be possible to align redemption precisely.
+
+      3.  Our pseudocode is derived from ACT, but theirs is more in line
+          with VOPRF.  Perhaps all MoLE drafts should use the same
+          pseudocode eventually?  Likewise for Ratatouille.
 
 2.  Conventions and Definitions
 

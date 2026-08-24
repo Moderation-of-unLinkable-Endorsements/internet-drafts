@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang &amp; Patton</td>
-<td class="center">Expires 22 February 2027</td>
+<td class="center">Expires 25 February 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-21" class="published">21 August 2026</time>
+<time datetime="2026-08-24" class="published">24 August 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-22">22 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-02-25">25 February 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ the moderator. The commitment is instantiated with <code>Keccak-p[800,12]</code>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 25 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1300,6 +1300,32 @@ the signature scheme, commitment scheme, and proof system used by Moussaka and
 provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
 the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
 considerations for implementers and adopters.<a href="#section-1-10" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1-11.1">
+          <p id="section-1-11.1.1">TODO(cjpatton) Resolve gaps with <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>:<a href="#section-1-11.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-11.1.2">
+<li id="section-1-11.1.2.1">
+              <p id="section-1-11.1.2.1.1">The protocol wants to bind the challenge that triggered redemption to the
+redemption process so that the Client and Moderator confirm agreement.
+This is a 32-byte <code>challenge_digest</code>. Since this value isn't determined
+until redemption time, we can't include it in the commitment. The most
+natural solution is analogous to IHAT: include <code>challenge_digest</code> in the
+VOLEitH transcript. This is mildly invasive, but shouldn't be too bad to
+support. PoMFRIT does a similar thing with the public key.<a href="#section-1-11.1.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-1-11.1.2.2">
+              <p id="section-1-11.1.2.2.1">The APIs are a bit misaligned. This is unavoidable to some extent for
+issuance, since our protocol is 2 moves and theirs is 3, but it should be
+possible to align redemption precisely.<a href="#section-1-11.1.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-1-11.1.2.3">
+              <p id="section-1-11.1.2.3.1">Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
+Perhaps all MoLE drafts should use the same pseudocode eventually?
+Likewise for Ratatouille.<a href="#section-1-11.1.2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+</li>
+      </ul>
 </section>
 </div>
 <div id="conventions">
