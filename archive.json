@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-25T01:23:27.643437+00:00",
+  "timestamp": "2026-08-27T08:16:14.937138+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -447,9 +447,17 @@
       ],
       "body": "Left as a TODO for now in the protocols draft.\n\nThis would be informed by deployment considerations. Might even be left as out-of-scope, but with clear motivations.",
       "createdAt": "2026-07-08T07:47:20Z",
-      "updatedAt": "2026-07-08T07:47:20Z",
+      "updatedAt": "2026-08-26T08:21:48Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "There's been some changes in #62. No clear consideration and decision has been made here. I suspect that it'd also be informed by how clients and moderator will consume this, such as the web api designed by @dennisjackson ",
+          "createdAt": "2026-08-26T08:21:48Z",
+          "updatedAt": "2026-08-26T08:21:48Z"
+        }
+      ]
     },
     {
       "number": 37,
@@ -636,9 +644,17 @@
       ],
       "body": "Endorsement issuance has multiple rounds depending on the endorsement type: Moussaka has one, while IHAT has two. I think EndorsementRequest and EndorsementResponse ought to have a field (following the token type) indicating the round round number. Otherwise we have to deal with this at the crypto layer, which somewhat complicates code design since we'd have to plumb the Anchor's protocol state through the protocol layer.",
       "createdAt": "2026-08-18T17:13:26Z",
-      "updatedAt": "2026-08-18T17:13:26Z",
+      "updatedAt": "2026-08-26T08:20:42Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is something I'm unsure about, given not all protocols will use round. My impression is that IHAT-TZ protocol will have a round in its EndorsementRequest/Response, but that's not inherent to all EndorsementRequest/Response",
+          "createdAt": "2026-08-26T08:20:41Z",
+          "updatedAt": "2026-08-26T08:20:41Z"
+        }
+      ]
     },
     {
       "number": 59,
@@ -652,9 +668,17 @@
       "labels": [],
       "body": "A few points in the Longfellow section (4.2) of MoLE protocols could be clarified:\n\n- Replace \u201ccircuit\u201d with \u201ccircuit artifact\u201d or \u201ccircuits\u201d as Longfellow uses two circuits packaged into one compressed artifact. So instead the circuit_id should identify this artifact, one could still keep `circuit_id` or rename it to `circuit_artifact_id`. The artifact specification containing the version, circuit IDs, and proof parameters should also be distributed out of band.\n\n- Why is the Longfellow `Challenge` empty? One could also include a challenge digest into the Fiat-Shamir transcript, to explicitly bind the proof to the redemption (without making it a circuit public input).\n- Should the credential expiry be considered? The Moderator could provide the currently accepted  `verification_time` in the Moderator configuration, which is used as a public circuit input to prove `validFrom <= verification_time <= validUntil`.\n- The scarcity discussion may be a bit too broad and maybe needs some clarification. One might need Anchors to \u201cparticipate in MoLE\u201d, by adapting the issuance to allow for embedding commitment on a secret, which is provided by the Client, for deriving the nullifier. However, there might be existing credentials that already allow for the Client to embed a secret in some way; for instance in a nonce in OIDC (ref. [zk-login](https://arxiv.org/pdf/2401.11735)) or even in the seed for deriving the deviceKey in mdocs.\n\nOnce we publish the Longfellow MoLE prototype with the respective circuits under the cloudflare-research organization, we can also update the reference here.",
       "createdAt": "2026-08-20T09:48:39Z",
-      "updatedAt": "2026-08-20T09:55:09Z",
+      "updatedAt": "2026-08-26T08:19:26Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Thanks for writing. I've folded some of this text into #62\n\nI suspect that for Longfellow, there is likely a dedicated section in a crypto-like draft to specify how one can make an \"IHAT\"/Endorsement with a circuit, and that protocols draft will use it as is",
+          "createdAt": "2026-08-26T08:19:26Z",
+          "updatedAt": "2026-08-26T08:19:26Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -7132,6 +7156,36 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 62,
+      "id": "PR_kwDOSX6krs8AAAABA9-gMQ",
+      "title": "Update to the protocol draft",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/62",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Updating the protocol draft to start aligning with the evolution of the crypto drafts (IHAT and longfellow #59).\r\n\r\nMain changes are:\r\n1. Defines common abstract APIs for endorsement and credential protocols\r\n2. Update the vocabulary to better characterise \"context\", especially as that's used in a couple of places\r\n3. Removes Budget Privacy Pass (not planned to be implemented)\r\n4. Ensure that behaviour that we don't know about yet (ihat, longfellow, act, reverse flow) is clearly marked as such\r\n\r\nThe protocols are not yet fully backed for interroperability, but having reviews on the API shape would help.",
+      "createdAt": "2026-08-25T17:08:14Z",
+      "updatedAt": "2026-08-25T17:08:15Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "578033d37e7077a73a4871ac6b73f0b15d0fd12a",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "work/protocol-stack",
+      "headRefOid": "01e2e2fb4d9986e6fa4e96128d245b25ee1d371b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
