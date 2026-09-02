@@ -1063,9 +1063,10 @@ Client cannot guess, and so collide with, another Client's session. An Anchor
 that receives a `ChallengeMessage` whose `session_id` does not correspond to one
 of its open sessions MUST raise a `SessionError`.
 
-The session identifier MUST NOT be bound into the challenge transcript, and it MUST NOT be an input to any algorithm in {{issuance}}. It is a value the Anchor chose and
-therefore recognises; anything the Anchor recognises that also reached the
-Endorsement would let it link a redemption back to the issuance session.
+The session identifier MUST NOT be bound into the challenge transcript, and it
+MUST NOT be an input to any algorithm in {{issuance}}. It is a value the Anchor
+chose and therefore recognises; anything the Anchor recognises that also reached
+the Endorsement would let it link a redemption back to the issuance session.
 
 
 
@@ -1102,10 +1103,7 @@ invalid Endorsement.
 
 # Endorsement Redemption {#redemption}
 
-A Client redeems an Endorsement at a Moderator. This document calls the
-operation a redemption, following {{ARCH}}, which reserves the term
-Presentation for the Credential flow; the message a Client sends is nonetheless
-carried in the `Presentation` structure of {{PROTOCOLS}} ({{redemption-wire}}).
+A Client redeems an Endorsement at a Moderator.
 
 An Endorsement is single-use ({{context-binding}}), so redemption does not have
 to hide the signature: the Client reveals it, and the Moderator deduplicates on
@@ -1134,18 +1132,16 @@ parties input the two contexts.
                              redemption
                               -------->
 
-              verified = VerifyRedemption(anchor_set, redemption,
+                    nf = VerifyRedemption(anchor_set, redemption,
                                           ctx_iss, ctx_red,
                                           challenge_digest)
 ~~~
 {: #fig-redemption title="Endorsement redemption overview"}
 
-`anchor_set` is the list of Anchor public keys the Moderator accepts.
-The Moderator carries it in the `Challenge` structure of {{PROTOCOLS}}, and its
+`anchor_set` is the list of Anchor public keys the Moderator accepts. Its
 **order is significant**: proof branches are matched to keys by position. Both
-parties MUST use the same list in the same order, and a Moderator MUST reject a
-redemption whose proof is not shaped for exactly the Anchor Set it offered
-({{redemption-wire}}).
+parties MUST use the same list in the same order. A proof computed over a
+different list or order will not verify.
 
 `challenge_digest` binds the redemption to the challenge that triggered it. It
 is computed from the Moderator's challenge as specified in {{PROTOCOLS}}, and
@@ -1182,12 +1178,11 @@ reconstruction of `A`:
 Every other value `Verify` recomputes is untouched, so a Moderator can check
 the signature by running `Verify` ({{verify}}) with `X_hat` in place of `pkA`.
 
-This shift is *additive*, so issuance is left
-completely unmodified and the unforgeability of {{issuance}} carries over
-({{security-considerations}}); and it is *public*, in the sense that `X_hat` on
-its own says nothing about which key it was derived from, since `delta * B` is
-uniformly distributed over the group. On its own it also proves nothing: any
-Client can produce a uniform `X_hat`. This is why the client must additionally provide an issuer-hiding proof.
+This shift is *additive*, so issuance is left completely unmodified and the
+unforgeability of {{issuance}} carries over ({{security-considerations}}). But
+`X_hat` by itself provides no evidence that it was derived from an Anchor key.
+The Client therefore also proves knowledge of `delta` relating `X_hat` to a key
+in `anchor_set`, without revealing which key.
 
 ## The Issuer-Hiding Proof {#issuer-proof}
 
@@ -1210,10 +1205,16 @@ two compositions, for the same purpose, to a pairing-based credential.
 Both compositions are used with the same rerandomization ({{rerandomization}}),
 and switching between them changes neither issuance nor {{verify}}.
 
+The construction below first defines the branch proof, then builds a partially
+binding tree commitment over its branches. It finally specifies the
+Fiat-Shamir challenge and the proving and verification algorithms.
+
 Each branch is the discrete logarithm proof of {{SIGMA}}, and the composition
 below could be expressed in that framework. It is written out here instead, so
 that this document fixes the transcript and the encodings without depending on
-work in progress. **TODO:** revisit once {{SIGMA}} is stable.
+work in progress.
+
+> **TODO:** Revisit once {{SIGMA}} is stable.
 
 Throughout this section and its subsections, `x / y` denotes integer division
 of nonnegative integers, that is the quotient rounded down, and `x mod y` the
@@ -1234,7 +1235,7 @@ A single branch is proved by the usual three moves: the Client draws a nonce
 answers `z = r - c * delta`; and the verifier checks that
 `T = c * Y[index] + z * B`.
 
-Read the other way round, that check *determines* the commitment from the
+Read the other way round, that check determines the commitment from the
 challenge and the response:
 
 ~~~
@@ -1246,10 +1247,11 @@ Two properties of this branch proof are what allow the composition below, and
 {{STACKSIG}} calls a sigma protocol with both of them *stackable*. First, a
 verifying commitment can be computed for *any* statement from a challenge and a
 response, by the function above, without knowing a witness; this is the
-extended honest-verifier zero-knowledge property. Second, the response of an
-honest run is a uniformly distributed scalar whatever the statement and the
-witness, so one response can be reused across branches without revealing which
-branch produced it.
+extended honest-verifier zero-knowledge property. Second, the response is
+statistically close to uniform independently of the statement and witness,
+because it is a fixed shift of the derived nonce `r`; see
+{{security-considerations}}. One response can therefore be reused across
+branches without revealing which branch produced it.
 
 It follows that a verifier given `proof_challenge` and one `response` can
 compute a commitment for every branch, and that every branch then verifies by
@@ -1265,8 +1267,9 @@ hidden from the verifier, is binding, while every other position can afterwards
 be opened to any value. The Client commits the branch commitment of `index` at
 the binding position, and after the challenge is known it opens every other
 position to the branch commitment that the shared response determines. The
-proof of one Schnorr branch is therefore honest; which one is hidden by the
-commitment key.
+branch at the binding position uses the actual witness and a commitment fixed
+before the challenge; which branch that is remains hidden by the commitment
+key.
 
 This document uses the commitment of Section 5.2 of {{STACKSIG}} over pairs,
 composed into a binary tree as described in Section 5.3 of {{STACKSIG}}, so
@@ -1442,15 +1445,15 @@ def ComputeProofChallenge(anchor_set, X_hat, endorsement, ctx_iss,
   return G.HashToScalar(proof_transcript)
 ~~~
 
-`n` is prefixed and `Element` encodings are fixed-length, so
-`anchor_set_enc` and `ck_enc` are unambiguous without length prefixes of their
-own; `q`, and with it
-the number of commitment keys, is determined by `n`. The label `"IssuerProof"`
-separates this transcript from the issuance transcript of {{challenge}}, which
-is hashed with the same function.
+`n` is prefixed and `Element` encodings are fixed-length, so `anchor_set_enc`
+and `ck_enc` are unambiguous without length prefixes of their own; `q`, and with
+it the number of commitment keys, is determined by `n`. The label
+`"IssuerProof"` separates this transcript from the issuance transcript of
+{{challenge}}, which is hashed with the same function.
 
-Unlike `ComputeChallenge`, this function has no nonzero requirement: a challenge
-of zero yields a proof that verifies, and no branch is privileged by it.
+Unlike `ComputeChallenge`, this function accepts zero rather than aborting and
+retrying: a challenge of zero yields a proof that verifies, and no branch is
+privileged by it.
 
 ### Proving {#prove-issuer}
 
@@ -1666,7 +1669,8 @@ reached, when it is deserialized ({{redemption-wire}}). The third, `n < 2`, is
 not a property of the redemption at all but of the Moderator's own Anchor Set;
 reaching it means the Moderator is misconfigured ({{verify-redemption}}).
 
-An honest proof verifies. On branch `index`,
+A proof produced by `ProveIssuer` is accepted by `VerifyIssuer`. On branch
+`index`,
 
 ~~~
   proof_challenge * Y[index] + response * B
@@ -1781,7 +1785,7 @@ Input:
 Output:
 
 ~~~
-  boolean verified
+  opaque nf[Nn]
 ~~~
 
 Parameters:
@@ -1791,6 +1795,8 @@ Parameters:
   PublicInput ctx_proto
 ~~~
 
+Errors: `VerifyError`
+
 ~~~
 def VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
                      challenge_digest):
@@ -1798,17 +1804,22 @@ def VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
    commitment_keys, openings) = redemption
 
   if not Verify(X_hat, shown, ctx_iss, ctx_red):
-    return false
+    raise VerifyError
 
-  return VerifyIssuer(anchor_set, X_hat, shown, ctx_iss, ctx_red,
+  if not VerifyIssuer(anchor_set, X_hat, shown, ctx_iss, ctx_red,
                       challenge_digest, proof_challenge, response,
-                      commitment_keys, openings)
+                      commitment_keys, openings):
+    raise VerifyError
+
+  return shown.nf
 ~~~
 
 The first check is the endorsement verification of {{verify}}, run against the
 rerandomized key. Together the two checks establish that the Client holds an
 Endorsement issued under `ctx_iss` and `ctx_red` by one of the Anchors in
-`anchor_set`, and reveal nothing further about which one.
+`anchor_set`, and reveal nothing further about which one. On success,
+`VerifyRedemption` returns the nullifier; either failed check raises a
+`VerifyError`.
 
 `VerifyRedemption` does not enforce single use. The nullifier `nf` is in the
 clear in the redemption, and a Moderator that accepts a redemption MUST reject
@@ -2051,21 +2062,22 @@ Unforgeability under rerandomization:
   already hold: `X_hat` and `s_hat` are computed from values it has, and a
   Client that could produce an accepted redemption without an Endorsement from
   some Anchor in `anchor_set` would yield a forgery. **TODO:** this reduction is
-  stated, not written out.
+  stated, not written out, and must account for multiple redemptions in the
+  one-more unforgeability game.
 
 Issuer hiding:
-: A redemption is distributed identically no matter which Anchor in `anchor_set`
-  issued the Endorsement, so a Moderator, an Anchor, and the two colluding
-  learn only that some key in `anchor_set` was used. Three facts combine.
-  `X_hat` is uniform over the choice of `delta`. The `response` of the single
-  branch proof carries no dependence on the statement it was computed for
-  ({{branch}}). And the commitment scheme of {{pbvc}} hides which position it
-  binds: a commitment key is distributed over the group essentially
-  independently of that position, and an opening essentially independently of
-  whether the value it opens to was committed or equivocated. The proof
-  therefore reveals the branch only through values that are almost independent
-  of it, which is witness indistinguishability of the composition
-  (Section 7 of {{STACKSIG}}).
+: Up to the statistical distance described below, a redemption reveals no
+  information about which Anchor in `anchor_set` issued the Endorsement, so a
+  Moderator, an Anchor, and the two colluding learn only that some key in
+  `anchor_set` was used. Three facts establish this.
+  `X_hat` and the `response` of the single branch proof are statistically close
+  to uniform independently of the branch ({{branch}}). And the commitment
+  scheme of {{pbvc}} hides which position it binds: a commitment key is
+  distributed over the group essentially independently of that position, and
+  an opening essentially independently of whether the value it opens to was
+  committed or equivocated. The proof therefore reveals the branch only through
+  values that are almost independent of it, which is witness
+  indistinguishability of the composition (Section 7 of {{STACKSIG}}).
 
 : The commitment of {{pbvc}} would be *perfectly* hiding if its randomness were
   uniform, and is *statistically* hiding as specified here, because
@@ -2097,10 +2109,10 @@ Partially binding commitments:
   Client that knew its discrete logarithm could equivocate every position of
   every node, open the binding leaf to whatever the challenge required, and
   produce accepting redemptions holding no Endorsement at all. The same
-  reduction is why a node commits its two values under two *separate* Pedersen
-  commitments rather than one: with a single commitment over both bases, a
-  Client could move the two positions in opposite directions and no discrete
-  logarithm would be extractable.
+  reduction also motivates committing the two values under two *separate*
+  Pedersen commitments. With a single commitment over both bases, the binding
+  equation would involve both bases, so the reduction above would not directly
+  extract a discrete logarithm.
 
 Anchor Set size:
 : Issuer hiding hides the Anchor *within the Anchor Set*, so the set is the
