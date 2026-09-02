@@ -11,7 +11,7 @@
 <meta content="
        This document defines protocols that instantiate the MoLE architecture: two
 endorsement protocols, by which a Client proves to a Moderator that it holds
-an Endorsement from a trusted Anchor without revealing which one, and three
+an Endorsement from a trusted Anchor without revealing which one, and two
 credential protocols, by which a Moderator issues, verifies, and updates
 per-Client state without being able to link presentations. It also
 establishes the registries that identify these protocols. 
@@ -31,7 +31,7 @@ establishes the registries that identify these protocols.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.3
+    platformdirs 4.11.5
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
@@ -1051,11 +1051,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">MoLE Protocols</td>
-<td class="right">August 2026</td>
+<td class="right">September 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 25 February 2027</td>
+<td class="center">Expires 6 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-jms-mole-protocols-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-08-24" class="published">24 August 2026</time>
+<time datetime="2026-09-02" class="published">2 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-02-25">25 February 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-06">6 March 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1096,7 +1096,7 @@ svg {
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
 <p id="section-abstract-1">This document defines protocols that instantiate the MoLE architecture: two
 endorsement protocols, by which a Client proves to a Moderator that it holds
-an Endorsement from a trusted Anchor without revealing which one, and three
+an Endorsement from a trusted Anchor without revealing which one, and two
 credential protocols, by which a Moderator issues, verifies, and updates
 per-Client state without being able to link presentations. It also
 establishes the registries that identify these protocols.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1131,7 +1131,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 25 February 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1176,7 +1176,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
                 <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-greasing" class="internal xref">Greasing</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
-                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-challenge-binding" class="internal xref">Challenge Binding</a></p>
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-challenges-and-contexts" class="internal xref">Challenges and Contexts</a></p>
 </li>
             </ul>
 </li>
@@ -1184,30 +1184,39 @@ establishes the registries that identify these protocols.<a href="#section-abstr
             <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-endorsement-protocols" class="internal xref">Endorsement Protocols</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
-                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-issuer-hiding-anonymous-tok" class="internal xref">Issuer-Hiding Anonymous Token (IHAT)</a></p>
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-redemption-challenge-bindin" class="internal xref">Redemption Challenge Binding</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-abstract-endorsement-api" class="internal xref">Abstract Endorsement API</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-no-endorsement-required" class="internal xref">No Endorsement Required</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-issuer-hiding-anonymous-tok" class="internal xref">Issuer-Hiding Anonymous Token (IHAT)</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
-                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
-                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-grant" class="internal xref">Grant</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-grant" class="internal xref">Grant</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.3">
-                    <p id="section-toc.1-1.4.2.1.2.3.1"><a href="#section-4.1.3" class="auto internal xref">4.1.3</a>.  <a href="#name-redemption" class="internal xref">Redemption</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
+                    <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-redemption" class="internal xref">Redemption</a></p>
 </li>
                 </ul>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
-                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-longfellow" class="internal xref">Longfellow</a></p>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-longfellow" class="internal xref">Longfellow</a></p>
 <ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
-                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-configuration-2" class="internal xref">Configuration</a></p>
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.1">
+                    <p id="section-toc.1-1.4.2.5.2.1.1"><a href="#section-4.5.1" class="auto internal xref">4.5.1</a>.  <a href="#name-configuration-2" class="internal xref">Configuration</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
-                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-redemption-2" class="internal xref">Redemption</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.2">
+                    <p id="section-toc.1-1.4.2.5.2.2.1"><a href="#section-4.5.2" class="auto internal xref">4.5.2</a>.  <a href="#name-redemption-2" class="internal xref">Redemption</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
-                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-differences-from-ihat" class="internal xref">Differences from IHAT</a></p>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.3">
+                    <p id="section-toc.1-1.4.2.5.2.3.1"><a href="#section-4.5.3" class="auto internal xref">4.5.3</a>.  <a href="#name-differences-from-ihat" class="internal xref">Differences from IHAT</a></p>
 </li>
                 </ul>
 </li>
@@ -1217,44 +1226,36 @@ establishes the registries that identify these protocols.<a href="#section-abstr
             <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-credential-protocols" class="internal xref">Credential Protocols</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
-                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-anonymous-credit-tokens-act" class="internal xref">Anonymous Credit Tokens (ACT)</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.1">
-                    <p id="section-toc.1-1.5.2.1.2.1.1"><a href="#section-5.1.1" class="auto internal xref">5.1.1</a>.  <a href="#name-configuration-3" class="internal xref">Configuration</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.2">
-                    <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="auto internal xref">5.1.2</a>.  <a href="#name-redeem-issue" class="internal xref">Redeem &amp; Issue</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.3">
-                    <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-presentation-and-update" class="internal xref">Presentation and Update</a></p>
-</li>
-                </ul>
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-abstract-credential-api" class="internal xref">Abstract Credential API</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
-                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-privacy-pass-with-a-reverse" class="internal xref">Privacy Pass with a Reverse Flow</a></p>
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-anonymous-credit-tokens-act" class="internal xref">Anonymous Credit Tokens (ACT)</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.1">
-                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-redeem-issue-2" class="internal xref">Redeem &amp; Issue</a></p>
+                    <p id="section-toc.1-1.5.2.2.2.1.1"><a href="#section-5.2.1" class="auto internal xref">5.2.1</a>.  <a href="#name-configuration-3" class="internal xref">Configuration</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.2">
-                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-presentation-and-update-2" class="internal xref">Presentation and Update</a></p>
+                    <p id="section-toc.1-1.5.2.2.2.2.1"><a href="#section-5.2.2" class="auto internal xref">5.2.2</a>.  <a href="#name-redeem-issue" class="internal xref">Redeem &amp; Issue</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2.2.3">
-                    <p id="section-toc.1-1.5.2.2.2.3.1"><a href="#section-5.2.3" class="auto internal xref">5.2.3</a>.  <a href="#name-limitations" class="internal xref">Limitations</a></p>
+                    <p id="section-toc.1-1.5.2.2.2.3.1"><a href="#section-5.2.3" class="auto internal xref">5.2.3</a>.  <a href="#name-presentation-and-update" class="internal xref">Presentation and Update</a></p>
 </li>
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3">
-                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-budget-privacy-pass" class="internal xref">Budget Privacy Pass</a></p>
+                <p id="section-toc.1-1.5.2.3.1"><a href="#section-5.3" class="auto internal xref">5.3</a>.  <a href="#name-privacy-pass-with-a-reverse" class="internal xref">Privacy Pass with a Reverse Flow</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.1">
-                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-redeem-issue-3" class="internal xref">Redeem &amp; Issue</a></p>
+                    <p id="section-toc.1-1.5.2.3.2.1.1"><a href="#section-5.3.1" class="auto internal xref">5.3.1</a>.  <a href="#name-redeem-issue-2" class="internal xref">Redeem &amp; Issue</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.2">
-                    <p id="section-toc.1-1.5.2.3.2.2.1"><a href="#section-5.3.2" class="auto internal xref">5.3.2</a>.  <a href="#name-presentation-and-update-3" class="internal xref">Presentation and Update</a></p>
+                    <p id="section-toc.1-1.5.2.3.2.2.1"><a href="#section-5.3.2" class="auto internal xref">5.3.2</a>.  <a href="#name-presentation-and-update-2" class="internal xref">Presentation and Update</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.3">
-                    <p id="section-toc.1-1.5.2.3.2.3.1"><a href="#section-5.3.3" class="auto internal xref">5.3.3</a>.  <a href="#name-when-to-use-it" class="internal xref">When to use it</a></p>
+                    <p id="section-toc.1-1.5.2.3.2.3.1"><a href="#section-5.3.3" class="auto internal xref">5.3.3</a>.  <a href="#name-retry-after-a-lost-response" class="internal xref">Retry after a lost response</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.3.2.4">
+                    <p id="section-toc.1-1.5.2.3.2.4.1"><a href="#section-5.3.4" class="auto internal xref">5.3.4</a>.  <a href="#name-limitations" class="internal xref">Limitations</a></p>
 </li>
                 </ul>
 </li>
@@ -1293,10 +1294,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
                     <p id="section-toc.1-1.9.2.2.2.2.1"><a href="#section-9.2.2" class="auto internal xref">9.2.2</a>.  <a href="#name-privacy-pass-reverse-flow" class="internal xref">Privacy Pass Reverse Flow</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.3">
-                    <p id="section-toc.1-1.9.2.2.2.3.1"><a href="#section-9.2.3" class="auto internal xref">9.2.3</a>.  <a href="#name-budget-privacy-pass-2" class="internal xref">Budget Privacy Pass</a></p>
-</li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.4">
-                    <p id="section-toc.1-1.9.2.2.2.4.1"><a href="#section-9.2.4" class="auto internal xref">9.2.4</a>.  <a href="#name-greased-values" class="internal xref">Greased Values</a></p>
+                    <p id="section-toc.1-1.9.2.2.2.3.1"><a href="#section-9.2.3" class="auto internal xref">9.2.3</a>.  <a href="#name-greased-values" class="internal xref">Greased Values</a></p>
 </li>
                 </ul>
 </li>
@@ -1342,10 +1340,10 @@ and Credentials but does not say how to build them. This document does.<a href="
 <p id="section-1-2">TODO: the protocols below reflect our current understanding of how MoLE
 may work, and showcase agility. They are not final. Some may be removed,
 others added.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">It defines two endorsement protocols and three credential protocols. Each is
+<p id="section-1-3">It defines two endorsement protocols and two credential protocols. Each is
 identified by a type value from a registry established in this document
-(<a href="#iana" class="auto internal xref">Section 9</a>). The HTTP carriage of challenges, redemptions, and
-presentations is defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. This document defines the
+(<a href="#iana" class="auto internal xref">Section 9</a>). The HTTP carriage of challenges, requests, redemptions, and
+presentations is defined by <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. This document defines the
 messages themselves and, for the grant flow, the HTTP exchanges that carry
 them.<a href="#section-1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1371,8 +1369,9 @@ All constants are in network byte order.<a href="#section-2-2" class="pilcrow">�
         <dd class="break"></dd>
 <dt id="section-2-4.3">Redeem:</dt>
         <dd style="margin-left: 1.5em" id="section-2-4.4">
-          <p id="section-2-4.4.1">A Client spends an Endorsement at a Moderator. Each Endorsement can be
-redeemed once.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
+          <p id="section-2-4.4.1">A Client spends an Endorsement at one logical Moderator. A Client <span class="bcp14">MUST NOT</span>
+attempt to redeem the same Endorsement at a second Moderator. The Moderator
+enforces replay protection within its configured replay protection scope.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-4.5">Issue:</dt>
@@ -1383,7 +1382,8 @@ redeemed once.<a href="#section-2-4.4.1" class="pilcrow">¶</a></p>
 <dt id="section-2-4.7">Present:</dt>
         <dd style="margin-left: 1.5em" id="section-2-4.8">
           <p id="section-2-4.8.1">A Client shows a Credential to a Moderator. Each Credential can be
-presented once. The update replaces it.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
+presented once within the Moderator's configured replay protection scope. The
+update replaces it.<a href="#section-2-4.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-2-4.9">Update:</dt>
@@ -1411,15 +1411,16 @@ Endorsement or Credential.<a href="#section-2-4.12.1" class="pilcrow">¶</a></p>
         <h3 id="name-message-types">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-message-types" class="section-name selfRef">Message Types</a>
         </h3>
-<p id="section-3.1-1">Every MoLE protocol message <span class="bcp14">MUST</span> begin with a <code>uint16</code> type field:
-<code>endorsement_type</code> for messages in the endorsement flow, <code>credential_type</code>
-for messages in the credential flow. Values are assigned in the registries
-defined in <a href="#iana" class="auto internal xref">Section 9</a>. A recipient that does not recognize the type <span class="bcp14">MUST</span>
-ignore the message. A Client that receives a challenge with an unknown type
-simply does not respond to it.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<p id="section-3.1-1">Every outer MoLE message that selects a protocol carries a <code>uint16</code> type field.
+These messages are <code>EndorsementRequest</code>, <code>EndorsementResponse</code>,
+<code>CredentialRequest</code>, <code>CredentialResponse</code>, <code>CredentialPresentation</code>,
+<code>CredentialUpdate</code>, <code>ModeratorChallenge</code>, and <code>CredentialChallenge</code>. Values are
+assigned in <a href="#iana" class="auto internal xref">Section 9</a>. A Client ignores an unknown Challenge. An unknown request
+or response is rejected. A Moderator treats an unknown optional presentation
+as absent and rejects an unknown required presentation. Challenge wrappers are
+exchanged only between a Moderator and Client. They are never sent to an Anchor.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1-2">The value 0x0000 is reserved in both registries and <span class="bcp14">MUST NOT</span> appear on the
-wire. Endorsement type 0x0001 means the Moderator establishes trust in the
-Client on its own, and no Endorsement is redeemed.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+wire. Endorsement type 0x0001 means that no Endorsement is required.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="greasing">
@@ -1428,50 +1429,41 @@ Client on its own, and no Endorsement is redeemed.<a href="#section-3.1-2" class
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-greasing" class="section-name selfRef">Greasing</a>
         </h3>
 <p id="section-3.2-1">In order to prevent Moderators from becoming incompatible with future
-credential types, Clients <span class="bcp14">SHOULD</span> send presentations whose
-<code>credential_type</code> is a random value from the reserved greased values
-(<a href="#iana-grease" class="auto internal xref">Section 9.2.4</a>), with some non-trivial probability. The body of a
-greased presentation is random bytes.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+credential types, Clients <span class="bcp14">SHOULD</span> send presentations whose <code>credential_type</code> is a
+random value from the reserved greased values (<a href="#iana-grease" class="auto internal xref">Section 9.2.3</a>), with some
+non-trivial probability. The body of a greased presentation is random bytes. A
+Moderator handles it as if no Credential were presented.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <p id="section-3.2-2">The greased values follow the pattern 0x?A?A, spread uniformly across the
-registry space. Moderators <span class="bcp14">MUST</span> handle them exactly as any other unknown
-type and <span class="bcp14">MUST NOT</span> special-case the reserved list: a Moderator that
-enumerates greased values defeats their purpose and will still receive
-unknown types it did not enumerate.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
+registry space. Moderators <span class="bcp14">MUST</span> handle them exactly as any other unknown type
+and <span class="bcp14">MUST NOT</span> special-case the reserved list. A Moderator that enumerates
+greased values defeats their purpose and will still receive unknown types it
+did not enumerate.<a href="#section-3.2-2" class="pilcrow">¶</a></p>
 <p id="section-3.2-3">Additionally, when a credential is not required, Clients <span class="bcp14">SHOULD</span> randomly
-choose not to answer a challenge with some non-trivial probability. This
+choose not to send a presentation with some non-trivial probability. This
 helps ensure that Moderators maintain their behavior for handling Clients
 without credentials, rather than relying on a presentation always being
 present.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="challenge-binding">
+<div id="challenges-and-contexts">
 <section id="section-3.3">
-        <h3 id="name-challenge-binding">
-<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-challenge-binding" class="section-name selfRef">Challenge Binding</a>
+        <h3 id="name-challenges-and-contexts">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-challenges-and-contexts" class="section-name selfRef">Challenges and Contexts</a>
         </h3>
-<p id="section-3.3-1">Every redemption and presentation is bound to the challenge that triggered
-it. The binding value is:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3-2">
-<pre>
-challenge_digest = SHA-256(challenge)
-</pre><a href="#section-3.3-2" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3-3">where <code>challenge</code> is the challenge structure in its binary form: the
-octets of its TLS-presentation encoding. When a challenge arrives
-base64url encoded in an HTTP header (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>), the Client first
-decodes it, then hashes the resulting octets. The digest is never computed
-over the ASCII form. SHA-256 is defined in <span>[<a href="#SHA2" class="cite xref">SHA2</a>]</span>.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
-<p id="section-3.3-4">Each protocol in this document states where <code>challenge_digest</code> enters its
-messages. A verifier <span class="bcp14">MUST</span> reject a redemption or presentation bound to a
-different challenge. This prevents a message captured in one context from
-being replayed in another.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
-<p id="section-3.3-5">In the endorsement protocols, the presentation is a proof generated at
-redemption time, and <code>challenge_digest</code> is an input to that proof: it
-enters the proof transcript in IHAT and the public inputs in Longfellow.
-A proof produced for one challenge does not verify under another.
-Challenge binding is separate from the nullifier. The nullifier is a PRF
-output over a credential-bound secret and the epoch; it limits a Client
-to one presentation per epoch.<a href="#section-3.3-5" class="pilcrow">¶</a></p>
+<p id="section-3.3-1">A Moderator Challenge is a message sent by a Moderator to a Client. It selects
+the operation and carries any type-specific input chosen by the Moderator.
+A Moderator Challenge, or a value derived from it, <span class="bcp14">MUST NOT</span> be sent to an
+Anchor.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">A Context is a protocol-specific cryptographic input. A protocol defines how
+the Client and Moderator derive the same Context from authenticated
+configuration, the operation, and, when required, the Moderator Challenge. A
+Context can include the complete Moderator Challenge, a digest of it, or
+selected fields. Moderator Challenge and Context are therefore not
+interchangeable terms.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">Each credential protocol defines the contents of its type-specific
+<code>CredentialChallenge</code> body. Endorsement protocols use the common Challenge in
+<a href="#challenge-binding" class="auto internal xref">Section 4.1</a>. A Moderator <span class="bcp14">MUST</span> retain enough state to verify that a
+response uses a Challenge it issued and that remains valid.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1481,7 +1473,8 @@ to one presentation per epoch.<a href="#section-3.3-5" class="pilcrow">¶</a></p
       <h2 id="name-endorsement-protocols">
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-endorsement-protocols" class="section-name selfRef">Endorsement Protocols</a>
       </h2>
-<p id="section-4-1">An endorsement protocol has two parts. First, the Client runs one or more
+<p id="section-4-1">An endorsement protocol has two parts. First, before contacting a Moderator,
+the Client runs one or more
 request/response exchanges with an Anchor and finalizes the result into an
 Endorsement. This is the grant. Second, the Client redeems the Endorsement
 at a Moderator, proving it came from an Anchor in the Moderator's accepted
@@ -1514,8 +1507,8 @@ Issue flow (<a href="#credential-protocols" class="auto internal xref">Section 5
               <path d="M 240,208 L 336,208" fill="none" stroke="black"></path>
               <path d="M 48,240 L 112,240" fill="none" stroke="black"></path>
               <path d="M 208,240 L 288,240" fill="none" stroke="black"></path>
-              <path d="M 40,256 L 96,256" fill="none" stroke="black"></path>
-              <path d="M 216,256 L 280,256" fill="none" stroke="black"></path>
+              <path d="M 40,256 L 104,256" fill="none" stroke="black"></path>
+              <path d="M 208,256 L 280,256" fill="none" stroke="black"></path>
               <polygon class="arrowhead" points="288,256 276,250.4 276,261.6" fill="black" transform="rotate(0,280,256)"></polygon>
               <polygon class="arrowhead" points="280,96 268,90.4 268,101.6" fill="black" transform="rotate(0,272,96)"></polygon>
               <polygon class="arrowhead" points="56,240 44,234.4 44,245.6" fill="black" transform="rotate(180,48,240)"></polygon>
@@ -1536,7 +1529,7 @@ Issue flow (<a href="#credential-protocols" class="auto internal xref">Section 5
                 <text x="36" y="148">Finalize</text>
                 <text x="288" y="196">Moderator</text>
                 <text x="160" y="244">Challenge</text>
-                <text x="156" y="260">Presentation</text>
+                <text x="156" y="260">Redemption</text>
               </g>
             </svg><a href="#section-4-2.1.1" class="pilcrow">¶</a>
 </div>
@@ -1564,213 +1557,358 @@ struct {
 } EndorsementResponse;
 </pre><a href="#section-4-4" class="pilcrow">¶</a>
 </div>
-<p id="section-4-5">Every endorsement protocol defines two structures. <code>Challenge</code> is the
-type-specific content of the Moderator's challenge, carried in its
-<code>challenge</code> field (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). Its content, including any Anchor
-set, is opaque at the transport level. Each endorsement type refines it,
-for example into a list of accepted Anchor keys. <code>Presentation</code> is the protocol's
-final output: the message a Client sends to redeem the Endorsement,
-carried in the <code>endorsement_presentation</code> field of a <code>CredentialRequest</code>
-(<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-5" class="pilcrow">¶</a></p>
-<div id="ihat">
+<p id="section-4-5">The structure fields are:<a href="#section-4-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4-6.1">
+          <p id="section-4-6.1.1"><code>endorsement_type</code> identifies a registered endorsement protocol.<a href="#section-4-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-4-6.2">
+          <p id="section-4-6.2.1"><code>body</code> is that protocol's grant message.<a href="#section-4-6.2.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-4-7">The Anchor returns 200 (OK) with the response media type only when it produced
+a complete <code>EndorsementResponse</code>. A Client <span class="bcp14">MUST</span> reject a non-success status, an
+unexpected media type, a response whose type differs from its request, trailing
+bytes, or malformed type-specific content. Clients <span class="bcp14">MUST NOT</span> automatically
+redirect a grant POST carrying protocol state. If the second IHAT response is
+lost, the consumed session cannot be replayed. The Client starts a fresh grant
+session.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">Every endorsement protocol defines a <code>Redemption</code> structure. It is the message
+a Client sends to redeem the Endorsement, carried in the
+<code>endorsement_presentation</code> field of a <code>CredentialRequest</code>
+(<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-8" class="pilcrow">¶</a></p>
+<div id="challenge-binding">
 <section id="section-4.1">
-        <h3 id="name-issuer-hiding-anonymous-tok">
-<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-issuer-hiding-anonymous-tok" class="section-name selfRef">Issuer-Hiding Anonymous Token (IHAT)</a>
+        <h3 id="name-redemption-challenge-bindin">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-redemption-challenge-bindin" class="section-name selfRef">Redemption Challenge Binding</a>
         </h3>
-<p id="section-4.1-1">Endorsement type: 0x0002.<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<p id="section-4.1-2">TODO: IHAT is a placeholder name. Once we have a first version for <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>,
-we would align.<a href="#section-4.1-2" class="pilcrow">¶</a></p>
-<p id="section-4.1-3">IHAT is a pairing-free, issuer-hiding endorsement scheme over P-256. The
-Anchor blindly signs a Client-chosen nullifier. The Client later proves,
-with a 1-of-n OR proof, that its Endorsement verifies under one of the
-Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents of every message body, are defined in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>. Until that
-document is complete, bodies in this section are opaque byte strings
-produced and consumed by the functions named below.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
-<p id="section-4.1-4">The following primitive types are used in this section:<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-4.1-5">
+<p id="section-4.1-1">The type-specific body of <code>ModeratorChallenge</code> is:<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.1-2">
 <pre>
-opaque Scalar[32];  /* big-endian integer mod the group order */
-opaque Point[33];   /* P-256 point, SEC1 compressed */
-</pre><a href="#section-4.1-5" class="pilcrow">¶</a>
+struct {
+  opaque nonce[32];
+} RedemptionChallenge;
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-3">The structure fields are:<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-4.1">
+            <p id="section-4.1-4.1.1"><code>nonce</code> is an unpredictable value that the Moderator <span class="bcp14">MUST NOT</span> reuse within
+its configured replay protection scope.<a href="#section-4.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.1-5">Endorsement protocols compute the following value when creating or verifying
+a redemption:<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.1-6">
+<pre>
+challenge_digest = SHA-256(moderator_challenge)
+</pre><a href="#section-4.1-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-7">The values are defined as follows:<a href="#section-4.1-7" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.1-8.1">
+            <p id="section-4.1-8.1.1"><code>moderator_challenge</code> is the complete decoded TLS-presentation encoding of
+the <code>ModeratorChallenge</code> sent by the Moderator. It is not required to contain
+an origin.<a href="#section-4.1-8.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-4.1-8.2">
+            <p id="section-4.1-8.2.1"><code>challenge_digest</code> is the 32-octet SHA-256 digest of
+<code>moderator_challenge</code>. It is not computed over a base64url or other textual
+encoding. SHA-256 is defined in <span>[<a href="#SHA2" class="cite xref">SHA2</a>]</span>.<a href="#section-4.1-8.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-4.1-9"><code>challenge_digest</code> enters the Fiat-Shamir transcript in both IHAT and
+Longfellow, but is not a Longfellow circuit public input. A redemption created
+for one <code>ModeratorChallenge</code> does not verify under another.<a href="#section-4.1-9" class="pilcrow">¶</a></p>
+<p id="section-4.1-10">The <code>Challenge</code> algorithm and <code>ChallengeMessage</code> in IHAT issuance are defined
+by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span> and are unrelated to a <code>ModeratorChallenge</code>.<a href="#section-4.1-10" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="abstract-endorsement-api">
+<section id="section-4.2">
+        <h3 id="name-abstract-endorsement-api">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-abstract-endorsement-api" class="section-name selfRef">Abstract Endorsement API</a>
+        </h3>
+<p id="section-4.2-1">Each endorsement protocol defines these abstract operations:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.2-2">
+<pre>
+RedeemRequest(endorsement, moderator_challenge, configuration)
+  -&gt; redemption | INVALID
+FinalizeRedeem(redemption, moderator_challenge, configuration)
+  -&gt; replay_protection_id | INVALID
+</pre><a href="#section-4.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-3"><code>RedeemRequest</code> runs at the Client. <code>FinalizeRedeem</code> runs at the Moderator,
+verifies the redemption and Challenge binding, and returns a
+<code>replay_protection_id</code> or <code>INVALID</code>. Both operations derive
+<code>challenge_digest</code> from <code>moderator_challenge</code> as specified above. After a
+successful call, the Moderator <span class="bcp14">MUST</span> atomically insert <code>replay_protection_id</code>
+in the protocol's configured replay protection scope only if it is absent. If
+it is already present, the Moderator <span class="bcp14">MUST</span> treat the result as <code>INVALID</code> and
+<span class="bcp14">MUST NOT</span> process the accompanying <code>IssuanceRequest</code>. There is no global replay
+protection service.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="no-endorsement-required">
+<section id="section-4.3">
+        <h3 id="name-no-endorsement-required">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-no-endorsement-required" class="section-name selfRef">No Endorsement Required</a>
+        </h3>
+<p id="section-4.3-1">Endorsement type 0x0001 indicates that the Moderator does not require an
+Endorsement under its policy. It has no grant. The <code>endorsement</code> input and
+<code>Redemption</code> are both the distinguished empty value. <code>RedeemRequest</code> returns
+that empty value. <code>FinalizeRedeem</code> returns <code>challenge_digest</code> as its
+<code>replay_protection_id</code> when the Moderator's policy permits issuance without an
+Endorsement, and <code>INVALID</code> otherwise. This prevents reuse of one Moderator
+Challenge within the configured replay protection scope. This type therefore
+implements the same abstract API as every other endorsement type.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ihat">
+<section id="section-4.4">
+        <h3 id="name-issuer-hiding-anonymous-tok">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-issuer-hiding-anonymous-tok" class="section-name selfRef">Issuer-Hiding Anonymous Token (IHAT)</a>
+        </h3>
+<p id="section-4.4-1">Endorsement type: 0x0002.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">This protocol uses the IHAT-TZ variant defined in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>. IHAT is a
+pairing-free, issuer-hiding endorsement scheme. The Anchor blindly signs a
+Client-chosen nullifier. The Client later proves,
+with an issuer-hiding proof, that its Endorsement verifies under one of the
+Anchor keys the Moderator accepts. The cryptographic operations, and the
+contents and encodings of every message body, are defined in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<p id="section-4.4-3">The following primitive types are ciphersuite-dependent:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.4-4">
+<pre>
+opaque Scalar[Ns];
+opaque Element[Ne];
+</pre><a href="#section-4.4-4" class="pilcrow">¶</a>
 </div>
 <div id="configuration">
-<section id="section-4.1.1">
+<section id="section-4.4.1">
           <h4 id="name-configuration">
-<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
           </h4>
-<p id="section-4.1.1-1">The Client needs, from Anchor configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-4.1.1-2">
-            <dt id="section-4.1.1-2.1">Anchor Public Key</dt>
-            <dd style="margin-left: 1.5em" id="section-4.1.1-2.2">
-              <p id="section-4.1.1-2.2.1"><code>pkA</code>, a <code>Point</code>, as generated in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.<a href="#section-4.1.1-2.2.1" class="pilcrow">¶</a></p>
+<p id="section-4.4.1-1">The Client needs, from Anchor configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.4.1-2">
+            <dt id="section-4.4.1-2.1">IHAT Ciphersuite</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.1-2.2">
+              <p id="section-4.4.1-2.2.1">A ciphersuite identifier defined by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>. It determines <code>Element</code>,
+<code>Scalar</code>, and all cryptographic encodings.<a href="#section-4.4.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-4.1.1-2.3">Endorsement Context</dt>
-            <dd style="margin-left: 1.5em" id="section-4.1.1-2.4">
-              <p id="section-4.1.1-2.4.1">an opaque byte string identifying the current epoch. Endorsements are
-valid for one epoch, see <a href="#key-rotation" class="auto internal xref">Section 6</a>.<a href="#section-4.1.1-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-4.4.1-2.3">Anchor Public Key</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.1-2.4">
+              <p id="section-4.4.1-2.4.1"><code>pkA</code>, an <code>Element</code>, as generated in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>, with a stable key ID.<a href="#section-4.4.1-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.4.1-2.5">Issuance Context</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.1-2.6">
+              <p id="section-4.4.1-2.6.1"><code>ctx_iss</code>, the canonical encoding of the issuance epoch. Endorsements are
+valid for that epoch, see <a href="#key-rotation" class="auto internal xref">Section 6</a>.<a href="#section-4.4.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.4.1-2.7">Redemption Context</dt>
+            <dd style="margin-left: 1.5em" id="section-4.4.1-2.8">
+              <p id="section-4.4.1-2.8.1"><code>ctx_red</code>, the ASCII string <code>"MoLE-IHAT-ctx_red-v1"</code>, without a terminating
+NUL byte. This fixed, domain-separated value is the same for all Moderators.
+This is the cryptographic redemption Context defined by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>, not a
+Moderator Challenge. A specific redemption operation is bound separately by
+<code>challenge_digest</code>.<a href="#section-4.4.1-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="grant">
-<section id="section-4.1.2">
+<section id="section-4.4.2">
           <h4 id="name-grant">
-<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-grant" class="section-name selfRef">Grant</a>
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-grant" class="section-name selfRef">Grant</a>
           </h4>
-<p id="section-4.1.2-1">The grant takes two exchanges with the Anchor.<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-2">In the first exchange, the Client runs <code>Prepare(pkA,
-endorsement_context)</code> (<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), keeps the returned client state, and
-sends the resulting request as the <code>body</code> of an <code>EndorsementRequest</code>. The
-Anchor runs <code>Sign(skA, body)</code>, keeps its own state for the second
-exchange, and returns the result in an <code>EndorsementResponse</code>.<a href="#section-4.1.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-3">In the second exchange, the Client runs <code>RequestProof(state, body)</code> and
-sends the result. The Anchor runs <code>Prove(state, body)</code> and returns the
-result.<a href="#section-4.1.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-4">The Client finalizes with <code>Finalize(state, body)</code>, which verifies the
-Anchor's commitment opening and produces an Endorsement. The Endorsement
-contains a nullifier <code>nf</code> and the <code>endorsement_context</code> it was granted
-under. If finalization fails, the Client <span class="bcp14">MUST</span> discard the session. It <span class="bcp14">MUST NOT</span> retry with the same state.<a href="#section-4.1.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-5">The Anchor learns neither <code>nf</code> nor the final Endorsement, so it cannot
-recognize the Endorsement when it is later redeemed.<a href="#section-4.1.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.1.2-6">TODO: the two exchanges must be correlated, since the Anchor holds state
-between them. Either <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span> adds a session identifier to its messages
-or this document mandates connection reuse.<a href="#section-4.1.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-1">The grant takes two HTTP exchanges and three protocol messages. The Anchor
+speaks first, as specified by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>:<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-4.4.2-2">
+<li id="section-4.4.2-2.1">
+              <p id="section-4.4.2-2.1.1">The Client sends an <code>EndorsementRequest</code> with an empty <code>body</code>. The Anchor
+runs <code>Commit(skA, ctx_iss)</code>, stores the returned state under a fresh
+<code>session_id</code>, and returns a <code>CommitMessage</code> in the response body.<a href="#section-4.4.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-2.2">
+              <p id="section-4.4.2-2.2.1">The Client runs <code>Challenge(pkA, ctx_iss, ctx_red, commitment)</code>, stores the
+returned state, and sends a <code>ChallengeMessage</code> containing the returned
+issuance challenge and opaque <code>session_id</code>. The Anchor atomically claims and
+consumes that identifier before reading the single-use state. Only the
+instance that wins the claim runs <code>Respond(skA, state, challenge)</code> and
+returns a <code>ResponseMessage</code>.
+Tombstones are retained through session expiry. All later requests for the
+identifier fail without invoking <code>Respond</code>.<a href="#section-4.4.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li id="section-4.4.2-2.3">
+              <p id="section-4.4.2-2.3.1">The Client runs <code>Finalize(pkA, state, response)</code> as specified by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.
+On failure it <span class="bcp14">MUST</span> discard the session state and <span class="bcp14">MUST NOT</span> retry with that
+state.<a href="#section-4.4.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ol>
+<p id="section-4.4.2-3"><code>CommitMessage</code>, <code>ChallengeMessage</code>, <code>ResponseMessage</code>, <code>session_id</code>, and the
+Endorsement encoding are defined by <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>. The session identifier is only
+transport correlation and is not bound into the Endorsement.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-4">The Anchor learns neither <code>nf</code> nor the final Endorsement. Under the statistical
+blindness claim in <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>, its protocol transcript does not let it
+recognize the Endorsement when it is later redeemed. Timing, network, and
+configuration metadata are outside that claim.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="redemption">
-<section id="section-4.1.3">
+<section id="section-4.4.3">
           <h4 id="name-redemption">
-<a href="#section-4.1.3" class="section-number selfRef">4.1.3. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
+<a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
           </h4>
-<p id="section-4.1.3-1">The Moderator's challenge (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>) carries the set of Anchor
-keys it accepts:<a href="#section-4.1.3-1" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-4.1.3-2">
-<pre>
-struct {
-  Point keys&lt;V&gt;;      /* accepted Anchor public keys */
-} Challenge;
-</pre><a href="#section-4.1.3-2" class="pilcrow">¶</a>
-</div>
-<p id="section-4.1.3-3">The order of <code>keys</code> is significant: OR-proof branches are matched to keys
-by position. Moderators <span class="bcp14">MUST</span> present the set in the order published in
-their configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-4.1.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.1.3-4">The Client runs <code>Present(endorsement, keys, challenge_digest)</code>
-(<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), with <code>challenge_digest</code> computed as in <a href="#challenge-binding" class="auto internal xref">Section 3.3</a>,
-and sends the result:<a href="#section-4.1.3-4" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-4.1.3-5">
-<pre>
-struct {
-  opaque bytes&lt;V&gt;;    /* output of Present */
-} Presentation;
-</pre><a href="#section-4.1.3-5" class="pilcrow">¶</a>
-</div>
-<p id="section-4.1.3-6"><code>Present</code> <span class="bcp14">MUST</span> bind <code>challenge_digest</code> into the proof transcript, and
-<code>Verify</code> <span class="bcp14">MUST</span> fail when given any other <code>challenge_digest</code>. This is a
-requirement on <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>.<a href="#section-4.1.3-6" class="pilcrow">¶</a></p>
-<p id="section-4.1.3-7">The Moderator runs <code>Verify(presentation, keys, challenge_digest)</code>
-(<span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span>), which exposes <code>nf</code> and <code>endorsement_context</code>, and
-additionally checks that:<a href="#section-4.1.3-7" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-4.1.3-8">
-<li id="section-4.1.3-8.1">
-              <p id="section-4.1.3-8.1.1"><code>endorsement_context</code> names the current epoch, and<a href="#section-4.1.3-8.1.1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.4.3-1.1">
+              <p id="section-4.4.3-1.1.1"><strong>Editor note.</strong> <span>[<a href="#CRYPTO" class="cite xref">CRYPTO</a>]</span> does not yet define IHAT redemption. This section
+is blocked on its exact <code>Redemption</code> encoding, <code>RedeemRequest</code> and
+<code>FinalizeRedeem</code> algorithms, Context and Challenge binding, replay protection
+identifier, and security analysis.<a href="#section-4.4.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-4.1.3-8.2">
-              <p id="section-4.1.3-8.2.1"><code>nf</code> has not been seen before in this epoch.<a href="#section-4.1.3-8.2.1" class="pilcrow">¶</a></p>
-</li>
-          </ol>
-<p id="section-4.1.3-9">If all checks pass, the Moderator records <code>nf</code> and proceeds with credential
-issuance. The Endorsement is spent: redeeming it again <span class="bcp14">MUST</span> fail check 2.<a href="#section-4.1.3-9" class="pilcrow">¶</a></p>
+          </ul>
 </section>
 </div>
 </section>
 </div>
 <div id="longfellow">
-<section id="section-4.2">
+<section id="section-4.5">
         <h3 id="name-longfellow">
-<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-longfellow" class="section-name selfRef">Longfellow</a>
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-longfellow" class="section-name selfRef">Longfellow</a>
         </h3>
-<p id="section-4.2-1">Endorsement type: 0x0003.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2-2">Where IHAT requires Anchors to run new cryptography, this protocol preserves
+<p id="section-4.5-1">Endorsement type: 0x0003.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<p id="section-4.5-2">Where IHAT requires Anchors to run new cryptography, this protocol preserves
 backward compatibility with credentials Clients may hold, such as mdocs.
 The Client proves in zero knowledge, using the scheme of <span>[<a href="#LONGFELLOW" class="cite xref">LONGFELLOW</a>]</span>, that it
 holds a valid credential from one of an accepted set of issuers, without
 revealing which issuer or any credential attribute. An experimental circuit is
-described in <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER-CIRCUIT</a>]</span>.<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<p id="section-4.2-3">There is no grant exchange in this protocol. The Client obtains its
+described in <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER-CIRCUIT</a>]</span>.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
+<p id="section-4.5-3">There is no grant exchange in this protocol. The Client obtains its
 credential from the Anchor out of band, through whatever legacy issuance
-that credential uses. The circuit is likewise distributed out of band and
-identified by its hash.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
+that credential uses, before contacting a Moderator. A compressed circuit
+artifact containing the two Longfellow circuits is likewise distributed out
+of band and identified by its hash.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
 <div id="configuration-1">
-<section id="section-4.2.1">
+<section id="section-4.5.1">
           <h4 id="name-configuration-2">
-<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-configuration-2" class="section-name selfRef">Configuration</a>
+<a href="#section-4.5.1" class="section-number selfRef">4.5.1. </a><a href="#name-configuration-2" class="section-name selfRef">Configuration</a>
           </h4>
-<p id="section-4.2.1-1">The Client needs, from Moderator configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.2.1-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-4.2.1-2">
-            <dt id="section-4.2.1-2.1">Circuit Identifier</dt>
-            <dd style="margin-left: 1.5em" id="section-4.2.1-2.2">
-              <p id="section-4.2.1-2.2.1"><code>circuit_id</code>, the SHA-256 hash of the circuit both parties use.<a href="#section-4.2.1-2.2.1" class="pilcrow">¶</a></p>
+<p id="section-4.5.1-1">The Client needs, from Moderator configuration (<a href="#key-rotation" class="auto internal xref">Section 6</a>):<a href="#section-4.5.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-4.5.1-2">
+            <dt id="section-4.5.1-2.1">Circuit Artifact Identifier</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.2">
+              <p id="section-4.5.1-2.2.1"><code>circuit_artifact_id</code>, the SHA-256 hash of the compressed circuit artifact
+both parties use.<a href="#section-4.5.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-4.2.1-2.3">Accepted Issuer Set</dt>
-            <dd style="margin-left: 1.5em" id="section-4.2.1-2.4">
-              <p id="section-4.2.1-2.4.1">the credential-issuer certificates the Moderator accepts, in a fixed
-published order.<a href="#section-4.2.1-2.4.1" class="pilcrow">¶</a></p>
+<dt id="section-4.5.1-2.3">Circuit Manifest</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.4">
+              <p id="section-4.5.1-2.4.1">An out-of-band manifest that names the artifact version, the two circuit
+identifiers, and all proof parameters needed to interpret and verify it.<a href="#section-4.5.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
-<dt id="section-4.2.1-2.5">Epoch</dt>
-            <dd style="margin-left: 1.5em" id="section-4.2.1-2.6">
-              <p id="section-4.2.1-2.6.1">the validity window redemptions must fall in.<a href="#section-4.2.1-2.6.1" class="pilcrow">¶</a></p>
+<dt id="section-4.5.1-2.5">Accepted Issuer Set</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.6">
+              <p id="section-4.5.1-2.6.1">the credential-issuer certificates the Moderator accepts, in a fixed
+published order.<a href="#section-4.5.1-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.5.1-2.7">Epoch</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.8">
+              <p id="section-4.5.1-2.8.1">the validity window redemptions must fall in.<a href="#section-4.5.1-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.5.1-2.9">Moderator Origin</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.10">
+              <p id="section-4.5.1-2.10.1">the canonical origin of the Moderator. Its source is trusted configuration.
+It <span class="bcp14">MUST NOT</span> be derived from a client-controlled HTTP <code>Host</code> value.<a href="#section-4.5.1-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+            <dd class="break"></dd>
+<dt id="section-4.5.1-2.11">Verification Time</dt>
+            <dd style="margin-left: 1.5em" id="section-4.5.1-2.12">
+              <p id="section-4.5.1-2.12.1"><code>verification_time</code>, a Moderator-selected time within the current epoch.<a href="#section-4.5.1-2.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
 </section>
 </div>
 <div id="redemption-1">
-<section id="section-4.2.2">
+<section id="section-4.5.2">
           <h4 id="name-redemption-2">
-<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-redemption-2" class="section-name selfRef">Redemption</a>
+<a href="#section-4.5.2" class="section-number selfRef">4.5.2. </a><a href="#name-redemption-2" class="section-name selfRef">Redemption</a>
           </h4>
-<p id="section-4.2.2-1">This protocol needs no type-specific challenge content: <code>Challenge</code> is
-empty. The accepted issuer set, circuit, and epoch come from configuration.<a href="#section-4.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-4.2.2-2">The Client evaluates the circuit over its credential to produce a proof and
-a nullifier. The nullifier is derived, inside the circuit, from a
-credential-bound secret and the current epoch, so one credential yields
-exactly one valid nullifier per epoch.<a href="#section-4.2.2-2" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-4.2.2-3">
+<p id="section-4.5.2-1">The accepted issuer set, circuit artifact, epoch, Moderator origin, and
+verification time come from authenticated configuration. The selected
+redemption operation supplies the digest of the complete decoded
+<code>ModeratorChallenge</code> as <code>challenge_digest</code>, as defined in
+<a href="#challenge-binding" class="auto internal xref">Section 4.1</a>.<a href="#section-4.5.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.5.2-2">The Client evaluates the two circuits over its credential to produce a proof
+and a nullifier. The nullifier is derived, inside the circuit, from a
+credential-bound secret, the canonical Moderator origin, and the current
+epoch. One credential therefore yields exactly one valid nullifier per
+Moderator origin and epoch.<a href="#section-4.5.2-2" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.5.2-3">
 <pre>
 struct {
-  opaque circuit_id[32];
+  opaque circuit_artifact_id[32];
   opaque nullifier&lt;V&gt;;
   opaque proof&lt;V&gt;;
-} Presentation;
-</pre><a href="#section-4.2.2-3" class="pilcrow">¶</a>
+} Redemption;
+</pre><a href="#section-4.5.2-3" class="pilcrow">¶</a>
 </div>
-<p id="section-4.2.2-4">The public inputs to the proof are the accepted issuer set, the epoch, the
-nullifier, and <code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>). A proof is
-valid only for its exact public inputs, so a presentation bound to a
-different challenge fails verification. The Moderator
-verifies the proof using the verifier of <span>[<a href="#LONGFELLOW" class="cite xref">LONGFELLOW</a>]</span>, then applies the
-same epoch and nullifier-freshness checks as IHAT redemption.<a href="#section-4.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.5.2-4">The structure fields are:<a href="#section-4.5.2-4" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-4.5.2-5.1">
+              <p id="section-4.5.2-5.1.1"><code>circuit_artifact_id</code> is the SHA-256 digest of the configured circuit
+artifact.<a href="#section-4.5.2-5.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.5.2-5.2">
+              <p id="section-4.5.2-5.2.1"><code>nullifier</code> is the circuit-produced replay protection identifier.<a href="#section-4.5.2-5.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.5.2-5.3">
+              <p id="section-4.5.2-5.3.1"><code>proof</code> is the encoded Longfellow proof.<a href="#section-4.5.2-5.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-4.5.2-6">The circuit public inputs are the accepted issuer set, epoch, canonical
+Moderator origin, <code>verification_time</code>, and nullifier. The proof establishes
+<code>validFrom &lt;= verification_time &lt;= validUntil</code>. <code>challenge_digest</code>
+(<a href="#challenge-binding" class="auto internal xref">Section 4.1</a>) is bound into the Longfellow Fiat-Shamir transcript.
+It is not a circuit public input.<a href="#section-4.5.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.5.2-7">Longfellow implements the common API in <a href="#endorsement-protocols" class="auto internal xref">Section 4</a>.
+<code>RedeemRequest</code> checks that the artifact and manifest match configuration,
+evaluates the circuits, and returns the encoded <code>Redemption</code> above.
+<code>FinalizeRedeem</code> checks the artifact identifier, verifies the proof and its
+transcript binding, and checks that the configured epoch and
+<code>verification_time</code> remain current. It returns the nullifier as
+<code>replay_protection_id</code>, or <code>INVALID</code> on any failure. Both operations derive
+<code>challenge_digest</code> from <code>moderator_challenge</code>. The common caller performs the
+atomic replay protection check.<a href="#section-4.5.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="differences-from-ihat">
-<section id="section-4.2.3">
+<section id="section-4.5.3">
           <h4 id="name-differences-from-ihat">
-<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-differences-from-ihat" class="section-name selfRef">Differences from IHAT</a>
+<a href="#section-4.5.3" class="section-number selfRef">4.5.3. </a><a href="#name-differences-from-ihat" class="section-name selfRef">Differences from IHAT</a>
           </h4>
-<p id="section-4.2.3-1">While Longfellow does not require the Anchor to actively participate in MoLE,
-it is preferred to guarantee and control scarcity. Otherwise, the number of
-Endorsements that can be obtained by a given Client is unbounded.
-Scarcity comes both from the participation of the Anchor, and from the
-one-nullifier-per-epoch rule. Deployments without an aware Anchor remain
-possible, but lose Anchor-controlled scarcity.<a href="#section-4.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-4.2.3-2">The required circuit properties, in particular sound nullifier derivation
-from a credential-bound secret, are stated here as requirements on the
-circuit. <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER-CIRCUIT</a>]</span> is one candidate that could be refined.<a href="#section-4.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-4.5.3-1">Longfellow does not inherently require an Anchor to change its issuance
+protocol. Scarcity then depends on the legacy credential's own issuance limits
+and on whether it contains a credential-bound Client secret suitable for
+nullifier derivation. An Anchor that participates in MoLE can control scarcity
+and arrange for such a secret to be committed during issuance. Some existing
+credential formats may already provide a suitable Client-contributed or
+device-bound secret. The one-nullifier-per-origin-and-epoch rule prevents
+repeat redemption of one credential in that scope. It does not limit how many
+credentials a Client can obtain.<a href="#section-4.5.3-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4.5.3-2.1">
+              <p id="section-4.5.3-2.1.1"><strong>Editor note.</strong> This protocol is blocked on normative circuit definitions,
+public-input encodings and ordering, transcript binding, artifact lifecycle
+and size limits, and test vectors.<a href="#section-4.5.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
 </section>
 </div>
 </section>
@@ -1782,39 +1920,39 @@ circuit. <span>[<a href="#HIDDEN-ISSUER-CIRCUIT" class="cite xref">HIDDEN-ISSUER
       <h2 id="name-credential-protocols">
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-credential-protocols" class="section-name selfRef">Credential Protocols</a>
       </h2>
-<p id="section-5-1">A credential protocol has two parts: Redeem &amp; Issue, in which the Client
-redeems an Endorsement and receives a Credential from the Moderator, and
-presentation, in which the Client shows the Credential and receives an
-update. Presentation and update happen in one exchange, following
-<span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-1">A credential protocol has two parts. In Redeem &amp; Issue, the Client redeems an
+Endorsement and receives a Credential from the Moderator. In Presentation and
+Update, the Client shows the Credential and receives an update in the same
+exchange.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <span id="name-redeem-issue-then-presentat"></span><div id="fig-credential-flow">
 <figure id="figure-2">
         <div id="section-5-2.1">
           <div class="alignLeft art-svg artwork" id="section-5-2.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="288" width="424" viewBox="0 0 424 288" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="288" width="488" viewBox="0 0 488 288" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
               <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
               <path d="M 40,64 L 40,128" fill="none" stroke="black"></path>
               <path d="M 40,176 L 40,240" fill="none" stroke="black"></path>
               <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
               <path d="M 320,32 L 320,64" fill="none" stroke="black"></path>
-              <path d="M 368,64 L 368,272" fill="none" stroke="black"></path>
+              <path d="M 368,64 L 368,128" fill="none" stroke="black"></path>
+              <path d="M 368,160 L 368,240" fill="none" stroke="black"></path>
               <path d="M 416,32 L 416,64" fill="none" stroke="black"></path>
               <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
               <path d="M 320,32 L 416,32" fill="none" stroke="black"></path>
               <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
               <path d="M 320,64 L 416,64" fill="none" stroke="black"></path>
-              <path d="M 48,96 L 144,96" fill="none" stroke="black"></path>
-              <path d="M 240,96 L 368,96" fill="none" stroke="black"></path>
-              <path d="M 40,112 L 56,112" fill="none" stroke="black"></path>
-              <path d="M 320,112 L 360,112" fill="none" stroke="black"></path>
-              <path d="M 48,128 L 112,128" fill="none" stroke="black"></path>
+              <path d="M 48,96 L 120,96" fill="none" stroke="black"></path>
+              <path d="M 288,96 L 368,96" fill="none" stroke="black"></path>
+              <path d="M 40,112 L 64,112" fill="none" stroke="black"></path>
+              <path d="M 312,112 L 360,112" fill="none" stroke="black"></path>
+              <path d="M 48,128 L 128,128" fill="none" stroke="black"></path>
               <path d="M 280,128 L 368,128" fill="none" stroke="black"></path>
-              <path d="M 48,208 L 144,208" fill="none" stroke="black"></path>
-              <path d="M 240,208 L 368,208" fill="none" stroke="black"></path>
-              <path d="M 40,224 L 64,224" fill="none" stroke="black"></path>
-              <path d="M 312,224 L 360,224" fill="none" stroke="black"></path>
-              <path d="M 48,240 L 144,240" fill="none" stroke="black"></path>
-              <path d="M 280,240 L 368,240" fill="none" stroke="black"></path>
+              <path d="M 48,208 L 112,208" fill="none" stroke="black"></path>
+              <path d="M 288,208 L 368,208" fill="none" stroke="black"></path>
+              <path d="M 40,224 L 104,224" fill="none" stroke="black"></path>
+              <path d="M 296,224 L 360,224" fill="none" stroke="black"></path>
+              <path d="M 48,240 L 160,240" fill="none" stroke="black"></path>
+              <path d="M 240,240 L 368,240" fill="none" stroke="black"></path>
               <polygon class="arrowhead" points="368,224 356,218.4 356,229.6" fill="black" transform="rotate(0,360,224)"></polygon>
               <polygon class="arrowhead" points="368,112 356,106.4 356,117.6" fill="black" transform="rotate(0,360,112)"></polygon>
               <polygon class="arrowhead" points="56,240 44,234.4 44,245.6" fill="black" transform="rotate(180,48,240)"></polygon>
@@ -1824,22 +1962,25 @@ update. Presentation and update happen in one exchange, following
               <g class="text">
                 <text x="44" y="52">Client</text>
                 <text x="368" y="52">Moderator</text>
-                <text x="192" y="100">Challenge</text>
-                <text x="108" y="116">Redemption</text>
-                <text x="160" y="116">+</text>
-                <text x="240" y="116">CredentialRequest</text>
-                <text x="196" y="132">CredentialResponse</text>
+                <text x="204" y="100">ModeratorChallenge</text>
+                <text x="116" y="116">Redemption</text>
+                <text x="168" y="116">+</text>
+                <text x="240" y="116">IssuanceRequest</text>
+                <text x="404" y="116">HTTP</text>
+                <text x="456" y="116">request</text>
+                <text x="204" y="132">IssuanceResponse</text>
                 <text x="36" y="148">Finalize</text>
+                <text x="360" y="148">|</text>
                 <text x="40" y="164">|</text>
                 <text x="32" y="180">.</text>
                 <text x="48" y="180">.</text>
-                <text x="192" y="212">Challenge</text>
-                <text x="124" y="228">Presentation</text>
-                <text x="184" y="228">+</text>
-                <text x="248" y="228">UpdateRequest</text>
-                <text x="212" y="244">UpdateResponse</text>
+                <text x="200" y="212">CredentialChallenge</text>
+                <text x="200" y="228">PresentationAndUpdate</text>
+                <text x="200" y="244">Update?</text>
                 <text x="36" y="260">Finalize</text>
+                <text x="360" y="260">|</text>
                 <text x="40" y="276">|</text>
+                <text x="368" y="276">|</text>
               </g>
             </svg><a href="#section-5-2.1.1" class="pilcrow">¶</a>
 </div>
@@ -1848,18 +1989,17 @@ update. Presentation and update happen in one exchange, following
 <a href="#name-redeem-issue-then-presentat" class="selfRef">Redeem &amp; Issue, then presentation and update</a>
         </figcaption></figure>
 </div>
-<p id="section-5-3">Both parts ride on HTTP requests to the Moderator, since each is an
-authorization. Redeem &amp; Issue carries a <code>CredentialRequest</code> in the
+<p id="section-5-3">Both parts ride on HTTP requests to the Moderator. Redeem &amp; Issue carries a
+<code>CredentialRequest</code> in the
 <code>Authorization</code> header and receives the <code>CredentialResponse</code> in the
-<code>Mole-Credential</code> response header. Presentation uses the same
-authentication scheme, with the update returned in the same
-<code>Mole-Credential</code> header under its <code>update</code> parameter. Carriage is
-defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<code>Mole-Credential</code> response header. The Moderator runs the selected endorsement
+protocol's <code>FinalizeRedeem</code> operation before processing the issuance request.
+Presentation uses the same authentication scheme.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <div class="lang-tls-presentation sourcecode" id="section-5-4">
 <pre>
 struct {
   uint16 endorsement_type;
-  opaque endorsement_presentation&lt;V&gt;;
+  opaque endorsement_presentation&lt;V&gt;; /* encoded Redemption */
   uint16 credential_type;
   opaque issuance_request&lt;V&gt;;
 } CredentialRequest;
@@ -1870,44 +2010,120 @@ struct {
 } CredentialResponse;
 </pre><a href="#section-5-4" class="pilcrow">¶</a>
 </div>
-<p id="section-5-5">The <code>endorsement_presentation</code> field carries the <code>Presentation</code> structure
-of the named endorsement type. With <code>endorsement_type</code> 0x0001 it is empty,
-and the Moderator relies on its own trust establishment (<a href="#common" class="auto internal xref">Section 3</a>).<a href="#section-5-5" class="pilcrow">¶</a></p>
-<p id="section-5-6">Every credential protocol defines five structures. <code>Challenge</code> is the
-type-specific content of the Moderator's challenge, carried in its
-<code>challenge</code> field (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). <code>IssuanceRequest</code> and
-<code>IssuanceResponse</code> fill the <code>issuance_request</code> and <code>issuance_response</code>
-fields above. <code>PresentationAndUpdate</code> is carried in the
-<code>presentation_and_update</code> field of a <code>CredentialPresentation</code>
-(<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>). <code>Update</code> is returned in the <code>update</code> parameter of
-the <code>Mole-Credential</code> header.<a href="#section-5-6" class="pilcrow">¶</a></p>
-<div id="credential-act">
+<p id="section-5-5">The structure fields are:<a href="#section-5-5" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5-6.1">
+          <p id="section-5-6.1.1"><code>endorsement_type</code> identifies the endorsement protocol.<a href="#section-5-6.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-6.2">
+          <p id="section-5-6.2.1"><code>endorsement_presentation</code> is its encoded <code>Redemption</code>. It is empty for
+endorsement type 0x0001 (<a href="#no-endorsement-required" class="auto internal xref">Section 4.3</a>).<a href="#section-5-6.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-6.3">
+          <p id="section-5-6.3.1"><code>credential_type</code> identifies the credential protocol.<a href="#section-5-6.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-6.4">
+          <p id="section-5-6.4.1"><code>issuance_request</code> is its encoded <code>IssuanceRequest</code>.<a href="#section-5-6.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-5-6.5">
+          <p id="section-5-6.5.1"><code>issuance_response</code> is its encoded <code>IssuanceResponse</code>.<a href="#section-5-6.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-5-7">A recipient of <code>CredentialResponse</code> <span class="bcp14">MUST</span> reject it unless <code>credential_type</code>
+matches the type selected by <code>CredentialRequest</code>.<a href="#section-5-7" class="pilcrow">¶</a></p>
+<p id="section-5-8">All credential protocols define the same four payloads:<a href="#section-5-8" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-5-9">
+        <dt id="section-5-9.1">IssuanceRequest</dt>
+        <dd style="margin-left: 1.5em" id="section-5-9.2">
+          <p id="section-5-9.2.1">A Client-generated request for a new Credential.<a href="#section-5-9.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-5-9.3">IssuanceResponse</dt>
+        <dd style="margin-left: 1.5em" id="section-5-9.4">
+          <p id="section-5-9.4.1">The Moderator's response to <code>IssuanceRequest</code>.<a href="#section-5-9.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-5-9.5">PresentationAndUpdate</dt>
+        <dd style="margin-left: 1.5em" id="section-5-9.6">
+          <p id="section-5-9.6.1">A presentation of a Credential and any request needed to replace or update
+it.<a href="#section-5-9.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-5-9.7">Update</dt>
+        <dd style="margin-left: 1.5em" id="section-5-9.8">
+          <p id="section-5-9.8.1">The Moderator's response to <code>PresentationAndUpdate</code>, when the Client remains
+eligible for a Credential.<a href="#section-5-9.8.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<p id="section-5-10">The type-specific encodings fill the opaque fields of the outer structures
+above and of <code>CredentialPresentation</code> and <code>CredentialUpdate</code> from
+<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.<a href="#section-5-10" class="pilcrow">¶</a></p>
+<div id="abstract-credential-api">
 <section id="section-5.1">
-        <h3 id="name-anonymous-credit-tokens-act">
-<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-anonymous-credit-tokens-act" class="section-name selfRef">Anonymous Credit Tokens (ACT)</a>
+        <h3 id="name-abstract-credential-api">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-abstract-credential-api" class="section-name selfRef">Abstract Credential API</a>
         </h3>
-<p id="section-5.1-1">Credential type: 0x0001.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">An ACT credential <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> is an anonymous state machine: the Moderator can
+<p id="section-5.1-1">Each credential protocol defines these abstract operations:<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.1-2">
+<pre>
+CreateIssuanceRequest(moderator_challenge, configuration)
+  -&gt; (issuance_state, issuance_request) | INVALID
+IssueCredential(issuance_request, moderator_challenge, policy, configuration)
+  -&gt; issuance_response | INVALID
+FinalizeIssuance(issuance_state, issuance_response, configuration)
+  -&gt; credential | INVALID
+
+CreatePresentationAndUpdate(credential, credential_challenge, configuration)
+  -&gt; (presentation_state, presentation_and_update) | INVALID
+ProcessPresentation(
+    presentation_and_update, credential_challenge, policy, configuration)
+  -&gt; INVALID
+   | ACCEPTED_NO_UPDATE
+   | ACCEPTED_WITH_UPDATE(update)
+FinalizeUpdate(presentation_state, update, configuration)
+  -&gt; credential | INVALID
+</pre><a href="#section-5.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-5.1-3"><code>CreateIssuanceRequest</code>, <code>FinalizeIssuance</code>, <code>CreatePresentationAndUpdate</code>, and
+<code>FinalizeUpdate</code> run at the Client. <code>IssueCredential</code> and <code>ProcessPresentation</code>
+run at the Moderator. State values are local and are not sent on the wire.
+<code>ACCEPTED_NO_UPDATE</code> means that the presentation succeeded but the Credential
+was consumed without replacement. <code>ACCEPTED_WITH_UPDATE</code> carries the encoded
+<code>Update</code> that the Client finalizes into its replacement Credential by calling
+<code>FinalizeUpdate</code>. The Client does not call <code>FinalizeUpdate</code> for
+<code>ACCEPTED_NO_UPDATE</code>. A complete protocol specification defines its Context
+derivation, replay protection, and retry behavior. The Moderator completes that
+replay protection before returning an accepted result.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="credential-act">
+<section id="section-5.2">
+        <h3 id="name-anonymous-credit-tokens-act">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-anonymous-credit-tokens-act" class="section-name selfRef">Anonymous Credit Tokens (ACT)</a>
+        </h3>
+<p id="section-5.2-1">Credential type: 0x0001.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">An ACT credential <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> is an anonymous state machine: the Moderator can
 test a predicate against the Credential's hidden state and update that
-state, without learning the state or linking presentations. This is the
-credential protocol that provides every property required by
+state, without learning the state or linking presentations. This protocol is
+intended to provide every property required by
 <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span>, including that updates provably apply to the credential
-that was presented.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+that was presented.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <div id="configuration-2">
-<section id="section-5.1.1">
+<section id="section-5.2.1">
           <h4 id="name-configuration-3">
-<a href="#section-5.1.1" class="section-number selfRef">5.1.1. </a><a href="#name-configuration-3" class="section-name selfRef">Configuration</a>
+<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-configuration-3" class="section-name selfRef">Configuration</a>
           </h4>
-<p id="section-5.1.1-1">The Moderator publishes its ACT public key and the predicate description
-(<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-5.1.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.2.1-1">The Moderator publishes its ACT public key and the predicate description
+(<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="redeem-issue">
-<section id="section-5.1.2">
+<section id="section-5.2.2">
           <h4 id="name-redeem-issue">
-<a href="#section-5.1.2" class="section-number selfRef">5.1.2. </a><a href="#name-redeem-issue" class="section-name selfRef">Redeem &amp; Issue</a>
+<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-redeem-issue" class="section-name selfRef">Redeem &amp; Issue</a>
           </h4>
-<div class="lang-tls-presentation sourcecode" id="section-5.1.2-1">
+<div class="lang-tls-presentation sourcecode" id="section-5.2.2-1">
 <pre>
 struct {
   uint8 truncated_key_id;
@@ -1917,25 +2133,35 @@ struct {
 struct {
   opaque response&lt;V&gt;;
 } IssuanceResponse;
-</pre><a href="#section-5.1.2-1" class="pilcrow">¶</a>
+</pre><a href="#section-5.2.2-1" class="pilcrow">¶</a>
 </div>
-<p id="section-5.1.2-2">The <code>request</code> and <code>response</code> fields are defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>. The Client
-finalizes the response into a Credential with an initial state chosen by
-the Moderator's policy.<a href="#section-5.1.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2.2-2">The structure fields are:<a href="#section-5.2.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2.2-3.1">
+              <p id="section-5.2.2-3.1.1"><code>truncated_key_id</code> selects the configured ACT key.<a href="#section-5.2.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.2-3.2">
+              <p id="section-5.2.2-3.2.1"><code>request</code> is the encoded ACT issuance request.<a href="#section-5.2.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.2-3.3">
+              <p id="section-5.2.2-3.3.1"><code>response</code> is the encoded ACT issuance response.<a href="#section-5.2.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-5.2.2-4">These structures are intended to implement <code>CreateIssuanceRequest</code>,
+<code>IssueCredential</code>, and <code>FinalizeIssuance</code>.<a href="#section-5.2.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="presentation-and-update">
-<section id="section-5.1.3">
+<section id="section-5.2.3">
           <h4 id="name-presentation-and-update">
-<a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-presentation-and-update" class="section-name selfRef">Presentation and Update</a>
+<a href="#section-5.2.3" class="section-number selfRef">5.2.3. </a><a href="#name-presentation-and-update" class="section-name selfRef">Presentation and Update</a>
           </h4>
-<p id="section-5.1.3-1">The Client presents the Credential against the challenged predicate,
+<p id="section-5.2.3-1">The Client presents the Credential against the selected predicate,
 spending it, and in the same message requests the replacement that carries
-the updated state.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-5.1.3-2">
+the updated state.<a href="#section-5.2.3-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.2.3-2">
 <pre>
 struct {
-  opaque challenge_digest[32];
   opaque key_id[32];
   opaque spend_proof&lt;V&gt;;
 } PresentationAndUpdate;
@@ -1943,59 +2169,65 @@ struct {
 struct {
   opaque refund&lt;V&gt;;
 } Update;
-</pre><a href="#section-5.1.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-5.2.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.1.3-3">The <code>spend_proof</code> and <code>refund</code> fields are defined in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>. The
-Moderator verifies the spend proof and learns whether the Credential's
-hidden state satisfies the challenged predicate. For range-style
-predicates, this necessarily reveals the public bound being tested, but
-not the hidden state value. The Client finalizes the refund into its new
-Credential. ACT guarantees the refund applies to the state that was
-presented.<a href="#section-5.1.3-3" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-4">TODO: the exact mapping between the spend and refund operations of <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>
-and MoLE's predicate and update is not settled. In particular, <code>Challenge</code>
-for this type must express the predicate and the charged amount, and its
-contents are not yet defined.<a href="#section-5.1.3-4" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-5">The <code>Challenge</code> for this type therefore needs to identify the predicate,
-including any public bound, and the update to apply.<a href="#section-5.1.3-5" class="pilcrow">¶</a></p>
+<p id="section-5.2.3-3">The structure fields are:<a href="#section-5.2.3-3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2.3-4.1">
+              <p id="section-5.2.3-4.1.1"><code>key_id</code> identifies the ACT key.<a href="#section-5.2.3-4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.3-4.2">
+              <p id="section-5.2.3-4.2.1"><code>spend_proof</code> is the encoded ACT spend proof.<a href="#section-5.2.3-4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.2.3-4.3">
+              <p id="section-5.2.3-4.3.1"><code>refund</code> is the encoded ACT refund.<a href="#section-5.2.3-4.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-5.2.3-5">These structures are intended to implement <code>CreatePresentationAndUpdate</code>,
+<code>ProcessPresentation</code>, and <code>FinalizeUpdate</code>.<a href="#section-5.2.3-5" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.2.3-6.1">
+              <p id="section-5.2.3-6.1.1"><strong>Editor note.</strong> The mapping from ACT issuance, spend, and refund operations
+to MoLE Contexts and payloads is undefined. This protocol is not interoperable
+until that mapping and its canonical encodings are specified.<a href="#section-5.2.3-6.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
 </section>
 </div>
 </section>
 </div>
 <div id="credential-reverse">
-<section id="section-5.2">
+<section id="section-5.3">
         <h3 id="name-privacy-pass-with-a-reverse">
-<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-privacy-pass-with-a-reverse" class="section-name selfRef">Privacy Pass with a Reverse Flow</a>
+<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-privacy-pass-with-a-reverse" class="section-name selfRef">Privacy Pass with a Reverse Flow</a>
         </h3>
-<p id="section-5.2-1">Credential type: 0x0002.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">The Credential is a single privately verifiable Privacy Pass token. Any
-token type registered in the Privacy Pass Token Types registry
-(<span>[<a href="#PRIVACYPASS-PROTOCOLS" class="cite xref">PRIVACYPASS-PROTOCOLS</a>]</span>) can be used. The Moderator's configuration
-names one. The Credential encodes one bit: the Client either holds a valid
-token or it does not. Presentation consumes the token. The update, if
-granted, is a fresh token issued through the reverse flow of
-<span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>, with the Moderator acting as both initial and reverse
-issuer.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
-<p id="section-5.2-3">The presented and reissued token <span class="bcp14">MUST</span> use the same token type and the same
-Moderator public key. Anything else partitions Clients and leaks state.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-1">Credential type: 0x0002.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.3-2">The Credential is a single Privacy Pass token. The Moderator's configuration
+names both the registered token type used for presentation and the registered
+token type used for update issuance. Presentation consumes the token. The
+update, if granted, is a fresh token issued through <span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>, with
+redemption in place of attestation.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">For the protocol described here, the presented and reissued token use the same
+token type and Moderator key. Changing either partitions Clients and leaks
+state.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <div id="redeem-issue-1">
-<section id="section-5.2.1">
+<section id="section-5.3.1">
           <h4 id="name-redeem-issue-2">
-<a href="#section-5.2.1" class="section-number selfRef">5.2.1. </a><a href="#name-redeem-issue-2" class="section-name selfRef">Redeem &amp; Issue</a>
+<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-redeem-issue-2" class="section-name selfRef">Redeem &amp; Issue</a>
           </h4>
-<p id="section-5.2.1-1"><code>IssuanceRequest</code> is a <code>TokenRequest</code> and <code>IssuanceResponse</code> is a
+<p id="section-5.3.1-1"><code>IssuanceRequest</code> is a <code>TokenRequest</code> and <code>IssuanceResponse</code> is a
 <code>TokenResponse</code>, both as defined for the configured token type in
-<span>[<a href="#PRIVACYPASS-PROTOCOLS" class="cite xref">PRIVACYPASS-PROTOCOLS</a>]</span>. The finalized token is the Credential.<a href="#section-5.2.1-1" class="pilcrow">¶</a></p>
+<span>[<a href="#PRIVACYPASS-PROTOCOLS" class="cite xref">PRIVACYPASS-PROTOCOLS</a>]</span>. That token type's finalization operation produces
+the Credential. These messages implement <code>CreateIssuanceRequest</code>,
+<code>IssueCredential</code>, and <code>FinalizeIssuance</code>.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="presentation-and-update-1">
-<section id="section-5.2.2">
+<section id="section-5.3.2">
           <h4 id="name-presentation-and-update-2">
-<a href="#section-5.2.2" class="section-number selfRef">5.2.2. </a><a href="#name-presentation-and-update-2" class="section-name selfRef">Presentation and Update</a>
+<a href="#section-5.3.2" class="section-number selfRef">5.3.2. </a><a href="#name-presentation-and-update-2" class="section-name selfRef">Presentation and Update</a>
           </h4>
-<p id="section-5.2.2-1"><code>Challenge</code> is empty for this type. The challenge octets, and therefore
-<code>challenge_digest</code>, are constant for a given Moderator configuration.<a href="#section-5.2.2-1" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-5.2.2-2">
+<div class="lang-tls-presentation sourcecode" id="section-5.3.2-1">
 <pre>
 struct {
   opaque token&lt;V&gt;;
@@ -2005,108 +2237,69 @@ struct {
 struct {
   opaque token_response&lt;V&gt;; /* TokenResponse */
 } Update;
-</pre><a href="#section-5.2.2-2" class="pilcrow">¶</a>
+</pre><a href="#section-5.3.2-1" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2.2-3">The <code>token</code> field carries a <code>Token</code> as defined in <span>[<a href="#PRIVACYPASS-AUTH" class="cite xref">PRIVACYPASS-AUTH</a>]</span>.
-Its <code>challenge_digest</code> field is fixed when the token is issued, one
-exchange before it is presented, and <span class="bcp14">MUST</span> equal the Moderator's constant
-<code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>). This binds the token to the
-Moderator, not to the exchange that presents it. Anti-replay therefore
-does not come from challenge binding: it comes from the token being
-single-use. The Moderator <span class="bcp14">MUST</span> reject a token whose nonce it has already
-seen.<a href="#section-5.2.2-3" class="pilcrow">¶</a></p>
-<p id="section-5.2.2-4">If the Moderator's policy allows continued access, it returns an <code>Update</code>.
-If not, it returns an empty update and the Client is out of credentials.<a href="#section-5.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.3.2-2">The structure fields are:<a href="#section-5.3.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.3.2-3.1">
+              <p id="section-5.3.2-3.1.1"><code>token</code> is the presented Privacy Pass <code>Token</code>.<a href="#section-5.3.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.3.2-3.2">
+              <p id="section-5.3.2-3.2.1"><code>token_request</code> is the encoded replacement <code>TokenRequest</code>.<a href="#section-5.3.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-5.3.2-3.3">
+              <p id="section-5.3.2-3.3.1"><code>token_response</code> is the encoded replacement <code>TokenResponse</code>.<a href="#section-5.3.2-3.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-5.3.2-4">These structures implement <code>CreatePresentationAndUpdate</code>, <code>ProcessPresentation</code>,
+and <code>FinalizeUpdate</code>.<a href="#section-5.3.2-4" class="pilcrow">¶</a></p>
+<p id="section-5.3.2-5">The <code>token</code> field carries a <code>Token</code> as defined in <span>[<a href="#PRIVACYPASS-AUTH" class="cite xref">PRIVACYPASS-AUTH</a>]</span>.
+Privacy Pass names its cryptographic Context <code>TokenChallenge</code>. In MoLE, the
+type-specific body of <code>CredentialChallenge</code> carries that configured
+<code>TokenChallenge</code>. It is therefore both sent by the Moderator as part of a
+Challenge and supplied to the Privacy Pass replacement-issuance and
+verification operations as their Context. Initial issuance obtains the same
+<code>TokenChallenge</code> from authenticated configuration.<a href="#section-5.3.2-5" class="pilcrow">¶</a></p>
+<p id="section-5.3.2-6"><code>TokenChallenge</code> is fixed when the token is issued. It <span class="bcp14">MUST</span> be stable for every
+Client using the same configured credential type, key, and epoch, and <span class="bcp14">MUST NOT</span>
+contain a per-Client or per-request value. This is necessary because a
+replacement token is issued before the operation in which it will be
+presented.
+The Privacy Pass <code>Token.challenge_digest</code> field <span class="bcp14">MUST</span> equal SHA-256 over the
+encoded configured <code>TokenChallenge</code>. It is distinct from the MoLE endorsement
+<code>challenge_digest</code> defined in <a href="#challenge-binding" class="auto internal xref">Section 4.1</a>. The Moderator <span class="bcp14">MUST</span> reject
+a token carrying any other digest. Replay protection comes from token single use.
+The Moderator <span class="bcp14">MUST</span> verify the token as specified by <span>[<a href="#PRIVACYPASS-AUTH" class="cite xref">PRIVACYPASS-AUTH</a>]</span>
+against the configured token type, key, and <code>TokenChallenge</code>, then atomically
+record its nonce before accepting it. An invalid or previously recorded nonce
+is rejected, except for the retry behavior below. Holder binding remains an
+open limitation below.<a href="#section-5.3.2-6" class="pilcrow">¶</a></p>
+<p id="section-5.3.2-7">If the Moderator's policy allows continued access, it returns an <code>Update</code>. If
+not, it returns no update and the Client is out of credentials.<a href="#section-5.3.2-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="retry-after-a-lost-response">
+<section id="section-5.3.3">
+          <h4 id="name-retry-after-a-lost-response">
+<a href="#section-5.3.3" class="section-number selfRef">5.3.3. </a><a href="#name-retry-after-a-lost-response" class="section-name selfRef">Retry after a lost response</a>
+          </h4>
+<p id="section-5.3.3-1">A Client that receives no response <span class="bcp14">MAY</span> retry the byte-identical
+<code>PresentationAndUpdate</code> only to recover from that loss. The Moderator <span class="bcp14">MUST</span>
+return the same accepted result while it retains the idempotency record,
+including the same <code>Update</code> or the same absence of an update. It <span class="bcp14">MUST</span> reject the
+replay after that record expires and <span class="bcp14">MUST NOT</span> issue a second Credential. The
+Client <span class="bcp14">MUST NOT</span> combine the same presented Credential with a different update
+request. These requirements are the retry semantics of <span>[<a href="#REVERSE-FLOW" class="cite xref">REVERSE-FLOW</a>]</span>.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="limitations">
-<section id="section-5.2.3">
+<section id="section-5.3.4">
           <h4 id="name-limitations">
-<a href="#section-5.2.3" class="section-number selfRef">5.2.3. </a><a href="#name-limitations" class="section-name selfRef">Limitations</a>
+<a href="#section-5.3.4" class="section-number selfRef">5.3.4. </a><a href="#name-limitations" class="section-name selfRef">Limitations</a>
           </h4>
-<p id="section-5.2.3-1">TODO: define a device binding mechanism, issuing tokens bound to a Client
+<p id="section-5.3.4-1">TODO: define a device binding mechanism, issuing tokens bound to a Client
 key so that presentation requires proof of possession. This would restore
-the binding between update and presented credential. Open problem.<a href="#section-5.2.3-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-</section>
-</div>
-<div id="credential-budget">
-<section id="section-5.3">
-        <h3 id="name-budget-privacy-pass">
-<a href="#section-5.3" class="section-number selfRef">5.3. </a><a href="#name-budget-privacy-pass" class="section-name selfRef">Budget Privacy Pass</a>
-        </h3>
-<p id="section-5.3-1">Credential type: 0x0003.<a href="#section-5.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.3-2">The Credential is a balance, represented as Privacy Pass tokens drawn from
-N issuers operated by the same Moderator, where issuer i denominates 2^i
-units. Tokens are issued in batches using <span>[<a href="#PRIVACYPASS-BATCHED" class="cite xref">PRIVACYPASS-BATCHED</a>]</span>, and any
-token type registered in the Privacy Pass Token Types registry that
-supports batched issuance can be used. The Client presents whatever tokens
-it wants, and the sum of their denominations is the amount spent. The
-Moderator returns change and any policy adjustment as freshly issued
-tokens through the reverse flow, summing to the intended new balance.<a href="#section-5.3-2" class="pilcrow">¶</a></p>
-<p id="section-5.3-3">A presentation reveals that the Client can spend the challenged amount. If
-the protocol presents exactly one token for that amount, and balance
-management remains Client-local, this is the same disclosure as an ACT
-predicate over that amount: the Moderator learns the predicate result, not
-the Client's remaining balance. Deployments that allow multiple tokens,
-variable denominations, or observable change shapes need padding or another
-mitigation.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
-<div id="redeem-issue-2">
-<section id="section-5.3.1">
-          <h4 id="name-redeem-issue-3">
-<a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-redeem-issue-3" class="section-name selfRef">Redeem &amp; Issue</a>
-          </h4>
-<p id="section-5.3.1-1"><code>IssuanceRequest</code> is a <code>BatchTokenRequest</code> and <code>IssuanceResponse</code> is a
-<code>BatchTokenResponse</code> (<span>[<a href="#PRIVACYPASS-BATCHED" class="cite xref">PRIVACYPASS-BATCHED</a>]</span>), for tokens summing to the
-initial balance set by the Moderator's policy.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="presentation-and-update-2">
-<section id="section-5.3.2">
-          <h4 id="name-presentation-and-update-3">
-<a href="#section-5.3.2" class="section-number selfRef">5.3.2. </a><a href="#name-presentation-and-update-3" class="section-name selfRef">Presentation and Update</a>
-          </h4>
-<p id="section-5.3.2-1">The challenge indicates the amount to spend:<a href="#section-5.3.2-1" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-5.3.2-2">
-<pre>
-struct {
-  uint64 amount;
-} Challenge;
-</pre><a href="#section-5.3.2-2" class="pilcrow">¶</a>
-</div>
-<p id="section-5.3.2-3">The <code>amount</code> is an indicator, not a per-Client value. A Moderator <span class="bcp14">MUST</span>
-use the same amount for every Client under a policy: varying it
-partitions Clients. Deployments <span class="bcp14">MAY</span> publish the amount out of band
-instead (<a href="#key-rotation" class="auto internal xref">Section 6</a>), in which case the field repeats the published
-value.<a href="#section-5.3.2-3" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-5.3.2-4">
-<pre>
-struct {
-  opaque tokens&lt;V&gt;;         /* one or more Tokens */
-  opaque token_request&lt;V&gt;;  /* BatchTokenRequest */
-} PresentationAndUpdate;
-
-struct {
-  opaque token_response&lt;V&gt;; /* BatchTokenResponse */
-} Update;
-</pre><a href="#section-5.3.2-4" class="pilcrow">¶</a>
-</div>
-<p id="section-5.3.2-5">Challenge binding comes from each <code>Token</code> structure, as in
-<a href="#credential-reverse" class="auto internal xref">Section 5.2</a>. The Client <span class="bcp14">MAY</span> at any time exchange several small
-tokens for larger ones at the Moderator's refund endpoint.<a href="#section-5.3.2-5" class="pilcrow">¶</a></p>
-</section>
-</div>
-<div id="when-to-use-it">
-<section id="section-5.3.3">
-          <h4 id="name-when-to-use-it">
-<a href="#section-5.3.3" class="section-number selfRef">5.3.3. </a><a href="#name-when-to-use-it" class="section-name selfRef">When to use it</a>
-          </h4>
-<p id="section-5.3.3-1">Balances with many possible values need many tokens and padding traffic to
-avoid leaking through request counts. If the state fits an ACT credential,
-<a href="#credential-act" class="auto internal xref">Section 5.1</a> is simpler and leaks less. This protocol fits
-deployments that already run Privacy Pass issuers and need only coarse
-balances.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
+the binding between update and presented credential. Open problem.<a href="#section-5.3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2118,38 +2311,17 @@ balances.<a href="#section-5.3.3-1" class="pilcrow">¶</a></p>
       <h2 id="name-key-rotation-and-discovery">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-key-rotation-and-discovery" class="section-name selfRef">Key Rotation and Discovery</a>
       </h2>
-<p id="section-6-1">TODO.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">Anchors and Moderators each publish a configuration that Clients fetch
-before running any flow. It contains their endpoints, supported endorsement
-and credential types, public keys, and, for Moderators, the accepted Anchor
-set for each policy. The order of the accepted set is normative: IHAT
-OR proofs and Longfellow issuer sets match elements by position, so all
-parties must see the same order.<a href="#section-6-2" class="pilcrow">¶</a></p>
-<p id="section-6-3">Endorsements live in epochs. The <code>endorsement_context</code> of IHAT and the
-epoch of Longfellow name the epoch an Endorsement is granted in, which is
-also the window the Moderator's nullifier store covers. Epoch length is a
-privacy parameter: short epochs shrink the double-spend store but
-partition Clients into smaller anonymity sets. See <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> for
-the consistency requirements on configuration. A Moderator that shows
-different configurations to different Clients can partition them.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<p id="section-6-4">Open questions:<a href="#section-6-4" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-6-5">
-<li id="section-6-5.1">
-          <p id="section-6-5.1.1">Format: a Privacy Pass style directory, or JWKS. Reusing JWKS matters if
-deployments want existing key-management tooling, despite feelings.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-1">This draft assumes authenticated configuration supplies endpoints, supported
+types, keys, epochs, accepted issuer sets, and type-specific inputs. The order
+of accepted sets is significant because IHAT proof branches and Longfellow
+issuer inputs match elements by position.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-2.1">
+          <p id="section-6-2.1.1"><strong>Editor note.</strong> Configuration discovery, serialization, authentication,
+canonical encodings, consistency, and rotation remain undefined. The wire
+protocols are not interoperable until these are specified.<a href="#section-6-2.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-6-5.2">
-          <p id="section-6-5.2.1">How and when Anchor and Moderator keys rotate.<a href="#section-6-5.2.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-6-5.3">
-          <p id="section-6-5.3.1">Whether messages carry a key identifier, such as a truncated key
-identifier as in Privacy Pass token requests, or a JWK Thumbprint.<a href="#section-6-5.3.1" class="pilcrow">¶</a></p>
-</li>
-        <li id="section-6-5.4">
-          <p id="section-6-5.4.1">How Clients validate Moderator configuration without revealing
-themselves, and how consistency is audited.<a href="#section-6-5.4.1" class="pilcrow">¶</a></p>
-</li>
-      </ol>
+      </ul>
 </section>
 </div>
 <div id="privacy-considerations">
@@ -2194,7 +2366,7 @@ can mint Endorsements freely. Blast radius and rotation response.<a href="#secti
 </li>
         <li id="section-8-3.3">
           <p id="section-8-3.3.1">Reverse-flow update transfer: the two-credential attack of
-<a href="#credential-reverse" class="auto internal xref">Section 5.2</a>, and why single-credential enforcement cannot be
+<a href="#credential-reverse" class="auto internal xref">Section 5.3</a>, and why single-credential enforcement cannot be
 verified.<a href="#section-8-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-8-3.4">
@@ -2202,6 +2374,17 @@ verified.<a href="#section-8-3.3.1" class="pilcrow">¶</a></p>
 distinguishing "bad proof" from "spent nullifier".<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
+<p id="section-8-4">The replay protection store is shared only within its configured scope. A
+deployment can use one atomic scope across all regions, including by routing
+each replay protection identifier to an authoritative region. This does not
+require the Client to know that region. A deployment can instead operate
+independent regional stores, but then the same Endorsement can be accepted once
+in each region. Credentials can likewise be presented once in each region,
+potentially creating divergent updates. Separate Moderators also do not
+coordinate stores.
+An IHAT redemption exposes the same nullifier in each scope, making cross-scope
+reuse linkable if records are compared. Proof rerandomization does not hide that
+reuse.<a href="#section-8-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="iana">
@@ -2212,13 +2395,15 @@ distinguishing "bad proof" from "spent nullifier".<a href="#section-8-3.4.1" cla
 <p id="section-9-1">This document sketches two candidate registries under a future "MoLE"
 group. The values below are candidate values for discussion in this -00
 draft and are not stable assignments.<a href="#section-9-1" class="pilcrow">¶</a></p>
-<p id="section-9-2">A registration <span class="bcp14">MUST</span> define the per-type structures its flow requires:
-<code>Challenge</code> and <code>Presentation</code> for endorsement types
-(<a href="#endorsement-protocols" class="auto internal xref">Section 4</a>), and <code>Challenge</code>, <code>IssuanceRequest</code>,
-<code>IssuanceResponse</code>, <code>PresentationAndUpdate</code>, and <code>Update</code> for credential
-types (<a href="#credential-protocols" class="auto internal xref">Section 5</a>). Every message begins with the registered
-<code>uint16</code> type (<a href="#common" class="auto internal xref">Section 3</a>). A registration <span class="bcp14">MUST</span> also state how redemption
-or presentation binds <code>challenge_digest</code> (<a href="#challenge-binding" class="auto internal xref">Section 3.3</a>).<a href="#section-9-2" class="pilcrow">¶</a></p>
+<p id="section-9-2">New registrations use Specification Required as defined by <span>[<a href="#IANA" class="cite xref">IANA</a>]</span>. A
+specification <span class="bcp14">MUST</span> define the structures and abstract operations required by
+the relevant common API, including canonical encodings and maximum sizes. An
+endorsement registration <span class="bcp14">MUST</span> provide issuer hiding where applicable, define
+its replay protection behavior, and state how a Challenge affects its cryptographic
+Context. A credential registration <span class="bcp14">MUST</span> define <code>IssuanceRequest</code>,
+<code>IssuanceResponse</code>, <code>PresentationAndUpdate</code>, <code>Update</code>, finalization, retry
+behavior, and Challenge-to-Context derivation. Outer type-selecting messages
+carry the registered <code>uint16</code> type as specified in <a href="#common" class="auto internal xref">Section 3</a>.<a href="#section-9-2" class="pilcrow">¶</a></p>
 <div id="mole-endorsement-types">
 <section id="section-9.1">
         <h3 id="name-mole-endorsement-types">
@@ -2245,23 +2430,23 @@ or presentation binds <code>challenge_digest</code> (<a href="#challenge-binding
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x0001</td>
-              <td class="text-left" rowspan="1" colspan="1">Moderator trust establishment</td>
+              <td class="text-left" rowspan="1" colspan="1">No Endorsement Required</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#common" class="auto internal xref">Section 3</a>
+                <a href="#no-endorsement-required" class="auto internal xref">Section 4.3</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x0002</td>
               <td class="text-left" rowspan="1" colspan="1">IHAT</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#ihat" class="auto internal xref">Section 4.1</a>
+                <a href="#ihat" class="auto internal xref">Section 4.4</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x0003</td>
               <td class="text-left" rowspan="1" colspan="1">Longfellow</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#longfellow" class="auto internal xref">Section 4.2</a>
+                <a href="#longfellow" class="auto internal xref">Section 4.5</a>
 </td>
             </tr>
             <tr>
@@ -2312,7 +2497,7 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
               <p id="section-9.1.1-1.4.1">Publicly Verifiable: Yes<a href="#section-9.1.1-1.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.1-1.5">
-              <p id="section-9.1.1-1.5.1">Reference: <a href="#ihat" class="auto internal xref">Section 4.1</a><a href="#section-9.1.1-1.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.1-1.5.1">Reference: <a href="#ihat" class="auto internal xref">Section 4.4</a><a href="#section-9.1.1-1.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2336,7 +2521,7 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
               <p id="section-9.1.2-1.4.1">Publicly Verifiable: Yes<a href="#section-9.1.2-1.4.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.1.2-1.5">
-              <p id="section-9.1.2-1.5.1">Reference: <a href="#longfellow" class="auto internal xref">Section 4.2</a><a href="#section-9.1.2-1.5.1" class="pilcrow">¶</a></p>
+              <p id="section-9.1.2-1.5.1">Reference: <a href="#longfellow" class="auto internal xref">Section 4.5</a><a href="#section-9.1.2-1.5.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2348,6 +2533,8 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
         <h3 id="name-mole-credential-types">
 <a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-mole-credential-types" class="section-name selfRef">MoLE Credential Types</a>
         </h3>
+<p id="section-9.2-1">One MoLE credential type identifies the issuance, presentation, and update
+payloads defined by a credential protocol.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 <span id="name-candidate-mole-credential-t"></span><div id="credential-types">
 <table class="center" id="table-2">
           <caption>
@@ -2371,21 +2558,14 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
               <td class="text-left" rowspan="1" colspan="1">0x0001</td>
               <td class="text-left" rowspan="1" colspan="1">ACT</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#credential-act" class="auto internal xref">Section 5.1</a>
+                <a href="#credential-act" class="auto internal xref">Section 5.2</a>
 </td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">0x0002</td>
               <td class="text-left" rowspan="1" colspan="1">Privacy Pass Reverse Flow</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <a href="#credential-reverse" class="auto internal xref">Section 5.2</a>
-</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">0x0003</td>
-              <td class="text-left" rowspan="1" colspan="1">Budget Privacy Pass</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <a href="#credential-budget" class="auto internal xref">Section 5.3</a>
+                <a href="#credential-reverse" class="auto internal xref">Section 5.3</a>
 </td>
             </tr>
             <tr>
@@ -2403,20 +2583,20 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
           </tbody>
         </table>
 </div>
-<p id="section-9.2-2">The registration template contains:<a href="#section-9.2-2" class="pilcrow">¶</a></p>
+<p id="section-9.2-3">The registration template contains:<a href="#section-9.2-3" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.2-3.1">
-            <p id="section-9.2-3.1.1">Value: The two-byte credential type.<a href="#section-9.2-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2-4.1">
+            <p id="section-9.2-4.1.1">Value: The two-byte credential type.<a href="#section-9.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.2-3.2">
-            <p id="section-9.2-3.2.1">Name: A short name for the protocol.<a href="#section-9.2-3.2.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.2-4.2">
+            <p id="section-9.2-4.2.1">Name: A short name for the protocol.<a href="#section-9.2-4.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.2-3.3">
-            <p id="section-9.2-3.3.1">Bound Update: Whether updates provably apply to the presented
-credential.<a href="#section-9.2-3.3.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.2-4.3">
+            <p id="section-9.2-4.3.1">Bound Update: Whether updates provably apply to the presented
+credential.<a href="#section-9.2-4.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-9.2-3.4">
-            <p id="section-9.2-3.4.1">Reference: Where the protocol is defined.<a href="#section-9.2-3.4.1" class="pilcrow">¶</a></p>
+          <li class="normal" id="section-9.2-4.4">
+            <p id="section-9.2-4.4.1">Reference: Where the protocol is defined.<a href="#section-9.2-4.4.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="iana-act">
@@ -2435,7 +2615,7 @@ credential.<a href="#section-9.2-3.3.1" class="pilcrow">¶</a></p>
               <p id="section-9.2.1-1.3.1">Bound Update: Yes<a href="#section-9.2.1-1.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.1-1.4">
-              <p id="section-9.2.1-1.4.1">Reference: <a href="#credential-act" class="auto internal xref">Section 5.1</a><a href="#section-9.2.1-1.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.1-1.4.1">Reference: <a href="#credential-act" class="auto internal xref">Section 5.2</a><a href="#section-9.2.1-1.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
@@ -2456,54 +2636,33 @@ credential.<a href="#section-9.2-3.3.1" class="pilcrow">¶</a></p>
               <p id="section-9.2.2-1.3.1">Bound Update: No<a href="#section-9.2.2-1.3.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-9.2.2-1.4">
-              <p id="section-9.2.2-1.4.1">Reference: <a href="#credential-reverse" class="auto internal xref">Section 5.2</a><a href="#section-9.2.2-1.4.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
-</div>
-<div id="iana-budget">
-<section id="section-9.2.3">
-          <h4 id="name-budget-privacy-pass-2">
-<a href="#section-9.2.3" class="section-number selfRef">9.2.3. </a><a href="#name-budget-privacy-pass-2" class="section-name selfRef">Budget Privacy Pass</a>
-          </h4>
-<ul class="normal">
-<li class="normal" id="section-9.2.3-1.1">
-              <p id="section-9.2.3-1.1.1">Value: 0x0003<a href="#section-9.2.3-1.1.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.3-1.2">
-              <p id="section-9.2.3-1.2.1">Name: Budget Privacy Pass<a href="#section-9.2.3-1.2.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.3-1.3">
-              <p id="section-9.2.3-1.3.1">Bound Update: No<a href="#section-9.2.3-1.3.1" class="pilcrow">¶</a></p>
-</li>
-            <li class="normal" id="section-9.2.3-1.4">
-              <p id="section-9.2.3-1.4.1">Reference: <a href="#credential-budget" class="auto internal xref">Section 5.3</a><a href="#section-9.2.3-1.4.1" class="pilcrow">¶</a></p>
+              <p id="section-9.2.2-1.4.1">Reference: <a href="#credential-reverse" class="auto internal xref">Section 5.3</a><a href="#section-9.2.2-1.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
 </section>
 </div>
 <div id="iana-grease">
-<section id="section-9.2.4">
+<section id="section-9.2.3">
           <h4 id="name-greased-values">
-<a href="#section-9.2.4" class="section-number selfRef">9.2.4. </a><a href="#name-greased-values" class="section-name selfRef">Greased Values</a>
+<a href="#section-9.2.3" class="section-number selfRef">9.2.3. </a><a href="#name-greased-values" class="section-name selfRef">Greased Values</a>
           </h4>
 <ul class="normal">
-<li class="normal" id="section-9.2.4-1.1">
-              <p id="section-9.2.4-1.1.1">Value: 0x0A0A, 0x1A1A, 0x2A2A, 0x3A3A, 0x4A4A, 0x5A5A, 0x6A6A, 0x7A7A,
-0x8A8A, 0x9A9A, 0xAAAA, 0xBABA, 0xCACA, 0xDADA, 0xEAEA, 0xFAFA<a href="#section-9.2.4-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.2.3-1.1">
+              <p id="section-9.2.3-1.1.1">Value: 0x0A0A, 0x1A1A, 0x2A2A, 0x3A3A, 0x4A4A, 0x5A5A, 0x6A6A, 0x7A7A,
+0x8A8A, 0x9A9A, 0xAAAA, 0xBABA, 0xCACA, 0xDADA, 0xEAEA, 0xFAFA<a href="#section-9.2.3-1.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.2.4-1.2">
-              <p id="section-9.2.4-1.2.1">Name: RESERVED<a href="#section-9.2.4-1.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.3-1.2">
+              <p id="section-9.2.3-1.2.1">Name: RESERVED<a href="#section-9.2.3-1.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.2.4-1.3">
-              <p id="section-9.2.4-1.3.1">Bound Update: N/A<a href="#section-9.2.4-1.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.3-1.3">
+              <p id="section-9.2.3-1.3.1">Bound Update: N/A<a href="#section-9.2.3-1.3.1" class="pilcrow">¶</a></p>
 </li>
-            <li class="normal" id="section-9.2.4-1.4">
-              <p id="section-9.2.4-1.4.1">Reference: <a href="#greasing" class="auto internal xref">Section 3.2</a><a href="#section-9.2.4-1.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-9.2.3-1.4">
+              <p id="section-9.2.3-1.4.1">Reference: <a href="#greasing" class="auto internal xref">Section 3.2</a><a href="#section-9.2.3-1.4.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-9.2.4-2">These values <span class="bcp14">MUST NOT</span> be assigned. Message bodies carrying them contain
-random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a href="#section-9.2.4-2" class="pilcrow">¶</a></p>
+<p id="section-9.2.3-2">These values <span class="bcp14">MUST NOT</span> be assigned. Message bodies carrying them contain
+random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a href="#section-9.2.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2541,7 +2700,12 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
           </tbody>
         </table>
 </div>
-<p id="section-9.3-2">TODO: full registration templates, following the Privacy Pass template.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-9.3-2.1">
+            <p id="section-9.3-2.1.1"><strong>Editor note.</strong> The final registry names and expert-review instructions
+remain to be specified.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 </section>
@@ -2573,6 +2737,10 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
         <dd>
 <span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE HTTP Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-http-transport-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="IANA">[IANA]</dt>
+        <dd>
+<span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="LONGFELLOW">[LONGFELLOW]</dt>
         <dd>
 <span class="refAuthor">Frigo, M.</span> and <span class="refAuthor">A. shelat</span>, <span class="refTitle">"Longfellow ZK"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-google-cfrg-libzk-02</span>, <time datetime="2026-07-22" class="refDate">22 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-02">https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-02</a>&gt;</span>. </dd>
@@ -2580,10 +2748,6 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
 <dt id="PRIVACYPASS-AUTH">[PRIVACYPASS-AUTH]</dt>
         <dd>
 <span class="refAuthor">Pauly, T.</span>, <span class="refAuthor">Valdez, S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"The Privacy Pass HTTP Authentication Scheme"</span>, <span class="seriesInfo">RFC 9577</span>, <span class="seriesInfo">DOI 10.17487/RFC9577</span>, <time datetime="2024-06" class="refDate">June 2024</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9577">https://www.rfc-editor.org/rfc/rfc9577</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="PRIVACYPASS-BATCHED">[PRIVACYPASS-BATCHED]</dt>
-        <dd>
-<span class="refAuthor">Robert, R.</span>, <span class="refAuthor">Wood, C. A.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Batched Token Issuance Protocol"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ietf-privacypass-batched-tokens-08</span>, <time datetime="2026-05-04" class="refDate">4 May 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-batched-tokens-08">https://datatracker.ietf.org/doc/html/draft-ietf-privacypass-batched-tokens-08</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PRIVACYPASS-PROTOCOLS">[PRIVACYPASS-PROTOCOLS]</dt>
         <dd>
@@ -2634,22 +2798,28 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
       </h2>
 <p id="appendix-A-1">A Client requests a resource protected by a Moderator that uses credential
 type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
-0x0002 (IHAT).<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+0x0002 (IHAT). The Client obtains the Endorsement before contacting that
+Moderator.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
 <span id="name-complete-exchange"></span><div id="fig-example">
 <figure id="figure-3">
         <div id="appendix-A-2.1">
           <div class="alignLeft art-svg artwork" id="appendix-A-2.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="304" width="392" viewBox="0 0 392 304" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="368" width="392" viewBox="0 0 392 368" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
               <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
-              <path d="M 40,64 L 40,176" fill="none" stroke="black"></path>
-              <path d="M 40,208 L 40,224" fill="none" stroke="black"></path>
-              <path d="M 40,256 L 40,288" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,144" fill="none" stroke="black"></path>
+              <path d="M 40,176 L 40,240" fill="none" stroke="black"></path>
+              <path d="M 40,272 L 40,352" fill="none" stroke="black"></path>
               <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
               <path d="M 160,32 L 160,64" fill="none" stroke="black"></path>
-              <path d="M 192,64 L 192,288" fill="none" stroke="black"></path>
+              <path d="M 192,64 L 192,80" fill="none" stroke="black"></path>
+              <path d="M 200,96 L 200,112" fill="none" stroke="black"></path>
               <path d="M 232,32 L 232,64" fill="none" stroke="black"></path>
+              <path d="M 232,128 L 232,144" fill="none" stroke="black"></path>
               <path d="M 288,32 L 288,64" fill="none" stroke="black"></path>
-              <path d="M 336,64 L 336,288" fill="none" stroke="black"></path>
+              <path d="M 336,64 L 336,176" fill="none" stroke="black"></path>
+              <path d="M 336,256 L 336,272" fill="none" stroke="black"></path>
+              <path d="M 344,192 L 344,240" fill="none" stroke="black"></path>
+              <path d="M 344,288 L 344,336" fill="none" stroke="black"></path>
               <path d="M 384,32 L 384,64" fill="none" stroke="black"></path>
               <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
               <path d="M 160,32 L 232,32" fill="none" stroke="black"></path>
@@ -2657,35 +2827,28 @@ type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
               <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
               <path d="M 160,64 L 232,64" fill="none" stroke="black"></path>
               <path d="M 288,64 L 384,64" fill="none" stroke="black"></path>
-              <path d="M 40,96 L 184,96" fill="none" stroke="black"></path>
-              <path d="M 200,96 L 224,96" fill="none" stroke="black"></path>
-              <path d="M 304,96 L 328,96" fill="none" stroke="black"></path>
-              <path d="M 48,112 L 184,112" fill="none" stroke="black"></path>
-              <path d="M 200,112 L 216,112" fill="none" stroke="black"></path>
-              <path d="M 312,112 L 336,112" fill="none" stroke="black"></path>
-              <path d="M 40,128 L 64,128" fill="none" stroke="black"></path>
-              <path d="M 168,128 L 184,128" fill="none" stroke="black"></path>
+              <path d="M 40,96 L 64,96" fill="none" stroke="black"></path>
+              <path d="M 168,96 L 192,96" fill="none" stroke="black"></path>
+              <path d="M 48,112 L 64,112" fill="none" stroke="black"></path>
+              <path d="M 40,128 L 56,128" fill="none" stroke="black"></path>
+              <path d="M 208,128 L 224,128" fill="none" stroke="black"></path>
               <path d="M 48,144 L 64,144" fill="none" stroke="black"></path>
-              <path d="M 168,144 L 192,144" fill="none" stroke="black"></path>
-              <path d="M 40,160 L 64,160" fill="none" stroke="black"></path>
-              <path d="M 168,160 L 184,160" fill="none" stroke="black"></path>
-              <path d="M 48,176 L 64,176" fill="none" stroke="black"></path>
-              <path d="M 168,176 L 192,176" fill="none" stroke="black"></path>
-              <path d="M 40,208 L 184,208" fill="none" stroke="black"></path>
-              <path d="M 200,208 L 224,208" fill="none" stroke="black"></path>
-              <path d="M 296,208 L 328,208" fill="none" stroke="black"></path>
-              <path d="M 48,224 L 184,224" fill="none" stroke="black"></path>
-              <path d="M 200,224 L 224,224" fill="none" stroke="black"></path>
-              <path d="M 40,256 L 184,256" fill="none" stroke="black"></path>
-              <path d="M 200,256 L 224,256" fill="none" stroke="black"></path>
-              <path d="M 304,256 L 328,256" fill="none" stroke="black"></path>
-              <path d="M 48,272 L 184,272" fill="none" stroke="black"></path>
-              <path d="M 320,272 L 336,272" fill="none" stroke="black"></path>
-              <polygon class="arrowhead" points="336,256 324,250.4 324,261.6" fill="black" transform="rotate(0,328,256)"></polygon>
-              <polygon class="arrowhead" points="336,208 324,202.4 324,213.6" fill="black" transform="rotate(0,328,208)"></polygon>
-              <polygon class="arrowhead" points="336,96 324,90.4 324,101.6" fill="black" transform="rotate(0,328,96)"></polygon>
-              <polygon class="arrowhead" points="192,160 180,154.4 180,165.6" fill="black" transform="rotate(0,184,160)"></polygon>
-              <polygon class="arrowhead" points="192,128 180,122.4 180,133.6" fill="black" transform="rotate(0,184,128)"></polygon>
+              <path d="M 208,144 L 232,144" fill="none" stroke="black"></path>
+              <path d="M 48,176 L 112,176" fill="none" stroke="black"></path>
+              <path d="M 280,176 L 328,176" fill="none" stroke="black"></path>
+              <path d="M 40,208 L 336,208" fill="none" stroke="black"></path>
+              <path d="M 48,224 L 344,224" fill="none" stroke="black"></path>
+              <path d="M 48,272 L 112,272" fill="none" stroke="black"></path>
+              <path d="M 288,272 L 328,272" fill="none" stroke="black"></path>
+              <path d="M 40,304 L 336,304" fill="none" stroke="black"></path>
+              <path d="M 48,320 L 344,320" fill="none" stroke="black"></path>
+              <path d="M 328,176 C 336.83064,176 344,183.16936 344,192" fill="none" stroke="black"></path>
+              <path d="M 328,272 C 336.83064,272 344,279.16936 344,288" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="344,304 332,298.4 332,309.6" fill="black" transform="rotate(0,336,304)"></polygon>
+              <polygon class="arrowhead" points="344,208 332,202.4 332,213.6" fill="black" transform="rotate(0,336,208)"></polygon>
+              <polygon class="arrowhead" points="232,128 220,122.4 220,133.6" fill="black" transform="rotate(0,224,128)"></polygon>
+              <polygon class="arrowhead" points="200,96 188,90.4 188,101.6" fill="black" transform="rotate(0,192,96)"></polygon>
+              <polygon class="arrowhead" points="56,320 44,314.4 44,325.6" fill="black" transform="rotate(180,48,320)"></polygon>
               <polygon class="arrowhead" points="56,272 44,266.4 44,277.6" fill="black" transform="rotate(180,48,272)"></polygon>
               <polygon class="arrowhead" points="56,224 44,218.4 44,229.6" fill="black" transform="rotate(180,48,224)"></polygon>
               <polygon class="arrowhead" points="56,176 44,170.4 44,181.6" fill="black" transform="rotate(180,48,176)"></polygon>
@@ -2695,26 +2858,26 @@ type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
                 <text x="44" y="52">Client</text>
                 <text x="196" y="52">Anchor</text>
                 <text x="336" y="52">Moderator</text>
-                <text x="264" y="100">request</text>
-                <text x="264" y="116">challenge</text>
-                <text x="108" y="132">exchange</text>
-                <text x="152" y="132">1</text>
-                <text x="108" y="148">response</text>
-                <text x="152" y="148">1</text>
-                <text x="108" y="164">exchange</text>
-                <text x="152" y="164">2</text>
-                <text x="108" y="180">response</text>
-                <text x="152" y="180">2</text>
-                <text x="36" y="196">Finalize</text>
-                <text x="260" y="212">redeem</text>
-                <text x="276" y="228">credential</text>
-                <text x="328" y="228">-</text>
-                <text x="36" y="244">Finalize</text>
-                <text x="264" y="260">present</text>
-                <text x="204" y="276">--</text>
-                <text x="228" y="276">ok</text>
-                <text x="248" y="276">+</text>
-                <text x="284" y="276">update</text>
+                <text x="96" y="100">empty</text>
+                <text x="140" y="100">body</text>
+                <text x="128" y="116">CommitMessage</text>
+                <text x="192" y="116">-</text>
+                <text x="132" y="132">ChallengeMessage</text>
+                <text x="136" y="148">ResponseMessage</text>
+                <text x="36" y="164">Finalize</text>
+                <text x="192" y="164">|</text>
+                <text x="196" y="180">ModeratorChallenge</text>
+                <text x="108" y="196">Redemption</text>
+                <text x="160" y="196">+</text>
+                <text x="232" y="196">IssuanceRequest</text>
+                <text x="132" y="244">IssuanceResponse</text>
+                <text x="36" y="260">Finalize</text>
+                <text x="192" y="260">|</text>
+                <text x="200" y="276">CredentialChallenge</text>
+                <text x="152" y="292">PresentationAndUpdate</text>
+                <text x="92" y="340">Update</text>
+                <text x="192" y="356">|</text>
+                <text x="336" y="356">|</text>
               </g>
             </svg><a href="#appendix-A-2.1.1" class="pilcrow">¶</a>
 </div>
@@ -2723,53 +2886,46 @@ type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
 <a href="#name-complete-exchange" class="selfRef">Complete exchange</a>
         </figcaption></figure>
 </div>
-<p id="appendix-A-3">The Moderator challenges the Client:<a href="#appendix-A-3" class="pilcrow">¶</a></p>
+<p id="appendix-A-3">The first IHAT request has an empty body. The Anchor returns a
+<code>CommitMessage</code>. The Client then sends the corresponding <code>ChallengeMessage</code>,
+and the Anchor returns a <code>ResponseMessage</code>:<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="appendix-A-4">
 <pre>
-HTTP/1.1 401 Unauthorized
-WWW-Authenticate: Mole challenge="&lt;credential-challenge&gt;",
-                       realm="moderator"
-</pre><a href="#appendix-A-4" class="pilcrow">¶</a>
-</div>
-<p id="appendix-A-5">The Client holds no Credential for this Moderator, so it first obtains an
-Endorsement. It runs the two IHAT exchanges against the Anchor:<a href="#appendix-A-5" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="appendix-A-6">
-<pre>
-POST /mole/endorse HTTP/1.1
+POST &lt;anchor-grant-link&gt; HTTP/1.1
 Host: anchor.example
 Content-Type: application/mole-endorsement-request
 
-EndorsementRequest { 0x0002, Prepare(...) }
-</pre><a href="#appendix-A-6" class="pilcrow">¶</a>
+EndorsementRequest { 0x0002, "" }
+</pre><a href="#appendix-A-4" class="pilcrow">¶</a>
 </div>
-<p id="appendix-A-7">The Anchor answers each POST with an
-<code>application/mole-endorsement-response</code> body, and the Client finalizes the
-Endorsement.<a href="#appendix-A-7" class="pilcrow">¶</a></p>
-<p id="appendix-A-8">The Client then runs Redeem &amp; Issue. It repeats its request, this time
-carrying a <code>CredentialRequest</code> that redeems the Endorsement bound to the
-Moderator's challenge together with a Privacy Pass TokenRequest:<a href="#appendix-A-8" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="appendix-A-9">
+<p id="appendix-A-5">The Client finalizes the <code>ResponseMessage</code> into an Endorsement. It then obtains
+a <code>ModeratorChallenge</code> from the Moderator, computes its digest, and sends an
+HTTP request with a <code>CredentialRequest</code> containing the IHAT <code>Redemption</code> and a
+Privacy Pass <code>TokenRequest</code>:<a href="#appendix-A-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-6">
 <pre>
 GET /resource HTTP/1.1
 Host: moderator.example
 Authorization: Mole credential-request="&lt;credential-request&gt;"
-</pre><a href="#appendix-A-9" class="pilcrow">¶</a>
+</pre><a href="#appendix-A-6" class="pilcrow">¶</a>
 </div>
-<p id="appendix-A-10">The Moderator verifies the redemption, records its nullifier, and returns
-a <code>CredentialResponse</code> carrying a TokenResponse in the <code>Mole-Credential</code>
-header, alongside its unchanged challenge. The Client finalizes it into a
-token and answers the challenge:<a href="#appendix-A-10" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="appendix-A-11">
+<p id="appendix-A-7">The Moderator verifies the redemption against the Challenge it sent and
+atomically records its nullifier.
+It then processes the issuance request and returns a <code>CredentialResponse</code>
+carrying a <code>TokenResponse</code> in the <code>Mole-Credential</code> header. The Client finalizes
+the issuance response. On a later request, it obtains a
+<code>CredentialChallenge</code> carrying the configured Privacy Pass <code>TokenChallenge</code>
+before presenting the resulting token:<a href="#appendix-A-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="appendix-A-8">
 <pre>
 GET /resource HTTP/1.1
 Host: moderator.example
 Authorization: Mole presentation="&lt;credential-presentation&gt;"
-</pre><a href="#appendix-A-11" class="pilcrow">¶</a>
+</pre><a href="#appendix-A-8" class="pilcrow">¶</a>
 </div>
-<p id="appendix-A-12">The Moderator verifies the presentation and serves the resource. Its
-response carries a <code>Mole-Credential</code> header whose <code>update</code> parameter
-holds a fresh token, or an absent update if it chose to consume the
-Credential.<a href="#appendix-A-12" class="pilcrow">¶</a></p>
+<p id="appendix-A-9">The Moderator verifies the presentation and serves the resource. Its response
+carries an <code>Update</code> for a fresh token, or no update if it chose to consume the
+Credential.<a href="#appendix-A-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="acknowledgments">

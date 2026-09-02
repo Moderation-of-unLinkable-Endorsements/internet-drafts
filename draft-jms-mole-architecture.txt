@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 25 February 2027                                        Mozilla
+Expires: 6 March 2027                                            Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                          24 August 2026
+                                                        2 September 2026
 
 
        Moderation of unLinkable Endorsements (MoLE) Architecture
@@ -61,7 +61,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 25 February 2027.
+   This Internet-Draft will expire on 6 March 2027.
 
 Copyright Notice
 
@@ -346,6 +346,8 @@ Table of Contents
        |                     |                         |
        |                     +====== Presentation ====>|
        |                     |                         |
+       |                     |<======== Update ========|
+       |                     |                         |
 
                     Figure 1: MoLE Architecture Overview
 
@@ -486,8 +488,10 @@ Table of Contents
    +---+----+                 +---+----+
        |                          |
        |<==Trust Establishment===>|
+       |                          |
        +--- EndorsementRequest -->|
        |<-- EndorsementResponse --+
+       |                          |
    EndorsementFinalization        |
        |                          |
 
@@ -549,9 +553,12 @@ Table of Contents
    +---+----+                                +-----+-----+
        |                                           |
        |<========== Anchor Negotiation ===========>|
+       |                                           |
    EndorsementRedemption                           |
+       |                                           |
        +--- EndorsementToken+CredentialRequest --->|
        |<---------- CredentialResponse ------------+
+       |                                           |
    CredentialFinalization                          |
        |                                           |
 
@@ -609,12 +616,15 @@ Table of Contents
    +---+----+                                +-----+-----+
        |                                           |
        |<--------- PresentationChallenge ----------+
+       |                                           |
        |<===== If needed, Redeem & Issue =========>|
        |                                           |
-   CredentialPresentation                             |
-       +----- Request+CredentialToken ------------>|
+   CredentialPresentation                          |
        |                                           |
-       |<---- Response+CredentialResponse ---------+
+       +--- Request+CredentialToken -------------->|
+       |                                           |
+       |<---------- Response+CredentialResponse ---+
+       |                                           |
    CredentialFinalization                          |
        |                                           |
 
