@@ -260,6 +260,8 @@ presently in good standing with the Moderator in order to access a resource.
     |                     |                         |
     |                     +====== Presentation ====>|
     |                     |                         |
+    |                     |<======== Update ========|
+    |                     |                         |
 ~~~
 {: #fig-mole-architecture title="MoLE Architecture Overview"}
 
@@ -346,8 +348,10 @@ MoLE considers a CRQC for its privacy properties like Anchor-hiding and unlinkab
 +---+----+                 +---+----+
     |                          |
     |<==Trust Establishment===>|
+    |                          |
     +--- EndorsementRequest -->|
     |<-- EndorsementResponse --+
+    |                          |
 EndorsementFinalization        |
     |                          |
 ~~~
@@ -384,9 +388,12 @@ The specific properties of the Endorsement vary based on the exact protocol used
 +---+----+                                +-----+-----+
     |                                           |
     |<========== Anchor Negotiation ===========>|
+    |                                           |
 EndorsementRedemption                           |
+    |                                           |
     +--- EndorsementToken+CredentialRequest --->|
     |<---------- CredentialResponse ------------+
+    |                                           |
 CredentialFinalization                          |
     |                                           |
 ~~~
@@ -419,12 +426,15 @@ The properties of the Credential issued by the Moderator will vary depending on 
 +---+----+                                +-----+-----+
     |                                           |
     |<--------- PresentationChallenge ----------+
+    |                                           |
     |<===== If needed, Redeem & Issue =========>|
     |                                           |
-CredentialPresentation                             |
-    +----- Request+CredentialToken ------------>|
+CredentialPresentation                          |
     |                                           |
-    |<---- Response+CredentialResponse ---------+
+    +--- Request+CredentialToken -------------->|
+    |                                           |
+    |<---------- Response+CredentialResponse ---+
+    |                                           |
 CredentialFinalization                          |
     |                                           |
 ~~~
