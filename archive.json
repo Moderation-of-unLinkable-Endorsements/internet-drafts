@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-08-27T08:16:14.937138+00:00",
+  "timestamp": "2026-09-03T03:35:57.312274+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -4170,7 +4170,7 @@
       "id": "PR_kwDOSX6krs7wzVoM",
       "title": "[architecture] fix diagrams",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/36",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -4181,18 +4181,28 @@
       ],
       "body": "diagram rendering had some drawing discontinuity. this fixes them they'll likely have to be reworked down the line, but this is a minimal edit",
       "createdAt": "2026-07-12T19:10:08Z",
-      "updatedAt": "2026-07-16T06:39:42Z",
+      "updatedAt": "2026-09-02T12:54:49Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "1fa0b45f5114826c40f54354e0bd0e93c2d92384",
+      "baseRefOid": "578033d37e7077a73a4871ac6b73f0b15d0fd12a",
       "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "fix-aasvg-nits",
-      "headRefOid": "e04be47d586d90b51b72139bf8789706e9589f48",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
+      "headRefOid": "75f6dfffb4bf0f730b83675de3850ffd985e7311",
+      "closedAt": "2026-09-02T12:54:46Z",
+      "mergedAt": "2026-09-02T12:54:46Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "2d7c359e70109934a32f179b157e13a749c0ca1c"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "updated the commit to have slightly more space based on @martinthomson suggestion. it still includes the fixes. the diagrams may change down the line, but that's future work",
+          "createdAt": "2026-09-02T12:54:41Z",
+          "updatedAt": "2026-09-02T12:54:41Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABFv_j8A",
@@ -4246,6 +4256,19 @@
               "updatedAt": "2026-07-16T06:39:42Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABL1F9Gw",
+          "commit": {
+            "abbreviatedOid": "e04be47"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-02T11:12:04Z",
+          "updatedAt": "2026-09-02T11:12:04Z",
+          "comments": []
         }
       ]
     },
@@ -6818,7 +6841,7 @@
       ],
       "body": "",
       "createdAt": "2026-08-19T21:53:53Z",
-      "updatedAt": "2026-08-19T21:53:53Z",
+      "updatedAt": "2026-09-02T13:13:40Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
@@ -6829,8 +6852,37 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "comments": [
+        {
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm ok with having this here, but I think this is captured in architecture document and I'd generally try to point to that and keep text here specific to issues introduced by the details of this doc. ",
+          "createdAt": "2026-09-02T11:14:10Z",
+          "updatedAt": "2026-09-02T11:14:10Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "rebased on the latest protocol draft in https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/63\r\n\r\nthat will need one approval @dennisjackson ",
+          "createdAt": "2026-09-02T13:13:40Z",
+          "updatedAt": "2026-09-02T13:13:40Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABL1HFDw",
+          "commit": {
+            "abbreviatedOid": "8fcb4dc"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-02T11:14:21Z",
+          "updatedAt": "2026-09-02T11:14:21Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 60,
@@ -6846,7 +6898,7 @@
       ],
       "body": "Specified endorsement redemption in the crypto draft: additive key rerandomization plus an issuer-hiding proof over the Moderator's Anchor Set, built from Stacking Sigmas (eprint 2021/422).\r\n\r\nSpecified: key rerandomization; the Schnorr branch proof; the partially binding vector commitment from discrete log composed into a binary tree; the Fiat-Shamir transcript; the algorithms ProveIssuer, VerifyIssuer, Redeem and VerifyRedemption, and the Redemption wire format; and the security considerations as prose. \r\n\r\nNot yet specified, and marked TODO in the text: formal security statements and the corresponding reductions, and test vectors.",
       "createdAt": "2026-08-21T10:08:41Z",
-      "updatedAt": "2026-08-21T23:12:32Z",
+      "updatedAt": "2026-09-02T09:44:14Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
@@ -6857,7 +6909,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Created https://github.com/deep-inder/internet-drafts/pull/1 to address editorial and API feedback. @deep-inder : feel free to review/merge. another path is to merge the present PR, and then add my commit on top",
+          "createdAt": "2026-09-02T09:44:14Z",
+          "updatedAt": "2026-09-02T09:44:14Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABKbxigA",
@@ -7162,7 +7222,7 @@
       "id": "PR_kwDOSX6krs8AAAABA9-gMQ",
       "title": "Update to the protocol draft",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/62",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -7173,19 +7233,106 @@
       ],
       "body": "Updating the protocol draft to start aligning with the evolution of the crypto drafts (IHAT and longfellow #59).\r\n\r\nMain changes are:\r\n1. Defines common abstract APIs for endorsement and credential protocols\r\n2. Update the vocabulary to better characterise \"context\", especially as that's used in a couple of places\r\n3. Removes Budget Privacy Pass (not planned to be implemented)\r\n4. Ensure that behaviour that we don't know about yet (ihat, longfellow, act, reverse flow) is clearly marked as such\r\n\r\nThe protocols are not yet fully backed for interroperability, but having reviews on the API shape would help.",
       "createdAt": "2026-08-25T17:08:14Z",
-      "updatedAt": "2026-08-25T17:08:15Z",
+      "updatedAt": "2026-09-02T12:55:02Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "578033d37e7077a73a4871ac6b73f0b15d0fd12a",
       "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "work/protocol-stack",
       "headRefOid": "01e2e2fb4d9986e6fa4e96128d245b25ee1d371b",
+      "closedAt": "2026-09-02T12:54:58Z",
+      "mergedAt": "2026-09-02T12:54:58Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "84393eb0a40cdff2e772c635424a16b012c3b20e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABL1oCXQ",
+          "commit": {
+            "abbreviatedOid": "01e2e2f"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-02T12:08:13Z",
+          "updatedAt": "2026-09-02T12:08:13Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 63,
+      "id": "PR_kwDOSX6krs8AAAABB5rfyg",
+      "title": "protocols: Warn about Anchor Set intersection attacks",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/63",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Adapted from #58 for the current configuration model, given Chris is out this week.",
+      "createdAt": "2026-09-02T13:13:13Z",
+      "updatedAt": "2026-09-02T15:05:02Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "84393eb0a40cdff2e772c635424a16b012c3b20e",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "protocols-anchor-set-intersection-attacks",
+      "headRefOid": "48043d8e0b70027783d9fc181ccba461d9028cde",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABL2m2wA",
+          "commit": {
+            "abbreviatedOid": "48043d8"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T13:44:18Z",
+          "updatedAt": "2026-09-02T13:44:19Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "I mean, isn't that why the moderator must commit to an Anchor set? It feels like we should mention the mitigation as well with a SHOULD.",
+              "createdAt": "2026-09-02T13:44:18Z",
+              "updatedAt": "2026-09-02T13:44:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABL3jhXA",
+          "commit": {
+            "abbreviatedOid": "48043d8"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-02T15:05:01Z",
+          "updatedAt": "2026-09-02T15:05:02Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "this is a privacy consideration which is to be drafted still. I've added your suggestion as a TODO",
+              "createdAt": "2026-09-02T15:05:01Z",
+              "updatedAt": "2026-09-02T15:05:02Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
