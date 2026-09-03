@@ -1271,141 +1271,58 @@ branch at the binding position uses the actual witness and a commitment fixed
 before the challenge; which branch that is remains hidden by the commitment
 key.
 
-This document uses the commitment of Section 5.2 of {{STACKSIG}} over pairs,
-composed into a binary tree as described in Section 5.3 of {{STACKSIG}}, so
-that a commitment to `2^q` values costs one commitment key and one opening per
-level.
+This document uses the commitment of the appendix of {{STACKSIG}} over pairs,
+and then assembles them into a tree. The inputs to the commitments are arbitrary
+strings of bytes, and the outputs are compressed group elements.
 
-Two group elements are fixed. `B` is the generator, which is the base of the
-commitment randomness. `G0` is a second base with no known discrete logarithm
-relation to `B`:
+We require a random permutation `P` on group elements. We defer discussing its
+instantiation to a later section. Being a permutation `P` has an inverse `Pinv`.
 
-~~~
-  G0 = G.HashToGroup("StackBase")
-~~~
+If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
+we apply this commitment to group elements, so the output is always the same size.
 
-`G0` is a fixed parameter of the ciphersuite, since the domain separation tag of
-`HashToGroup` carries `ctx_proto` ({{config}}). It is derived by hashing a
-constant so that no party knows its discrete logarithm; see
-{{security-considerations}}.
-
-A node of the tree commits two values with a commitment key `ck`, which is a
-single group element. The two values are committed under two derived bases:
+The parameters for our 1-of-2 binding commitments will be a point `Q`, and openings
+will be a single scalar, the randomness used in the commitment.
 
 ~~~
-def CreateNodeBases(ck):
-  return (G0 + ck, G0 - ck)
+def CommitStep(Q, left, right, randomness):
+    C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)
+    return G.SerializeElement(C)
+
+# the return value is (Q, secret) where
+# secret can be used to equivocate the non
+# binding direction
+
+def GenerateStep(bind_direction):
+    secret = G.RandomScalar()
+    T = secret*G.Generator()
+    if bind_direction == "left":
+        return (Pinv(T), secret)
+    elsif  bind_direction == "right":
+        return (T, secret)
+
+def EquivocateStep(old,new, randomness, secret):
+    return randomenss + (old - new)*secret
 ~~~
 
-The bases always sum to `G0 + G0`, so a Client that knew the discrete logarithm
-of both would know that of `G0`. It can therefore arrange to know one of them,
-and does so by choosing which:
+Let V[0], V[1], ... V[n-1] be a vector of bytestrings. We will use a logarithmic number of reductions
+to create a single commitment to the entire vector.
 
 ~~~
-def CreateCommitmentKey(trapdoor, equivocal):
-  E = G.ScalarMultGen(trapdoor)
-
-  if equivocal == 0:
-    return E - G0
-  else:
-    return G0 - E
+def VecCommit(V, Qi, rands):
+    if len(V) == 1 :
+        return V[0]
+    for i:=0; i<len(V)/2; i++
+        V'[i] = CommitStep(Q[0], V[2*i], V[2*i+1], rands[0])
+    if len(V) % 2 == 1 :
+        V'[len(V)/2+1] = V[len(V)-1]
+    return VecCOmmit(V', Qi[1:], rands[1:])
 ~~~
 
-The base of position `equivocal` is then `trapdoor * B`, and the base of the
-other position is not, so the other position is the binding one. Both cases
-produce a `ck` that is uniformly distributed over the group, so `ck` reveals
-nothing about which position is which. This is the interpolation of
-Section 5.2 of {{STACKSIG}} for a pair, written with the two positions placed
-at `+1` and `-1` and `G0` at `0`.
+Creating parameters that bind in only one specified position of the vector V is
+an exercise in bookkeeping. Note that there is significant savings in verification
+from caching the computation of `G.Generator()*rands[i]` across the level.
 
-A node commits its two values as two Pedersen commitments, one under each base:
-
-~~~
-def CommitNode(ck, rand, v_left, v_right):
-  (base_left, base_right) = CreateNodeBases(ck)
-  (r_left, r_right) = rand
-
-  return (G.ScalarMultGen(r_left) + v_left * base_left,
-          G.ScalarMultGen(r_right) + v_right * base_right)
-~~~
-
-A node is committed with the equivocal value set to zero, and is later reopened
-to a value `v` by shifting that position's randomness:
-
-~~~
-def EquivocateNode(rand, trapdoor, equivocal, v):
-  (r_left, r_right) = rand
-
-  if equivocal == 0:
-    return (r_left - trapdoor * v, r_right)
-  else:
-    return (r_left, r_right - trapdoor * v)
-~~~
-
-The commitment is unchanged by this, because the base of the equivocal position
-is `trapdoor * B`:
-
-~~~
-  (r - trapdoor * v) * B + v * (trapdoor * B) = r * B
-~~~
-
-which is what the node committed when the value was zero. The binding position
-is not shifted, and cannot be: moving it would need the discrete logarithm of
-its base.
-
-The values a node commits are scalars, so the commitments of the level below,
-and the branch commitments at the leaves, are compressed before they are
-committed:
-
-~~~
-def CompressValue(level, buf):
-  return G.HashToScalar(I2OSP(level, 1) ||
-                        I2OSP(len(buf), 2) || buf ||
-                        "StackNode")
-
-def EncodeNode(node):
-  (left, right) = node
-  return G.SerializeElement(left) ||
-         G.SerializeElement(right)
-~~~
-
-The level index is bound into the compression so that a value cannot be
-reinterpreted at another level of the tree.
-
-The soundness of the proof requires `CompressValue` to be collision resistant.
-Two branch commitments that compressed to the same scalar would open the
-binding leaf to a statement it was not committed to, and two nodes of a level
-that collided would swap the subtrees below them, in neither case requiring any
-discrete logarithm. `HashToScalar` provides this for the ciphersuites of
-{{ciphersuites}}; see {{security-considerations}}.
-
-The tree has `N = 2^q` leaves, where `q` is the least integer with `2^q >= n`.
-Level 0 is the leaves; for `1 <= j <= q`, level `j` has `N / 2^j` nodes, and
-node `k` of level `j` commits the values of nodes `2 * k` and `2 * k + 1` of
-level `j - 1`. Level `q` is the root. Every node of level `j` uses the same
-commitment key `commitment_keys[j - 1]` and the same randomness; this is what
-makes the proof logarithmic rather than linear.
-
-If `N > n`, the statements are padded by repeating the last one:
-
-~~~
-def Statements(anchor_set, X_hat):
-  n = len(anchor_set)
-  q = 0
-  while 2^q < n:
-    q = q + 1
-
-  for i in range(n):
-    Y[i] = X_hat - anchor_set[i]
-  for i in range(n, 2^q):
-    Y[i] = Y[n - 1]
-
-  return (Y, q)
-~~~
-
-A padded leaf therefore holds the same value as leaf `n - 1`, which both parties
-compute the same way, whether or not `n - 1` is the branch the Client answered.
-Padding adds neither an Anchor to the Anchor Set nor information to the proof.
 
 ### Challenge Computation {#proof-challenge}
 
@@ -1477,7 +1394,7 @@ Output:
   Scalar proof_challenge
   Scalar response
   Element commitment_keys[q]
-  Scalar openings[2 * q]
+  Scalar openings[q]
 ~~~
 
 Parameters:
@@ -1494,29 +1411,13 @@ Errors: `DeriveError`
 def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
                 ctx_red, challenge_digest, rand):
   (Y, q) = Statements(anchor_set, X_hat)
-  N = 2^q
-
-  r = DeriveScalar(Seed(rand, 0), "r")
-  trapdoor = []
-  node_rand = []
-  for j in range(q):
-    trapdoor[j] = DeriveScalar(Seed(rand, 3 * j + 1), "trapdoor")
-    node_rand[j] = (DeriveScalar(Seed(rand, 3 * j + 2), "left"),
-                    DeriveScalar(Seed(rand, 3 * j + 3), "right"))
-
+  # TODO: handle randomness in better way
+  r = G.RandomScalar()
+  A = G.Generator() * r
+  
+  (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand)
   # First move: commit along the binding path, sibling value zero.
-  value = CompressValue(0, G.SerializeElement(G.ScalarMultGen(r)))
-  for j in range(1, q + 1):
-    child = index / 2^(j - 1)
-    right = child mod 2
-    ck = CreateCommitmentKey(trapdoor[j - 1], 1 - right)
-    commitment_keys[j - 1] = ck
-    if right == 0:
-      node = CommitNode(ck, node_rand[j - 1], value, 0)
-    else:
-      node = CommitNode(ck, node_rand[j - 1], 0, value)
-    value = CompressValue(j, EncodeNode(node))
-  root = node
+  (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
 
   proof_challenge = ComputeProofChallenge(anchor_set, X_hat,
                                           endorsement, ctx_iss,
@@ -1525,35 +1426,10 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
 
   # Third move: one response, reused by every branch.
   response = r - proof_challenge * delta
-
-  below = []
-  for i in range(N):
-    T = BranchCommitment(proof_challenge, response, Y[i])
-    below[i] = CompressValue(0, G.SerializeElement(T))
-
-  # below holds level j - 1 and above level j, of N / 2^j values.
-  for j in range(1, q + 1):
-    child = index / 2^(j - 1)
-    right = child mod 2
-    if right == 0:
-      sibling = below[child + 1]
-    else:
-      sibling = below[child - 1]
-
-    opening = EquivocateNode(node_rand[j - 1], trapdoor[j - 1],
-                             1 - right, sibling)
-    (o_left, o_right) = opening
-    openings[2 * (j - 1)] = o_left
-    openings[2 * (j - 1) + 1] = o_right
-
-    above = []
-    for k in range(N / 2^j):
-      node = CommitNode(commitment_keys[j - 1], opening,
-                        below[2 * k], below[2 * k + 1])
-      above[k] = CompressValue(j, EncodeNode(node))
-
-    below = above
-
+  
+  for i in range(len(Y)):
+    V[i] = BranchCommitment(proof_challenge, response, Y[i])
+  openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
   return proof_challenge, response, commitment_keys, openings
 ~~~
 
@@ -1629,26 +1505,13 @@ def VerifyIssuer(anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
   N = 2^q
   if len(commitment_keys) != q:
     return false
-  if len(openings) != 2 * q:
+  if len(openings) != q:
     return false
 
-  below = []
-  for i in range(N):
-    T = BranchCommitment(proof_challenge, response, Y[i])
-    below[i] = CompressValue(0, G.SerializeElement(T))
+  for i in range(n):
+    T[i] = BranchCommitment(proof_challenge, response, Y[i])
 
-  # below holds level j - 1 and above level j, of N / 2^j values.
-  for j in range(1, q + 1):
-    opening = (openings[2 * (j - 1)], openings[2 * (j - 1) + 1])
-    above = []
-    for k in range(N / 2^j):
-      node = CommitNode(commitment_keys[j - 1], opening,
-                        below[2 * k], below[2 * k + 1])
-      above[k] = CompressValue(j, EncodeNode(node))
-      if j == q:
-        root = node
-
-    below = above
+  root = VecCommit(T, commitment_keys, openings)
 
   return proof_challenge == ComputeProofChallenge(
       anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
@@ -1937,6 +1800,32 @@ DeserializeScalar(buf):
   {{SEC1}}. Raise a `DeserializeError` if the result is not in
   `[0, Order()-1]`.
 
+P
+: P(G) is obtained as follows: Serialize
+  a G to a 33 byte This is a 33 byte vector where
+  the first byte is 0x03 or 0x04. Subtract 3 from that first
+  byte to make it 0x00 or 0x01.
+
+  Now this is a 33 byte vector, buf.
+
+  Define Pbuf as 4 iterations of the following:
+  left = buf[0:17] # 17 bytes
+  right = buf[17:33] # 16 bytes
+
+  left ^= SHAKE256(right, 17)
+  right ^ = SHAKE256(left, 16)
+  left ^= SHAKE256(right, 17)
+  right ^ = SHAKE256(left, 16)
+
+  buf = left || right
+  buf[0] &= 0x01
+
+  Pbuf is indistinguishable from random permutation on 257 byte vectors.
+
+  P is defined as the result of deserializing the first entry in Pbuf(buf), Pbuf(Pbuf(buf)),
+  etc to deserialize. Note that one has to add 3 again to get buf in SEC1 format. On average
+  this takes 2 iterations of Pbuf. The inverse is obtained by applying Pbuf inverse.
+
 ## IHAT(ristretto255, SHA-512)
 
 This ciphersuite uses ristretto255 {{RISTRETTO}} for the group and SHA-512 for
@@ -1982,6 +1871,10 @@ DeserializeScalar(buf):
 : Deserialize a `Scalar` from a little-endian 32-byte string. Raise a
   `DeserializeError` if the result is not in `[0, Order()-1]`; note that this
   requires the top three bits of the input to be zero.
+
+P
+: Very similar to above, but 32 byte random permutations are easier to use instantiate
+with a symmetric Feisel network.
 
 ## Randomness {#randomness}
 
