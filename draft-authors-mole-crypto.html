@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Mohan</td>
-<td class="center">Expires 7 March 2027</td>
+<td class="center">Expires 12 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-crypto-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-03" class="published">3 September 2026</time>
+<time datetime="2026-09-08" class="published">8 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-07">7 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-12">12 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 7 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2553,6 +2553,17 @@ challenge and the response:<a href="#section-6.2.1-5" class="pilcrow">¶</a></p>
 <pre>
 def BranchCommitment(proof_challenge, response, Y):
   return proof_challenge * Y + G.ScalarMultGen(response)
+
+def Statements(anchor_set, X_hat):
+n = len(anchor_set)
+  q = 0
+  while 2^q &lt; n:
+    q = q + 1
+
+  for i in range(len(anchor_set):
+    Y[i] = X_hat - anchor_set[i]
+
+return (Y, q)
 </pre><a href="#section-6.2.1-6" class="pilcrow">¶</a>
 </div>
 <p id="section-6.2.1-7">Two properties of this branch proof are what allow the composition below, and
@@ -2585,134 +2596,54 @@ position to the branch commitment that the shared response determines. The
 branch at the binding position uses the actual witness and a commitment fixed
 before the challenge; which branch that is remains hidden by the commitment
 key.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-2">This document uses the commitment of Section 5.2 of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
-composed into a binary tree as described in Section 5.3 of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>, so
-that a commitment to <code>2^q</code> values costs one commitment key and one opening per
-level.<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-3">Two group elements are fixed. <code>B</code> is the generator, which is the base of the
-commitment randomness. <code>G0</code> is a second base with no known discrete logarithm
-relation to <code>B</code>:<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-4">
+<p id="section-6.2.2-2">This document uses the commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
+and then assembles them into a tree. The inputs to the commitments are arbitrary
+strings of bytes, and the outputs are compressed group elements.<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-3">We require a random permutation <code>P</code> on group elements. We defer discussing its
+instantiation to a later section. Being a permutation <code>P</code> has an inverse <code>Pinv</code>.<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-4">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
+we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-5">The parameters for our 1-of-2 binding commitments will be a point <code>Q</code>, and openings
+will be a single scalar, the randomness used in the commitment.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2.2-6">
 <pre>
-  G0 = G.HashToGroup("StackBase")
-</pre><a href="#section-6.2.2-4" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-5"><code>G0</code> is a fixed parameter of the ciphersuite, since the domain separation tag of
-<code>HashToGroup</code> carries <code>ctx_proto</code> (<a href="#config" class="auto internal xref">Section 4.1</a>). It is derived by hashing a
-constant so that no party knows its discrete logarithm; see
-<a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-6">A node of the tree commits two values with a commitment key <code>ck</code>, which is a
-single group element. The two values are committed under two derived bases:<a href="#section-6.2.2-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-7">
-<pre>
-def CreateNodeBases(ck):
-  return (G0 + ck, G0 - ck)
-</pre><a href="#section-6.2.2-7" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-8">The bases always sum to <code>G0 + G0</code>, so a Client that knew the discrete logarithm
-of both would know that of <code>G0</code>. It can therefore arrange to know one of them,
-and does so by choosing which:<a href="#section-6.2.2-8" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-9">
-<pre>
-def CreateCommitmentKey(trapdoor, equivocal):
-  E = G.ScalarMultGen(trapdoor)
+def CommitStep(Q, left, right, randomness):
+    C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)
+    return G.SerializeElement(C)
 
-  if equivocal == 0:
-    return E - G0
-  else:
-    return G0 - E
-</pre><a href="#section-6.2.2-9" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-10">The base of position <code>equivocal</code> is then <code>trapdoor * B</code>, and the base of the
-other position is not, so the other position is the binding one. Both cases
-produce a <code>ck</code> that is uniformly distributed over the group, so <code>ck</code> reveals
-nothing about which position is which. This is the interpolation of
-Section 5.2 of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> for a pair, written with the two positions placed
-at <code>+1</code> and <code>-1</code> and <code>G0</code> at <code>0</code>.<a href="#section-6.2.2-10" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-11">A node commits its two values as two Pedersen commitments, one under each base:<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-12">
-<pre>
-def CommitNode(ck, rand, v_left, v_right):
-  (base_left, base_right) = CreateNodeBases(ck)
-  (r_left, r_right) = rand
+# the return value is (Q, secret) where
+# secret can be used to equivocate the non
+# binding direction
 
-  return (G.ScalarMultGen(r_left) + v_left * base_left,
-          G.ScalarMultGen(r_right) + v_right * base_right)
-</pre><a href="#section-6.2.2-12" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-13">A node is committed with the equivocal value set to zero, and is later reopened
-to a value <code>v</code> by shifting that position's randomness:<a href="#section-6.2.2-13" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-14">
-<pre>
-def EquivocateNode(rand, trapdoor, equivocal, v):
-  (r_left, r_right) = rand
+def GenerateStep(bind_direction):
+    secret = G.RandomScalar()
+    T = secret*G.Generator()
+    if bind_direction == "left":
+        return (Pinv(T), secret)
+    elsif  bind_direction == "right":
+        return (T, secret)
 
-  if equivocal == 0:
-    return (r_left - trapdoor * v, r_right)
-  else:
-    return (r_left, r_right - trapdoor * v)
-</pre><a href="#section-6.2.2-14" class="pilcrow">¶</a>
+def EquivocateStep(old,new, randomness, secret):
+    return randomenss + (old - new)*secret
+</pre><a href="#section-6.2.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-15">The commitment is unchanged by this, because the base of the equivocal position
-is <code>trapdoor * B</code>:<a href="#section-6.2.2-15" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-16">
+<p id="section-6.2.2-7">Let V[0], V[1], ... V[n-1] be a vector of bytestrings. We will use a logarithmic number of reductions
+to create a single commitment to the entire vector.<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2.2-8">
 <pre>
-  (r - trapdoor * v) * B + v * (trapdoor * B) = r * B
-</pre><a href="#section-6.2.2-16" class="pilcrow">¶</a>
+def VecCommit(V, Qi, rands):
+    if len(V) == 1 :
+        return V[0]
+    for i:=0; i&lt;len(V)/2; i++
+        V'[i] = CommitStep(Qi[0], V[2*i], V[2*i+1], rands[0])
+    if len(V) % 2 == 1 :
+        V'[len(V)/2+1] = V[len(V)-1]
+    return VecCommit(V', Qi[1:], rands[1:])
+</pre><a href="#section-6.2.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-17">which is what the node committed when the value was zero. The binding position
-is not shifted, and cannot be: moving it would need the discrete logarithm of
-its base.<a href="#section-6.2.2-17" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-18">The values a node commits are scalars, so the commitments of the level below,
-and the branch commitments at the leaves, are compressed before they are
-committed:<a href="#section-6.2.2-18" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-19">
-<pre>
-def CompressValue(level, buf):
-  return G.HashToScalar(I2OSP(level, 1) ||
-                        I2OSP(len(buf), 2) || buf ||
-                        "StackNode")
-
-def EncodeNode(node):
-  (left, right) = node
-  return G.SerializeElement(left) ||
-         G.SerializeElement(right)
-</pre><a href="#section-6.2.2-19" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-20">The level index is bound into the compression so that a value cannot be
-reinterpreted at another level of the tree.<a href="#section-6.2.2-20" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-21">The soundness of the proof requires <code>CompressValue</code> to be collision resistant.
-Two branch commitments that compressed to the same scalar would open the
-binding leaf to a statement it was not committed to, and two nodes of a level
-that collided would swap the subtrees below them, in neither case requiring any
-discrete logarithm. <code>HashToScalar</code> provides this for the ciphersuites of
-<a href="#ciphersuites" class="auto internal xref">Section 7</a>; see <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-6.2.2-21" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-22">The tree has <code>N = 2^q</code> leaves, where <code>q</code> is the least integer with <code>2^q &gt;= n</code>.
-Level 0 is the leaves; for <code>1 &lt;= j &lt;= q</code>, level <code>j</code> has <code>N / 2^j</code> nodes, and
-node <code>k</code> of level <code>j</code> commits the values of nodes <code>2 * k</code> and <code>2 * k + 1</code> of
-level <code>j - 1</code>. Level <code>q</code> is the root. Every node of level <code>j</code> uses the same
-commitment key <code>commitment_keys[j - 1]</code> and the same randomness; this is what
-makes the proof logarithmic rather than linear.<a href="#section-6.2.2-22" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-23">If <code>N &gt; n</code>, the statements are padded by repeating the last one:<a href="#section-6.2.2-23" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-24">
-<pre>
-def Statements(anchor_set, X_hat):
-  n = len(anchor_set)
-  q = 0
-  while 2^q &lt; n:
-    q = q + 1
-
-  for i in range(n):
-    Y[i] = X_hat - anchor_set[i]
-  for i in range(n, 2^q):
-    Y[i] = Y[n - 1]
-
-  return (Y, q)
-</pre><a href="#section-6.2.2-24" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.2-25">A padded leaf therefore holds the same value as leaf <code>n - 1</code>, which both parties
-compute the same way, whether or not <code>n - 1</code> is the branch the Client answered.
-Padding adds neither an Anchor to the Anchor Set nor information to the proof.<a href="#section-6.2.2-25" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-9">Creating parameters that bind in only one specified position of the vector V is
+an exercise in bookkeeping. Note that there is significant savings in verification
+from caching the computation of <code>G.Generator()*rands[i]</code> across the level.<a href="#section-6.2.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-challenge">
@@ -2791,7 +2722,7 @@ privileged by it.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
   Scalar proof_challenge
   Scalar response
   Element commitment_keys[q]
-  Scalar openings[2 * q]
+  Scalar openings[q]
 </pre><a href="#section-6.2.4-4" class="pilcrow">¶</a>
 </div>
 <p id="section-6.2.4-5">Parameters:<a href="#section-6.2.4-5" class="pilcrow">¶</a></p>
@@ -2808,29 +2739,13 @@ privileged by it.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
 def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
                 ctx_red, challenge_digest, rand):
   (Y, q) = Statements(anchor_set, X_hat)
-  N = 2^q
+  # TODO: handle randomness in better way
+  r = G.RandomScalar()
+  A = G.Generator() * r
 
-  r = DeriveScalar(Seed(rand, 0), "r")
-  trapdoor = []
-  node_rand = []
-  for j in range(q):
-    trapdoor[j] = DeriveScalar(Seed(rand, 3 * j + 1), "trapdoor")
-    node_rand[j] = (DeriveScalar(Seed(rand, 3 * j + 2), "left"),
-                    DeriveScalar(Seed(rand, 3 * j + 3), "right"))
-
+  (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand)
   # First move: commit along the binding path, sibling value zero.
-  value = CompressValue(0, G.SerializeElement(G.ScalarMultGen(r)))
-  for j in range(1, q + 1):
-    child = index / 2^(j - 1)
-    right = child mod 2
-    ck = CreateCommitmentKey(trapdoor[j - 1], 1 - right)
-    commitment_keys[j - 1] = ck
-    if right == 0:
-      node = CommitNode(ck, node_rand[j - 1], value, 0)
-    else:
-      node = CommitNode(ck, node_rand[j - 1], 0, value)
-    value = CompressValue(j, EncodeNode(node))
-  root = node
+  (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
 
   proof_challenge = ComputeProofChallenge(anchor_set, X_hat,
                                           endorsement, ctx_iss,
@@ -2840,34 +2755,9 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
   # Third move: one response, reused by every branch.
   response = r - proof_challenge * delta
 
-  below = []
-  for i in range(N):
-    T = BranchCommitment(proof_challenge, response, Y[i])
-    below[i] = CompressValue(0, G.SerializeElement(T))
-
-  # below holds level j - 1 and above level j, of N / 2^j values.
-  for j in range(1, q + 1):
-    child = index / 2^(j - 1)
-    right = child mod 2
-    if right == 0:
-      sibling = below[child + 1]
-    else:
-      sibling = below[child - 1]
-
-    opening = EquivocateNode(node_rand[j - 1], trapdoor[j - 1],
-                             1 - right, sibling)
-    (o_left, o_right) = opening
-    openings[2 * (j - 1)] = o_left
-    openings[2 * (j - 1) + 1] = o_right
-
-    above = []
-    for k in range(N / 2^j):
-      node = CommitNode(commitment_keys[j - 1], opening,
-                        below[2 * k], below[2 * k + 1])
-      above[k] = CompressValue(j, EncodeNode(node))
-
-    below = above
-
+  for i in range(len(Y)):
+    V[i] = BranchCommitment(proof_challenge, response, Y[i])
+  openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
   return proof_challenge, response, commitment_keys, openings
 </pre><a href="#section-6.2.4-8" class="pilcrow">¶</a>
 </div>
@@ -2943,29 +2833,15 @@ def VerifyIssuer(anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
     return false
 
   (Y, q) = Statements(anchor_set, X_hat)
-  N = 2^q
   if len(commitment_keys) != q:
     return false
-  if len(openings) != 2 * q:
+  if len(openings) != q:
     return false
 
-  below = []
-  for i in range(N):
-    T = BranchCommitment(proof_challenge, response, Y[i])
-    below[i] = CompressValue(0, G.SerializeElement(T))
+  for i in range(n):
+    T[i] = BranchCommitment(proof_challenge, response, Y[i])
 
-  # below holds level j - 1 and above level j, of N / 2^j values.
-  for j in range(1, q + 1):
-    opening = (openings[2 * (j - 1)], openings[2 * (j - 1) + 1])
-    above = []
-    for k in range(N / 2^j):
-      node = CommitNode(commitment_keys[j - 1], opening,
-                        below[2 * k], below[2 * k + 1])
-      above[k] = CompressValue(j, EncodeNode(node))
-      if j == q:
-        root = node
-
-    below = above
+  root = VecCommit(T, commitment_keys, openings)
 
   return proof_challenge == ComputeProofChallenge(
       anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
@@ -3279,6 +3155,31 @@ check fails.<a href="#section-7.1-3.14.1" class="pilcrow">¶</a></p>
 <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. Raise a <code>DeserializeError</code> if the result is not in
 <code>[0, Order()-1]</code>.<a href="#section-7.1-3.18.1" class="pilcrow">¶</a></p>
 </dd>
+          <dd class="break"></dd>
+<dt id="section-7.1-3.19">P:</dt>
+          <dd style="margin-left: 1.5em" id="section-7.1-3.20">
+            <p id="section-7.1-3.20.1">P(G) is obtained as follows: Serialize
+a G to a 33 byte This is a 33 byte vector where
+the first byte is 0x03 or 0x04. Subtract 3 from that first
+byte to make it 0x00 or 0x01.  Now this is a 33 byte vector, buf.
+Define Pbuf as 4 iterations of the following:
+left = buf[0:17] # 17 bytes
+right = buf[17:33] # 16 bytes
+left ^= SHAKE256(right, 17)
+left[0] &amp;= 0x01
+right ^ = SHAKE256(left, 16)
+left ^= SHAKE256(right, 17)
+left[0] &amp;= 0x01
+right ^ = SHAKE256(left, 16)
+buf = left || right
+Pbuf is indistinguishable from random permutation on 257 bit vectors if we
+model SHAKE256 as a random oracle.
+P is defined as the result of deserializing the first entry in
+Pbuf(buf), Pbuf(Pbuf(buf)), etc to deserialize. Note that one has to
+add 3 again to get buf in SEC1 format. On average this takes 2
+iterations of Pbuf. The inverse is obtained by applying Pbuf
+inverse.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></p>
+</dd>
         <dd class="break"></dd>
 </dl>
 </section>
@@ -3347,6 +3248,12 @@ set to zero; <code>Ns = 32</code>.<a href="#section-7.2-3.16.1" class="pilcrow">
             <p id="section-7.2-3.18.1">Deserialize a <code>Scalar</code> from a little-endian 32-byte string. Raise a
 <code>DeserializeError</code> if the result is not in <code>[0, Order()-1]</code>; note that this
 requires the top three bits of the input to be zero.<a href="#section-7.2-3.18.1" class="pilcrow">¶</a></p>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-7.2-3.19">P</dt>
+          <dd style="margin-left: 1.5em" id="section-7.2-3.20">
+            <p id="section-7.2-3.20.1">Very similar to above, but 32 byte random permutations are easier to use instantiate
+with a symmetric Feisel network.<a href="#section-7.2-3.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
