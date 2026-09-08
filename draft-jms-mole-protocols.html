@@ -2345,6 +2345,16 @@ fingerprinting vector (with <span>[<a href="#ARCHITECTURE" class="cite xref">ARC
           <p id="section-7-2.3.1">Epoch width versus anonymity set size.<a href="#section-7-2.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
+<p id="section-7-3">During redemption of an Endorsement, the Client uses the accepted Anchor Set
+from the Moderator's authenticated configuration. If the Client does not have
+an Endorsement issued by one of the Anchors in the Anchor Set, it must either
+abort the redemption flow or pause it until it can obtain a suitable
+Endorsement. The Client must take care to ensure its actions in this case do not
+inadvertently reveal the issuing Anchor of an accepted Endorsement. For example,
+if the Client initiates two concurrent redemption flows, the Moderator can
+select Anchor Sets that differ by just one Anchor. If one flow aborts but the
+other does not, then the Moderator immediately learns the Anchor of the accepted
+Endorsement.<a href="#section-7-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="security-considerations">
