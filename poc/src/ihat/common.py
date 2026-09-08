@@ -1,6 +1,9 @@
-"""Functions shared by IHAT protocol and ciphersuite implementations."""
+"""Functions shared by the IHAT and ACT implementations."""
 
 import secrets
+
+
+Nseed = 48
 
 
 def I2OSP(value: int, length: int) -> bytes:
@@ -20,3 +23,7 @@ def CreateProtocolContext(identifier: bytes) -> bytes:
 def random(n: int) -> bytes:
     """Return bytes from the operating system's cryptographic RNG."""
     return secrets.token_bytes(n)
+
+
+def Seed(value: bytes, index: int) -> bytes:
+    return value[index * Nseed : (index + 1) * Nseed]

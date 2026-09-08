@@ -7,10 +7,12 @@ from typing import NamedTuple, Sequence
 from .ciphersuite import P256Element as Element
 from .ciphersuite import P256Group, P256Scalar as Scalar
 from .common import CreateProtocolContext, I2OSP, U16Prefixed, random
+from . import common
 
 
 Nn = 32
-Nseed = 48
+Nseed = common.Nseed
+Seed = common.Seed
 ctx_proto = CreateProtocolContext(b"P256-SHA256")
 G = P256Group(ctx_proto)
 B = G.Generator()
@@ -22,10 +24,6 @@ class VerifyError(Exception):
 
 class SessionError(Exception):
     """A session is not in the expected state."""
-
-
-class DeriveError(Exception):
-    """A deterministic derivation failed to produce a usable scalar."""
 
 
 class AnchorState(NamedTuple):
@@ -74,35 +72,6 @@ class Redemption(NamedTuple):
     openings: Sequence[Scalar]
 
 
-def Seed(value: bytes, index: int) -> bytes:
-    return value[index * Nseed : (index + 1) * Nseed]
-
-
-def DeriveScalar(seed: bytes, info: bytes) -> Scalar:
-    if len(seed) != Nseed:
-        raise ValueError(f"seed must be exactly {Nseed} bytes")
-    derive_input = seed + U16Prefixed(info)
-    for counter in range(256):
-        s = G.HashToScalar(
-            derive_input + I2OSP(counter, 1),
-            DST=b"DeriveScalar-" + ctx_proto,
-        )
-        if not s.isZero():
-            return s
-    raise DeriveError
-
-
-def DeriveKeyPair(seed: bytes, info: bytes) -> tuple[Scalar, Element]:
-    skA = DeriveScalar(seed, info)
-    pkA = G.ScalarMultGen(skA)
-    return (skA, pkA)
-
-
-def GenerateKeyPair() -> tuple[Scalar, Element]:
-    seed = random(Nseed)
-    return DeriveKeyPair(seed, b"GenerateKeyPair")
-
-
 def CreateContextBase(ctx_iss: bytes) -> Element:
     context_base_input = U16Prefixed(ctx_iss) + b"ContextBase"
     return G.HashToGroup(context_base_input)
@@ -118,9 +87,9 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
     rand = random(3 * Nseed)
-    a = DeriveScalar(Seed(rand, 0), b"a")
-    t = DeriveScalar(Seed(rand, 1), b"t")
-    y = DeriveScalar(Seed(rand, 2), b"y")
+    a = G.DeriveScalar(Seed(rand, 0), b"a")
+    t = G.DeriveScalar(Seed(rand, 1), b"t")
+    y = G.DeriveScalar(Seed(rand, 2), b"y")
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -143,10 +112,10 @@ def Challenge(
     nf = rand[:Nn]
     seeds = rand[Nn:]
 
-    r1 = DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = DeriveScalar(Seed(seeds, 3), b"gamma2")
+    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
+    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
+    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
+    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -284,14 +253,14 @@ def CommitStep(
 ) -> bytes:
     C = (
         randomness * B
-        + DeriveScalar(left, b"left") * Q
-        + DeriveScalar(right, b"right") * G.P(Q)
+        + G.DeriveScalar(left, b"left") * Q
+        + G.DeriveScalar(right, b"right") * G.P(Q)
     )
     return G.SerializeElement(C)
 
 
 def GenerateStep(bind_direction: str) -> tuple[Element, Scalar]:
-    secret = DeriveScalar(random(Nseed), b"TODO")
+    secret = G.DeriveScalar(random(Nseed), b"TODO")
     T = secret * B
     if bind_direction == "left":
         return (G.Pinv(T), secret)
@@ -401,7 +370,7 @@ def ProveIssuer(
     if len(rand) != (3 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    r = DeriveScalar(Seed(rand, 0), b"r")
+    r = G.DeriveScalar(Seed(rand, 0), b"r")
     A = B * r
 
     (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
@@ -491,7 +460,7 @@ def Redeem(
     nrand = (3 * q + 2) * Nseed
 
     rand = random(nrand)
-    delta = DeriveScalar(Seed(rand, 0), b"delta")
+    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
