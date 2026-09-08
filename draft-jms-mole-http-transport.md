@@ -213,22 +213,10 @@ struct {
 
 * `challenge` which contains a base64url ModeratorChallenge value, encoded per {{BASE64}}
 
-The `challenge` field carries the `Challenge` structure of the named
-endorsement type, defined in {{PROTOCOLS}}.
-
-#### Example refinement
-
-The following structure is an example refinement of `ModeratorChallenge`.
-
-~~~tls-presentation
-struct {
-  opaque policy_context<V>; // Moderator-generated policy identifier
-  opaque anchor_set<V>; // Endorsement-type-specific Anchor material
-} MoleModeratorChallenge;
-~~~
-
-In `MoleModeratorChallenge`, `anchor_set` is opaque. Clients MUST NOT assume
-array semantics unless the endorsement type defines them.
+The `challenge` field carries exactly the TLS encoding of the common
+`RedemptionChallenge` defined in {{PROTOCOLS}}. Anchor material and
+issuance contexts come from authenticated configuration; this challenge
+is never sent to an Anchor.
 
 ~~~
 WWW-Authenticate: Mole challenge="<moderator-challenge>",
