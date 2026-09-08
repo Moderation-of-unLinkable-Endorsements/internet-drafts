@@ -24,6 +24,18 @@ venue:
 
 author:
  -
+    fullname: Samuel Schlesinger
+    organization: Google LLC
+    email: sgschlesinger@gmail.com
+ -
+    fullname: Jonathan Katz
+    organization: Google LLC
+    email: jkcrypto@google.com
+ -
+    fullname: Armando Faz-Hernandez
+    organization: Cloudflare, Inc.
+    email: armfazh@cloudflare.com
+ -
     fullname: Deep Inder Mohan
     organization: Georgia Institute of Technology
     email: dmohan@gatech.edu
@@ -37,6 +49,8 @@ normative:
   OPRF: RFC9497
   RISTRETTO: RFC9496
   TLS13: RFC8446
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-02
+  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-02
   NISTCurves:
     title: "Digital Signature Standard (DSS)"
     target: https://doi.org/10.6028/NIST.FIPS.186-5
@@ -55,7 +69,6 @@ normative:
         org: Standards for Efficient Cryptography Group (SECG)
 
 informative:
-  SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
   CDS94:
     title: "Proofs of Partial Knowledge and Simplified Design of Witness Hiding Protocols"
     target: https://doi.org/10.1007/3-540-48658-5_19
@@ -114,6 +127,70 @@ informative:
       -
         ins: G. Kaptchuk
         name: Gabriel Kaptchuk
+  BBS:
+    title: "Short Group Signatures"
+    target: https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf
+    date: 2004
+    seriesinfo:
+      "CRYPTO": "2004"
+    author:
+      -
+        ins: D. Boneh
+        name: Dan Boneh
+      -
+        ins: X. Boyen
+        name: Xavier Boyen
+      -
+        ins: H. Shacham
+        name: Hovav Shacham
+  KVAC:
+    title: "Algebraic MACs and Keyed-Verification Anonymous Credentials"
+    target: https://eprint.iacr.org/2013/516
+    date: 2014
+    seriesinfo:
+      "CCS": "2014"
+    author:
+      -
+        ins: M. Chase
+        name: Melissa Chase
+      -
+        ins: S. Meiklejohn
+        name: Sarah Meiklejohn
+      -
+        ins: G. Zaverucha
+        name: Greg Zaverucha
+  TZ23:
+    title: "Revisiting BBS Signatures"
+    target: https://eprint.iacr.org/2023/275
+    date: 2023
+    seriesinfo:
+      "EUROCRYPT": "2023"
+    author:
+      -
+        ins: S. Tessaro
+        name: Stefano Tessaro
+      -
+        ins: C. Zhu
+        name: Chenzhi Zhu
+  BBDT16:
+    title: "Improved Algebraic MACs and Practical Keyed-Verification Anonymous Credentials"
+    target: https://crypto.orange-labs.fr/acg/publication/infoPublication.php?id=225
+    date: 2016
+    seriesinfo:
+      "SAC": "2016"
+    author:
+      -
+        ins: A. Barki
+        name: Amira Barki
+      -
+        ins: S. Brunet
+        name: Solenn Brunet
+      -
+        ins: N. Desmoulins
+        name: Nicolas Desmoulins
+      -
+        ins: J. Traore
+        name: Jacques Traore
   TESSZHU:
     title: "Short Pairing-Free Blind Signatures with Exponential Security"
     target: https://eprint.iacr.org/2022/047
@@ -132,27 +209,44 @@ informative:
 
 --- abstract
 
-This document specifies the cryptographic construction used to produce and
-consume MoLE Endorsements. An Endorsement is an anonymous token that an Anchor
-issues to a Client, and that the Client later redeems at a Moderator without
-the Anchor being able to link the redemption to the issuance.
+This document specifies the cryptographic constructions used to produce and
+consume MoLE Endorsements and MoLE Credentials. An Endorsement is an anonymous
+token that an Anchor issues to a Client, and that the Client later redeems at
+a Moderator without the Anchor being able to link the redemption to the
+issuance. A Credential is an anonymous credit token that a Moderator issues to
+a Client in return for an Endorsement, and that the Client later presents to
+the Moderator, which learns only that the Credential's hidden balance covers
+the presented amount and returns an updated Credential, without being able to
+link the presentation to the issuance or to other presentations.
 
 This document defines the endorsement issuance protocol, built from a
-pairing-free partially blind signature scheme, together with the group,
-encoding, and context-binding rules that both the Anchor and the Client follow.
+pairing-free partially blind signature scheme, and the credential issuance and
+spending protocols, built from a keyed-verification anonymous credential over
+a pairing-free BBS-style signature, together with the group, encoding, and
+context-binding rules that all parties follow.
 
 
 --- middle
 
 # Introduction
 
-MoLE Endorsements have a number of constraints imposed by the architecture
-{{ARCH}}. They must be unlinkable by the Anchor that issued them, they must be
-publicly verifiable, and a redemption must hide which Anchor issued the
-Endorsement among the set of Anchors a Moderator accepts. Existing systems do
-not meet all of these needs. This document defines such a system, the
-Issuer-Hiding Anonymous Token (IHAT), which is endorsement type `0x0002` in
-{{PROTOCOLS}}.
+The MoLE architecture {{ARCH}} defines two cryptographic objects, and this
+document specifies a construction for each.
+
+MoLE Endorsements have a number of constraints imposed by the architecture.
+They must be unlinkable by the Anchor that issued them, they must be publicly
+verifiable, and a redemption must hide which Anchor issued the Endorsement
+among the set of Anchors a Moderator accepts. Existing systems do not meet all
+of these needs. This document defines such a system, the Issuer-Hiding
+Anonymous Token (IHAT), which is endorsement type `0x0002` in {{PROTOCOLS}}.
+
+MoLE Credentials carry per-Client state that a Moderator tests and updates at
+each presentation without learning it, and without being able to link
+presentations to each other or to issuance. This document defines the
+Anonymous Credit Token (ACT), which is credential type `0x0001` in
+{{PROTOCOLS}}: a credential whose state is a numeric balance, from which a
+Client spends a public amount and receives, in the same exchange, a fresh
+Credential for the remainder ({{credential-scheme}}).
 
 The construction is a pairing-free partially blind signature {{TESSZHU}}. An
 Anchor holds a signing key and issues, in three moves, a signature on a
@@ -175,7 +269,7 @@ This document is a work in progress. This revision specifies:
 
 * the prime-order group interface and encodings ({{preliminaries}});
 * the protocol context, scalar derivation, Anchor key generation, and context
-  binding ({{scheme}});
+  binding of the Endorsement scheme ({{scheme}});
 * the endorsement issuance protocol, that is, the four algorithms `Commit`,
   `Challenge`, `Respond`, and `Finalize`, along with the wire messages they
   exchange, and the endorsement verification equation ({{issuance}});
@@ -183,6 +277,8 @@ This document is a work in progress. This revision specifies:
   proof over a Moderator's Anchor Set, whose size is logarithmic in that of the
   Anchor Set, and the algorithms `Redeem` and `VerifyRedemption`
   ({{redemption}});
+* the Credential scheme: its model, parameters, and credential context
+  ({{credential-scheme}});
 * two ciphersuites, over P-256 and ristretto255 ({{ciphersuites}}).
 
 The following are **not yet specified** and are marked as such in the text:
@@ -190,10 +286,11 @@ The following are **not yet specified** and are marked as such in the text:
 * the full security considerations ({{security-considerations}});
 * test vectors ({{test-vectors}}).
 
-{{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
-redemption APIs. It supplies the issuance and redemption contexts; this
-document treats those contexts as opaque byte strings. Configuration
-encodings and discovery remain open work in {{PROTOCOLS}}.
+{{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant,
+redemption, and credential APIs. It supplies the issuance, redemption,
+credential, and spend contexts; this document treats those contexts as
+opaque byte strings. Configuration encodings and discovery remain open
+work in {{PROTOCOLS}}.
 
 # Conventions and Definitions
 
@@ -238,10 +335,14 @@ that is `x[k * Nseed .. (k + 1) * Nseed]`, with `k` counted from zero.
 String values in monospace and quotes, such as `"Challenge"`, are ASCII string
 literals and do not include a terminating NUL byte.
 
+`x >> j` denotes the integer `x` shifted right by `j` bits, and `x & 1` its
+least significant bit.
+
 All algorithms are laid out in Python-like pseudocode. Each algorithm takes a
 set of inputs and parameters and produces a set of outputs. Parameters become
 constant values once the ciphersuite is fixed. An algorithm that can fail
 raises an error; the errors used in this document are listed in {{errors}}.
+
 
 # Preliminaries {#preliminaries}
 
@@ -329,6 +430,10 @@ DeriveError:
 : A deterministic derivation from a seed failed to produce a usable value. See
   {{derive-scalar}}.
 
+AmountError:
+: A credit amount of the Credential scheme is outside the range the scheme
+  admits. See {{act-amounts}}.
+
 An implementation that raises an error MUST abort the protocol run. Errors are
 fatal to the affected session; see {{sessions}}.
 
@@ -393,11 +498,12 @@ def CreateProtocolContext(identifier):
   return "IHATv1-" || identifier
 ~~~
 
-Throughout the remainder of this document, `ctx_proto` denotes the output of
-`CreateProtocolContext` for the ciphersuite in use. It is distinct from the
-issuance and redemption contexts of {{context-binding}}: those are inputs to
-the protocol, chosen by its participants, whereas `ctx_proto` is fixed by the
-ciphersuite.
+Throughout {{scheme}}, {{issuance}}, and {{redemption}}, `ctx_proto` denotes
+the output of `CreateProtocolContext` for the ciphersuite in use; the
+Credential scheme derives its own protocol context, with a different prefix,
+in {{act-config}}. It is distinct from the issuance and redemption contexts of
+{{context-binding}}: those are inputs to the protocol, chosen by its
+participants, whereas `ctx_proto` is fixed by the ciphersuite.
 
 Every hash this document computes is domain-separated by `ctx_proto`, which it
 carries in its DST rather than in its input: `HashToGroup` and `HashToScalar`
@@ -467,8 +573,10 @@ length of that seed, which the unlinkability argument of
 
 ## Key Generation {#keygen}
 
-An Anchor holds a key pair `(skA, pkA)`. It is derived from a seed, which is
-what allows the test vectors in {{test-vectors}} to fix a key. The procedure is
+An Anchor holds a key pair `(skA, pkA)`; a Moderator holds one for the
+Credential scheme ({{act-keygen}}), generated in the same way under that
+scheme's protocol context. A key pair is derived from a seed, which is what
+allows the test vectors in {{test-vectors}} to fix a key. The procedure is
 the key generation of {{Section 3.2 of OPRF}}. Note that, by design, knowledge
 of both `seed` and `info` is required, so the secrecy of `skA` rests on the
 secrecy of `seed`; `info` is public.
@@ -1739,6 +1847,192 @@ grows with the set, which is the reason for using it.
 The Client MUST NOT reveal `pkA`, `index`, `delta`, or the Endorsement it
 stored. Sending any of them defeats the point of redeeming under `X_hat`.
 
+# The Credential Scheme {#credential-scheme}
+
+A MoLE Credential is an Anonymous Credit Token (ACT). It is a
+keyed-verification anonymous credential {{KVAC}} over a privately verifiable,
+pairing-free BBS-style signature {{BBS}} {{TZ23}}, whose hidden state is a
+*balance*: an integer number of credits. A Moderator issues a Credential with
+an initial balance, and the Client later *spends* from it. A spend reveals a
+public amount `s` and proves, in zero knowledge, that the Credential holds at
+least `s` credits and has not been spent before. In the same exchange the
+Moderator issues a *refund*: a fresh Credential whose balance is the remainder
+plus a Moderator-chosen return amount `t`. A spend may also declare a public
+*top-up* `a`, in which case the refund may return up to `s + a`, raising the
+balance; without one, `t` is at most `s`. The Moderator never learns the
+balance, and cannot link a spend to the issuance or refund that produced the
+Credential it consumed, nor two spends to each other.
+
+This is the credential type `0x0001` of {{PROTOCOLS}}. In the vocabulary of
+{{ARCH}}, a spend is a *Presentation* whose *Predicate* is "the balance is at
+least `s`", and the refund is the *Update*.
+
+The scheme is a two-party protocol between a Client and a Moderator. The
+Moderator holds a key pair `(skM, pkM)` and is both the issuer and the
+verifier: Credentials are not publicly verifiable, and only their issuer can
+check a spend. Each of the two flows, issuance and spending, is a single
+request/response exchange followed by a Client-local finalization.
+
+~~~
+   Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
+ ------------------------------------------------------------------
+   state, request = IssueRequest()
+
+                              request
+                              -------->
+
+                 response = IssueResponse(skM, ctx_cred, c, request)
+
+                              response
+                              <--------
+
+   credential = FinalizeIssuance(pkM, ctx_cred, state, response)
+
+                   ...
+
+   state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
+
+                                proof
+                              -------->
+
+                   VerifySpend(skM, ctx_cred, ctx_spend, proof)
+                   refund = IssueRefund(skM, ctx_cred, proof, t)
+
+                               refund
+                              <--------
+
+   credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
+~~~
+{: #fig-act title="Credential issuance and spending overview"}
+
+The Moderator chooses the initial balance `c` and the return amount `t`
+according to its policy; both are outside the scope of this document, as is
+the nullifier store the Moderator keeps to reject a second spend of the same
+Credential. {{PROTOCOLS}} specifies both, together with the carriage of the
+four messages.
+
+## Configuration {#act-config}
+
+As for the Endorsement scheme, a ciphersuite ({{ciphersuites}}) is identified
+by an ASCII string `identifier`, and both parties MUST agree on it before
+running the protocol. The Credential scheme is specified for the P-256
+ciphersuite of {{ciphersuites}}, whose Sigma-protocol instantiation {{SIGMA}}
+defines; its protocol context is
+
+~~~
+def CreateCredentialProtocolContext(identifier):
+  return "ACTv1-" || identifier
+~~~
+
+Throughout this section and wherever the algorithms of this section are
+invoked, `ctx_proto` denotes this value, and `HashToGroup`, `HashToScalar`,
+`DeriveScalar`, and the key generation of {{keygen}} are parameterized by it.
+The prefix differs from that of {{config}}, so no hash output, and no key, is
+shared between the two schemes even under the same ciphersuite.
+
+The scheme has one further parameter, the *balance width* `L`. Balances and
+amounts are integers in `[0, 2^L)`. `L` MUST satisfy `1 <= L <=
+MAX_BIT_LENGTH`, where `MAX_BIT_LENGTH` is fixed by the ciphersuite. The size
+of a spend proof and the cost of producing and verifying it grow linearly in
+`L`, so a deployment SHOULD choose the smallest `L` that accommodates its
+largest balance. The Moderator publishes `L` together with its public key
+({{PROTOCOLS}}); a Client MUST use the published value.
+
+`L` is fixed for the lifetime of a key and credential context. The invariant
+that every balance the Moderator has signed lies below `2^L`, on which
+{{act-security}} relies, is argued by induction over issuances and refunds
+under one value of `L`, and does not survive a change of `L` under a key and
+context that still have outstanding Credentials. A Moderator that changes `L`
+MUST do so together with the credential context or the key. Deployments are
+RECOMMENDED to fold `L` into the credential context, for instance by
+appending `I2OSP(L, 1)` to it, so that a change of `L` is a change of context
+by construction.
+
+### Generators {#act-generators}
+
+The scheme uses the group generator `B = G.Generator()` and four further
+elements `H1`, `H2`, `H3`, `H4`, fixed by the ciphersuite:
+
+~~~
+def CreateGenerators():
+  H1 = G.HashToGroup("GenH1")
+  H2 = G.HashToGroup("GenH2")
+  H3 = G.HashToGroup("GenH3")
+  H4 = G.HashToGroup("GenH4")
+
+  return (H1, H2, H3, H4)
+~~~
+
+`H1` commits to the balance, `H2` to the nullifier, `H3` is the blinding
+base, and `H4` binds the credential context ({{act-context}}). The discrete
+logarithm of any of these elements with respect to any other, or to `B`, MUST
+NOT be known to any party; deriving them by hashing fixed labels ensures this.
+The five elements are pairwise distinct except with negligible probability;
+an implementation MAY verify this once when instantiating a ciphersuite.
+
+### Key Generation {#act-keygen}
+
+A Moderator holds a key pair `(skM, pkM)`, generated with `GenerateKeyPair`
+of {{keygen}} under the protocol context of this section, or derived from a
+seed with `DeriveKeyPair`. The Moderator publishes `SerializeElement(pkM)` in
+its configuration ({{PROTOCOLS}}). The signing key `skM` is also the
+verification key: `VerifySpend` requires it.
+
+## Credential Context {#act-context}
+
+Every Credential is bound at issuance to a *credential context* `ctx_cred`,
+an opaque byte string of at most `2^16 - 1` bytes chosen by the Moderator and
+agreed with the Client out of band; {{PROTOCOLS}} says how. It plays the role
+that the issuance context plays for Endorsements ({{context-binding}}): it
+restricts *when*, or under which policy, a Credential may be spent, so that a
+Moderator can for instance expire all Credentials of an epoch at once without
+rotating its key.
+
+The context is bound as a signed attribute. It is mapped to a scalar and
+carried under `H4`:
+
+~~~
+def CreateContextScalar(ctx_cred):
+  context_input =
+    I2OSP(len(ctx_cred), 2) || ctx_cred ||
+    "CredentialContext"
+
+  return G.HashToScalar(context_input)
+~~~
+
+The context is never carried on the wire. It is an input to every algorithm
+of this section that computes or checks a signature, supplied by the party
+running it, so that a spend verifies only under the context the Credential
+was issued under: a Moderator states the context it accepts and learns whether
+the Credential was issued under it, rather than being told by the Client. A
+Client keeps its own copy of the context for as long as it holds the
+Credential.
+
+Like the contexts of {{context-binding}}, the credential context partitions
+Clients into the set that shares its value, and MUST be coarse; see
+{{security-considerations}}.
+
+## Amounts {#act-amounts}
+
+Balances and amounts are nonnegative integers below `2^L`. On the wire they
+are `uint64` values; in the algebra they enter as scalars.
+`Scalar(x)` denotes the `Scalar` whose integer value is `x`, and `Bits(x)` its
+binary decomposition, least significant bit first, into `L` scalars each equal
+to `0` or `1`:
+
+~~~
+def Bits(x):
+  return [Scalar((x >> j) & 1) for j in 0 .. L-1]
+~~~
+
+An implementation MUST compute `Bits` in constant time with respect to `x`,
+which is the Client's hidden balance.
+
+A party that receives an amount MUST check that it is below `2^L` before
+using it, and MUST raise an `AmountError` otherwise. The spend range proof
+bounds a difference of amounts. The bounds on each amount are needed to
+interpret this difference over the integers ({{security-considerations}}).
+
 # Ciphersuites {#ciphersuites}
 
 A ciphersuite fixes the group, the hash functions, and the associated encodings
@@ -2123,10 +2417,67 @@ Anonymity sets:
   beyond this document, in particular the number of Clients an Anchor serves per
   epoch and the size of a Moderator's Anchor Set; see {{ARCH}}.
 
+## Credential Scheme {#act-security}
+
+The Credential scheme is a keyed-verification anonymous credential {{KVAC}}
+over the pairing-free BBS-style signature of {{BBS}} as analysed by {{TZ23}},
+with the balance, the nullifier, the blinding factor, and the context scalar
+as the signed attributes. Because the Moderator is both issuer and verifier
+and there is no pairing, the scheme is an algebraic MAC in the sense of
+{{KVAC}}, of the shape introduced as `MAC_BB` by {{BBDT16}}.
+
+Credit conservation assumptions:
+: The credit-conservation argument uses the following assumptions.
+
+  * The q-SDH assumption in `G`, for the unforgeability of the signature
+    {{TZ23}}.
+  * The discrete-logarithm-relation assumption among `B`, `H1`, `H2`, `H3`,
+    and `H4`: no party can produce a nontrivial linear relation among them.
+    The generators are derived by hash-to-curve in the random oracle model
+    ({{act-generators}}). Commitment binding and the range and spend proofs
+    rely on this assumption.
+  * The random oracle model for `HashToGroup`, `HashToScalar`, and the
+    Fiat-Shamir transform of {{FIAT-SHAMIR}}, together with special
+    soundness of the credential Sigma protocols.
+  * Extraction for issuance and spend proofs across adaptive sessions,
+    including the keyed-verification oracle. An ACT reduction covering
+    verification queries and secret-derived signing exponents and proof
+    nonces remains open; the results of {{TZ23}} and {{BBDT16}} do not
+    cover this composition.
+
+Verification key secrecy:
+: `VerifySpend` requires `skM`, so a Credential can be verified only by the
+  Moderator that issued it. A Moderator that shares `skM` with another party
+  lets that party issue Credentials in its name.
+
+Context granularity:
+: The credential context is visible at every spend through the fact that the
+  proof verifies under it, and so partitions Clients into the set sharing its
+  value, exactly as the contexts of the Endorsement scheme do. It MUST be
+  coarse: every Client issued under a given context MUST derive the
+  byte-identical `ctx_cred`. The spend context does not partition Clients,
+  since it binds a single presentation to a single challenge.
+
+Balance width:
+: `L` is public and identical for all Clients of a Moderator, and fixed for
+  the lifetime of a key and context ({{act-config}}). A Moderator that used
+  different values of `L` for different Clients would partition them by the
+  length of their spend proofs, and one that changed `L` under a key and
+  context with outstanding Credentials would invalidate the balance
+  invariant of the conservation argument.
+
+System requirements:
+: Deployments must provide an atomic and durable nullifier store
+  ({{PROTOCOLS}}), consistent configuration across Clients ({{ARCH}}),
+  and coarse credential contexts. Privacy relies on the randomness
+  requirements of {{randomness}}. Clients must use each Credential and
+  each issuance or spend state only once, including across backups and
+  restores.
+
 # IANA Considerations {#iana}
 
-This document has no IANA actions. The endorsement type for the scheme
-specified here is registered by {{PROTOCOLS}}.
+This document has no IANA actions. The endorsement type and the credential
+type for the schemes specified here are registered by {{PROTOCOLS}}.
 
 
 --- back
