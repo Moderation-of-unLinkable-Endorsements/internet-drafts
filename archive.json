@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-06T03:38:37.310615+00:00",
+  "timestamp": "2026-09-08T03:42:58.350610+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -7412,13 +7412,13 @@
       ],
       "body": "Still work to do: this doesn't handle randomness in the same way because I couldn't figure it out, but I say merge and we can hack away. There may also be references to things that are made wrong by shrinking things, and we'll have to handle zero length vectors in the encoding.",
       "createdAt": "2026-09-03T22:01:35Z",
-      "updatedAt": "2026-09-04T08:58:20Z",
+      "updatedAt": "2026-09-08T03:25:42Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "abebd9b682b7c8a5324202024066441aa2e39d5a",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/better-reduction",
-      "headRefOid": "87d22bedeba13bfd511e2045d15b0bf24d0f5024",
+      "headRefOid": "d161044b9b8779e0b71d22d1514237a70bf9b5ac",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -7540,6 +7540,66 @@
               "body": "you are deleting `Statements` as part of this commit. is this line still correct?",
               "createdAt": "2026-09-04T08:54:25Z",
               "updatedAt": "2026-09-04T08:58:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABMjBSsg",
+          "commit": {
+            "abbreviatedOid": "87d22be"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-08T03:24:03Z",
+          "updatedAt": "2026-09-08T03:24:03Z",
+          "comments": [
+            {
+              "originalPosition": 53,
+              "body": "It should be but I need to figure out how we carry all the seeds needed through every step",
+              "createdAt": "2026-09-08T03:24:03Z",
+              "updatedAt": "2026-09-08T03:24:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABMjBkLQ",
+          "commit": {
+            "abbreviatedOid": "87d22be"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-08T03:25:04Z",
+          "updatedAt": "2026-09-08T03:25:04Z",
+          "comments": [
+            {
+              "originalPosition": 317,
+              "body": "Yes, this needs to happen before the call to SHAKE256 gets put in with right. The reason we do this is we want a permutation on 257 bits, not 33 bytes. Will fix and push before merge or right after.",
+              "createdAt": "2026-09-08T03:25:04Z",
+              "updatedAt": "2026-09-08T03:25:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABMjBt6Q",
+          "commit": {
+            "abbreviatedOid": "87d22be"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-08T03:25:42Z",
+          "updatedAt": "2026-09-08T03:25:42Z",
+          "comments": [
+            {
+              "originalPosition": 191,
+              "body": "I'll need to undo that deletion",
+              "createdAt": "2026-09-08T03:25:42Z",
+              "updatedAt": "2026-09-08T03:25:43Z"
             }
           ]
         }
