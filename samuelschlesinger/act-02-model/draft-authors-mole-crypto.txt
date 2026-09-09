@@ -1689,11 +1689,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
 
 7.  The Credential Scheme
 
-      *Scope of this revision.* This revision specifies the ACT model
-      and parameters.  The overview describes the intended complete
-      construction; its proof profile, issuance, spending, and refund
-      algorithms are not yet specified here.
-
    A MoLE Credential is an Anonymous Credit Token (ACT).  It is a keyed-
    verification anonymous credential [KVAC] over a privately verifiable,
    pairing-free BBS-style signature [BBS] [TZ23], whose hidden state is
@@ -1860,11 +1855,10 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
 7.3.  Amounts
 
    Balances and amounts are nonnegative integers below 2^L.  On the wire
-   they are uint64 values (Encodings (not yet specified in this
-   revision)); in the algebra they enter as scalars.  Scalar(x) denotes
-   the Scalar whose integer value is x, and Bits(x) its binary
-   decomposition, least significant bit first, into L scalars each equal
-   to 0 or 1:
+   they are uint64 values; in the algebra they enter as scalars.
+   Scalar(x) denotes the Scalar whose integer value is x, and Bits(x)
+   its binary decomposition, least significant bit first, into L scalars
+   each equal to 0 or 1:
 
    def Bits(x):
      return [Scalar((x >> j) & 1) for j in 0 .. L-1]
@@ -1873,11 +1867,10 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    x, which is the Client's hidden balance.
 
    A party that receives an amount MUST check that it is below 2^L
-   before using it, and MUST raise an AmountError otherwise.  These
-   checks are load-bearing: the range proof of Spending (not yet
-   specified in this revision) bounds a _difference_ of amounts as an
-   integer, and only does so when each amount is separately known to be
-   small (Section 9).
+   before using it, and MUST raise an AmountError otherwise.  The spend
+   range proof bounds a difference of amounts.  The bounds on each
+   amount are needed to interpret this difference over the integers
+   (Section 9).
 
 8.  Ciphersuites
 
@@ -2265,13 +2258,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
 
 9.1.  Credential Scheme
 
-      *TODO.* This section states the properties the Credential scheme
-      is intended to provide, the assumptions they rest on, and a sketch
-      of the argument for each.  The argument has not been independently
-      reviewed and the reductions have not been written out.  Until they
-      have, the properties below are design goals with a stated proof
-      strategy, not theorems.
-
    The Credential scheme is a keyed-verification anonymous credential
    [KVAC] over the pairing-free BBS-style signature of [BBS] as analysed
    by [TZ23], with the balance, the nullifier, the blinding factor, and
@@ -2280,32 +2266,27 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    algebraic MAC in the sense of [KVAC], of the shape introduced as
    MAC_BB by [BBDT16].
 
-   Assumptions:  The argument rests on the following.
+   Credit conservation assumptions:  The credit-conservation argument
+      uses the following assumptions.
 
       *  The q-SDH assumption in G, for the unforgeability of the
          signature [TZ23].
 
       *  The discrete-logarithm-relation assumption among B, H1, H2, H3,
          and H4: no party can produce a nontrivial linear relation among
-         them.  It follows from deriving the four elements by hash-to-
-         curve in the random oracle model (Section 7.1.1), and it is
-         what the range proof, the argument about K_n, and the rejection
-         of an A' with a known discrete logarithm all rely on.
+         them.  The generators are derived by hash-to-curve in the
+         random oracle model (Section 7.1.1).  Commitment binding and
+         the range and spend proofs rely on this assumption.
 
       *  The random oracle model for HashToGroup, HashToScalar, and the
          Fiat-Shamir transform of [FIAT-SHAMIR], together with special
-         soundness of the Sigma protocols for the statements of Proof
-         Statements (not yet specified in this revision), which is what
-         makes each proof a proof of knowledge.
+         soundness of the credential Sigma protocols.
 
       *  Extraction for issuance and spend proofs across adaptive
-         sessions, including the keyed-verification oracle.  The
-         proposed route uses the algebraic group model, as in the blind-
-         signing analysis of [TZ23].  A reduction must show how to
-         answer VerifySpend queries without knowing skM and how to
-         handle the hedged signing exponents and nonces.  The cited BBS
-         and algebraic-MAC results do not by themselves establish this
-         composition for ACT.
+         sessions, including the keyed-verification oracle.  An ACT
+         reduction covering verification queries and secret-derived
+         signing exponents and proof nonces remains open; the results of
+         [TZ23] and [BBDT16] do not cover this composition.
 
    Verification key secrecy:  VerifySpend requires skM, so a Credential
       can be verified only by the Moderator that issued it.  A Moderator
@@ -2328,15 +2309,12 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       outstanding Credentials would invalidate the balance invariant of
       the conservation argument.
 
-   System assumptions:  The argument above does not prove, and a
-      deployment must supply, the following: an atomic and durable
-      nullifier store ([PROTOCOLS]); consistent configuration across
-      Clients ([ARCH]); coarse contexts; honest randomness for the
-      stated privacy goal, with Deriving Seeds from Secrets (not yet
-      specified in this revision) hedging accidental repetition for the
-      values that require it; and single use of Client state, which
-      ownership in an implementation enforces within a process and which
-      the wallet must enforce across backups and restores.
+   System requirements:  Deployments must provide an atomic and durable
+      nullifier store ([PROTOCOLS]), consistent configuration across
+      Clients ([ARCH]), and coarse credential contexts.  Privacy relies
+      on the randomness requirements of Section 8.3.  Clients must use
+      each Credential and each issuance or spend state only once,
+      including across backups and restores.
 
 10.  IANA Considerations
 

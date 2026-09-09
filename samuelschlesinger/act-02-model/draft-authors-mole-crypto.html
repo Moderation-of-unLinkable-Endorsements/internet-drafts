@@ -3136,14 +3136,7 @@ stored. Sending any of them defeats the point of redeeming under <code>X_hat</co
       <h2 id="name-the-credential-scheme">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-the-credential-scheme" class="section-name selfRef">The Credential Scheme</a>
       </h2>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-1.1">
-          <p id="section-7-1.1.1"><strong>Scope of this revision.</strong> This revision specifies the ACT model and parameters. The overview
-describes the intended complete construction; its proof profile,
-issuance, spending, and refund algorithms are not yet specified here.<a href="#section-7-1.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-7-2">A MoLE Credential is an Anonymous Credit Token (ACT). It is a
+<p id="section-7-1">A MoLE Credential is an Anonymous Credit Token (ACT). It is a
 keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span> over a privately verifiable,
 pairing-free BBS-style signature <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, whose hidden state is a
 <em>balance</em>: an integer number of credits. A Moderator issues a Credential with
@@ -3155,18 +3148,18 @@ plus a Moderator-chosen return amount <code>t</code>. A spend may also declare a
 <em>top-up</em> <code>a</code>, in which case the refund may return up to <code>s + a</code>, raising the
 balance; without one, <code>t</code> is at most <code>s</code>. The Moderator never learns the
 balance, and cannot link a spend to the issuance or refund that produced the
-Credential it consumed, nor two spends to each other.<a href="#section-7-2" class="pilcrow">¶</a></p>
-<p id="section-7-3">This is the credential type <code>0x0001</code> of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. In the vocabulary of
+Credential it consumed, nor two spends to each other.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-2">This is the credential type <code>0x0001</code> of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. In the vocabulary of
 <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>, a spend is a <em>Presentation</em> whose <em>Predicate</em> is "the balance is at
-least <code>s</code>", and the refund is the <em>Update</em>.<a href="#section-7-3" class="pilcrow">¶</a></p>
-<p id="section-7-4">The scheme is a two-party protocol between a Client and a Moderator. The
+least <code>s</code>", and the refund is the <em>Update</em>.<a href="#section-7-2" class="pilcrow">¶</a></p>
+<p id="section-7-3">The scheme is a two-party protocol between a Client and a Moderator. The
 Moderator holds a key pair <code>(skM, pkM)</code> and is both the issuer and the
 verifier: Credentials are not publicly verifiable, and only their issuer can
 check a spend. Each of the two flows, issuance and spending, is a single
-request/response exchange followed by a Client-local finalization.<a href="#section-7-4" class="pilcrow">¶</a></p>
+request/response exchange followed by a Client-local finalization.<a href="#section-7-3" class="pilcrow">¶</a></p>
 <span id="name-credential-issuance-and-spe"></span><div id="fig-act">
 <figure id="figure-3">
-        <div class="alignLeft art-text artwork" id="section-7-5.1">
+        <div class="alignLeft art-text artwork" id="section-7-4.1">
 <pre>
    Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
  ------------------------------------------------------------------
@@ -3202,11 +3195,11 @@ request/response exchange followed by a Client-local finalization.<a href="#sect
 <a href="#name-credential-issuance-and-spe" class="selfRef">Credential issuance and spending overview</a>
         </figcaption></figure>
 </div>
-<p id="section-7-6">The Moderator chooses the initial balance <code>c</code> and the return amount <code>t</code>
+<p id="section-7-5">The Moderator chooses the initial balance <code>c</code> and the return amount <code>t</code>
 according to its policy; both are outside the scope of this document, as is
 the nullifier store the Moderator keeps to reject a second spend of the same
 Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies both, together with the carriage of the
-four messages.<a href="#section-7-6" class="pilcrow">¶</a></p>
+four messages.<a href="#section-7-5" class="pilcrow">¶</a></p>
 <div id="act-config">
 <section id="section-7.1">
         <h3 id="name-configuration">
@@ -3325,7 +3318,7 @@ Clients into the set that shares its value, and <span class="bcp14">MUST</span> 
 <a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-amounts" class="section-name selfRef">Amounts</a>
         </h3>
 <p id="section-7.3-1">Balances and amounts are nonnegative integers below <code>2^L</code>. On the wire they
-are <code>uint64</code> values (<code>Encodings</code> (not yet specified in this revision)); in the algebra they enter as scalars.
+are <code>uint64</code> values; in the algebra they enter as scalars.
 <code>Scalar(x)</code> denotes the <code>Scalar</code> whose integer value is <code>x</code>, and <code>Bits(x)</code> its
 binary decomposition, least significant bit first, into <code>L</code> scalars each equal
 to <code>0</code> or <code>1</code>:<a href="#section-7.3-1" class="pilcrow">¶</a></p>
@@ -3338,10 +3331,9 @@ def Bits(x):
 <p id="section-7.3-3">An implementation <span class="bcp14">MUST</span> compute <code>Bits</code> in constant time with respect to <code>x</code>,
 which is the Client's hidden balance.<a href="#section-7.3-3" class="pilcrow">¶</a></p>
 <p id="section-7.3-4">A party that receives an amount <span class="bcp14">MUST</span> check that it is below <code>2^L</code> before
-using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. These checks are
-load-bearing: the range proof of <code>Spending</code> (not yet specified in this revision) bounds a <em>difference</em> of
-amounts as an integer, and only does so when each amount is separately known
-to be small (<a href="#security-considerations" class="auto internal xref">Section 9</a>).<a href="#section-7.3-4" class="pilcrow">¶</a></p>
+using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. The spend range proof
+bounds a difference of amounts. The bounds on each amount are needed to
+interpret this difference over the integers (<a href="#security-considerations" class="auto internal xref">Section 9</a>).<a href="#section-7.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3839,92 +3831,78 @@ epoch and the size of a Moderator's Anchor Set; see <span>[<a href="#ARCH" class
         <h3 id="name-credential-scheme">
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-credential-scheme" class="section-name selfRef">Credential Scheme</a>
         </h3>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-9.1-1.1">
-            <p id="section-9.1-1.1.1"><strong>TODO.</strong> This section states the properties the Credential scheme is
-intended to provide, the assumptions they rest on, and a sketch of the
-argument for each. The argument has not been independently reviewed and
-the reductions have not been written out. Until they have, the properties
-below are design goals with a stated proof strategy, not theorems.<a href="#section-9.1-1.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-9.1-2">The Credential scheme is a keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>
+<p id="section-9.1-1">The Credential scheme is a keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>
 over the pairing-free BBS-style signature of <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> as analysed by <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>,
 with the balance, the nullifier, the blinding factor, and the context scalar
 as the signed attributes. Because the Moderator is both issuer and verifier
 and there is no pairing, the scheme is an algebraic MAC in the sense of
-<span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>, of the shape introduced as <code>MAC_BB</code> by <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span>.<a href="#section-9.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-9.1-3">
-          <dt id="section-9.1-3.1">Assumptions:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.1-3.2">
-            <p id="section-9.1-3.2.1">The argument rests on the following.<a href="#section-9.1-3.2.1" class="pilcrow">¶</a></p>
+<span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>, of the shape introduced as <code>MAC_BB</code> by <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span>.<a href="#section-9.1-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-9.1-2">
+          <dt id="section-9.1-2.1">Credit conservation assumptions:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.2">
+            <p id="section-9.1-2.2.1">The credit-conservation argument uses the following assumptions.<a href="#section-9.1-2.2.1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-9.1-3.2.2.1">
-                <p id="section-9.1-3.2.2.1.1">The q-SDH assumption in <code>G</code>, for the unforgeability of the signature
-<span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>.<a href="#section-9.1-3.2.2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-9.1-2.2.2.1">
+                <p id="section-9.1-2.2.2.1.1">The q-SDH assumption in <code>G</code>, for the unforgeability of the signature
+<span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>.<a href="#section-9.1-2.2.2.1.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1-3.2.2.2">
-                <p id="section-9.1-3.2.2.2.1">The discrete-logarithm-relation assumption among <code>B</code>, <code>H1</code>, <code>H2</code>, <code>H3</code>,
+              <li class="normal" id="section-9.1-2.2.2.2">
+                <p id="section-9.1-2.2.2.2.1">The discrete-logarithm-relation assumption among <code>B</code>, <code>H1</code>, <code>H2</code>, <code>H3</code>,
 and <code>H4</code>: no party can produce a nontrivial linear relation among them.
-It follows from deriving the four elements by hash-to-curve in the
-random oracle model (<a href="#act-generators" class="auto internal xref">Section 7.1.1</a>), and it is what the range
-proof, the argument about <code>K_n</code>, and the rejection of an <code>A'</code> with a
-known discrete logarithm all rely on.<a href="#section-9.1-3.2.2.2.1" class="pilcrow">¶</a></p>
+The generators are derived by hash-to-curve in the random oracle model
+(<a href="#act-generators" class="auto internal xref">Section 7.1.1</a>). Commitment binding and the range and spend proofs
+rely on this assumption.<a href="#section-9.1-2.2.2.2.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1-3.2.2.3">
-                <p id="section-9.1-3.2.2.3.1">The random oracle model for <code>HashToGroup</code>, <code>HashToScalar</code>, and the
+              <li class="normal" id="section-9.1-2.2.2.3">
+                <p id="section-9.1-2.2.2.3.1">The random oracle model for <code>HashToGroup</code>, <code>HashToScalar</code>, and the
 Fiat-Shamir transform of <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>, together with special
-soundness of the Sigma protocols for the statements of
-<code>Proof Statements</code> (not yet specified in this revision), which is what makes each proof a proof of knowledge.<a href="#section-9.1-3.2.2.3.1" class="pilcrow">¶</a></p>
+soundness of the credential Sigma protocols.<a href="#section-9.1-2.2.2.3.1" class="pilcrow">¶</a></p>
 </li>
-              <li class="normal" id="section-9.1-3.2.2.4">
-                <p id="section-9.1-3.2.2.4.1">Extraction for issuance and spend proofs across adaptive sessions,
-including the keyed-verification oracle. The proposed route uses the
-algebraic group model, as in the blind-signing analysis of <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>.
-A reduction must show how to answer <code>VerifySpend</code> queries without
-knowing <code>skM</code> and how to handle the hedged signing exponents and nonces.
-The cited BBS and algebraic-MAC results do not by themselves establish
-this composition for ACT.<a href="#section-9.1-3.2.2.4.1" class="pilcrow">¶</a></p>
+              <li class="normal" id="section-9.1-2.2.2.4">
+                <p id="section-9.1-2.2.2.4.1">Extraction for issuance and spend proofs across adaptive sessions,
+including the keyed-verification oracle. An ACT reduction covering
+verification queries and secret-derived signing exponents and proof
+nonces remains open; the results of <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span> and <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span> do not
+cover this composition.<a href="#section-9.1-2.2.2.4.1" class="pilcrow">¶</a></p>
 </li>
             </ul>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.1-3.3">Verification key secrecy:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.1-3.4">
-            <p id="section-9.1-3.4.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
+<dt id="section-9.1-2.3">Verification key secrecy:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.4">
+            <p id="section-9.1-2.4.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
 Moderator that issued it. A Moderator that shares <code>skM</code> with another party
-lets that party issue Credentials in its name.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></p>
+lets that party issue Credentials in its name.<a href="#section-9.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.1-3.5">Context granularity:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.1-3.6">
-            <p id="section-9.1-3.6.1">The credential context is visible at every spend through the fact that the
+<dt id="section-9.1-2.5">Context granularity:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.6">
+            <p id="section-9.1-2.6.1">The credential context is visible at every spend through the fact that the
 proof verifies under it, and so partitions Clients into the set sharing its
 value, exactly as the contexts of the Endorsement scheme do. It <span class="bcp14">MUST</span> be
 coarse: every Client issued under a given context <span class="bcp14">MUST</span> derive the
 byte-identical <code>ctx_cred</code>. The spend context does not partition Clients,
-since it binds a single presentation to a single challenge.<a href="#section-9.1-3.6.1" class="pilcrow">¶</a></p>
+since it binds a single presentation to a single challenge.<a href="#section-9.1-2.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.1-3.7">Balance width:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.1-3.8">
-            <p id="section-9.1-3.8.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
+<dt id="section-9.1-2.7">Balance width:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.8">
+            <p id="section-9.1-2.8.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
 the lifetime of a key and context (<a href="#act-config" class="auto internal xref">Section 7.1</a>). A Moderator that used
 different values of <code>L</code> for different Clients would partition them by the
 length of their spend proofs, and one that changed <code>L</code> under a key and
 context with outstanding Credentials would invalidate the balance
-invariant of the conservation argument.<a href="#section-9.1-3.8.1" class="pilcrow">¶</a></p>
+invariant of the conservation argument.<a href="#section-9.1-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-9.1-3.9">System assumptions:</dt>
-          <dd style="margin-left: 1.5em" id="section-9.1-3.10">
-            <p id="section-9.1-3.10.1">The argument above does not prove, and a deployment must supply, the
-following: an atomic and durable nullifier store (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>);
-consistent configuration across Clients (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>); coarse contexts;
-honest randomness for the stated privacy goal, with <code>Deriving Seeds from Secrets</code> (not yet specified in this revision) hedging
-accidental repetition for the values that require it; and single use of
-Client state, which ownership in an implementation enforces within a
-process and which the wallet must enforce across backups and restores.<a href="#section-9.1-3.10.1" class="pilcrow">¶</a></p>
+<dt id="section-9.1-2.9">System requirements:</dt>
+          <dd style="margin-left: 1.5em" id="section-9.1-2.10">
+            <p id="section-9.1-2.10.1">Deployments must provide an atomic and durable nullifier store
+(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>), consistent configuration across Clients (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>),
+and coarse credential contexts. Privacy relies on the randomness
+requirements of <a href="#randomness" class="auto internal xref">Section 8.3</a>. Clients must use each Credential and
+each issuance or spend state only once, including across backups and
+restores.<a href="#section-9.1-2.10.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
