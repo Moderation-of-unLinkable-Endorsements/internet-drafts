@@ -31,7 +31,8 @@ author:
 
 normative:
   IHAT:
-    title: "TODO Publish I-D.draft-authors-mole-crypto"
+    title: Issuer-Hiding Anonymous Tokens (IHAT)
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
 
   VOLE-ACT:
     title: "TODO I-D.draft-authors-mole-vole-act"

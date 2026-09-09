@@ -1,9 +1,9 @@
 ---
-title: "MoLE Cryptography"
-abbrev: "MoLE Cryptography"
+title: "Issuer-Hiding Anonymous Tokens (IHAT)"
+abbrev: "IHAT"
 category: info
 
-docname: draft-authors-mole-crypto-latest
+docname: draft-authors-mole-ihat-latest
 submissiontype: IETF
 number:
 date:
@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html"
 
 author:
  -

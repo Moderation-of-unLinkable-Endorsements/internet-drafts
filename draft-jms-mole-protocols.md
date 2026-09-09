@@ -39,9 +39,9 @@ author:
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act
   ARCHITECTURE: I-D.draft-jms-mole-architecture
-  CRYPTO: #I-D.draft-authors-mole-crypto
-    title: MoLE Cryptography
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html
+  IHAT:
+    title: Issuer-Hiding Anonymous Tokens (IHAT)
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
   HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk
@@ -281,7 +281,7 @@ Longfellow, but is not a Longfellow circuit public input. A redemption created
 for one `ModeratorChallenge` does not verify under another.
 
 The `Challenge` algorithm and `ChallengeMessage` in IHAT issuance are defined
-by {{CRYPTO}} and are unrelated to a `ModeratorChallenge`.
+by {{IHAT}} and are unrelated to a `ModeratorChallenge`.
 
 ## Abstract Endorsement API
 
@@ -319,12 +319,12 @@ implements the same abstract API as every other endorsement type.
 
 Endorsement type: 0x0002.
 
-This protocol uses the IHAT-TZ variant defined in {{CRYPTO}}. IHAT is a
+This protocol uses the IHAT-TZ variant defined in {{IHAT}}. IHAT is a
 pairing-free, issuer-hiding endorsement scheme. The Anchor blindly signs a
 Client-chosen nullifier. The Client later proves,
 with an issuer-hiding proof, that its Endorsement verifies under one of the
 Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents and encodings of every message body, are defined in {{CRYPTO}}.
+contents and encodings of every message body, are defined in {{IHAT}}.
 
 The following primitive types are ciphersuite-dependent:
 
@@ -338,11 +338,11 @@ opaque Element[Ne];
 The Client needs, from Anchor configuration ({{key-rotation}}):
 
 IHAT Ciphersuite
-: A ciphersuite identifier defined by {{CRYPTO}}. It determines `Element`,
+: A ciphersuite identifier defined by {{IHAT}}. It determines `Element`,
   `Scalar`, and all cryptographic encodings.
 
 Anchor Public Key
-: `pkA`, an `Element`, as generated in {{CRYPTO}}, with a stable key ID.
+: `pkA`, an `Element`, as generated in {{IHAT}}, with a stable key ID.
 
 Issuance Context
 : `ctx_iss`, the canonical encoding of the issuance epoch. Endorsements are
@@ -351,14 +351,14 @@ Issuance Context
 Redemption Context
 : `ctx_red`, the ASCII string `"MoLE-IHAT-ctx_red-v1"`, without a terminating
   NUL byte. This fixed, domain-separated value is the same for all Moderators.
-  This is the cryptographic redemption Context defined by {{CRYPTO}}, not a
+  This is the cryptographic redemption Context defined by {{IHAT}}, not a
   Moderator Challenge. A specific redemption operation is bound separately by
   `challenge_digest`.
 
 ### Grant
 
 The grant takes two HTTP exchanges and three protocol messages. The Anchor
-speaks first, as specified by {{CRYPTO}}:
+speaks first, as specified by {{IHAT}}:
 
 1. The Client sends an `EndorsementRequest` with an empty `body`. The Anchor
    runs `Commit(skA, ctx_iss)`, stores the returned state under a fresh
@@ -371,23 +371,23 @@ speaks first, as specified by {{CRYPTO}}:
    returns a `ResponseMessage`.
    Tombstones are retained through session expiry. All later requests for the
    identifier fail without invoking `Respond`.
-3. The Client runs `Finalize(pkA, state, response)` as specified by {{CRYPTO}}.
+3. The Client runs `Finalize(pkA, state, response)` as specified by {{IHAT}}.
    On failure it MUST discard the session state and MUST NOT retry with that
    state.
 
 `CommitMessage`, `ChallengeMessage`, `ResponseMessage`, `session_id`, and the
-Endorsement encoding are defined by {{CRYPTO}}. The session identifier is only
+Endorsement encoding are defined by {{IHAT}}. The session identifier is only
 transport correlation and is not bound into the Endorsement.
 
 The Anchor learns neither `nf` nor the final Endorsement. Under the statistical
-blindness claim in {{CRYPTO}}, its protocol transcript does not let it
+blindness claim in {{IHAT}}, its protocol transcript does not let it
 recognize the Endorsement when it is later redeemed. Timing, network, and
 configuration metadata are outside that claim.
 
 ### Redemption
 
 The type-specific `Redemption` payload is the encoding of `Redemption` in
-{{CRYPTO}}. `RedeemRequest` derives `challenge_digest` as in
+{{IHAT}}. `RedeemRequest` derives `challenge_digest` as in
 {{challenge-binding}} and calls
 `Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)`.
 The ordered `anchor_set` comes from Moderator configuration; `index` selects
