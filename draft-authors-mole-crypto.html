@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Mohan</td>
-<td class="center">Expires 12 March 2027</td>
+<td class="center">Expires 13 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-crypto-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-08" class="published">8 September 2026</time>
+<time datetime="2026-09-09" class="published">9 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-12">12 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-13">13 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1099,7 +1099,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html</a></span>.
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html</a></span>.
         Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-crypto/">https://datatracker.ietf.org/doc/draft-authors-mole-crypto/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
@@ -1123,7 +1123,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 13 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1378,31 +1378,10 @@ Anchor Set, and the algorithms <code>Redeem</code> and <code>VerifyRedemption</c
             <p id="section-1.1-4.2.1">test vectors (<a href="#test-vectors" class="auto internal xref">Appendix A</a>).<a href="#section-1.1-4.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1.1-5.1">
-            <p id="section-1.1-5.1.1"><strong>Editorial note.</strong> <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> currently names the grant functions
-<code>Prepare</code>, <code>Sign</code>, <code>RequestProof</code>, <code>Prove</code>, and <code>Finalize</code>, which assume the
-Client sends the first message. In the construction specified here the Anchor
-sends the first message, so the algorithms are named <code>Commit</code>, <code>Challenge</code>,
-<code>Respond</code>, and <code>Finalize</code>. <strong>TODO:</strong> rename these in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. The number
-of HTTP exchanges (two) and the endorsement type are unchanged. For the same
-reason the redemption algorithms are named <code>Redeem</code> and <code>VerifyRedemption</code>
-rather than <code>Present</code> and <code>Verify</code>: this document already uses <code>Verify</code> for
-endorsement verification under a known key (<a href="#verify" class="auto internal xref">Section 5.5</a>), and <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> calls
-the operation a redemption.<a href="#section-1.1-5.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1.1-6.1">
-            <p id="section-1.1-6.1.1"><strong>Editorial note.</strong> This document binds an Endorsement to two contexts, an
-<em>issuance context</em> and a <em>redemption context</em> (<a href="#context-binding" class="auto internal xref">Section 4.4</a>), whereas
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> currently defines only a single <code>endorsement_context</code>.
-<strong>TODO:</strong> <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> is expected to define both contexts and to fix their
-encodings; until it does, this document treats them as opaque byte strings and
-gives only non-normative examples. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> is then to be updated to
-match.<a href="#section-1.1-6.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+<p id="section-1.1-5"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> maps the cryptographic algorithms to the MoLE grant and
+redemption APIs. It supplies the issuance and redemption contexts; this
+document treats those contexts as opaque byte strings. Configuration
+encodings and discovery remain open work in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1419,7 +1398,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 <p id="section-2-2">The terms Client, Anchor, Moderator, Endorsement, Credential, and Anchor Set
 are used as defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <p id="section-2-3">Unless otherwise specified, this document encodes protocol messages in TLS
-notation (<span><a href="https://rfc-editor.org/rfc/rfc9846#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte
+notation (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte
 order. This document also uses the variable-size vector convention <code>&lt;V&gt;</code>
 defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
@@ -1821,13 +1800,9 @@ Moderator agree on both values. Both are opaque byte strings of at most
 <code>2^16 - 1</code> bytes, a bound that follows from the two-byte length prefixes used
 below. The two are bound by deliberately different means, reflecting who is
 trusted to choose each.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4.4-2.1">
-            <p id="section-4.4-2.1.1"><strong>TODO.</strong> <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> is expected to fix what these two byte strings contain.
-Until then this document treats them as opaque, and the examples below are
-illustrative only, not normative.<a href="#section-4.4-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+<p id="section-4.4-2"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies how MoLE obtains these contexts from configuration.
+The examples below illustrate their cryptographic roles and do not define
+alternative context encodings.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
 <p id="section-4.4-3">The issuance context, written <code>ctx_iss</code>, restricts <em>when</em> an Endorsement may be
 redeemed; it might for example name the epoch the Endorsement was issued in.
 Both parties hold it. It is bound by deriving the second commitment base from
@@ -3632,7 +3607,7 @@ specified here is registered by <span>[<a href="#PROTOCOLS" class="cite xref">PR
 <dd class="break"></dd>
 <dt id="TLS13">[TLS13]</dt>
       <dd>
-<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 9846</span>, <span class="seriesInfo">DOI 10.17487/RFC9846</span>, <time datetime="2026-07" class="refDate">July 2026</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9846">https://www.rfc-editor.org/rfc/rfc9846</a>&gt;</span>. </dd>
+<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>

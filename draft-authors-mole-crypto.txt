@@ -4,8 +4,8 @@
 
 Network Working Group                                        D. I. Mohan
 Internet-Draft                           Georgia Institute of Technology
-Intended status: Informational                          8 September 2026
-Expires: 12 March 2027
+Intended status: Informational                          9 September 2026
+Expires: 13 March 2027
 
 
                            MoLE Cryptography
@@ -30,8 +30,8 @@ About This Document
 
    The latest revision of this draft can be found at https://moderation-
    of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-cryptography.html.  Status information for this document may be
-   found at https://datatracker.ietf.org/doc/draft-authors-mole-crypto/.
+   mole-crypto.html.  Status information for this document may be found
+   at https://datatracker.ietf.org/doc/draft-authors-mole-crypto/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -172,25 +172,11 @@ Table of Contents
 
    *  test vectors (Appendix A).
 
-      *Editorial note.* [PROTOCOLS] currently names the grant functions
-      Prepare, Sign, RequestProof, Prove, and Finalize, which assume the
-      Client sends the first message.  In the construction specified
-      here the Anchor sends the first message, so the algorithms are
-      named Commit, Challenge, Respond, and Finalize. *TODO:* rename
-      these in [PROTOCOLS].  The number of HTTP exchanges (two) and the
-      endorsement type are unchanged.  For the same reason the
-      redemption algorithms are named Redeem and VerifyRedemption rather
-      than Present and Verify: this document already uses Verify for
-      endorsement verification under a known key (Section 5.5), and
-      [ARCH] calls the operation a redemption.
-
-      *Editorial note.* This document binds an Endorsement to two
-      contexts, an _issuance context_ and a _redemption context_
-      (Section 4.4), whereas [PROTOCOLS] currently defines only a single
-      endorsement_context. *TODO:* [ARCH] is expected to define both
-      contexts and to fix their encodings; until it does, this document
-      treats them as opaque byte strings and gives only non-normative
-      examples.  [PROTOCOLS] is then to be updated to match.
+   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
+   redemption APIs.  It supplies the issuance and redemption contexts;
+   this document treats those contexts as opaque byte strings.
+   Configuration encodings and discovery remain open work in
+   [PROTOCOLS].
 
 2.  Conventions and Definitions
 
@@ -529,9 +515,9 @@ Table of Contents
    deliberately different means, reflecting who is trusted to choose
    each.
 
-      *TODO.* [ARCH] is expected to fix what these two byte strings
-      contain.  Until then this document treats them as opaque, and the
-      examples below are illustrative only, not normative.
+   [PROTOCOLS] specifies how MoLE obtains these contexts from
+   configuration.  The examples below illustrate their cryptographic
+   roles and do not define alternative context encodings.
 
    The issuance context, written ctx_iss, restricts _when_ an
    Endorsement may be redeemed; it might for example name the epoch the
@@ -2111,8 +2097,8 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
               <https://www.secg.org/sec1-v2.pdf>.
 
    [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
-              Version 1.3", RFC 9846, DOI 10.17487/RFC9846, July 2026,
-              <https://www.rfc-editor.org/rfc/rfc9846>.
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
 
 10.2.  Informative References
 

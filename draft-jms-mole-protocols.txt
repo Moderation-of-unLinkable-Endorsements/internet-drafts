@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 12 March 2027                                           Mozilla
+Expires: 13 March 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                        8 September 2026
+                                                        9 September 2026
 
 
                              MoLE Protocols
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -438,10 +438,23 @@ Table of Contents
 
 4.4.3.  Redemption
 
-      *Editor note.* [CRYPTO] does not yet define IHAT redemption.  This
-      section is blocked on its exact Redemption encoding, RedeemRequest
-      and FinalizeRedeem algorithms, Context and Challenge binding,
-      replay protection identifier, and security analysis.
+   The type-specific Redemption payload is the encoding of Redemption in
+   [CRYPTO].  RedeemRequest derives challenge_digest as in Section 4.1
+   and calls Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
+   challenge_digest).  The ordered anchor_set comes from Moderator
+   configuration; index selects the Anchor that issued the Endorsement.
+   The Client rejects a set containing fewer than two keys or one that
+   omits its Anchor.
+
+   FinalizeRedeem checks that the issuance epoch and Moderator Challenge
+   are accepted, decodes the payload, and calls
+   VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
+   challenge_digest).  Its returned nf is the replay_protection_id,
+   scoped to ctx_iss in the Moderator's store.  Any decoding or
+   verification failure returns INVALID.  The common replay protection
+   rules apply before Credential issuance.  The same nf is exposed on
+   repeated redemptions, including across Moderators; the scheme does
+   not enforce global single use.
 
 4.5.  Longfellow
 

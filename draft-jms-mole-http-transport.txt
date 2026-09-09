@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 12 March 2027                                           Mozilla
+Expires: 13 March 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                        8 September 2026
+                                                        9 September 2026
 
 
                           MoLE HTTP Transport
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 March 2027.
+   This Internet-Draft will expire on 13 March 2027.
 
 Copyright Notice
 
@@ -253,21 +253,10 @@ Table of Contents
    *  challenge which contains a base64url ModeratorChallenge value,
       encoded per [BASE64]
 
-   The challenge field carries the Challenge structure of the named
-   endorsement type, defined in [PROTOCOLS].
-
-6.2.1.1.  Example refinement
-
-   The following structure is an example refinement of
-   ModeratorChallenge.
-
-   struct {
-     opaque policy_context<V>; // Moderator-generated policy identifier
-     opaque anchor_set<V>; // Endorsement-type-specific Anchor material
-   } MoleModeratorChallenge;
-
-   In MoleModeratorChallenge, anchor_set is opaque.  Clients MUST NOT
-   assume array semantics unless the endorsement type defines them.
+   The challenge field carries exactly the TLS encoding of the common
+   RedemptionChallenge defined in [PROTOCOLS].  Anchor material and
+   issuance contexts come from authenticated configuration; this
+   challenge is never sent to an Anchor.
 
    WWW-Authenticate: Mole challenge="<moderator-challenge>",
                           realm="moderator"
