@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-cryptography.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-crypto.html"
 
 author:
  -
@@ -36,7 +36,7 @@ normative:
   I2OSP: RFC8017
   OPRF: RFC9497
   RISTRETTO: RFC9496
-  TLS13: RFC9846
+  TLS13: RFC8446
   NISTCurves:
     title: "Digital Signature Standard (DSS)"
     target: https://doi.org/10.6028/NIST.FIPS.186-5
@@ -190,24 +190,10 @@ The following are **not yet specified** and are marked as such in the text:
 * the full security considerations ({{security-considerations}});
 * test vectors ({{test-vectors}}).
 
-> **Editorial note.** {{PROTOCOLS}} currently names the grant functions
-> `Prepare`, `Sign`, `RequestProof`, `Prove`, and `Finalize`, which assume the
-> Client sends the first message. In the construction specified here the Anchor
-> sends the first message, so the algorithms are named `Commit`, `Challenge`,
-> `Respond`, and `Finalize`. **TODO:** rename these in {{PROTOCOLS}}. The number
-> of HTTP exchanges (two) and the endorsement type are unchanged. For the same
-> reason the redemption algorithms are named `Redeem` and `VerifyRedemption`
-> rather than `Present` and `Verify`: this document already uses `Verify` for
-> endorsement verification under a known key ({{verify}}), and {{ARCH}} calls
-> the operation a redemption.
-
-> **Editorial note.** This document binds an Endorsement to two contexts, an
-> *issuance context* and a *redemption context* ({{context-binding}}), whereas
-> {{PROTOCOLS}} currently defines only a single `endorsement_context`.
-> **TODO:** {{ARCH}} is expected to define both contexts and to fix their
-> encodings; until it does, this document treats them as opaque byte strings and
-> gives only non-normative examples. {{PROTOCOLS}} is then to be updated to
-> match.
+{{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
+redemption APIs. It supplies the issuance and redemption contexts; this
+document treats those contexts as opaque byte strings. Configuration
+encodings and discovery remain open work in {{PROTOCOLS}}.
 
 # Conventions and Definitions
 
@@ -567,9 +553,9 @@ Moderator agree on both values. Both are opaque byte strings of at most
 below. The two are bound by deliberately different means, reflecting who is
 trusted to choose each.
 
-> **TODO.** {{ARCH}} is expected to fix what these two byte strings contain.
-> Until then this document treats them as opaque, and the examples below are
-> illustrative only, not normative.
+{{PROTOCOLS}} specifies how MoLE obtains these contexts from configuration.
+The examples below illustrate their cryptographic roles and do not define
+alternative context encodings.
 
 The issuance context, written `ctx_iss`, restricts *when* an Endorsement may be
 redeemed; it might for example name the epoch the Endorsement was issued in.

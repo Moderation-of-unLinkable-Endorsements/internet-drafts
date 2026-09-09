@@ -386,10 +386,22 @@ configuration metadata are outside that claim.
 
 ### Redemption
 
-> **Editor note.** {{CRYPTO}} does not yet define IHAT redemption. This section
-> is blocked on its exact `Redemption` encoding, `RedeemRequest` and
-> `FinalizeRedeem` algorithms, Context and Challenge binding, replay protection
-> identifier, and security analysis.
+The type-specific `Redemption` payload is the encoding of `Redemption` in
+{{CRYPTO}}. `RedeemRequest` derives `challenge_digest` as in
+{{challenge-binding}} and calls
+`Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)`.
+The ordered `anchor_set` comes from Moderator configuration; `index` selects
+the Anchor that issued the Endorsement. The Client rejects a set containing
+fewer than two keys or one that omits its Anchor.
+
+`FinalizeRedeem` checks that the issuance epoch and Moderator Challenge are
+accepted, decodes the payload, and calls
+`VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red, challenge_digest)`.
+Its returned `nf` is the `replay_protection_id`, scoped to `ctx_iss` in the
+Moderator's store. Any decoding or verification failure returns `INVALID`.
+The common replay protection rules apply before Credential issuance. The
+same `nf` is exposed on repeated redemptions, including across Moderators;
+the scheme does not enforce global single use.
 
 ## Longfellow {#longfellow}
 
