@@ -1,0 +1,33 @@
+[build-system]
+requires = ["setuptools>=77"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ihat-reference"
+version = "0.1.0"
+description = "Proof-of-concept reference implementation of IHAT"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+  "pycryptodomex>=3.23,<4",
+]
+
+[project.optional-dependencies]
+test = [
+  "mypy>=1.17,<2",
+  "pyflakes>=3.4,<4",
+  "pylint>=4,<5",
+  "pytest>=8,<9",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.mypy]
+files = ["src", "tests"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+ihat = ["py.typed"]
