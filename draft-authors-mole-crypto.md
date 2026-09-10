@@ -209,22 +209,27 @@ defined in {{HTTP-TRANSPORT}}: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.
 
-The following functions and notation are used throughout this document.
+The following functions, types, and notation are used throughout this
+document. The Python snippets are excerpts from the reference implementation.
+They use `bytes` for byte strings, `int` for integers, and `Sequence` for a
+read-only sequence.
 
 For any byte string `x`, `len(x)` denotes its length in bytes.
 
-For two byte strings `x` and `y`, `x || y` denotes their concatenation.
+For two byte strings `x` and `y`, `x + y` denotes their concatenation.
 
-For a byte string `x`, `x[i..j]` denotes the substring of `x` that begins at
+For a byte string `x`, `x[i:j]` denotes the substring of `x` that begins at
 its byte with index `i` and ends just before its byte with index `j`, where
 indices start at zero. Its length is `j - i` bytes.
 
 For a list `x`, `x[i]` denotes its element at index `i`, counting from zero,
-`x[i..j]` denotes the sublist from index `i` up to but not including index `j`,
+`x[i:j]` denotes the sublist from index `i` up to but not including index `j`,
 and `len(x)` denotes the number of elements it holds.
 
-`I2OSP(x, xLen)` converts a nonnegative integer `x` into a byte string of
-length `xLen` in big-endian byte order, as described in {{I2OSP}}.
+`I2OSP(value, length)` converts a nonnegative integer into a byte string of the
+requested length in big-endian byte order, as described in {{I2OSP}}. We write
+`U16Prefixed(value)` for the concatenation of `I2OSP(len(value), 2)` and
+byte string `value`.
 
 `random(n)` returns `n` uniformly random bytes. Implementations MUST generate
 them with a cryptographically secure random number generator. It is the only
@@ -232,16 +237,16 @@ source of randomness in this document: every other value that has to be
 unpredictable is derived from its output ({{derive-scalar}}).
 
 `Seed(x, k)` denotes the `k`-th seed in a byte string of concatenated seeds,
-that is `x[k * Nseed .. (k + 1) * Nseed]`, with `k` counted from zero.
+that is `x[k * Nseed:(k + 1) * Nseed]`, with `k` counted from zero.
 {{ciphersuites}} fixes the seed length `Nseed`.
 
-String values in monospace and quotes, such as `"Challenge"`, are ASCII string
-literals and do not include a terminating NUL byte.
+Byte strings such as `b"Challenge"` contain the corresponding ASCII bytes and
+do not include a terminating NUL byte.
 
-All algorithms are laid out in Python-like pseudocode. Each algorithm takes a
-set of inputs and parameters and produces a set of outputs. Parameters become
-constant values once the ciphersuite is fixed. An algorithm that can fail
-raises an error; the errors used in this document are listed in {{errors}}.
+The definitions of the record types named in function signatures are implicit.
+Parameters become constant values once the ciphersuite is fixed. An algorithm
+that can fail raises an error; the errors used in this document are listed in
+{{errors}}.
 
 # Preliminaries {#preliminaries}
 
@@ -317,7 +322,7 @@ of an otherwise randomized protocol.
 The following errors are used.
 
 DeserializeError:
-: A received byte string is not a valid encoding of the expected type.
+: A byte string is not a canonical encoding of the expected type.
 
 VerifyError:
 : A received value failed a verification check.
@@ -326,8 +331,11 @@ SessionError:
 : A message was received for a session that is not in the expected state.
 
 DeriveError:
-: A deterministic derivation from a seed failed to produce a usable value. See
+: A deterministic derivation failed to produce a usable scalar. See
   {{derive-scalar}}.
+
+ValueError:
+: An input has an invalid length or is outside its permitted range.
 
 An implementation that raises an error MUST abort the protocol run. Errors are
 fatal to the affected session; see {{sessions}}.
@@ -341,7 +349,7 @@ per-session state between its two moves.
 ~~~
    Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
  ---------------------------------------------------------------------
-                               state, commitment = Commit(skA, ctx_iss)
+                               state, commitment = Commit(ctx_iss)
 
                              commitment
                               <--------
@@ -388,9 +396,9 @@ protocol; {{PROTOCOLS}} describes how this agreement is reached.
 The *protocol context*, written `ctx_proto`, is the domain separation tag that
 this document derives from that identifier:
 
-~~~
-def CreateProtocolContext(identifier):
-  return "IHATv1-" || identifier
+~~~python
+def CreateProtocolContext(identifier: bytes) -> bytes:
+    return b"IHATv1-" + identifier
 ~~~
 
 Throughout the remainder of this document, `ctx_proto` denotes the output of
@@ -404,8 +412,8 @@ carries in its DST rather than in its input: `HashToGroup` and `HashToScalar`
 are so parameterized ({{ciphersuites}}), and so is `DeriveScalar`
 ({{derive-scalar}}). Every algorithm below therefore depends on `ctx_proto`,
 including those in which it does not appear explicitly, and a value produced
-under one ciphersuite does not verify under another. Each algorithm lists
-`ctx_proto` among its parameters where it has this dependence.
+under one ciphersuite does not verify under another. Each algorithm treats
+`ctx_proto` as a global variable.
 
 ## Deriving Scalars {#derive-scalar}
 
@@ -413,42 +421,19 @@ Scalars that have to be unpredictable are not sampled directly. They are
 derived from a random seed, so that an algorithm is a deterministic function of
 the seed it is given:
 
-Input:
-
-~~~
-  opaque seed[Nseed]
-  PublicInput info
-~~~
-
-Output:
-
-~~~
-  Scalar s
-~~~
-
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-Errors: `DeriveError`
-
-~~~
-def DeriveScalar(seed, info):
-  derive_input = seed || I2OSP(len(info), 2) || info
-  counter = 0
-  s = 0
-
-  while s == 0:
-    if counter > 255:
-      raise DeriveError
-    s = G.HashToScalar(derive_input || I2OSP(counter, 1),
-                       DST = "DeriveScalar-" || ctx_proto)
-    counter = counter + 1
-
-  return s
+~~~python
+def DeriveScalar(seed: bytes, info: bytes) -> Scalar:
+    if len(seed) != Nseed:
+        raise ValueError(f"seed must be exactly {Nseed} bytes")
+    derive_input = seed + U16Prefixed(info)
+    for counter in range(256):
+        s = G.HashToScalar(
+            derive_input + I2OSP(counter, 1),
+            DST=b"DeriveScalar-" + ctx_proto,
+        )
+        if not s.isZero():
+            return s
+    raise DeriveError
 ~~~
 
 The output is never zero, so a caller that needs a nonzero scalar needs no
@@ -473,72 +458,25 @@ the key generation of {{Section 3.2 of OPRF}}. Note that, by design, knowledge
 of both `seed` and `info` is required, so the secrecy of `skA` rests on the
 secrecy of `seed`; `info` is public.
 
-Input:
-
-~~~
-  opaque seed[Nseed]
-  PublicInput info
-~~~
-
-Output:
-
-~~~
-  Scalar skA
-  Element pkA
-~~~
-
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-Errors: `DeriveError`
-
-~~~
-def DeriveKeyPair(seed, info):
-  skA = DeriveScalar(seed, info)
-  pkA = G.ScalarMultGen(skA)
-
-  return (skA, pkA)
+~~~python
+def DeriveKeyPair(seed: bytes, info: bytes) -> tuple[Scalar, Element]:
+    skA = DeriveScalar(seed, info)
+    pkA = G.ScalarMultGen(skA)
+    return (skA, pkA)
 ~~~
 
 The derivation is the one {{Section 3.2 of OPRF}} performs inline: hash
-`seed || I2OSP(len(info), 2) || info` together with a counter, rejecting zero
+`seed + U16Prefixed(info)` together with a counter, rejecting zero
 ({{derive-scalar}}). It differs only in its domain separation tag, which comes
 from the protocol context of this document rather than from an OPRF context
 string, and in the length of the seed.
 
 A fresh key pair is generated by deriving one from a random seed.
 
-Input:
-
-~~~
-  None
-~~~
-
-Output:
-
-~~~
-  Scalar skA
-  Element pkA
-~~~
-
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-Errors: `DeriveError`
-
-~~~
-def GenerateKeyPair():
-  seed = random(Nseed)
-
-  return DeriveKeyPair(seed, "GenerateKeyPair")
+~~~python
+def GenerateKeyPair() -> tuple[Scalar, Element]:
+    seed = random(Nseed)
+    return DeriveKeyPair(seed, b"GenerateKeyPair")
 ~~~
 
 The Anchor publishes `SerializeElement(pkA)` in its configuration; see
@@ -548,10 +486,11 @@ The Anchor publishes `SerializeElement(pkA)` in its configuration; see
 
 Each Endorsement is bound at issuance to two contexts, the issuance context and
 the redemption context, and a redemption succeeds only if the Client and the
-Moderator agree on both values. Both are opaque byte strings of at most
-`2^16 - 1` bytes, a bound that follows from the two-byte length prefixes used
-below. The two are bound by deliberately different means, reflecting who is
-trusted to choose each.
+Moderator agree on both values. Both are opaque byte strings. `ctx_iss` is at
+most `2^16 - 1` bytes. Because the encoded message is itself passed to
+`U16Prefixed`, `ctx_red` is at most `2^16 - 1 - Nn - 4` bytes. These bounds are
+enforced by `U16Prefixed`. The two contexts are bound by deliberately different
+means, reflecting who is trusted to choose each.
 
 {{PROTOCOLS}} specifies how MoLE obtains these contexts from configuration.
 The examples below illustrate their cryptographic roles and do not define
@@ -562,13 +501,10 @@ redeemed; it might for example name the epoch the Endorsement was issued in.
 Both parties hold it. It is bound by deriving the second commitment base from
 it:
 
-~~~
-def CreateContextBase(ctx_iss):
-  context_base_input =
-    I2OSP(len(ctx_iss), 2) || ctx_iss ||
-    "ContextBase"
-
-  return G.HashToGroup(context_base_input)
+~~~python
+def CreateContextBase(ctx_iss: bytes) -> Element:
+    context_base_input = U16Prefixed(ctx_iss) + b"ContextBase"
+    return G.HashToGroup(context_base_input)
 ~~~
 
 The Anchor forms its commitment under this base, and the base is recomputed at
@@ -586,10 +522,11 @@ no other. It is chosen by the Client and is hidden from the Anchor. It is bound
 by placing it, together with a fresh Client-chosen nullifier `nf` of `Nn = 32`
 bytes, in the signed message:
 
-~~~
-def Message(nf, ctx_red):
-  return I2OSP(len(nf), 2) || nf ||
-         I2OSP(len(ctx_red), 2) || ctx_red
+~~~python
+def Message(nf: bytes, ctx_red: bytes) -> bytes:
+    if len(nf) != Nn:
+        raise ValueError(f"nullifier must be exactly {Nn} bytes")
+    return U16Prefixed(nf) + U16Prefixed(ctx_red)
 ~~~
 
 A redemption under a different redemption context recomputes a different
@@ -630,63 +567,31 @@ algorithm takes that message as a single input. The messages are the
 *commitment*, the pair `(A, C)`; the *challenge*, a single scalar; and the
 *response*, the triple `(s, y, t)`. The types `Commitment` and `Response` denote
 the first and the last of these. The wire format of each message is defined in
-{{wire}}.
-
-All four algorithms take the group `G` as a parameter, and all of them except
-`Respond`, which computes no hash, take the protocol context `ctx_proto`
-({{config}}). Parameters are listed with each algorithm and are omitted from
-the argument lists in the pseudocode.
+{{wire}}. All four algorithms treat `G`, `ctx_proto`, `Nn`, and `Nseed` as
+global variables.
 
 ## Anchor Commitment {#commit}
 
 The Anchor opens a session by committing to the values it will later reveal.
 
-Input:
+~~~python
+def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
+    Z = CreateContextBase(ctx_iss)
 
-~~~
-  Scalar skA
-  PublicInput ctx_iss
-~~~
+    rand = random(3 * Nseed)
+    a = DeriveScalar(Seed(rand, 0), b"a")
+    t = DeriveScalar(Seed(rand, 1), b"t")
+    y = DeriveScalar(Seed(rand, 2), b"y")
 
-Output:
+    A = G.ScalarMultGen(a)
+    C = G.ScalarMultGen(t) + y * Z
 
-~~~
-  AnchorState state
-  Commitment commitment
-~~~
-
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-  Nseed
-~~~
-
-Errors: `DeriveError`
-
-~~~
-def Commit(skA, ctx_iss):
-  Z = CreateContextBase(ctx_iss)
-
-  rand = random(3 * Nseed)
-  a = DeriveScalar(Seed(rand, 0), "a")
-  t = DeriveScalar(Seed(rand, 1), "t")
-  y = DeriveScalar(Seed(rand, 2), "y")
-
-  A = G.ScalarMultGen(a)
-  C = G.ScalarMultGen(t) + y * Z
-
-  state = (a, y, t)
-  commitment = (A, C)
-
-  return state, commitment
+    return (AnchorState(a, y, t), Commitment(A, C))
 ~~~
 
 The Anchor stores `state` for the duration of the session and sends `commitment`
-to the Client in a `CommitMessage` ({{wire}}). Note that `skA` is not used in
-`Commit`; it appears in the interface because an implementation MAY choose to
-carry it in the session state rather than reload it in `Respond`.
+to the Client in a `CommitMessage` ({{wire}}). The signing key is not needed
+until `Respond`.
 
 `Commit` draws all of its randomness in one call and splits it into one seed
 per scalar ({{derive-scalar}}). A test vector fixes the single value `rand`;
@@ -697,86 +602,75 @@ per scalar ({{derive-scalar}}). A test vector fixes the single value `rand`;
 The Client blinds the Anchor's commitment, derives the challenge over the
 blinded values, and returns the challenge in blinded form.
 
-Input:
+~~~python
+def Challenge(
+    pkA: Element,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    commitment: Commitment,
+) -> tuple[ClientState, Scalar]:
+    if pkA.isIdentity():
+        raise VerifyError
 
-~~~
-  Element pkA
-  PublicInput ctx_iss
-  PrivateInput ctx_red
-  Commitment commitment
-~~~
+    (A, C) = commitment
 
-Output:
+    rand = random(Nn + 4 * Nseed)
+    nf = rand[:Nn]
+    seeds = rand[Nn:]
 
-~~~
-  ClientState state
-  Scalar challenge
-~~~
+    r1 = DeriveScalar(Seed(seeds, 0), b"r1")
+    r2 = DeriveScalar(Seed(seeds, 1), b"r2")
+    gamma1 = DeriveScalar(Seed(seeds, 2), b"gamma1")
+    gamma2 = DeriveScalar(Seed(seeds, 3), b"gamma2")
 
-Parameters:
+    m = Message(nf, ctx_red)
+    gamma = gamma1 * G.ScalarInverse(gamma2)
 
-~~~
-  Group G
-  PublicInput ctx_proto
-  Nn
-  Nseed
-~~~
+    blinded_A = G.ScalarMultGen(r1) + gamma * A
+    blinded_C = gamma1 * C + G.ScalarMultGen(r2)
+    blinded_commitment = Commitment(blinded_A, blinded_C)
 
-Errors: `VerifyError`, `DeriveError`
+    c = ComputeChallenge(ctx_iss, blinded_commitment, m)
+    if c.isZero():
+        raise VerifyError
 
-~~~
-def Challenge(pkA, ctx_iss, ctx_red, commitment):
-  (A, C) = commitment
-
-  rand = random(Nn + 4 * Nseed)
-  nf = rand[0 .. Nn]
-  seeds = rand[Nn .. Nn + 4 * Nseed]
-
-  r1     = DeriveScalar(Seed(seeds, 0), "r1")
-  r2     = DeriveScalar(Seed(seeds, 1), "r2")
-  gamma1 = DeriveScalar(Seed(seeds, 2), "gamma1")
-  gamma2 = DeriveScalar(Seed(seeds, 3), "gamma2")
-
-  m = Message(nf, ctx_red)
-  gamma = gamma1 * G.ScalarInverse(gamma2)
-
-  blinded_A = G.ScalarMultGen(r1) + gamma * A
-  blinded_C = gamma1 * C + G.ScalarMultGen(r2)
-  blinded_commitment = (blinded_A, blinded_C)
-
-  c = ComputeChallenge(ctx_iss, blinded_commitment, m)
-  if c == 0:
-    raise VerifyError
-
-  challenge = c * gamma2
-
-  state = (nf, ctx_iss, ctx_red, commitment,
-           r1, r2, gamma1, gamma2, challenge, c)
-
-  return state, challenge
+    challenge = c * gamma2
+    state = ClientState(
+        nf,
+        ctx_iss,
+        commitment,
+        r1,
+        r2,
+        gamma1,
+        gamma2,
+        challenge,
+        c,
+    )
+    return (state, challenge)
 ~~~
 
 As in `Commit`, all randomness is drawn in one call and split: the first `Nn`
 bytes are the nullifier, and the remaining `4 * Nseed` bytes are four seeds,
 one per blinding scalar. `ComputeChallenge` is as follows.
 
-~~~
-def ComputeChallenge(ctx_iss, commitment, m):
-  (A, C) = commitment
+~~~python
+def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -> Scalar:
+    (A, C) = commitment
 
-  Am = G.SerializeElement(A)
-  Cm = G.SerializeElement(C)
+    Am = G.SerializeElement(A)
+    Cm = G.SerializeElement(C)
 
-  challenge_transcript =
-    I2OSP(len(ctx_iss), 2) || ctx_iss ||
-    I2OSP(len(Am), 2) || Am ||
-    I2OSP(len(Cm), 2) || Cm ||
-    I2OSP(len(m), 2) || m ||
-    "Challenge"
+    challenge_transcript = (
+        U16Prefixed(ctx_iss)
+        + U16Prefixed(Am)
+        + U16Prefixed(Cm)
+        + U16Prefixed(m)
+        + b"Challenge"
+    )
 
-  c = G.HashToScalar(challenge_transcript)
+    c = G.HashToScalar(challenge_transcript)
 
-  return c
+    return c
 ~~~
 
 Two challenge values appear here: `c` is computed
@@ -798,33 +692,17 @@ and retains `state`.
 
 The Anchor answers the challenge and closes the session.
 
-Input:
+~~~python
+def Respond(skA: Scalar, state: AnchorState, challenge: Scalar) -> Response:
+    (a, y, t) = state
 
-~~~
-  Scalar skA
-  AnchorState state
-  Scalar challenge
-~~~
+    if challenge.isZero():
+        raise VerifyError
 
-Output:
+    s = a + challenge * y * skA
+    response = Response(s, y, t)
 
-~~~
-  Response response
-~~~
-
-Errors: `VerifyError`, `SessionError`
-
-~~~
-def Respond(skA, state, challenge):
-  (a, y, t) = state
-
-  if challenge == 0:
-    raise VerifyError
-
-  s = a + challenge * y * skA
-  response = (s, y, t)
-
-  return response
+    return response
 ~~~
 
 An Anchor MUST call `Respond` at most once per session state produced by
@@ -840,52 +718,30 @@ second `ChallengeMessage` for a session it has already answered MUST raise a
 
 The Client checks the Anchor's response and unblinds it into an Endorsement.
 
-Input:
+~~~python
+def Finalize(pkA: Element, state: ClientState, response: Response) -> Endorsement:
+    if pkA.isIdentity():
+        raise VerifyError
 
-~~~
-  Element pkA
-  ClientState state
-  Response response
-~~~
+    (nf, ctx_iss, (A, C), r1, r2, gamma1, gamma2, challenge, c) = state
+    (s, y, t) = response
 
-Output:
+    Z = CreateContextBase(ctx_iss)
 
-~~~
-  Endorsement endorsement
-~~~
+    if y.isZero():
+        raise VerifyError
+    if C != G.ScalarMultGen(t) + y * Z:
+        raise VerifyError
+    if G.ScalarMultGen(s) != A + (challenge * y) * pkA:
+        raise VerifyError
 
-Parameters:
+    gamma = gamma1 * G.ScalarInverse(gamma2)
 
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
+    s_final = gamma * s + r1
+    y_final = gamma1 * y
+    t_final = gamma1 * t + r2
 
-Errors: `VerifyError`
-
-~~~
-def Finalize(pkA, state, response):
-  (nf, ctx_iss, ctx_red, commitment,
-   r1, r2, gamma1, gamma2, challenge, c) = state
-  (A, C) = commitment
-  (s, y, t) = response
-
-  Z = CreateContextBase(ctx_iss)
-
-  if y == 0:
-    raise VerifyError
-  if C != G.ScalarMultGen(t) + y * Z:
-    raise VerifyError
-  if G.ScalarMultGen(s) != A + (challenge * y) * pkA:
-    raise VerifyError
-
-  gamma = gamma1 * G.ScalarInverse(gamma2)
-
-  s_final = gamma * s + r1
-  y_final = gamma1 * y
-  t_final = gamma1 * t + r2
-
-  return Endorsement(c, s_final, y_final, t_final, nf)
+    return Endorsement(c, s_final, y_final, t_final, nf)
 ~~~
 
 The three checks verify that the Anchor opened its commitment honestly and
@@ -910,43 +766,29 @@ The two contexts are inputs to `Verify` in addition to the Endorsement. A
 verifier therefore states the pair it is willing to accept and learns whether
 the Endorsement was issued under it.
 
-Input:
+~~~python
+def Verify(
+    pkA: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+) -> bool:
+    if pkA.isIdentity():
+        return False
 
-~~~
-  Element pkA
-  Endorsement endorsement
-  PublicInput ctx_iss
-  PublicInput ctx_red
-~~~
+    (c, s, y, t, nf) = endorsement
 
-Output:
+    if len(nf) != Nn or c.isZero() or y.isZero():
+        return False
 
-~~~
-  boolean verified
-~~~
+    Z = CreateContextBase(ctx_iss)
+    m = Message(nf, ctx_red)
 
-Parameters:
+    C = G.ScalarMultGen(t) + y * Z
+    A = G.ScalarMultGen(s) - (c * y) * pkA
+    commitment = Commitment(A, C)
 
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-~~~
-def Verify(pkA, endorsement, ctx_iss, ctx_red):
-  (c, s, y, t, nf) = endorsement
-
-  if y == 0 or c == 0:
-    return false
-
-  Z = CreateContextBase(ctx_iss)
-  m = Message(nf, ctx_red)
-
-  C = G.ScalarMultGen(t) + y * Z
-  A = G.ScalarMultGen(s) - (c * y) * pkA
-  commitment = (A, C)
-
-  return c == ComputeChallenge(ctx_iss, commitment, m)
+    return c == ComputeChallenge(ctx_iss, commitment, m)
 ~~~
 
 `Verify` is stated here for completeness and for use in test vectors. A
@@ -1224,20 +1066,27 @@ answers `z = r - c * delta`; and the verifier checks that
 Read the other way round, that check determines the commitment from the
 challenge and the response:
 
-~~~
-def BranchCommitment(proof_challenge, response, Y):
-  return proof_challenge * Y + G.ScalarMultGen(response)
+~~~python
+def BranchCommitment(
+    proof_challenge: Scalar,
+    response: Scalar,
+    Y: Element,
+) -> Element:
+    return proof_challenge * Y + G.ScalarMultGen(response)
 
-def Statements(anchor_set, X_hat):
-n = len(anchor_set)
-  q = 0
-  while 2^q < n:
-    q = q + 1
 
-  for i in range(len(anchor_set):
-    Y[i] = X_hat - anchor_set[i]
+def Statements(
+    anchor_set: Sequence[Element],
+    X_hat: Element,
+) -> tuple[list[Element], int]:
+    n = len(anchor_set)
+    q = 0
+    while 2**q < n:
+        q += 1
 
-return (Y, q)
+    Y = [X_hat - pkA for pkA in anchor_set]
+
+    return (Y, q)
 ~~~
 
 Two properties of this branch proof are what allow the composition below, and
@@ -1283,39 +1132,60 @@ we apply this commitment to group elements, so the output is always the same siz
 The parameters for our 1-of-2 binding commitments will be a point `Q`, and openings
 will be a single scalar, the randomness used in the commitment.
 
-~~~
-def CommitStep(Q, left, right, randomness):
-    C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)
+~~~python
+def CommitStep(
+    Q: Element,
+    left: bytes,
+    right: bytes,
+    randomness: Scalar,
+) -> bytes:
+    C = (
+        randomness * B
+        + DeriveScalar(left, b"left") * Q
+        + DeriveScalar(right, b"right") * G.P(Q)
+    )
     return G.SerializeElement(C)
 
 # the return value is (Q, secret) where
 # secret can be used to equivocate the non
 # binding direction
 
-def GenerateStep(bind_direction):
-    secret = G.RandomScalar()
-    T = secret*G.Generator()
+def GenerateStep(bind_direction: str) -> tuple[Element, Scalar]:
+    secret = DeriveScalar(random(Nseed), b"TODO")
+    T = secret * B
     if bind_direction == "left":
-        return (Pinv(T), secret)
-    elsif  bind_direction == "right":
+        return (G.Pinv(T), secret)
+    elif bind_direction == "right":
         return (T, secret)
+    else:
+        raise ValueError("bind_direction must be 'left' or 'right'")
 
-def EquivocateStep(old,new, randomness, secret):
-    return randomenss + (old - new)*secret
+def EquivocateStep(
+    old: Scalar, new: Scalar, randomness: Scalar, secret: Scalar
+) -> Scalar:
+    return randomness + (old - new) * secret
 ~~~
 
-Let V[0], V[1], ... V[n-1] be a vector of bytestrings. We will use a logarithmic number of reductions
+Let `V[0]`, `V[1]`, ... `V[n-1]` be a vector of bytestrings. We will use a logarithmic number of reductions
 to create a single commitment to the entire vector.
 
-~~~
-def VecCommit(V, Qi, rands):
-    if len(V) == 1 :
+~~~python
+def VecCommit(
+    V: Sequence[bytes],
+    Qi: Sequence[Element],
+    rands: Sequence[Scalar],
+) -> bytes:
+    if len(V) == 1:
         return V[0]
-    for i:=0; i<len(V)/2; i++
-        V'[i] = CommitStep(Qi[0], V[2*i], V[2*i+1], rands[0])
-    if len(V) % 2 == 1 :
-        V'[len(V)/2+1] = V[len(V)-1]
-    return VecCommit(V', Qi[1:], rands[1:])
+
+    V_prime = []
+    for i in range(len(V) // 2):
+        V_prime.append(CommitStep(Qi[0], V[2 * i], V[2 * i + 1], rands[0]))
+
+    if len(V) % 2 == 1:
+        V_prime.append(V[-1])
+
+    return VecCommit(V_prime, Qi[1:], rands[1:])
 ~~~
 
 Creating parameters that bind in only one specified position of the vector V is
@@ -1330,35 +1200,46 @@ rerandomized key, the signature being presented, the two contexts, and the
 Moderator's challenge digest -- together with the first move of the proof,
 which is the commitment keys and the root of the tree.
 
-~~~
-def ComputeProofChallenge(anchor_set, X_hat, endorsement, ctx_iss,
-                          ctx_red, challenge_digest,
-                          commitment_keys, root):
-  (c, s_hat, y, t, nf) = endorsement
-  n = len(anchor_set)
+~~~python
+def ComputeProofChallenge(
+    anchor_set: Sequence[Element],
+    X_hat: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+    commitment_keys: Sequence[Element],
+    root: bytes,
+) -> Scalar:
+    (c, s_hat, y, t, nf) = endorsement
+    n = len(anchor_set)
 
-  anchor_set_enc = ""
-  for i in range(n):
-    anchor_set_enc = anchor_set_enc ||
-                     G.SerializeElement(anchor_set[i])
+    anchor_set_enc = b""
+    for i in range(n):
+        anchor_set_enc += G.SerializeElement(anchor_set[i])
 
-  ck_enc = ""
-  for j in range(len(commitment_keys)):
-    ck_enc = ck_enc || G.SerializeElement(commitment_keys[j])
+    ck_enc = b""
+    for j in range(len(commitment_keys)):
+        ck_enc += G.SerializeElement(commitment_keys[j])
 
-  proof_transcript =
-    I2OSP(n, 2) || anchor_set_enc ||
-    G.SerializeElement(X_hat) ||
-    G.SerializeScalar(c) || G.SerializeScalar(s_hat) ||
-    G.SerializeScalar(y) || G.SerializeScalar(t) ||
-    I2OSP(len(nf), 2) || nf ||
-    I2OSP(len(ctx_iss), 2) || ctx_iss ||
-    I2OSP(len(ctx_red), 2) || ctx_red ||
-    I2OSP(len(challenge_digest), 2) || challenge_digest ||
-    ck_enc || EncodeNode(root) ||
-    "IssuerProof"
+    proof_transcript = (
+        I2OSP(n, 2)
+        + anchor_set_enc
+        + G.SerializeElement(X_hat)
+        + G.SerializeScalar(c)
+        + G.SerializeScalar(s_hat)
+        + G.SerializeScalar(y)
+        + G.SerializeScalar(t)
+        + U16Prefixed(nf)
+        + U16Prefixed(ctx_iss)
+        + U16Prefixed(ctx_red)
+        + U16Prefixed(challenge_digest)
+        + ck_enc
+        + root
+        + b"IssuerProof"
+    )
 
-  return G.HashToScalar(proof_transcript)
+    return G.HashToScalar(proof_transcript)
 ~~~
 
 `n` is prefixed and `Element` encodings are fixed-length, so `anchor_set_enc`
@@ -1373,63 +1254,51 @@ privileged by it.
 
 ### Proving {#prove-issuer}
 
-Input:
+~~~python
+def ProveIssuer(
+    anchor_set: Sequence[Element],
+    index: int,
+    delta: Scalar,
+    X_hat: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+    rand: bytes,
+) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
+    (Y, q) = Statements(anchor_set, X_hat)
+    if not 0 <= index < len(anchor_set):
+        raise ValueError("index is outside the Anchor Set")
+    if len(rand) != (3 * q + 1) * Nseed:
+        raise ValueError("invalid issuer proof randomness length")
 
-~~~
-  Element anchor_set[n]
-  uint16 index
-  Scalar delta
-  Element X_hat
-  Endorsement endorsement
-  PublicInput ctx_iss
-  PublicInput ctx_red
-  PublicInput challenge_digest
-  opaque rand[(3 * q + 1) * Nseed]
-~~~
+    r = DeriveScalar(Seed(rand, 0), b"r")
+    A = B * r
 
-Output:
+    (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
+    # First move: commit along the binding path, sibling value zero.
+    (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
 
-~~~
-  Scalar proof_challenge
-  Scalar response
-  Element commitment_keys[q]
-  Scalar openings[q]
-~~~
+    proof_challenge = ComputeProofChallenge(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+        commitment_keys,
+        root,
+    )
 
-Parameters:
+    response = r - proof_challenge * delta
 
-~~~
-  Group G
-  PublicInput ctx_proto
-  Nseed
-~~~
+    V = []
+    for i in range(len(Y)):
+        commitment = BranchCommitment(proof_challenge, response, Y[i])
+        V.append(G.SerializeElement(commitment))
+    openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
 
-Errors: `DeriveError`
-
-~~~
-def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
-                ctx_red, challenge_digest, rand):
-  (Y, q) = Statements(anchor_set, X_hat)
-  # TODO: handle randomness in better way
-  r = G.RandomScalar()
-  A = G.Generator() * r
-
-  (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand)
-  # First move: commit along the binding path, sibling value zero.
-  (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
-
-  proof_challenge = ComputeProofChallenge(anchor_set, X_hat,
-                                          endorsement, ctx_iss,
-                                          ctx_red, challenge_digest,
-                                          commitment_keys, root)
-
-  # Third move: one response, reused by every branch.
-  response = r - proof_challenge * delta
-
-  for i in range(len(Y)):
-    V[i] = BranchCommitment(proof_challenge, response, Y[i])
-  openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
-  return proof_challenge, response, commitment_keys, openings
+    return (proof_challenge, response, commitment_keys, openings)
 ~~~
 
 The first move commits only the path from leaf `index` to the root: at each
@@ -1464,56 +1333,46 @@ communication, not in computation; see {{security-considerations}}.
 
 ### Verifying {#verify-issuer}
 
-Input:
+~~~python
+def VerifyIssuer(
+    anchor_set: Sequence[Element],
+    X_hat: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+    proof_challenge: Scalar,
+    response: Scalar,
+    commitment_keys: Sequence[Element],
+    openings: Sequence[Scalar],
+) -> bool:
+    n = len(anchor_set)
+    if n < 2:
+        return False
 
-~~~
-  Element anchor_set[n]
-  Element X_hat
-  Endorsement endorsement
-  PublicInput ctx_iss
-  PublicInput ctx_red
-  PublicInput challenge_digest
-  Scalar proof_challenge
-  Scalar response
-  Element commitment_keys[q]
-  Scalar openings[2 * q]
-~~~
+    (Y, q) = Statements(anchor_set, X_hat)
+    if len(commitment_keys) != q:
+        return False
+    if len(openings) != q:
+        return False
 
-Output:
+    T = []
+    for i in range(n):
+        commitment = BranchCommitment(proof_challenge, response, Y[i])
+        T.append(G.SerializeElement(commitment))
 
-~~~
-  boolean verified
-~~~
+    root = VecCommit(T, commitment_keys, openings)
 
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-~~~
-def VerifyIssuer(anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
-                 challenge_digest, proof_challenge, response,
-                 commitment_keys, openings):
-  n = len(anchor_set)
-  if n < 2:
-    return false
-
-  (Y, q) = Statements(anchor_set, X_hat)
-  if len(commitment_keys) != q:
-    return false
-  if len(openings) != q:
-    return false
-
-  for i in range(n):
-    T[i] = BranchCommitment(proof_challenge, response, Y[i])
-
-  root = VecCommit(T, commitment_keys, openings)
-
-  return proof_challenge == ComputeProofChallenge(
-      anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
-      challenge_digest, commitment_keys, root)
+    return proof_challenge == ComputeProofChallenge(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+        commitment_keys,
+        root,
+    )
 ~~~
 
 The verifier computes a commitment for every branch from the single response,
@@ -1555,58 +1414,53 @@ see {{security-considerations}}.
 
 The Client produces a redemption from an Endorsement it holds.
 
-Input:
+~~~python
+def Redeem(
+    anchor_set: Sequence[Element],
+    index: int,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+) -> Redemption:
+    (c, s, y, t, nf) = endorsement
+    n = len(anchor_set)
 
-~~~
-  Element anchor_set[n]
-  uint16 index
-  Endorsement endorsement
-  PublicInput ctx_iss
-  PublicInput ctx_red
-  PublicInput challenge_digest
-~~~
+    if n < 2:
+        raise VerifyError
+    if not 0 <= index < n:
+        raise ValueError("index is outside the Anchor Set")
 
-Output:
+    (Y, q) = Statements(anchor_set, G.Identity())
+    nrand = (3 * q + 2) * Nseed
 
-~~~
-  Redemption redemption
-~~~
+    rand = random(nrand)
+    delta = DeriveScalar(Seed(rand, 0), b"delta")
 
-Parameters:
+    X_hat = anchor_set[index] + delta * B
+    s_hat = s + (c * y) * delta
+    shown = Endorsement(c, s_hat, y, t, nf)
 
-~~~
-  Group G
-  PublicInput ctx_proto
-  Nseed
-~~~
+    (proof_challenge, response, commitment_keys, openings) = ProveIssuer(
+        anchor_set,
+        index,
+        delta,
+        X_hat,
+        shown,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+        rand[Nseed:nrand],
+    )
 
-Errors: `VerifyError`, `DeriveError`
-
-~~~
-def Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
-           challenge_digest):
-  (c, s, y, t, nf) = endorsement
-  n = len(anchor_set)
-
-  if n < 2:
-    raise VerifyError
-
-  (Y, q) = Statements(anchor_set, Identity())
-  nrand = (3 * q + 2) * Nseed
-
-  rand = random(nrand)
-  delta = DeriveScalar(Seed(rand, 0), "delta")
-
-  X_hat = anchor_set[index] + delta * B
-  s_hat = s + (c * y) * delta
-  shown = Endorsement(c, s_hat, y, t, nf)
-
-  proof_challenge, response, commitment_keys, openings =
-    ProveIssuer(anchor_set, index, delta, X_hat, shown, ctx_iss,
-                ctx_red, challenge_digest, rand[Nseed .. nrand])
-
-  return Redemption(X_hat, shown, proof_challenge, response,
-                    commitment_keys, openings)
+    return Redemption(
+        X_hat,
+        shown,
+        proof_challenge,
+        response,
+        commitment_keys,
+        openings,
+    )
 ~~~
 
 A Client MUST NOT redeem against an Anchor Set of fewer than two keys, and
@@ -1633,46 +1487,41 @@ would link them to each other.
 The Moderator checks the signature under the rerandomized key and the proof
 against its Anchor Set.
 
-Input:
+~~~python
+def VerifyRedemption(
+    anchor_set: Sequence[Element],
+    redemption: Redemption,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+) -> bytes:
+    (
+        X_hat,
+        shown,
+        proof_challenge,
+        response,
+        commitment_keys,
+        openings,
+    ) = redemption
 
-~~~
-  Element anchor_set[n]
-  Redemption redemption
-  PublicInput ctx_iss
-  PublicInput ctx_red
-  PublicInput challenge_digest
-~~~
+    if not Verify(X_hat, shown, ctx_iss, ctx_red):
+        raise VerifyError
 
-Output:
+    if not VerifyIssuer(
+        anchor_set,
+        X_hat,
+        shown,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+        proof_challenge,
+        response,
+        commitment_keys,
+        openings,
+    ):
+        raise VerifyError
 
-~~~
-  opaque nf[Nn]
-~~~
-
-Parameters:
-
-~~~
-  Group G
-  PublicInput ctx_proto
-~~~
-
-Errors: `VerifyError`
-
-~~~
-def VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
-                     challenge_digest):
-  (X_hat, shown, proof_challenge, response,
-   commitment_keys, openings) = redemption
-
-  if not Verify(X_hat, shown, ctx_iss, ctx_red):
-    raise VerifyError
-
-  if not VerifyIssuer(anchor_set, X_hat, shown, ctx_iss, ctx_red,
-                      challenge_digest, proof_challenge, response,
-                      commitment_keys, openings):
-    raise VerifyError
-
-  return shown.nf
+    return shown.nf
 ~~~
 
 The first check is the endorsement verification of {{verify}}, run against the
@@ -1768,11 +1617,11 @@ Identity(), Generator(), ScalarMultGen(r):
 
 HashToGroup(x):
 : Use `hash_to_curve` with suite `P256_XMD:SHA-256_SSWU_RO_` {{HASH2CURVE}} and
-  `DST = "HashToGroup-" || ctx_proto`.
+  `DST = "HashToGroup-" + ctx_proto`.
 
 HashToScalar(x):
 : Use `hash_to_field` from {{HASH2CURVE}} with `L = 48`, `expand_message_xmd`
-  with SHA-256, `DST = "HashToScalar-" || ctx_proto`, and a prime modulus
+  with SHA-256, `DST = "HashToScalar-" + ctx_proto`, and a prime modulus
   equal to `Order()`.
 
 ScalarInverse(s):
@@ -1838,12 +1687,12 @@ Identity(), Generator(), ScalarMultGen(r):
 
 HashToGroup(x):
 : Use `hash_to_ristretto255` {{HASH2CURVE}} with
-  `DST = "HashToGroup-" || ctx_proto` and `expand_message_xmd` using
+  `DST = "HashToGroup-" + ctx_proto` and `expand_message_xmd` using
   SHA-512.
 
 HashToScalar(x):
 : Compute `uniform_bytes` using `expand_message_xmd` with SHA-512,
-  `DST = "HashToScalar-" || ctx_proto`, and an output length of 64 bytes;
+  `DST = "HashToScalar-" + ctx_proto`, and an output length of 64 bytes;
   interpret `uniform_bytes` as a 512-bit integer in little-endian order and
   reduce it modulo `Order()`.
 
