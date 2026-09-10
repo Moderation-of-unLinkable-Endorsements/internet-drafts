@@ -1009,7 +1009,7 @@ Table of Contents
 
    An Endorsement is single-use (Section 4.4), so redemption does not
    have to hide the signature: the Client reveals it, and the Moderator
-   deduplicates on the nullifier.  What redemption must hide is _which_
+   deduplicates on the nullifier.  What redemption must hide is which
    Anchor issued it.  The signature of Section 5 verifies under one
    Anchor's public key, so presenting it against that key would name the
    Anchor.  Instead the Client rerandomizes the key (Section 6.1) and
@@ -1027,7 +1027,6 @@ Table of Contents
                       challenge (carries anchor_set)
                                 <--------
 
-     index = the position of the Client's Anchor in anchor_set
      redemption = Redeem(anchor_set, index, endorsement,
                          ctx_iss, ctx_red, challenge_digest)
 
@@ -1041,9 +1040,8 @@ Table of Contents
                 Figure 2: Endorsement redemption overview
 
    anchor_set is the list of Anchor public keys the Moderator accepts.
-   Its *order is significant*: proof branches are matched to keys by
-   position.  Both parties MUST use the same list in the same order.  A
-   proof computed over a different list or order will not verify.
+   Both parties MUST use the same list in the same order.  A proof
+   computed over a different list or order will not verify.
 
    challenge_digest binds the redemption to the challenge that triggered
    it.  It is computed from the Moderator's challenge as specified in
@@ -1067,6 +1065,8 @@ Table of Contents
      X_hat = pkA + delta * B
      s_hat = s + (c * y) * delta
 
+   Here B denotes the group's base point, i.e., B = G.Generator().
+
    The result is an Endorsement (c, s_hat, y, t, nf) that verifies under
    X_hat exactly as the original verifies under pkA, because the shift
    cancels in the reconstruction of A:
@@ -1079,18 +1079,24 @@ Table of Contents
    check the signature by running Verify (Section 5.5) with X_hat in
    place of pkA.
 
-   This shift is _additive_, so issuance is left completely unmodified
-   and the unforgeability of Section 5 carries over (Section 8).  But
-   X_hat by itself provides no evidence that it was derived from an
-   Anchor key.  The Client therefore also proves knowledge of delta
-   relating X_hat to a key in anchor_set, without revealing which key.
+   Because this shift is _additive_, so issuance is left unmodified and
+   the unforgeability of Section 5 carries over to the modified
+   Endorsement (Section 8).  But X_hat by itself provides no evidence
+   that it was derived from an Anchor key.  The Client therefore also
+   proves knowledge of delta relating X_hat to a key in anchor_set,
+   without revealing which key.
 
 6.2.  The Issuer-Hiding Proof
+
+      XXX Can we rename this to "redemption proof" to match Moussaka?
 
    The Client proves knowledge of delta such that X_hat - anchor_set[i]
    = delta * B for at least one i, without revealing i.  This is a one-
    out-of-n disjunction of Schnorr statements, all of them over the same
-   base B.
+   base B = G.Generator().
+
+      XXX Would be nice to reword this without saying "Schnorr
+      statement", since we haven't defined what this means.
 
    Such a disjunction is classically composed with the technique of
    Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
@@ -1155,8 +1161,12 @@ Table of Contents
 
    return (Y, q)
 
+      XXX The draft's range expression is malformed.  This is the
+      apparent intended transcription; unlike the preceding revision, it
+      does not pad.
+
    Two properties of this branch proof are what allow the composition
-   below, and [STACKSIG] calls a sigma protocol with both of them
+   below, and [STACKSIG] calls a Sigma protocol with both of them
    _stackable_. First, a verifying commitment can be computed for _any_
    statement from a challenge and a response, by the function above,
    without knowing a witness; this is the extended honest-verifier zero-
@@ -1170,8 +1180,8 @@ Table of Contents
    compute a commitment for every branch, and that every branch then
    verifies by construction.  Nothing is proved by the responses
    themselves.  What has to be enforced is that the Client fixed the
-   commitment of one branch _before_ the challenge existed, and could
-   not afterwards change it.
+   commitment of one branch before the challenge existed, and could not
+   afterwards change it.
 
 6.2.2.  Partially Binding Commitments
 
@@ -1191,9 +1201,14 @@ Table of Contents
    commitments are arbitrary strings of bytes, and the outputs are
    compressed group elements.
 
+      XXX Our encoding of P256 points is always compressed, correct?  Do
+      we need to reiterate here?
+
    We require a random permutation P on group elements.  We defer
-   discussing its instantiation to a later section.  Being a permutation
-   P has an inverse Pinv.
+   discussing its instantiation to a later section.  Being a
+   permutation, P has an inverse, which we denote by Pinv.
+
+      XXX GOT HERE
 
    If we need a 1-of-1 binding commitment, we use the identity function.
    Thankfully we apply this commitment to group elements, so the output
