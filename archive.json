@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-08T03:42:58.350610+00:00",
+  "timestamp": "2026-09-10T03:46:20.485738+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -661,15 +661,15 @@
       "id": "I_kwDOSX6krs8AAAABNhEpAg",
       "title": "Longfellow endorsement profile",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/59",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cryptphil",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "A few points in the Longfellow section (4.2) of MoLE protocols could be clarified:\n\n- Replace \u201ccircuit\u201d with \u201ccircuit artifact\u201d or \u201ccircuits\u201d as Longfellow uses two circuits packaged into one compressed artifact. So instead the circuit_id should identify this artifact, one could still keep `circuit_id` or rename it to `circuit_artifact_id`. The artifact specification containing the version, circuit IDs, and proof parameters should also be distributed out of band.\n\n- Why is the Longfellow `Challenge` empty? One could also include a challenge digest into the Fiat-Shamir transcript, to explicitly bind the proof to the redemption (without making it a circuit public input).\n- Should the credential expiry be considered? The Moderator could provide the currently accepted  `verification_time` in the Moderator configuration, which is used as a public circuit input to prove `validFrom <= verification_time <= validUntil`.\n- The scarcity discussion may be a bit too broad and maybe needs some clarification. One might need Anchors to \u201cparticipate in MoLE\u201d, by adapting the issuance to allow for embedding commitment on a secret, which is provided by the Client, for deriving the nullifier. However, there might be existing credentials that already allow for the Client to embed a secret in some way; for instance in a nonce in OIDC (ref. [zk-login](https://arxiv.org/pdf/2401.11735)) or even in the seed for deriving the deviceKey in mdocs.\n\nOnce we publish the Longfellow MoLE prototype with the respective circuits under the cloudflare-research organization, we can also update the reference here.",
       "createdAt": "2026-08-20T09:48:39Z",
-      "updatedAt": "2026-08-26T08:19:26Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-09T10:52:16Z",
+      "closedAt": "2026-09-09T10:52:16Z",
       "comments": [
         {
           "author": "thibmeu",
@@ -6832,7 +6832,7 @@
       "id": "PR_kwDOSX6krs8AAAABAV0Ljg",
       "title": "protocols: Warn about Anchor Set intersection attacks",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/58",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -6841,14 +6841,14 @@
       ],
       "body": "",
       "createdAt": "2026-08-19T21:53:53Z",
-      "updatedAt": "2026-09-02T13:13:40Z",
+      "updatedAt": "2026-09-08T14:39:36Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/proto-intersect-attacks",
       "headRefOid": "8fcb4dca60bfec1bc96d5accc2d334d5d7b5ad34",
-      "closedAt": null,
+      "closedAt": "2026-09-08T14:39:35Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -6866,6 +6866,13 @@
           "body": "rebased on the latest protocol draft in https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/63\r\n\r\nthat will need one approval @dennisjackson ",
           "createdAt": "2026-09-02T13:13:40Z",
           "updatedAt": "2026-09-02T13:13:40Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Closed in favor of #63 ",
+          "createdAt": "2026-09-08T14:39:35Z",
+          "updatedAt": "2026-09-08T14:39:35Z"
         }
       ],
       "reviews": [
@@ -7275,7 +7282,7 @@
       "id": "PR_kwDOSX6krs8AAAABB5rfyg",
       "title": "protocols: Warn about Anchor Set intersection attacks",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/63",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -7286,17 +7293,19 @@
       ],
       "body": "Adapted from #58 for the current configuration model, given Chris is out this week.",
       "createdAt": "2026-09-02T13:13:13Z",
-      "updatedAt": "2026-09-02T15:05:02Z",
+      "updatedAt": "2026-09-08T21:01:46Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "84393eb0a40cdff2e772c635424a16b012c3b20e",
       "headRepository": "thibmeu/mole-internet-drafts",
       "headRefName": "protocols-anchor-set-intersection-attacks",
       "headRefOid": "48043d8e0b70027783d9fc181ccba461d9028cde",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-09-08T21:01:45Z",
+      "mergedAt": "2026-09-08T21:01:45Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "1ab15412cb251eddcff74d6e43ade8d1f703de3a"
+      },
       "comments": [],
       "reviews": [
         {
@@ -7338,6 +7347,19 @@
               "updatedAt": "2026-09-02T15:05:02Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABMo4s9A",
+          "commit": {
+            "abbreviatedOid": "48043d8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-08T14:38:48Z",
+          "updatedAt": "2026-09-08T14:38:48Z",
+          "comments": []
         }
       ]
     },
@@ -7400,7 +7422,7 @@
       "id": "PR_kwDOSX6krs8AAAABCHxA5w",
       "title": "crypto: switch to compact form of vector commitments, handle 1",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/65",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -7412,17 +7434,19 @@
       ],
       "body": "Still work to do: this doesn't handle randomness in the same way because I couldn't figure it out, but I say merge and we can hack away. There may also be references to things that are made wrong by shrinking things, and we'll have to handle zero length vectors in the encoding.",
       "createdAt": "2026-09-03T22:01:35Z",
-      "updatedAt": "2026-09-08T03:25:42Z",
+      "updatedAt": "2026-09-08T19:12:30Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "abebd9b682b7c8a5324202024066441aa2e39d5a",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/better-reduction",
-      "headRefOid": "d161044b9b8779e0b71d22d1514237a70bf9b5ac",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "d772c3bdc6c150b146f586c5af6cb2c2ffaeb042",
+      "closedAt": "2026-09-08T19:12:30Z",
+      "mergedAt": "2026-09-08T19:12:29Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "fa7094e251c3d8a0493a8d9eda38a5801a71e368"
+      },
       "comments": [],
       "reviews": [
         {
@@ -7604,6 +7628,76 @@
           ]
         }
       ]
+    },
+    {
+      "number": 66,
+      "id": "PR_kwDOSX6krs8AAAABCwakRg",
+      "title": "Connect IHAT redemption to the protocol and HTTP drafts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/66",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Map IHAT redemption to the existing cryptographic API and make the HTTP Moderator challenge carry the common RedemptionChallenge. Remove stale interface and context notes, and correct the draft URL and TLS reference.\r\n\r\nPrepping for adding ACTs.",
+      "createdAt": "2026-09-09T00:55:05Z",
+      "updatedAt": "2026-09-09T03:09:51Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "1ab15412cb251eddcff74d6e43ade8d1f703de3a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-01-ihat-integration",
+      "headRefOid": "7e28d2b508c936a1f14dcbb2d6f5ac1eef3af711",
+      "closedAt": "2026-09-09T03:09:51Z",
+      "mergedAt": "2026-09-09T03:09:51Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "99c650f11da28a8e5b8718c450e9a672ef38b198"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABMuiS6w",
+          "commit": {
+            "abbreviatedOid": "7e28d2b"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Nice",
+          "createdAt": "2026-09-09T02:18:57Z",
+          "updatedAt": "2026-09-09T02:18:57Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 67,
+      "id": "PR_kwDOSX6krs8AAAABC3DEbg",
+      "title": "Define the ACT credential model, parameters, and security goals",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/67",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Introduce the balance credential model, domain separation, generators, key and context rules, and balance parameters. State the assumptions for credit conservation and the deployment requirements.\r\n\r\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.",
+      "createdAt": "2026-09-09T16:02:01Z",
+      "updatedAt": "2026-09-09T16:02:01Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-02-model",
+      "headRefOid": "9928364456b16e24effc036299a80f5201f6aa41",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
