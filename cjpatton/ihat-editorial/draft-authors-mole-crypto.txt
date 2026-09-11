@@ -1663,16 +1663,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    Client's blinding factors, so recovering either undoes the property
    that algorithm provides.
 
-      *Editorial note.* This document does not use the RandomScalar()
-      member of [OPRF]'s group interface, and so does not have to
-      resolve an inconsistency in it: Section 2.1 of [OPRF] defines
-      RandomScalar() as "Chooses at random a nonzero element in GF(p)",
-      while each of its ciphersuites defines it as "a uniformly random
-      Scalar in the range [0, G.Order() - 1]", which includes zero.
-      *TODO:* report the inconsistency against [OPRF].
-
-      XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392
-
 8.  Security Considerations
 
       *TODO.* This section is a summary of the properties the

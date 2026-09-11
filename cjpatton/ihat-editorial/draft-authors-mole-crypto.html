@@ -3093,21 +3093,6 @@ and <span class="bcp14">SHOULD</span> handle both in constant time: the seed dra
 the Anchor's session state, and the seed drawn in <code>Challenge</code> determines the
 Client's blinding factors, so recovering either undoes the property that
 algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.2-2.1">
-            <p id="section-7.2-2.1.1"><strong>Editorial note.</strong> This document does not use the <code>RandomScalar()</code> member of
-<span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>'s group interface, and so does not have to resolve an inconsistency
-in it: <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> defines <code>RandomScalar()</code> as "Chooses at random
-a nonzero element in GF(p)", while each of its ciphersuites defines it as "a
-uniformly random Scalar in the range <code>[0, G.Order() - 1]</code>", which includes
-zero. <strong>TODO:</strong> report the inconsistency against <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.2-3.1">
-            <p id="section-7.2-3.1.1">XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392<a href="#section-7.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 </section>
 </div>
 </section>
