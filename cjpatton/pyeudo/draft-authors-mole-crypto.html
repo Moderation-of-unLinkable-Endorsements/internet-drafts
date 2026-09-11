@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Mohan</td>
-<td class="center">Expires 14 March 2027</td>
+<td class="center">Expires 15 March 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-crypto-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-10" class="published">10 September 2026</time>
+<time datetime="2026-09-11" class="published">11 September 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-14">14 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-03-15">15 March 2027</time></dd>
 <dt class="label-authors">Author:</dt>
 <dd class="authors">
 <div class="author">
@@ -1123,7 +1123,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 14 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1424,10 +1424,10 @@ that is <code>x[k * Nseed .. (k + 1) * Nseed]</code>, with <code>k</code> counte
 <a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-12" class="pilcrow">¶</a></p>
 <p id="section-2-13">String values in monospace and quotes, such as <code>"Challenge"</code>, are ASCII string
 literals and do not include a terminating NUL byte.<a href="#section-2-13" class="pilcrow">¶</a></p>
-<p id="section-2-14">All algorithms are specified in Python. Each algorithm takes a set of inputs
-and parameters and produces a set of outputs. Parameters become constant values
-once the ciphersuite is fixed. An algorithm that can fail raises an error; the
-errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
+<p id="section-2-14">All algorithms are specified in Python-like pseudocode. Each algorithm takes a
+set of inputs and parameters and produces a set of outputs. Parameters become
+constant values once the ciphersuite is fixed. An algorithm that can fail
+raises an error; the errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
 <p id="section-2-15">Type <code>PublicInput</code> is an alias for a byte string. It denotes that the value is
 not secret. We write <code>opaque value[L]</code> to denote a (possibly secret) byte
 string <code>value</code> whose length is exactly <code>L</code>.<a href="#section-2-15" class="pilcrow">¶</a></p>
@@ -2566,7 +2566,7 @@ be opened to any value. The Client commits the branch commitment of <code>index<
 the binding position, and after the challenge is known it opens every other
 position to the branch commitment that the shared response determines. The
 branch at the binding position uses the actual witness and a commitment fixed
-before the challenge; which branch that is remains hidden by the commitment
+before the challenge; the index of the branch remains hidden by the commitment
 key.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-2">This document uses the commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
@@ -2580,13 +2580,13 @@ reiterate here?<a href="#section-6.2.2-3.1.1" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-4">We require a random permutation <code>P</code> on group elements. We defer discussing its
 instantiation to a later section. Being a permutation, <code>P</code> has an inverse,
 which we denote by <code>Pinv</code>.<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-5">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
+we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.2-5.1">
-              <p id="section-6.2.2-5.1.1">XXX GOT HERE<a href="#section-6.2.2-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6.2.2-6.1">
+              <p id="section-6.2.2-6.1.1">XXX What does this mean?<a href="#section-6.2.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-6.2.2-6">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
-we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-6" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-7">The parameters for our 1-of-2 binding commitments will be a point <code>Q</code>, and openings
 will be a single scalar, the randomness used in the commitment.<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6.2.2-8">
@@ -2628,6 +2628,12 @@ def VecCommit(V, Qi, rands):
 <p id="section-6.2.2-11">Creating parameters that bind in only one specified position of the vector V is
 an exercise in bookkeeping. Note that there is significant savings in verification
 from caching the computation of <code>G.Generator()*rands[i]</code> across the level.<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.2.2-12.1">
+              <p id="section-6.2.2-12.1.1">XXX It would be useful to add an aasvg diagram here that visualizes the
+construction of a vector commitment.<a href="#section-6.2.2-12.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
 </section>
 </div>
 <div id="proof-challenge">
@@ -2671,14 +2677,29 @@ def ComputeProofChallenge(anchor_set, X_hat, endorsement, ctx_iss,
   return G.HashToScalar(proof_transcript)
 </pre><a href="#section-6.2.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.3-3"><code>n</code> is prefixed and <code>Element</code> encodings are fixed-length, so <code>anchor_set_enc</code>
-and <code>ck_enc</code> are unambiguous without length prefixes of their own; <code>q</code>, and with
-it the number of commitment keys, is determined by <code>n</code>. The label
-<code>"IssuerProof"</code> separates this transcript from the issuance transcript of
-<a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-6.2.3-4">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.2.3-3.1">
+              <p id="section-6.2.3-3.1.1">XXX Why bind the issuance and redemption context? The redemption context is
+covered by the issued signature, so I don't see why it needs to be covered by
+the transcript. Likewise for the issuance context: If the context doesn't
+match the value used during issuance, then signature verification should
+fail. Otherwise, there's nothing that guarantees that all three parties agree
+on the value.<a href="#section-6.2.3-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-6.2.3-4">The length of the Anchor Set <code>n</code> is prefixed and <code>Element</code> encodings are
+fixed-length, so <code>anchor_set_enc</code> and <code>ck_enc</code> are unambiguous without length
+prefixes of their own; <code>q</code>, and with it the number of commitment keys, is
+determined by <code>n</code>. The label <code>"IssuerProof"</code> separates this transcript from the
+issuance transcript of <a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.2.3-5.1">
+              <p id="section-6.2.3-5.1.1">XXX What does <code>q</code> refer to here?<a href="#section-6.2.3-5.1.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+<p id="section-6.2.3-6">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
 retrying: a challenge of zero yields a proof that verifies, and no branch is
-privileged by it.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
+privileged by it.<a href="#section-6.2.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prove-issuer">
@@ -2745,33 +2766,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
   return proof_challenge, response, commitment_keys, openings
 </pre><a href="#section-6.2.4-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.4-9">The first move commits only the path from leaf <code>index</code> to the root: at each
-level the Client commits the value it holds on one side and zero on the other,
-having generated that level's commitment key so that the <em>other</em> side is the
-equivocal one. The third move then computes the branch commitment of every
-statement from the single response, equivocates each level to the value its
-sibling subtree now has, and rebuilds the tree with the equivocated randomness.
-The root is unchanged by this, which is why the verifier can recompute it.<a href="#section-6.2.4-9" class="pilcrow">¶</a></p>
-<p id="section-6.2.4-10"><strong>The Client <span class="bcp14">MUST</span> derive <code>r</code>, every <code>trapdoor</code>, and every node randomness
-freshly for each redemption.</strong> This requirement is load-bearing, not defensive.
-<code>ProveIssuer</code> is a deterministic function of <code>rand</code>, so two redemptions that
-reuse it share the nonce <code>r</code> while answering two different challenges, and from
-<code>response1 = r - proof_challenge1 * delta</code> and
-<code>response2 = r - proof_challenge2 * delta</code> anyone recovers<a href="#section-6.2.4-10" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.4-11">
-<pre>
-  delta = (response2 - response1) *
-          ScalarInverse(proof_challenge1 - proof_challenge2)
-</pre><a href="#section-6.2.4-11" class="pilcrow">¶</a>
-</div>
-<p id="section-6.2.4-12">and with it <code>X_hat - delta * B</code>, which is the public key of the Anchor that
-issued the Endorsement. Reuse therefore does not merely weaken issuer hiding, it
-destroys it, and it strips the rerandomization from the signature for everyone,
-not only for the Moderator. A repeated commitment key is in any case a value a
-verifier can recognize, and would link the two redemptions to each other.<a href="#section-6.2.4-12" class="pilcrow">¶</a></p>
-<p id="section-6.2.4-13">Proving is linear in <code>n</code>: the second loop computes <code>N</code> branch commitments and
-<code>N - 1</code> node commitments, however short the proof is. The saving is in
-communication, not in computation; see <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-6.2.4-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="verify-issuer">
@@ -2854,7 +2848,7 @@ reaching it means the Moderator is misconfigured (<a href="#verify-redemption" c
     = r * B
 </pre><a href="#section-6.2.5-11" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.5-12">which is the commitment the Client committed at the binding leaf, and every
+<p id="section-6.2.5-12">This is the commitment the Client committed at the binding leaf, and every
 other leaf holds by definition the commitment the verifier recomputes. Each
 level then reproduces the node the Client committed: the binding side is
 unchanged, and the equivocal side was shifted to match.<a href="#section-6.2.5-12" class="pilcrow">¶</a></p>
@@ -2927,18 +2921,16 @@ def Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
                     commitment_keys, openings)
 </pre><a href="#section-6.3-9" class="pilcrow">¶</a>
 </div>
-<p id="section-6.3-10">A Client <span class="bcp14">MUST NOT</span> redeem against an Anchor Set of fewer than two keys, and
-<code>Redeem</code> raises a <code>VerifyError</code> rather than producing a redemption. This is the
-Client's own protection, and it is not redundant with the requirement on the
-Moderator not to offer such a set (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>): that requirement is
-of no help against a Moderator that offers a single key precisely in order to
-learn which Anchor endorsed this Client. Refusing also keeps the depth <code>q</code> of
-the tree at least one, so a redemption always carries at least one commitment
-key.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
-<p id="section-6.3-11">The amount of randomness a redemption consumes depends on the size of the Anchor
-Set, through the depth <code>q</code> of the tree (<a href="#pbvc" class="auto internal xref">Section 6.2.2</a>), and on nothing else; in
-particular it does not depend on <code>index</code>. <code>Statements</code> is called here only to
-obtain <code>q</code>, which is why the rerandomized key it is given is irrelevant.<a href="#section-6.3-11" class="pilcrow">¶</a></p>
+<p id="section-6.3-10">In order to keep the Anchor anonymous, the Client <span class="bcp14">MUST NOT</span> redeem against an
+Anchor Set of fewer than two keys. Refusing also keeps the depth <code>q</code> of the
+tree at least one, so a redemption always carries at least one commitment key.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.3-11.1">
+            <p id="section-6.3-11.1.1">XXX This is fine, but we will likely live in a world for a little while in
+which there is only one Anchor, and we want to redeem Endorsements anyway.
+How will this work?<a href="#section-6.3-11.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 <p id="section-6.3-12"><code>delta</code> <span class="bcp14">MUST</span> be freshly derived for every redemption, and <span class="bcp14">MUST NOT</span> be derived
 from the Endorsement or from any other value a Client reuses. It is what makes
 the redemption unlinkable to the Anchor, and reusing it across two redemptions
@@ -3046,16 +3038,26 @@ the Moderator offered (<a href="#pbvc" class="auto internal xref">Section 6.2.2<
 <code>2 * (j - 1)</code> and <code>2 * (j - 1) + 1</code>, in that order. A Moderator <span class="bcp14">MUST</span> reject any
 other length with a <code>DeserializeError</code> rather than truncating or padding, and
 <span class="bcp14">MUST NOT</span> infer the size of its own Anchor Set from the redemption.<a href="#section-6.5-4" class="pilcrow">¶</a></p>
-<p id="section-6.5-5">A redemption is therefore <code>Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q * Ns</code>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.5-5.1">
+            <p id="section-6.5-5.1.1">XXX Give an explicit formula for <code>q</code>.<a href="#section-6.5-5.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-6.5-6">A redemption is therefore <code>Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q * Ns</code>
 bytes plus the two vector length prefixes, which are two bytes each at the
 sizes below. For <code>IHAT(P-256, SHA-256)</code> and an Anchor Set of ten keys, <code>q = 4</code>
 and a redemption is 649 bytes, of which 456 are the proof; at 64 keys it is
 843 bytes, of which 650 are the proof. The corresponding linear disjunction
 <span>[<a href="#CDS94" class="cite xref">CDS94</a>]</span> would be 837 and 4293 bytes respectively. The stacked proof is the
 smaller of the two for every Anchor Set of six or more keys, and its advantage
-grows with the set, which is the reason for using it.<a href="#section-6.5-5" class="pilcrow">¶</a></p>
-<p id="section-6.5-6">The Client <span class="bcp14">MUST NOT</span> reveal <code>pkA</code>, <code>index</code>, <code>delta</code>, or the Endorsement it
-stored. Sending any of them defeats the point of redeeming under <code>X_hat</code>.<a href="#section-6.5-6" class="pilcrow">¶</a></p>
+grows with the set, which is the reason for using it.<a href="#section-6.5-6" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6.5-7.1">
+            <p id="section-6.5-7.1.1">XXX I'm guessing the estimates for disjunction is generated by AI. Instead I
+think it ought to be generated by a reference implemntation. Absent this
+implementation, I think we should not include these numbers.<a href="#section-6.5-7.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 </section>
@@ -3072,7 +3074,7 @@ ciphersuite in use (<a href="#config" class="auto internal xref">Section 4.1</a>
 length is <code>Nn = 32</code> bytes and the seed length is <code>Nseed = Ns + 16</code> bytes, that
 is 48 bytes, for both ciphersuites below. The 16 bytes in excess of <code>Ns</code> are
 what makes a derived scalar statistically close to uniform (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>),
-on the same grounds that <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> oversamples by 128 bits when it maps a
+on the same grounds that <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> oversamples by 16 bytes when it maps a
 byte string to a field element.<a href="#section-7-2" class="pilcrow">¶</a></p>
 <div id="ihatp-256-sha-256">
 <section id="section-7.1">
@@ -3166,6 +3168,11 @@ inverse.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.1-4.1">
+            <p id="section-7.1-4.1.1">XXX Replace this with pseudocode<a href="#section-7.1-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="ihatristretto255-sha-512">
@@ -3241,6 +3248,11 @@ with a symmetric Feisel network.<a href="#section-7.2-3.20.1" class="pilcrow">¶
 </dd>
         <dd class="break"></dd>
 </dl>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.2-4.1">
+            <p id="section-7.2-4.1.1">XXX Just delete this until we need it.<a href="#section-7.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 </section>
 </div>
 <div id="randomness">
@@ -3265,6 +3277,11 @@ in it: <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="rel
 a nonzero element in GF(p)", while each of its ciphersuites defines it as "a
 uniformly random Scalar in the range <code>[0, G.Order() - 1]</code>", which includes
 zero. <strong>TODO:</strong> report the inconsistency against <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-7.3-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.3-3.1">
+            <p id="section-7.3-3.1.1">XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392<a href="#section-7.3-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>

@@ -4,8 +4,8 @@
 
 Network Working Group                                        D. I. Mohan
 Internet-Draft                           Georgia Institute of Technology
-Intended status: Informational                         10 September 2026
-Expires: 14 March 2027
+Intended status: Informational                         11 September 2026
+Expires: 15 March 2027
 
 
                            MoLE Cryptography
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 14 March 2027.
+   This Internet-Draft will expire on 15 March 2027.
 
 Copyright Notice
 
@@ -230,11 +230,11 @@ Table of Contents
    String values in monospace and quotes, such as "Challenge", are ASCII
    string literals and do not include a terminating NUL byte.
 
-   All algorithms are specified in Python.  Each algorithm takes a set
-   of inputs and parameters and produces a set of outputs.  Parameters
-   become constant values once the ciphersuite is fixed.  An algorithm
-   that can fail raises an error; the errors used in this document are
-   listed in Section 3.2.
+   All algorithms are specified in Python-like pseudocode.  Each
+   algorithm takes a set of inputs and parameters and produces a set of
+   outputs.  Parameters become constant values once the ciphersuite is
+   fixed.  An algorithm that can fail raises an error; the errors used
+   in this document are listed in Section 3.2.
 
    Type PublicInput is an alias for a byte string.  It denotes that the
    value is not secret.  We write opaque value[L] to denote a (possibly
@@ -1193,8 +1193,8 @@ Table of Contents
    position, and after the challenge is known it opens every other
    position to the branch commitment that the shared response
    determines.  The branch at the binding position uses the actual
-   witness and a commitment fixed before the challenge; which branch
-   that is remains hidden by the commitment key.
+   witness and a commitment fixed before the challenge; the index of the
+   branch remains hidden by the commitment key.
 
    This document uses the commitment of the appendix of [STACKSIG] over
    pairs, and then assembles them into a tree.  The inputs to the
@@ -1208,11 +1208,11 @@ Table of Contents
    discussing its instantiation to a later section.  Being a
    permutation, P has an inverse, which we denote by Pinv.
 
-      XXX GOT HERE
-
    If we need a 1-of-1 binding commitment, we use the identity function.
    Thankfully we apply this commitment to group elements, so the output
    is always the same size.
+
+      XXX What does this mean?
 
    The parameters for our 1-of-2 binding commitments will be a point Q,
    and openings will be a single scalar, the randomness used in the
@@ -1255,6 +1255,9 @@ def EquivocateStep(old,new, randomness, secret):
    significant savings in verification from caching the computation of
    G.Generator()*rands[i] across the level.
 
+      XXX It would be useful to add an aasvg diagram here that
+      visualizes the construction of a vector commitment.
+
 6.2.3.  Challenge Computation
 
    The Fiat-Shamir challenge covers the whole statement -- the Anchor
@@ -1292,12 +1295,22 @@ def EquivocateStep(old,new, randomness, secret):
 
      return G.HashToScalar(proof_transcript)
 
-   n is prefixed and Element encodings are fixed-length, so
-   anchor_set_enc and ck_enc are unambiguous without length prefixes of
-   their own; q, and with it the number of commitment keys, is
-   determined by n.  The label "IssuerProof" separates this transcript
-   from the issuance transcript of Section 5.2, which is hashed with the
-   same function.
+      XXX Why bind the issuance and redemption context?  The redemption
+      context is covered by the issued signature, so I don't see why it
+      needs to be covered by the transcript.  Likewise for the issuance
+      context: If the context doesn't match the value used during
+      issuance, then signature verification should fail.  Otherwise,
+      there's nothing that guarantees that all three parties agree on
+      the value.
+
+   The length of the Anchor Set n is prefixed and Element encodings are
+   fixed-length, so anchor_set_enc and ck_enc are unambiguous without
+   length prefixes of their own; q, and with it the number of commitment
+   keys, is determined by n.  The label "IssuerProof" separates this
+   transcript from the issuance transcript of Section 5.2, which is
+   hashed with the same function.
+
+      XXX What does q refer to here?
 
    Unlike ComputeChallenge, this function accepts zero rather than
    aborting and retrying: a challenge of zero yields a proof that
@@ -1355,36 +1368,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
     V[i] = BranchCommitment(proof_challenge, response, Y[i])
   openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
   return proof_challenge, response, commitment_keys, openings
-
-   The first move commits only the path from leaf index to the root: at
-   each level the Client commits the value it holds on one side and zero
-   on the other, having generated that level's commitment key so that
-   the _other_ side is the equivocal one.  The third move then computes
-   the branch commitment of every statement from the single response,
-   equivocates each level to the value its sibling subtree now has, and
-   rebuilds the tree with the equivocated randomness.  The root is
-   unchanged by this, which is why the verifier can recompute it.
-
-   *The Client MUST derive r, every trapdoor, and every node randomness
-   freshly for each redemption.* This requirement is load-bearing, not
-   defensive.  ProveIssuer is a deterministic function of rand, so two
-   redemptions that reuse it share the nonce r while answering two
-   different challenges, and from response1 = r - proof_challenge1 *
-   delta and response2 = r - proof_challenge2 * delta anyone recovers
-
-     delta = (response2 - response1) *
-             ScalarInverse(proof_challenge1 - proof_challenge2)
-
-   and with it X_hat - delta * B, which is the public key of the Anchor
-   that issued the Endorsement.  Reuse therefore does not merely weaken
-   issuer hiding, it destroys it, and it strips the rerandomization from
-   the signature for everyone, not only for the Moderator.  A repeated
-   commitment key is in any case a value a verifier can recognize, and
-   would link the two redemptions to each other.
-
-   Proving is linear in n: the second loop computes N branch commitments
-   and N - 1 node commitments, however short the proof is.  The saving
-   is in communication, not in computation; see Section 8.
 
 6.2.5.  Verifying
 
@@ -1456,7 +1439,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
          + (r - proof_challenge * delta) * B
        = r * B
 
-   which is the commitment the Client committed at the binding leaf, and
+   This is the commitment the Client committed at the binding leaf, and
    every other leaf holds by definition the commitment the verifier
    recomputes.  Each level then reproduces the node the Client
    committed: the binding side is unchanged, and the equivocal side was
@@ -1518,21 +1501,14 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
      return Redemption(X_hat, shown, proof_challenge, response,
                        commitment_keys, openings)
 
-   A Client MUST NOT redeem against an Anchor Set of fewer than two
-   keys, and Redeem raises a VerifyError rather than producing a
-   redemption.  This is the Client's own protection, and it is not
-   redundant with the requirement on the Moderator not to offer such a
-   set (Section 6.4): that requirement is of no help against a Moderator
-   that offers a single key precisely in order to learn which Anchor
-   endorsed this Client.  Refusing also keeps the depth q of the tree at
-   least one, so a redemption always carries at least one commitment
-   key.
+   In order to keep the Anchor anonymous, the Client MUST NOT redeem
+   against an Anchor Set of fewer than two keys.  Refusing also keeps
+   the depth q of the tree at least one, so a redemption always carries
+   at least one commitment key.
 
-   The amount of randomness a redemption consumes depends on the size of
-   the Anchor Set, through the depth q of the tree (Section 6.2.2), and
-   on nothing else; in particular it does not depend on index.
-   Statements is called here only to obtain q, which is why the
-   rerandomized key it is given is irrelevant.
+      XXX This is fine, but we will likely live in a world for a little
+      while in which there is only one Anchor, and we want to redeem
+      Endorsements anyway.  How will this work?
 
    delta MUST be freshly derived for every redemption, and MUST NOT be
    derived from the Endorsement or from any other value a Client reuses.
@@ -1631,6 +1607,8 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    than truncating or padding, and MUST NOT infer the size of its own
    Anchor Set from the redemption.
 
+      XXX Give an explicit formula for q.
+
    A redemption is therefore Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q
    * Ns bytes plus the two vector length prefixes, which are two bytes
    each at the sizes below.  For IHAT(P-256, SHA-256) and an Anchor Set
@@ -1641,9 +1619,10 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    every Anchor Set of six or more keys, and its advantage grows with
    the set, which is the reason for using it.
 
-   The Client MUST NOT reveal pkA, index, delta, or the Endorsement it
-   stored.  Sending any of them defeats the point of redeeming under
-   X_hat.
+      XXX I'm guessing the estimates for disjunction is generated by AI.
+      Instead I think it ought to be generated by a reference
+      implemntation.  Absent this implementation, I think we should not
+      include these numbers.
 
 7.  Ciphersuites
 
@@ -1656,7 +1635,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    16 bytes, that is 48 bytes, for both ciphersuites below.  The 16
    bytes in excess of Ns are what makes a derived scalar statistically
    close to uniform (Section 4.2), on the same grounds that [HASH2CURVE]
-   oversamples by 128 bits when it maps a byte string to a field
+   oversamples by 16 bytes when it maps a byte string to a field
    element.
 
 7.1.  IHAT(P-256, SHA-256)
@@ -1714,6 +1693,8 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       average this takes 2 iterations of Pbuf.  The inverse is obtained
       by applying Pbuf inverse.
 
+      XXX Replace this with pseudocode
+
 7.2.  IHAT(ristretto255, SHA-512)
 
    This ciphersuite uses ristretto255 [RISTRETTO] for the group and
@@ -1756,6 +1737,8 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    P  Very similar to above, but 32 byte random permutations are easier
       to use instantiate with a symmetric Feisel network.
 
+      XXX Just delete this until we need it.
+
 7.3.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
@@ -1776,6 +1759,8 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       while each of its ciphersuites defines it as "a uniformly random
       Scalar in the range [0, G.Order() - 1]", which includes zero.
       *TODO:* report the inconsistency against [OPRF].
+
+      XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392
 
 8.  Security Considerations
 
