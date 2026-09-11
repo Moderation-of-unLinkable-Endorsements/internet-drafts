@@ -622,7 +622,7 @@ Table of Contents
 
    Errors: DeriveError
 
-   def Commit(ctx_iss):
+   def Commit(skA, ctx_iss):
      Z = CreateContextBase(ctx_iss)
 
      rand = random(3 * Nseed)
@@ -639,14 +639,14 @@ Table of Contents
      return state, commitment
 
    The Anchor stores state for the duration of the session and sends
-   commitment to the Client in a CommitMessage (Section 5.6).
+   commitment to the Client in a CommitMessage (Section 5.6).  Note that
+   skA is not used in Commit; it appears in the interface because an
+   implementation MAY choose to carry it in the session state rather
+   than reload it in Respond.
 
    Commit draws all of its randomness in one call and splits it into one
    seed per scalar (Section 4.2).  A test vector fixes the single value
    rand; y is nonzero by construction.
-
-      XXX How about just passing rand to Commit explicitly?  Likewise
-      for the others.
 
 5.2.  Client Challenge
 

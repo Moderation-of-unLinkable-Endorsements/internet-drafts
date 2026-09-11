@@ -1912,7 +1912,7 @@ the argument lists in the pseudocode.<a href="#section-5-5" class="pilcrow">¶</
 <p id="section-5.1-8">Errors: <code>DeriveError</code><a href="#section-5.1-8" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.1-9">
 <pre>
-def Commit(ctx_iss):
+def Commit(skA, ctx_iss):
   Z = CreateContextBase(ctx_iss)
 
   rand = random(3 * Nseed)
@@ -1930,15 +1930,12 @@ def Commit(ctx_iss):
 </pre><a href="#section-5.1-9" class="pilcrow">¶</a>
 </div>
 <p id="section-5.1-10">The Anchor stores <code>state</code> for the duration of the session and sends <code>commitment</code>
-to the Client in a <code>CommitMessage</code> (<a href="#wire" class="auto internal xref">Section 5.6</a>).<a href="#section-5.1-10" class="pilcrow">¶</a></p>
+to the Client in a <code>CommitMessage</code> (<a href="#wire" class="auto internal xref">Section 5.6</a>). Note that <code>skA</code> is not used in
+<code>Commit</code>; it appears in the interface because an implementation <span class="bcp14">MAY</span> choose to
+carry it in the session state rather than reload it in <code>Respond</code>.<a href="#section-5.1-10" class="pilcrow">¶</a></p>
 <p id="section-5.1-11"><code>Commit</code> draws all of its randomness in one call and splits it into one seed
 per scalar (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). A test vector fixes the single value <code>rand</code>;
 <code>y</code> is nonzero by construction.<a href="#section-5.1-11" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.1-12.1">
-            <p id="section-5.1-12.1.1">XXX How about just passing rand to Commit explicitly? Likewise for the others.<a href="#section-5.1-12.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 </section>
 </div>
 <div id="challenge">
