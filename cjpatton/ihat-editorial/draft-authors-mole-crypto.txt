@@ -704,7 +704,10 @@ Table of Contents
 
      return state, challenge
 
-   The subroutine ComputeChallenge is as follows:
+   As in Commit, all randomness is drawn in one call and split: the
+   first Nn bytes are the nullifier, and the remaining 4 * Nseed bytes
+   are four seeds, one per blinding scalar.  ComputeChallenge is as
+   follows:
 
    def ComputeChallenge(ctx_iss, commitment, m):
      (A, C) = commitment
@@ -955,14 +958,7 @@ Table of Contents
    session_id does not correspond to one of its open sessions MUST raise
    a SessionError.
 
-      XXX Since the session identifier has security considerations, we
-      should specify a fixed length for it rather than leaving this up
-      to the Anchor.
-
 5.6.2.  Endorsement
-
-      XXX Do we actually need this section?  We don't actually transmit
-      Endorsement, so we don't need to define an encoding for it.
 
    The output of Finalize is encoded as follows.
 

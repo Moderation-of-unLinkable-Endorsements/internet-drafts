@@ -2004,7 +2004,9 @@ def Challenge(pkA, ctx_iss, ctx_red, commitment):
   return state, challenge
 </pre><a href="#section-5.2-9" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2-10">The subroutine <code>ComputeChallenge</code> is as follows:<a href="#section-5.2-10" class="pilcrow">¶</a></p>
+<p id="section-5.2-10">As in <code>Commit</code>, all randomness is drawn in one call and split: the first <code>Nn</code>
+bytes are the nullifier, and the remaining <code>4 * Nseed</code> bytes are four seeds,
+one per blinding scalar. <code>ComputeChallenge</code> is as follows:<a href="#section-5.2-10" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.2-11">
 <pre>
 def ComputeChallenge(ctx_iss, commitment, m):
@@ -2287,12 +2289,6 @@ generate it with a cryptographically secure random number generator so that a
 Client cannot guess, and so collide with, another Client's session. An Anchor
 that receives a <code>ChallengeMessage</code> whose <code>session_id</code> does not correspond to one
 of its open sessions <span class="bcp14">MUST</span> raise a <code>SessionError</code>.<a href="#section-5.6.1-8" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.6.1-9.1">
-              <p id="section-5.6.1-9.1.1">XXX Since the session identifier has security considerations, we should
-specify a fixed length for it rather than leaving this up to the Anchor.<a href="#section-5.6.1-9.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
 </section>
 </div>
 <div id="endorsement-encoding">
@@ -2300,14 +2296,8 @@ specify a fixed length for it rather than leaving this up to the Anchor.<a href=
           <h4 id="name-endorsement">
 <a href="#section-5.6.2" class="section-number selfRef">5.6.2. </a><a href="#name-endorsement" class="section-name selfRef">Endorsement</a>
           </h4>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.6.2-1.1">
-              <p id="section-5.6.2-1.1.1">XXX Do we actually need this section? We don't actually transmit Endorsement,
-so we don't need to define an encoding for it.<a href="#section-5.6.2-1.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-5.6.2-2">The output of <code>Finalize</code> is encoded as follows.<a href="#section-5.6.2-2" class="pilcrow">¶</a></p>
-<div class="lang-tls-presentation sourcecode" id="section-5.6.2-3">
+<p id="section-5.6.2-1">The output of <code>Finalize</code> is encoded as follows.<a href="#section-5.6.2-1" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-5.6.2-2">
 <pre>
 struct {
   Scalar c;
@@ -2316,12 +2306,12 @@ struct {
   Scalar t;
   opaque nf[Nn];
 } Endorsement;
-</pre><a href="#section-5.6.2-3" class="pilcrow">¶</a>
+</pre><a href="#section-5.6.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.6.2-4">This structure is never sent to an Anchor. The Client holds it until it is
+<p id="section-5.6.2-3">This structure is never sent to an Anchor. The Client holds it until it is
 redeemed, and <a href="#redemption" class="auto internal xref">Section 6</a> defines what is sent to a Moderator then. The
 issuance and redemption contexts are not carried in it: they are inputs to
-<code>Verify</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>) and to redemption, held by the verifier.<a href="#section-5.6.2-4" class="pilcrow">¶</a></p>
+<code>Verify</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>) and to redemption, held by the verifier.<a href="#section-5.6.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
