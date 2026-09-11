@@ -196,8 +196,6 @@ Table of Contents
    encoding, so its width depends on the length of the contents it
    carries.
 
-      XXX Do we actually use this convention?
-
    The following functions and notation are used throughout this
    document.
 
@@ -230,15 +228,11 @@ Table of Contents
    String values in monospace and quotes, such as "Challenge", are ASCII
    string literals and do not include a terminating NUL byte.
 
-   All algorithms are specified in Python-like pseudocode.  Each
+   All algorithms are laid out in Python-like pseudocode.  Each
    algorithm takes a set of inputs and parameters and produces a set of
    outputs.  Parameters become constant values once the ciphersuite is
    fixed.  An algorithm that can fail raises an error; the errors used
    in this document are listed in Section 3.2.
-
-   Type PublicInput is an alias for a byte string.  It denotes that the
-   value is not secret.  We write opaque value[L] to denote a (possibly
-   secret) byte string value whose length is exactly L.
 
 3.  Preliminaries
 
@@ -325,26 +319,26 @@ Table of Contents
    followed by a local finalization step at the Client.  The Anchor
    moves first and holds per-session state between its two moves.
 
-     Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
-   ---------------------------------------------------------------------
-                                 state, commitment = Commit(ctx_iss)
+    Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
+  ---------------------------------------------------------------------
+                                state, commitment = Commit(skA, ctx_iss)
 
-                               commitment
-                                <--------
+                              commitment
+                               <--------
 
-     state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
+    state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
 
-                                challenge
-                                -------->
+                               challenge
+                               -------->
 
-                            response = Respond(skA, state, challenge)
+                           response = Respond(skA, state, challenge)
 
-                                response
-                                <--------
+                               response
+                               <--------
 
-     endorsement = Finalize(pkA, state, response)
+    endorsement = Finalize(pkA, state, response)
 
-                 Figure 1: Endorsement issuance overview
+                Figure 1: Endorsement issuance overview
 
    The Anchor speaks first.  This document does not prescribe how the
    three messages are carried, nor how a Client that wants an
@@ -448,10 +442,6 @@ Table of Contents
    unlinkability argument of Section 8 does not permit.  See
    Section 7.3.
 
-      XXX This seems more strict than necessary.  For instance, couldn't
-      scalars derived from the same seed but infos be treated as
-      independent, pseudorandom numbers?
-
 4.3.  Key Generation
 
    An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
@@ -538,7 +528,8 @@ Table of Contents
 
    def CreateContextBase(ctx_iss):
      context_base_input =
-       I2OSP(len(ctx_iss), 2) || ctx_iss || "ContextBase"
+       I2OSP(len(ctx_iss), 2) || ctx_iss ||
+       "ContextBase"
 
      return G.HashToGroup(context_base_input)
 

@@ -1399,38 +1399,30 @@ order. This document also uses the variable-size vector convention <code>&lt;V&g
 defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-2-4.1">
-          <p id="section-2-4.1.1">XXX Do we actually use this convention?<a href="#section-2-4.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-2-5">The following functions and notation are used throughout this document.<a href="#section-2-5" class="pilcrow">¶</a></p>
-<p id="section-2-6">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-6" class="pilcrow">¶</a></p>
-<p id="section-2-7">For two byte strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation.<a href="#section-2-7" class="pilcrow">¶</a></p>
-<p id="section-2-8">For a byte string <code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at
+<p id="section-2-4">The following functions and notation are used throughout this document.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">For two byte strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation.<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-7">For a byte string <code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at
 its byte with index <code>i</code> and ends just before its byte with index <code>j</code>, where
-indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-8" class="pilcrow">¶</a></p>
-<p id="section-2-9">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
+indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-7" class="pilcrow">¶</a></p>
+<p id="section-2-8">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
 <code>x[i..j]</code> denotes the sublist from index <code>i</code> up to but not including index <code>j</code>,
-and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-9" class="pilcrow">¶</a></p>
-<p id="section-2-10"><code>I2OSP(x, xLen)</code> converts a nonnegative integer <code>x</code> into a byte string of
-length <code>xLen</code> in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>.<a href="#section-2-10" class="pilcrow">¶</a></p>
-<p id="section-2-11"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
+and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-8" class="pilcrow">¶</a></p>
+<p id="section-2-9"><code>I2OSP(x, xLen)</code> converts a nonnegative integer <code>x</code> into a byte string of
+length <code>xLen</code> in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>.<a href="#section-2-9" class="pilcrow">¶</a></p>
+<p id="section-2-10"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
 them with a cryptographically secure random number generator. It is the only
 source of randomness in this document: every other value that has to be
-unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-11" class="pilcrow">¶</a></p>
-<p id="section-2-12"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
+unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-10" class="pilcrow">¶</a></p>
+<p id="section-2-11"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
 that is <code>x[k * Nseed .. (k + 1) * Nseed]</code>, with <code>k</code> counted from zero.
-<a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-12" class="pilcrow">¶</a></p>
-<p id="section-2-13">String values in monospace and quotes, such as <code>"Challenge"</code>, are ASCII string
-literals and do not include a terminating NUL byte.<a href="#section-2-13" class="pilcrow">¶</a></p>
-<p id="section-2-14">All algorithms are specified in Python-like pseudocode. Each algorithm takes a
+<a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-11" class="pilcrow">¶</a></p>
+<p id="section-2-12">String values in monospace and quotes, such as <code>"Challenge"</code>, are ASCII string
+literals and do not include a terminating NUL byte.<a href="#section-2-12" class="pilcrow">¶</a></p>
+<p id="section-2-13">All algorithms are laid out in Python-like pseudocode. Each algorithm takes a
 set of inputs and parameters and produces a set of outputs. Parameters become
 constant values once the ciphersuite is fixed. An algorithm that can fail
-raises an error; the errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
-<p id="section-2-15">Type <code>PublicInput</code> is an alias for a byte string. It denotes that the value is
-not secret. We write <code>opaque value[L]</code> to denote a (possibly secret) byte
-string <code>value</code> whose length is exactly <code>L</code>.<a href="#section-2-15" class="pilcrow">¶</a></p>
+raises an error; the errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1585,7 +1577,7 @@ per-session state between its two moves.<a href="#section-4-1" class="pilcrow">�
 <pre>
    Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
  ---------------------------------------------------------------------
-                               state, commitment = Commit(ctx_iss)
+                               state, commitment = Commit(skA, ctx_iss)
 
                              commitment
                               &lt;--------
@@ -1713,13 +1705,6 @@ statistically close to uniform rather than merely unpredictable; deriving
 several scalars from one seed instead would cap their joint entropy at the
 length of that seed, which the unlinkability argument of
 <a href="#security-considerations" class="auto internal xref">Section 8</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 7.3</a>.<a href="#section-4.2-11" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4.2-12.1">
-            <p id="section-4.2-12.1.1">XXX This seems more strict than necessary. For instance, couldn't scalars
-derived from the same <code>seed</code> but <code>info</code>s be treated as independent,
-pseudorandom numbers?<a href="#section-4.2-12.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 </section>
 </div>
 <div id="keygen">
@@ -1824,7 +1809,8 @@ it:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 <pre>
 def CreateContextBase(ctx_iss):
   context_base_input =
-    I2OSP(len(ctx_iss), 2) || ctx_iss || "ContextBase"
+    I2OSP(len(ctx_iss), 2) || ctx_iss ||
+    "ContextBase"
 
   return G.HashToGroup(context_base_input)
 </pre><a href="#section-4.4-4" class="pilcrow">¶</a>
