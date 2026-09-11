@@ -1269,10 +1269,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-ihatp-256-sha-256" class="internal xref">IHAT(P-256, SHA-256)</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-ihatristretto255-sha-512" class="internal xref">IHAT(ristretto255, SHA-512)</a></p>
-</li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.3">
-                <p id="section-toc.1-1.7.2.3.1"><a href="#section-7.3" class="auto internal xref">7.3</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
 </li>
             </ul>
 </li>
@@ -1362,7 +1359,7 @@ Anchor Set, and the algorithms <code>Redeem</code> and <code>VerifyRedemption</c
 (<a href="#redemption" class="auto internal xref">Section 6</a>);<a href="#section-1.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
           <li class="normal" id="section-1.1-2.5">
-            <p id="section-1.1-2.5.1">two ciphersuites, over P-256 and ristretto255 (<a href="#ciphersuites" class="auto internal xref">Section 7</a>).<a href="#section-1.1-2.5.1" class="pilcrow">¶</a></p>
+            <p id="section-1.1-2.5.1">one ciphersuites over P-256.<a href="#section-1.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <p id="section-1.1-3">The following are <strong>not yet specified</strong> and are marked as such in the text:<a href="#section-1.1-3" class="pilcrow">¶</a></p>
@@ -1704,7 +1701,7 @@ than one derivation. An algorithm that needs several scalars therefore draws
 statistically close to uniform rather than merely unpredictable; deriving
 several scalars from one seed instead would cap their joint entropy at the
 length of that seed, which the unlinkability argument of
-<a href="#security-considerations" class="auto internal xref">Section 8</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 7.3</a>.<a href="#section-4.2-11" class="pilcrow">¶</a></p>
+<a href="#security-considerations" class="auto internal xref">Section 8</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 7.2</a>.<a href="#section-4.2-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
@@ -2855,17 +2852,10 @@ def Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
 <p id="section-6.3-10">In order to keep the Anchor anonymous, the Client <span class="bcp14">MUST NOT</span> redeem against an
 Anchor Set of fewer than two keys. Refusing also keeps the depth <code>q</code> of the
 tree at least one, so a redemption always carries at least one commitment key.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.3-11.1">
-            <p id="section-6.3-11.1.1">XXX This is fine, but we will likely live in a world for a little while in
-which there is only one Anchor, and we want to redeem Endorsements anyway.
-How will this work?<a href="#section-6.3-11.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-6.3-12"><code>delta</code> <span class="bcp14">MUST</span> be freshly derived for every redemption, and <span class="bcp14">MUST NOT</span> be derived
+<p id="section-6.3-11"><code>delta</code> <span class="bcp14">MUST</span> be freshly derived for every redemption, and <span class="bcp14">MUST NOT</span> be derived
 from the Endorsement or from any other value a Client reuses. It is what makes
 the redemption unlinkable to the Anchor, and reusing it across two redemptions
-would link them to each other.<a href="#section-6.3-12" class="pilcrow">¶</a></p>
+would link them to each other.<a href="#section-6.3-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="verify-redemption">
@@ -2969,26 +2959,14 @@ the Moderator offered (<a href="#pbvc" class="auto internal xref">Section 6.2.2<
 <code>2 * (j - 1)</code> and <code>2 * (j - 1) + 1</code>, in that order. A Moderator <span class="bcp14">MUST</span> reject any
 other length with a <code>DeserializeError</code> rather than truncating or padding, and
 <span class="bcp14">MUST NOT</span> infer the size of its own Anchor Set from the redemption.<a href="#section-6.5-4" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.5-5.1">
-            <p id="section-6.5-5.1.1">XXX Give an explicit formula for <code>q</code>.<a href="#section-6.5-5.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-6.5-6">A redemption is therefore <code>Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q * Ns</code>
+<p id="section-6.5-5">A redemption is therefore <code>Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q * Ns</code>
 bytes plus the two vector length prefixes, which are two bytes each at the
 sizes below. For <code>IHAT(P-256, SHA-256)</code> and an Anchor Set of ten keys, <code>q = 4</code>
 and a redemption is 649 bytes, of which 456 are the proof; at 64 keys it is
 843 bytes, of which 650 are the proof. The corresponding linear disjunction
 <span>[<a href="#CDS94" class="cite xref">CDS94</a>]</span> would be 837 and 4293 bytes respectively. The stacked proof is the
 smaller of the two for every Anchor Set of six or more keys, and its advantage
-grows with the set, which is the reason for using it.<a href="#section-6.5-6" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.5-7.1">
-            <p id="section-6.5-7.1.1">XXX I'm guessing the estimates for disjunction is generated by AI. Instead I
-think it ought to be generated by a reference implemntation. Absent this
-implementation, I think we should not include these numbers.<a href="#section-6.5-7.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+grows with the set, which is the reason for using it.<a href="#section-6.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3099,99 +3077,14 @@ inverse.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.1-4.1">
-            <p id="section-7.1-4.1.1">XXX Replace this with pseudocode<a href="#section-7.1-4.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-</section>
-</div>
-<div id="ihatristretto255-sha-512">
-<section id="section-7.2">
-        <h3 id="name-ihatristretto255-sha-512">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-ihatristretto255-sha-512" class="section-name selfRef">IHAT(ristretto255, SHA-512)</a>
-        </h3>
-<p id="section-7.2-1">This ciphersuite uses ristretto255 <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span> for the group and SHA-512 for
-the hash function, with <code>Nh = 64</code>. The value of the ciphersuite identifier is
-<code>"ristretto255-SHA512"</code>.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
-<p id="section-7.2-2">The interface of <a href="#group" class="auto internal xref">Section 3.1</a> is instantiated as follows.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-7.2-3">
-          <dt id="section-7.2-3.1">Order():</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.2">
-            <p id="section-7.2-3.2.1">Return 2^252 + 27742317777372353535851937790883648493, as defined in
-<span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-7.2-3.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.3">Identity(), Generator(), ScalarMultGen(r):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.4">
-            <p id="section-7.2-3.4.1">As defined in <span>[<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>.<a href="#section-7.2-3.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.5">HashToGroup(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.6">
-            <p id="section-7.2-3.6.1">Use <code>hash_to_ristretto255</code> <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> with
-<code>DST = "HashToGroup-" || ctx_proto</code> and <code>expand_message_xmd</code> using
-SHA-512.<a href="#section-7.2-3.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.7">HashToScalar(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.8">
-            <p id="section-7.2-3.8.1">Compute <code>uniform_bytes</code> using <code>expand_message_xmd</code> with SHA-512,
-<code>DST = "HashToScalar-" || ctx_proto</code>, and an output length of 64 bytes;
-interpret <code>uniform_bytes</code> as a 512-bit integer in little-endian order and
-reduce it modulo <code>Order()</code>.<a href="#section-7.2-3.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.9">ScalarInverse(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.10">
-            <p id="section-7.2-3.10.1">The multiplicative inverse of <code>s</code> modulo <code>Order()</code>.<a href="#section-7.2-3.10.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.11">SerializeElement(A):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.12">
-            <p id="section-7.2-3.12.1">The <code>Encode</code> function of <span><a href="https://rfc-editor.org/rfc/rfc9496#section-4.3.2" class="relref">Section 4.3.2</a> of [<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>; <code>Ne = 32</code>.<a href="#section-7.2-3.12.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.13">DeserializeElement(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.14">
-            <p id="section-7.2-3.14.1">The <code>Decode</code> function of <span><a href="https://rfc-editor.org/rfc/rfc9496#section-4.3.1" class="relref">Section 4.3.1</a> of [<a href="#RISTRETTO" class="cite xref">RISTRETTO</a>]</span>, additionally
-validating that the result is not the identity element. Raise a
-<code>DeserializeError</code> if any check fails.<a href="#section-7.2-3.14.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.15">SerializeScalar(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.16">
-            <p id="section-7.2-3.16.1">The little-endian 32-byte encoding of the <code>Scalar</code>, with the top three bits
-set to zero; <code>Ns = 32</code>.<a href="#section-7.2-3.16.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.17">DeserializeScalar(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.18">
-            <p id="section-7.2-3.18.1">Deserialize a <code>Scalar</code> from a little-endian 32-byte string. Raise a
-<code>DeserializeError</code> if the result is not in <code>[0, Order()-1]</code>; note that this
-requires the top three bits of the input to be zero.<a href="#section-7.2-3.18.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-7.2-3.19">P</dt>
-          <dd style="margin-left: 1.5em" id="section-7.2-3.20">
-            <p id="section-7.2-3.20.1">Very similar to above, but 32 byte random permutations are easier to use instantiate
-with a symmetric Feisel network.<a href="#section-7.2-3.20.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.2-4.1">
-            <p id="section-7.2-4.1.1">XXX Just delete this until we need it.<a href="#section-7.2-4.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 </section>
 </div>
 <div id="randomness">
-<section id="section-7.3">
+<section id="section-7.2">
         <h3 id="name-randomness">
-<a href="#section-7.3" class="section-number selfRef">7.3. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
         </h3>
-<p id="section-7.3-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
+<p id="section-7.2-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
 <code>random</code> and consumed by <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>); no scalar is
 sampled directly. Implementations <span class="bcp14">MUST</span> draw seeds with a cryptographically
 secure random number generator and <span class="bcp14">MUST NOT</span> reuse a seed across derivations.
@@ -3199,20 +3092,20 @@ They <span class="bcp14">SHOULD</span> treat a seed as being as sensitive as the
 and <span class="bcp14">SHOULD</span> handle both in constant time: the seed drawn in <code>Commit</code> determines
 the Anchor's session state, and the seed drawn in <code>Challenge</code> determines the
 Client's blinding factors, so recovering either undoes the property that
-algorithm provides.<a href="#section-7.3-1" class="pilcrow">¶</a></p>
+algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.3-2.1">
-            <p id="section-7.3-2.1.1"><strong>Editorial note.</strong> This document does not use the <code>RandomScalar()</code> member of
+<li class="normal ulEmpty" id="section-7.2-2.1">
+            <p id="section-7.2-2.1.1"><strong>Editorial note.</strong> This document does not use the <code>RandomScalar()</code> member of
 <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>'s group interface, and so does not have to resolve an inconsistency
 in it: <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> defines <code>RandomScalar()</code> as "Chooses at random
 a nonzero element in GF(p)", while each of its ciphersuites defines it as "a
 uniformly random Scalar in the range <code>[0, G.Order() - 1]</code>", which includes
-zero. <strong>TODO:</strong> report the inconsistency against <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-7.3-2.1.1" class="pilcrow">¶</a></p>
+zero. <strong>TODO:</strong> report the inconsistency against <span>[<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-7.2-2.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7.3-3.1">
-            <p id="section-7.3-3.1.1">XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392<a href="#section-7.3-3.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-7.2-3.1">
+            <p id="section-7.2-3.1.1">XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392<a href="#section-7.2-3.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
