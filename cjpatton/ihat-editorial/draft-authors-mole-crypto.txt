@@ -1,0 +1,2140 @@
+
+
+
+
+Network Working Group                                        D. I. Mohan
+Internet-Draft                           Georgia Institute of Technology
+Intended status: Informational                         11 September 2026
+Expires: 15 March 2027
+
+
+                           MoLE Cryptography
+                    draft-authors-mole-crypto-latest
+
+Abstract
+
+   This document specifies the cryptographic construction used to
+   produce and consume MoLE Endorsements.  An Endorsement is an
+   anonymous token that an Anchor issues to a Client, and that the
+   Client later redeems at a Moderator without the Anchor being able to
+   link the redemption to the issuance.
+
+   This document defines the endorsement issuance protocol, built from a
+   pairing-free partially blind signature scheme, together with the
+   group, encoding, and context-binding rules that both the Anchor and
+   the Client follow.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-crypto.html.  Status information for this document may be found
+   at https://datatracker.ietf.org/doc/draft-authors-mole-crypto/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 15 March 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+     1.1.  Scope
+   2.  Conventions and Definitions
+   3.  Preliminaries
+     3.1.  Prime-Order Group
+     3.2.  Errors
+   4.  The Endorsement Scheme
+     4.1.  Configuration and Protocol Context
+     4.2.  Deriving Scalars
+     4.3.  Key Generation
+     4.4.  Context Binding
+   5.  Endorsement Issuance
+     5.1.  Anchor Commitment
+     5.2.  Client Challenge
+     5.3.  Anchor Response
+     5.4.  Client Finalization
+     5.5.  Endorsement Verification
+     5.6.  Encodings
+       5.6.1.  Issuance Messages
+       5.6.2.  Endorsement
+     5.7.  Session Handling
+   6.  Endorsement Redemption
+     6.1.  Key Rerandomization
+     6.2.  The Issuer-Hiding Proof
+       6.2.1.  The Branch Proof
+       6.2.2.  Partially Binding Commitments
+       6.2.3.  Challenge Computation
+       6.2.4.  Proving
+       6.2.5.  Verifying
+     6.3.  Redemption
+     6.4.  Redemption Verification
+     6.5.  Encodings
+   7.  Ciphersuites
+     7.1.  IHAT(P-256, SHA-256)
+     7.2.  IHAT(ristretto255, SHA-512)
+     7.3.  Randomness
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
+   Appendix A.  Test Vectors
+   Acknowledgments
+   Author's Address
+
+1.  Introduction
+
+   MoLE Endorsements have a number of constraints imposed by the
+   architecture [ARCH].  They must be unlinkable by the Anchor that
+   issued them, they must be publicly verifiable, and a redemption must
+   hide which Anchor issued the Endorsement among the set of Anchors a
+   Moderator accepts.  Existing systems do not meet all of these needs.
+   This document defines such a system, the Issuer-Hiding Anonymous
+   Token (IHAT), which is endorsement type 0x0002 in [PROTOCOLS].
+
+   The construction is a pairing-free partially blind signature
+   [TESSZHU].  An Anchor holds a signing key and issues, in three moves,
+   a signature on a Client-chosen message that the Anchor never sees.
+   Each Endorsement is also bound at issuance time to two contexts.
+   These may be used to limit the validity scope of each Endorsement,
+   i.e., when and for whom it may later be used.
+
+   *  The issuance context ctx_iss is agreed out of band among the
+      Client, the Anchor, and the Moderator. ctx_iss can encode, for
+      instance, the time period in which the Endorsement is issued,
+      ensuring Endorsements expire.
+
+   *  The redemption context ctx_red is agreed out of band between the
+      Client and the Moderator.  For example, it may be a long-term
+      identity of the target Moderator.  This may be used to prevent
+      Endorsement reuse across Moderators without requiring a
+      synchronized state between them.
+
+1.1.  Scope
+
+   This document is a work in progress.  This revision specifies:
+
+   *  the prime-order group interface and encodings (Section 3);
+
+   *  the protocol context, scalar derivation, Anchor key generation,
+      and context binding (Section 4);
+
+   *  the endorsement issuance protocol, that is, the four algorithms
+      Commit, Challenge, Respond, and Finalize, along with the wire
+      messages they exchange, and the endorsement verification equation
+      (Section 5);
+
+   *  endorsement redemption, that is, key rerandomization, the issuer-
+      hiding proof over a Moderator's Anchor Set, whose size is
+      logarithmic in that of the Anchor Set, and the algorithms Redeem
+      and VerifyRedemption (Section 6);
+
+   *  two ciphersuites, over P-256 and ristretto255 (Section 7).
+
+   The following are *not yet specified* and are marked as such in the
+   text:
+
+   *  the full security considerations (Section 8);
+
+   *  test vectors (Appendix A).
+
+   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
+   redemption APIs.  It supplies the issuance and redemption contexts;
+   this document treats those contexts as opaque byte strings.
+   Configuration encodings and discovery remain open work in
+   [PROTOCOLS].
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   The terms Client, Anchor, Moderator, Endorsement, Credential, and
+   Anchor Set are used as defined in [ARCH].
+
+   Unless otherwise specified, this document encodes protocol messages
+   in TLS notation (Section 3 of [TLS13]).  Moreover, all constants are
+   in network byte order.  This document also uses the variable-size
+   vector convention <V> defined in [HTTP-TRANSPORT]: the length prefix
+   of such a vector is a variable-length integer in its minimum-size
+   encoding, so its width depends on the length of the contents it
+   carries.
+
+      XXX Do we actually use this convention?
+
+   The following functions and notation are used throughout this
+   document.
+
+   For any byte string x, len(x) denotes its length in bytes.
+
+   For two byte strings x and y, x || y denotes their concatenation.
+
+   For a byte string x, x[i..j] denotes the substring of x that begins
+   at its byte with index i and ends just before its byte with index j,
+   where indices start at zero.  Its length is j - i bytes.
+
+   For a list x, x[i] denotes its element at index i, counting from
+   zero, x[i..j] denotes the sublist from index i up to but not
+   including index j, and len(x) denotes the number of elements it
+   holds.
+
+   I2OSP(x, xLen) converts a nonnegative integer x into a byte string of
+   length xLen in big-endian byte order, as described in [I2OSP].
+
+   random(n) returns n uniformly random bytes.  Implementations MUST
+   generate them with a cryptographically secure random number
+   generator.  It is the only source of randomness in this document:
+   every other value that has to be unpredictable is derived from its
+   output (Section 4.2).
+
+   Seed(x, k) denotes the k-th seed in a byte string of concatenated
+   seeds, that is x[k * Nseed .. (k + 1) * Nseed], with k counted from
+   zero.  Section 7 fixes the seed length Nseed.
+
+   String values in monospace and quotes, such as "Challenge", are ASCII
+   string literals and do not include a terminating NUL byte.
+
+   All algorithms are specified in Python-like pseudocode.  Each
+   algorithm takes a set of inputs and parameters and produces a set of
+   outputs.  Parameters become constant values once the ciphersuite is
+   fixed.  An algorithm that can fail raises an error; the errors used
+   in this document are listed in Section 3.2.
+
+   Type PublicInput is an alias for a byte string.  It denotes that the
+   value is not secret.  We write opaque value[L] to denote a (possibly
+   secret) byte string value whose length is exactly L.
+
+3.  Preliminaries
+
+   The construction has two dependencies:
+
+   Group:  A prime-order group implementing the interface in
+      Section 3.1.  Section 7 gives concrete instances.
+
+   Hash:  A cryptographic hash function whose output length is Nh bytes.
+
+3.1.  Prime-Order Group
+
+   This document uses an additive, prime-order group, denoted G, of
+   order p, as described in Section 2.1 of [OPRF].  The types Element
+   and Scalar denote elements of the group and of its scalar field
+   respectively.  Group elements are added with + and subtracted with -;
+   scalar multiplication of an Element A by a Scalar r is written r * A.
+   Scalars are added, subtracted, and multiplied modulo p.
+
+   The following member functions are used.  Except where noted, they
+   are as defined in Section 2.1 of [OPRF].
+
+   Order():  Outputs the order p of the group.
+
+   Identity():  Outputs the identity element of the group.
+
+   Generator():  Outputs the generator element B of the group.
+
+   ScalarMultGen(r):  Outputs r * B, where B is the group generator.
+
+   HashToGroup(x):  Deterministically maps a byte string x to an
+      Element.  Parameterized by a domain separation tag (DST); see
+      Section 7.
+
+   HashToScalar(x):  Deterministically maps a byte string x to a Scalar.
+      Parameterized by a DST; see Section 7.
+
+   ScalarInverse(s):  Outputs the multiplicative inverse of the nonzero
+      Scalar s modulo p.
+
+   SerializeElement(A):  Maps an Element A to a canonical byte string of
+      fixed length Ne.
+
+   DeserializeElement(buf):  Attempts to map a byte string buf to an
+      Element.  Raises a DeserializeError if buf is not the canonical
+      encoding of a group element, or if it encodes the identity
+      element.
+
+   SerializeScalar(s):  Maps a Scalar s to a canonical byte string of
+      fixed length Ns.
+
+   DeserializeScalar(buf):  Attempts to map a byte string buf to a
+      Scalar.  Raises a DeserializeError if buf does not encode a Scalar
+      in the range [0, p-1].
+
+   This document does not use the RandomScalar() member of Section 2.1
+   of [OPRF].  Every scalar that has to be unpredictable is instead
+   obtained from DeriveScalar (Section 4.2), which is deterministic in a
+   random seed.  This makes each algorithm reproducible from the seed it
+   is given, which is what allows the test vectors of Appendix A to pin
+   the randomness of an otherwise randomized protocol.
+
+3.2.  Errors
+
+   The following errors are used.
+
+   DeserializeError:  A received byte string is not a valid encoding of
+      the expected type.
+
+   VerifyError:  A received value failed a verification check.
+
+   SessionError:  A message was received for a session that is not in
+      the expected state.
+
+   DeriveError:  A deterministic derivation from a seed failed to
+      produce a usable value.  See Section 4.2.
+
+   An implementation that raises an error MUST abort the protocol run.
+   Errors are fatal to the affected session; see Section 5.7.
+
+4.  The Endorsement Scheme
+
+   Issuance is a three-move protocol between a Client and an Anchor,
+   followed by a local finalization step at the Client.  The Anchor
+   moves first and holds per-session state between its two moves.
+
+     Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
+   ---------------------------------------------------------------------
+                                 state, commitment = Commit(ctx_iss)
+
+                               commitment
+                                <--------
+
+     state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
+
+                                challenge
+                                -------->
+
+                            response = Respond(skA, state, challenge)
+
+                                response
+                                <--------
+
+     endorsement = Finalize(pkA, state, response)
+
+                 Figure 1: Endorsement issuance overview
+
+   The Anchor speaks first.  This document does not prescribe how the
+   three messages are carried, nor how a Client that wants an
+   Endorsement reaches an Anchor in the first place; both are the
+   business of the transport, and a Client will in general have to
+   signal its intent by some means that carries no protocol data.  For
+   example, over HTTP a Client might ask for issuance in a request with
+   an empty body, receive the commitment in the response, send the
+   challenge in a second request, and receive the response in the reply
+   to that.  Section 5.6 specifies the encoding of the three messages
+   and their mapping onto the exchanges of [PROTOCOLS].
+
+   Neither context is carried in these messages.  Both parties already
+   hold the issuance context, having agreed on it out of band; the
+   redemption context is known only to the Client.
+
+   The Client's output is an Endorsement that is publicly verifiable
+   under the Anchor's public key pkA (Section 5.5).  The Anchor learns
+   neither the nullifier nor the redemption context bound into it, and
+   cannot link the Endorsement to the session that produced it.
+
+4.1.  Configuration and Protocol Context
+
+   A ciphersuite (Section 7) is identified by an ASCII string
+   identifier.  Both parties MUST agree on the ciphersuite before
+   running the protocol; [PROTOCOLS] describes how this agreement is
+   reached.
+
+   The protocol context, written ctx_proto, is the domain separation tag
+   that this document derives from that identifier:
+
+   def CreateProtocolContext(identifier):
+     return "IHATv1-" || identifier
+
+   Throughout the remainder of this document, ctx_proto denotes the
+   output of CreateProtocolContext for the ciphersuite in use.  It is
+   distinct from the issuance and redemption contexts of Section 4.4:
+   those are inputs to the protocol, chosen by its participants, whereas
+   ctx_proto is fixed by the ciphersuite.
+
+   Every hash this document computes is domain-separated by ctx_proto,
+   which it carries in its DST rather than in its input: HashToGroup and
+   HashToScalar are so parameterized (Section 7), and so is DeriveScalar
+   (Section 4.2).  Every algorithm below therefore depends on ctx_proto,
+   including those in which it does not appear explicitly, and a value
+   produced under one ciphersuite does not verify under another.  Each
+   algorithm lists ctx_proto among its parameters where it has this
+   dependence.
+
+4.2.  Deriving Scalars
+
+   The following function is used to derive a value in the scalar field
+   of a group G.  To generate a random scalar, one applies this function
+   to a random seed an appropriate choice of info string:
+
+   Input:
+
+     opaque seed[Nseed]
+     PublicInput info
+
+   Output:
+
+     Scalar s
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   Errors: DeriveError
+
+   def DeriveScalar(seed, info):
+     derive_input = seed || I2OSP(len(info), 2) || info
+     counter = 0
+     s = 0
+
+     while s == 0:
+       if counter > 255:
+         raise DeriveError
+       s = G.HashToScalar(derive_input || I2OSP(counter, 1),
+                          DST = "DeriveScalar-" || ctx_proto)
+       counter = counter + 1
+
+     return s
+
+   The output is never zero, so a caller that needs a nonzero scalar
+   needs no further check.  The loop terminates after one iteration
+   except with probability approximately 1/p, and DeriveError is raised
+   only if 256 consecutive iterations yield zero.  This probability is
+   negligible and can safely be ignored.  That is, implementations might
+   choose to panic rather than handle this exception.  See Section 8 for
+   details.
+
+   A seed MUST be Nseed bytes of random output, and MUST NOT be used for
+   more than one derivation.  An algorithm that needs several scalars
+   therefore draws Nseed bytes for each of them, and additionally
+   separates them by info.  Nseed is larger than Ns (Section 7) so that
+   the derived scalar is statistically close to uniform rather than
+   merely unpredictable; deriving several scalars from one seed instead
+   would cap their joint entropy at the length of that seed, which the
+   unlinkability argument of Section 8 does not permit.  See
+   Section 7.3.
+
+      XXX This seems more strict than necessary.  For instance, couldn't
+      scalars derived from the same seed but infos be treated as
+      independent, pseudorandom numbers?
+
+4.3.  Key Generation
+
+   An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
+   which is what allows the test vectors in Appendix A to fix a key.
+   The procedure is the key generation of Section 3.2 of [OPRF].  Note
+   that, by design, knowledge of both seed and info is required, so the
+   secrecy of skA rests on the secrecy of seed.  On the other hand, the
+   info string is usually public.
+
+   Input:
+
+     opaque seed[Nseed]
+     PublicInput info
+
+   Output:
+
+     Scalar skA
+     Element pkA
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   Errors: DeriveError
+
+   def DeriveKeyPair(seed, info):
+     skA = DeriveScalar(seed, info)
+     pkA = G.ScalarMultGen(skA)
+
+     return (skA, pkA)
+
+   The derivation is the one Section 3.2 of [OPRF] performs inline: hash
+   seed || I2OSP(len(info), 2) || info together with a counter,
+   rejecting zero (Section 4.2).  It differs only in its domain
+   separation tag, which comes from the protocol context of this
+   document rather than from an OPRF context string, and in the length
+   of the seed.
+
+   A fresh key pair is generated by deriving one from a random seed.
+
+   Input:
+
+     None
+
+   Output:
+
+     Scalar skA
+     Element pkA
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   Errors: DeriveError
+
+   def GenerateKeyPair():
+     seed = random(Nseed)
+
+     return DeriveKeyPair(seed, "GenerateKeyPair")
+
+   The Anchor publishes SerializeElement(pkA) in its configuration; see
+   [PROTOCOLS].
+
+4.4.  Context Binding
+
+   Each Endorsement is bound at issuance to two contexts, the issuance
+   context and the redemption context, and a redemption succeeds only if
+   the Client and the Moderator agree on both values.  Both are opaque
+   byte strings of at most 2^16 - 1 bytes, a bound that follows from the
+   two-byte length prefixes used below.  The two are bound by
+   deliberately different means, reflecting who is trusted to choose
+   each.
+
+   [PROTOCOLS] specifies how MoLE obtains these contexts from
+   configuration.  The examples below illustrate their cryptographic
+   roles and do not define alternative context encodings.
+
+   The issuance context, written ctx_iss, restricts when an Endorsement
+   may be redeemed; it might for example name the epoch the Endorsement
+   was issued in.  Both parties hold it.  It is bound by deriving the
+   second commitment base from it:
+
+   def CreateContextBase(ctx_iss):
+     context_base_input =
+       I2OSP(len(ctx_iss), 2) || ctx_iss || "ContextBase"
+
+     return G.HashToGroup(context_base_input)
+
+   The Anchor forms its commitment under this base, and the base is
+   recomputed at verification time.  The Client and the Anchor MUST
+   agree on the issuance context.  Disagreement causes issuance to fail:
+   a Client that uses any other value fails the commitment-opening check
+   in Finalize.  The binding is therefore enforced by the construction
+   rather than by an explicit check, and a Client cannot bind an
+   Endorsement to an issuance context of its own choosing.
+
+   The redemption context, written ctx_red, restricts where an
+   Endorsement may be redeemed: a redemption succeeds only under the
+   value the Endorsement was issued under.  It might for example
+   identify the Moderator the Client intends to redeem at, in which case
+   the Endorsement is redeemable at that Moderator and at no other.  It
+   is chosen by the Client and is hidden from the Anchor.  It is bound
+   by placing it, together with a fresh Client-chosen nullifier nf of Nn
+   = 32 bytes, in the signed message:
+
+   def Message(nf, ctx_red):
+     return I2OSP(len(nf), 2) || nf ||
+            I2OSP(len(ctx_red), 2) || ctx_red
+
+   A redemption under a different redemption context recomputes a
+   different message, for which the Client holds no valid signature.
+   Two consequences follow.  A Client has to fix ctx_red before it runs
+   Challenge, that is, before the Endorsement exists; and an Endorsement
+   cannot afterwards be re-bound to another value, so a Client that
+   needs to redeem under several redemption contexts needs a separate
+   Endorsement, and so a separate issuance, for each.  Anchors bound how
+   many Endorsements they grant a given Client in order to keep
+   Endorsements scarce ([ARCH]), so that budget is consumed per
+   redemption context rather than per Client.
+
+   The nullifier nf MUST be a fresh string of Nn uniformly random bytes,
+   generated by the Client, and MUST NOT be reused across Endorsements.
+   It is revealed at redemption time, where the Moderator uses it to
+   enforce that each Endorsement is redeemed at most once.
+
+   The values the two contexts take determine the anonymity set a Client
+   redeems in, and a deployment can destroy the unlinkability the
+   construction provides without breaking any of its cryptographic
+   properties; see Section 8.
+
+5.  Endorsement Issuance
+
+   Issuance produces a signature on the message Message(nf, ctx_red)
+   relative to the public input ctx_iss.  It consists of four
+   algorithms, run in the order
+
+     Commit -> Challenge -> Respond -> Finalize
+
+   Commit and Respond are run by the Anchor; Challenge and Finalize are
+   run by the Client.  Both parties input the issuance context ctx_iss;
+   only the Client inputs the redemption context ctx_red.
+
+   Each of the first three algorithms outputs one protocol message, and
+   the next algorithm takes that message as a single input.  The
+   messages are the commitment, the pair (A, C); the challenge, a single
+   scalar; and the response, the triple (s, y, t).  The types Commitment
+   and Response denote the first and the last of these.  The wire format
+   of each message is defined in Section 5.6.
+
+   All four algorithms take the group G as a parameter, and all of them
+   except Respond, which computes no hash, take the protocol context
+   ctx_proto (Section 4.1).  Parameters are listed with each algorithm
+   and are omitted from the argument lists in the pseudocode.
+
+5.1.  Anchor Commitment
+
+   The Anchor opens a session by committing to the values it will later
+   reveal.
+
+   Input:
+
+     Scalar skA
+     PublicInput ctx_iss
+
+   Output:
+
+     AnchorState state
+     Commitment commitment
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+     Nseed
+
+   Errors: DeriveError
+
+   def Commit(ctx_iss):
+     Z = CreateContextBase(ctx_iss)
+
+     rand = random(3 * Nseed)
+     a = DeriveScalar(Seed(rand, 0), "a")
+     t = DeriveScalar(Seed(rand, 1), "t")
+     y = DeriveScalar(Seed(rand, 2), "y")
+
+     A = G.ScalarMultGen(a)
+     C = G.ScalarMultGen(t) + y * Z
+
+     state = (a, y, t)
+     commitment = (A, C)
+
+     return state, commitment
+
+   The Anchor stores state for the duration of the session and sends
+   commitment to the Client in a CommitMessage (Section 5.6).
+
+   Commit draws all of its randomness in one call and splits it into one
+   seed per scalar (Section 4.2).  A test vector fixes the single value
+   rand; y is nonzero by construction.
+
+      XXX How about just passing rand to Commit explicitly?  Likewise
+      for the others.
+
+5.2.  Client Challenge
+
+   The Client blinds the Anchor's commitment, derives the challenge over
+   the blinded values, and returns the challenge in blinded form.
+
+   Input:
+
+     Element pkA
+     PublicInput ctx_iss
+     PrivateInput ctx_red
+     Commitment commitment
+
+   Output:
+
+     ClientState state
+     Scalar challenge
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+     Nn
+     Nseed
+
+   Errors: VerifyError, DeriveError
+
+   def Challenge(pkA, ctx_iss, ctx_red, commitment):
+     (A, C) = commitment
+
+     rand = random(Nn + 4 * Nseed)
+     nf = rand[0 .. Nn]
+     seeds = rand[Nn .. Nn + 4 * Nseed]
+
+     r1     = DeriveScalar(Seed(seeds, 0), "r1")
+     r2     = DeriveScalar(Seed(seeds, 1), "r2")
+     gamma1 = DeriveScalar(Seed(seeds, 2), "gamma1")
+     gamma2 = DeriveScalar(Seed(seeds, 3), "gamma2")
+
+     m = Message(nf, ctx_red)
+     gamma = gamma1 * G.ScalarInverse(gamma2)
+
+     blinded_A = G.ScalarMultGen(r1) + gamma * A
+     blinded_C = gamma1 * C + G.ScalarMultGen(r2)
+     blinded_commitment = (blinded_A, blinded_C)
+
+     c = ComputeChallenge(ctx_iss, blinded_commitment, m)
+     if c == 0:
+       raise VerifyError
+
+     challenge = c * gamma2
+
+     state = (nf, ctx_iss, ctx_red, commitment,
+              r1, r2, gamma1, gamma2, challenge, c)
+
+     return state, challenge
+
+   The subroutine ComputeChallenge is as follows:
+
+   def ComputeChallenge(ctx_iss, commitment, m):
+     (A, C) = commitment
+
+     Am = G.SerializeElement(A)
+     Cm = G.SerializeElement(C)
+
+     challenge_transcript =
+       I2OSP(len(ctx_iss), 2) || ctx_iss ||
+       I2OSP(len(Am), 2) || Am ||
+       I2OSP(len(Cm), 2) || Cm ||
+       I2OSP(len(m), 2) || m ||
+       "Challenge"
+
+     c = G.HashToScalar(challenge_transcript)
+
+     return c
+
+   Two challenge values appear here: c is computed over the blinded
+   commitment and is the value that ends up in the Endorsement
+   (Section 5.4); it never leaves the Client.  The challenge message the
+   Anchor receives is its blinded form c * gamma2, and the Anchor cannot
+   recover c from it because gamma2 is uniform and secret.
+
+   HashToScalar can return zero, whereas the construction requires a
+   nonzero challenge.  Challenge therefore aborts in that case rather
+   than resampling, so that the challenge remains a deterministic
+   function of the transcript.  The abort occurs with probability
+   approximately 1/p, which again is negligible and can safely be
+   ignored.  That is, implementations might choose to panic rather than
+   handle this exception explicitly.  See Section 8 for details.
+
+   The Client sends challenge to the Anchor encoded as a
+   ChallengeMessage (Section 5.6) and retains state for the next step.
+
+5.3.  Anchor Response
+
+   The Anchor answers the challenge and closes the session.
+
+   Input:
+
+     Scalar skA
+     AnchorState state
+     Scalar challenge
+
+   Output:
+
+     Response response
+
+   Errors: VerifyError, SessionError
+
+   def Respond(skA, state, challenge):
+     (a, y, t) = state
+
+     if challenge == 0:
+       raise VerifyError
+
+     s = a + challenge * y * skA
+     response = (s, y, t)
+
+     return response
+
+   The resulting Response is encoded as a ResponseMessage (Section 5.6)
+   and sent to the Client.
+
+   An Anchor MUST call Respond at most once per session state produced
+   by Commit, and MUST destroy that state immediately afterwards.
+   Answering two distinct challenges on the same state discloses the
+   signing key: from s1 = a + c1 * y * skA and s2 = a + c2 * y * skA
+   with c1 != c2, and y revealed in the response, an attacker recovers
+   skA = (s1 - s2) * ScalarInverse((c1 - c2) * y).  An Anchor that
+   receives a second ChallengeMessage for a session it has already
+   answered MUST raise a SessionError and MUST NOT compute a response.
+
+5.4.  Client Finalization
+
+   The Client checks the Anchor's response and unblinds it into an
+   Endorsement.
+
+   Input:
+
+     Element pkA
+     ClientState state
+     Response response
+
+   Output:
+
+     Endorsement endorsement
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   Errors: VerifyError
+
+   def Finalize(pkA, state, response):
+     (nf, ctx_iss, ctx_red, commitment,
+      r1, r2, gamma1, gamma2, challenge, c) = state
+     (A, C) = commitment
+     (s, y, t) = response
+
+     Z = CreateContextBase(ctx_iss)
+
+     if y == 0:
+       raise VerifyError
+     if C != G.ScalarMultGen(t) + y * Z:
+       raise VerifyError
+     if G.ScalarMultGen(s) != A + (challenge * y) * pkA:
+       raise VerifyError
+
+     gamma = gamma1 * G.ScalarInverse(gamma2)
+
+     s_final = gamma * s + r1
+     y_final = gamma1 * y
+     t_final = gamma1 * t + r2
+
+     return Endorsement(c, s_final, y_final, t_final, nf)
+
+   The three checks verify that the Anchor opened its commitment
+   honestly and answered the challenge under its published key.  A
+   Client whose Finalize raises an error MUST discard the session state
+   and MUST NOT retry the exchange with the same state.
+
+   An Endorsement consists of the signature (c, s, y, t) together with
+   the nullifier; its encoding is given in Section 5.6.2.  The
+   Endorsement is held privately by the Client until it is redeemed
+   (Section 6).  The Anchor never sees it.
+
+5.5.  Endorsement Verification
+
+   An Endorsement is publicly verifiable under the issuing Anchor's
+   public key.
+
+   The two contexts are inputs to Verify in addition to the Endorsement.
+   A verifier therefore states the pair it is willing to accept and
+   learns whether the Endorsement was issued under it.
+
+   Input:
+
+     Element pkA
+     Endorsement endorsement
+     PublicInput ctx_iss
+     PublicInput ctx_red
+
+   Output:
+
+     boolean verified
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   def Verify(pkA, endorsement, ctx_iss, ctx_red):
+     (c, s, y, t, nf) = endorsement
+
+     if y == 0 or c == 0:
+       return false
+
+     Z = CreateContextBase(ctx_iss)
+     m = Message(nf, ctx_red)
+
+     C = G.ScalarMultGen(t) + y * Z
+     A = G.ScalarMultGen(s) - (c * y) * pkA
+     commitment = (A, C)
+
+     return c == ComputeChallenge(ctx_iss, commitment, m)
+
+   Verify is stated here for completeness and for use in test vectors.
+   A Moderator does not call it directly: a redemption does not reveal
+   which Anchor issued the Endorsement, so the check is instead carried
+   out under an issuer-hiding proof (Section 6).  The Client MUST NOT
+   reveal the Anchor's public key to the Moderator.
+
+   An honestly produced Endorsement always verifies.  Writing gamma for
+   gamma1 * ScalarInverse(gamma2), and A_anchor and C_anchor for the two
+   elements of the Anchor's commitment, the commitment reconstructed by
+   Verify is exactly the blinded commitment the Client hashed in
+   Challenge:
+
+     C = t_final * B + y_final * Z
+       = gamma1 * (t * B + y * Z) + r2 * B
+       = gamma1 * C_anchor + r2 * B
+       = blinded_C
+
+     A = s_final * B - (c * y_final) * pkA
+       = (gamma * s + r1) * B - (c * gamma1 * y) * pkA
+       = r1 * B + gamma * A_anchor
+       = blinded_A
+
+   where the last step uses s = a + challenge * y * skA and challenge =
+   c * gamma2, so that the two terms in skA cancel.
+
+5.6.  Encodings
+
+   This section gives the encoding of the three messages exchanged
+   during issuance, of the session identifier that correlates them, and
+   of the Endorsement they produce.
+
+   Element and Scalar are the fixed-length encodings produced by
+   SerializeElement and SerializeScalar, of Ne and Ns bytes
+   respectively.  A recipient MUST deserialize every received Element
+   and Scalar, and MUST abort the session with a DeserializeError if
+   deserialization fails.  In particular, deserializing an Element
+   rejects the group identity element.
+
+5.6.1.  Issuance Messages
+
+   The three messages exchanged during issuance are carried in the
+   EndorsementRequest and EndorsementResponse bodies defined in
+   [PROTOCOLS], whose transport is HTTP.  The first request is empty,
+   and the corresponding response contains the CommitMessage; the second
+   request contains the ChallengeMessage, and the corresponding response
+   contains the ResponseMessage.
+
+   The messages include a session identifier that allows the Anchor to
+   correlate the Client's challenge with the state corresponding to the
+   Anchor's commitment.  The Anchor opens the session with its
+   commitment:
+
+   struct {
+     opaque session_id<V>;
+     Element A;
+     Element C;
+   } CommitMessage;
+
+   The Client replies with the blinded challenge, echoing the session
+   identifier:
+
+   struct {
+     opaque session_id<V>;
+     Scalar challenge;
+   } ChallengeMessage;
+
+   The Anchor replies with its response, which closes the session:
+
+   struct {
+     Scalar s;
+     Scalar y;
+     Scalar t;
+   } ResponseMessage;
+
+   An Anchor MUST NOT have two open sessions with the same session_id,
+   and SHOULD generate it with a cryptographically secure random number
+   generator so that a Client cannot guess, and so collide with, another
+   Client's session.  An Anchor that receives a ChallengeMessage whose
+   session_id does not correspond to one of its open sessions MUST raise
+   a SessionError.
+
+      XXX Since the session identifier has security considerations, we
+      should specify a fixed length for it rather than leaving this up
+      to the Anchor.
+
+5.6.2.  Endorsement
+
+      XXX Do we actually need this section?  We don't actually transmit
+      Endorsement, so we don't need to define an encoding for it.
+
+   The output of Finalize is encoded as follows.
+
+   struct {
+     Scalar c;
+     Scalar s;
+     Scalar y;
+     Scalar t;
+     opaque nf[Nn];
+   } Endorsement;
+
+   This structure is never sent to an Anchor.  The Client holds it until
+   it is redeemed, and Section 6 defines what is sent to a Moderator
+   then.  The issuance and redemption contexts are not carried in it:
+   they are inputs to Verify (Section 5.5) and to redemption, held by
+   the verifier.
+
+5.7.  Session Handling
+
+   An Anchor is stateful: it holds the secret state produced by Commit
+   from the moment it sends CommitMessage until it answers or discards
+   the session.  That state is single-use; see Section 5.3 and
+   Section 8.
+
+   An Anchor SHOULD bound both the number of concurrent open sessions
+   per Client and the lifetime of an open session, and SHOULD discard
+   state for sessions that are not completed within that lifetime.
+   Discarding state early is always safe: it causes the Client's
+   Finalize to be unreachable, but cannot produce an invalid
+   Endorsement.
+
+6.  Endorsement Redemption
+
+   A Client redeems an Endorsement at a Moderator.
+
+   An Endorsement is single-use (Section 4.4), so redemption does not
+   have to hide the signature: the Client reveals it, and the Moderator
+   deduplicates on the nullifier.  What redemption must hide is which
+   Anchor issued it.  The signature of Section 5 verifies under one
+   Anchor's public key, so presenting it against that key would name the
+   Anchor.  Instead the Client rerandomizes the key (Section 6.1) and
+   proves in zero knowledge that the rerandomized key belongs to some
+   Anchor in the Moderator's Anchor Set (Section 6.2).
+
+   Redemption is one message from the Client, answering a challenge from
+   the Moderator.  The Moderator holds the ordered Anchor Set and
+   carries it in that challenge; the Client learns it there and locates
+   its own Anchor in it.  Both parties input the two contexts.
+
+     Client(endorsement,                   Moderator(anchor_set,
+            ctx_iss, ctx_red)                        ctx_iss, ctx_red)
+   ---------------------------------------------------------------------
+                      challenge (carries anchor_set)
+                                <--------
+
+     redemption = Redeem(anchor_set, index, endorsement,
+                         ctx_iss, ctx_red, challenge_digest)
+
+                               redemption
+                                -------->
+
+                      nf = VerifyRedemption(anchor_set, redemption,
+                                            ctx_iss, ctx_red,
+                                            challenge_digest)
+
+                Figure 2: Endorsement redemption overview
+
+   anchor_set is the list of Anchor public keys the Moderator accepts.
+   Both parties MUST use the same list in the same order.  A proof
+   computed over a different list or order will not verify.
+
+   challenge_digest binds the redemption to the challenge that triggered
+   it.  It is computed from the Moderator's challenge as specified in
+   [PROTOCOLS], and this document treats it as an opaque byte string.
+   Note that this challenge is the Moderator's, and has nothing to do
+   with the issuance challenge of Section 5.2.
+
+   index is the position in anchor_set of the public key of the Anchor
+   that issued the Endorsement.  A Client whose Anchor does not appear
+   in anchor_set cannot redeem at this Moderator and MUST NOT try: the
+   Endorsement will not verify under any key it can prove membership
+   for.
+
+6.1.  Key Rerandomization
+
+   The Client shifts the Anchor's public key by a secret scalar delta of
+   its own choosing and adapts the signature to the shifted key.
+   Writing pkA for anchor_set[index] and (c, s, y, t, nf) for the
+   Endorsement:
+
+     X_hat = pkA + delta * B
+     s_hat = s + (c * y) * delta
+
+   Here B denotes the group's base point, i.e., B = G.Generator().
+
+   The result is an Endorsement (c, s_hat, y, t, nf) that verifies under
+   X_hat exactly as the original verifies under pkA, because the shift
+   cancels in the reconstruction of A:
+
+     s_hat * B - (c * y) * X_hat
+       = (s + c * y * delta) * B - (c * y) * (pkA + delta * B)
+       = s * B - (c * y) * pkA
+
+   Every other value Verify recomputes is untouched, so a Moderator can
+   check the signature by running Verify (Section 5.5) with X_hat in
+   place of pkA.
+
+   Because this shift is _additive_, so issuance is left unmodified and
+   the unforgeability of Section 5 carries over to the modified
+   Endorsement (Section 8).  But X_hat by itself provides no evidence
+   that it was derived from an Anchor key.  The Client therefore also
+   proves knowledge of delta relating X_hat to a key in anchor_set,
+   without revealing which key.
+
+6.2.  The Issuer-Hiding Proof
+
+      XXX Can we rename this to "redemption proof" to match Moussaka?
+
+   The Client proves knowledge of delta such that X_hat - anchor_set[i]
+   = delta * B for at least one i, without revealing i.  This is a one-
+   out-of-n disjunction of Schnorr statements, all of them over the same
+   base B = G.Generator().
+
+      XXX Would be nice to reword this without saying "Schnorr
+      statement", since we haven't defined what this means.
+
+   Such a disjunction is classically composed with the technique of
+   Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
+   the branch it can and simulates the others, sending one challenge and
+   one response per branch.  That proof is linear in n, and the Anchor
+   Set is also the anonymity set (Section 8).  This document instead
+   composes the branches with the _stacking_ technique of Goel, Green,
+   Hall-Andersen and Kaptchuk [STACKSIG], whose proof is logarithmic in
+   n: the Client sends a single response, which every branch reuses,
+   together with a commitment whose opening forces one branch to have
+   been answered honestly.  [FFKLLS26] applies the same two
+   compositions, for the same purpose, to a pairing-based credential.
+
+   Both compositions are used with the same rerandomization
+   (Section 6.1), and switching between them changes neither issuance
+   nor Section 5.5.
+
+   The construction below first defines the branch proof, then builds a
+   partially binding tree commitment over its branches.  It finally
+   specifies the Fiat-Shamir challenge and the proving and verification
+   algorithms.
+
+   Each branch is the discrete logarithm proof of [SIGMA], and the
+   composition below could be expressed in that framework.  It is
+   written out here instead, so that this document fixes the transcript
+   and the encodings without depending on work in progress.
+
+      *TODO:* Revisit once [SIGMA] is stable.
+
+   Throughout this section and its subsections, x / y denotes integer
+   division of nonnegative integers, that is the quotient rounded down,
+   and x mod y the remainder.
+
+6.2.1.  The Branch Proof
+
+   The disjunction is proved over the statements
+
+     Y[i] = X_hat - anchor_set[i]   for i in range(n)
+
+   of which the Client can answer branch index, where Y[index] = delta *
+   B.
+
+   A single branch is proved by the usual three moves: the Client draws
+   a nonce r and commits T = r * B; the verifier sends a challenge c;
+   the Client answers z = r - c * delta; and the verifier checks that T
+   = c * Y[index] + z * B.
+
+   Read the other way round, that check determines the commitment from
+   the challenge and the response:
+
+   def BranchCommitment(proof_challenge, response, Y):
+     return proof_challenge * Y + G.ScalarMultGen(response)
+
+   def Statements(anchor_set, X_hat):
+   n = len(anchor_set)
+     q = 0
+     while 2^q < n:
+       q = q + 1
+
+     for i in range(len(anchor_set):
+       Y[i] = X_hat - anchor_set[i]
+
+   return (Y, q)
+
+      XXX The draft's range expression is malformed.  This is the
+      apparent intended transcription; unlike the preceding revision, it
+      does not pad.
+
+   Two properties of this branch proof are what allow the composition
+   below, and [STACKSIG] calls a Sigma protocol with both of them
+   _stackable_. First, a verifying commitment can be computed for _any_
+   statement from a challenge and a response, by the function above,
+   without knowing a witness; this is the extended honest-verifier zero-
+   knowledge property.  Second, the response is statistically close to
+   uniform independently of the statement and witness, because it is a
+   fixed shift of the derived nonce r; see Section 8.  One response can
+   therefore be reused across branches without revealing which branch
+   produced it.
+
+   It follows that a verifier given proof_challenge and one response can
+   compute a commitment for every branch, and that every branch then
+   verifies by construction.  Nothing is proved by the responses
+   themselves.  What has to be enforced is that the Client fixed the
+   commitment of one branch before the challenge existed, and could not
+   afterwards change it.
+
+6.2.2.  Partially Binding Commitments
+
+   A _partially binding vector commitment_ [STACKSIG] commits to a
+   vector of values such that one position, chosen when the commitment
+   key is generated and hidden from the verifier, is binding, while
+   every other position can afterwards be opened to any value.  The
+   Client commits the branch commitment of index at the binding
+   position, and after the challenge is known it opens every other
+   position to the branch commitment that the shared response
+   determines.  The branch at the binding position uses the actual
+   witness and a commitment fixed before the challenge; the index of the
+   branch remains hidden by the commitment key.
+
+   This document uses the commitment of the appendix of [STACKSIG] over
+   pairs, and then assembles them into a tree.  The inputs to the
+   commitments are arbitrary strings of bytes, and the outputs are
+   compressed group elements.
+
+      XXX Our encoding of P256 points is always compressed, correct?  Do
+      we need to reiterate here?
+
+   We require a random permutation P on group elements.  We defer
+   discussing its instantiation to a later section.  Being a
+   permutation, P has an inverse, which we denote by Pinv.
+
+   If we need a 1-of-1 binding commitment, we use the identity function.
+   Thankfully we apply this commitment to group elements, so the output
+   is always the same size.
+
+      XXX What does this mean?
+
+   The parameters for our 1-of-2 binding commitments will be a point Q,
+   and openings will be a single scalar, the randomness used in the
+   commitment.
+
+def CommitStep(Q, left, right, randomness):
+    C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)
+    return G.SerializeElement(C)
+
+# the return value is (Q, secret) where
+# secret can be used to equivocate the non
+# binding direction
+
+def GenerateStep(bind_direction):
+    secret = G.RandomScalar()
+    T = secret*G.Generator()
+    if bind_direction == "left":
+        return (Pinv(T), secret)
+    elsif  bind_direction == "right":
+        return (T, secret)
+
+def EquivocateStep(old,new, randomness, secret):
+    return randomenss + (old - new)*secret
+
+   Let V[0], V[1], ... V[n-1] be a vector of bytestrings.  We will use a
+   logarithmic number of reductions to create a single commitment to the
+   entire vector.
+
+   def VecCommit(V, Qi, rands):
+       if len(V) == 1 :
+           return V[0]
+       for i:=0; i<len(V)/2; i++
+           V'[i] = CommitStep(Qi[0], V[2*i], V[2*i+1], rands[0])
+       if len(V) % 2 == 1 :
+           V'[len(V)/2+1] = V[len(V)-1]
+       return VecCommit(V', Qi[1:], rands[1:])
+
+   Creating parameters that bind in only one specified position of the
+   vector V is an exercise in bookkeeping.  Note that there is
+   significant savings in verification from caching the computation of
+   G.Generator()*rands[i] across the level.
+
+      XXX It would be useful to add an aasvg diagram here that
+      visualizes the construction of a vector commitment.
+
+6.2.3.  Challenge Computation
+
+   The Fiat-Shamir challenge covers the whole statement -- the Anchor
+   Set, the rerandomized key, the signature being presented, the two
+   contexts, and the Moderator's challenge digest -- together with the
+   first move of the proof, which is the commitment keys and the root of
+   the tree.
+
+   def ComputeProofChallenge(anchor_set, X_hat, endorsement, ctx_iss,
+                             ctx_red, challenge_digest,
+                             commitment_keys, root):
+     (c, s_hat, y, t, nf) = endorsement
+     n = len(anchor_set)
+
+     anchor_set_enc = ""
+     for i in range(n):
+       anchor_set_enc = anchor_set_enc ||
+                        G.SerializeElement(anchor_set[i])
+
+     ck_enc = ""
+     for j in range(len(commitment_keys)):
+       ck_enc = ck_enc || G.SerializeElement(commitment_keys[j])
+
+     proof_transcript =
+       I2OSP(n, 2) || anchor_set_enc ||
+       G.SerializeElement(X_hat) ||
+       G.SerializeScalar(c) || G.SerializeScalar(s_hat) ||
+       G.SerializeScalar(y) || G.SerializeScalar(t) ||
+       I2OSP(len(nf), 2) || nf ||
+       I2OSP(len(ctx_iss), 2) || ctx_iss ||
+       I2OSP(len(ctx_red), 2) || ctx_red ||
+       I2OSP(len(challenge_digest), 2) || challenge_digest ||
+       ck_enc || EncodeNode(root) ||
+       "IssuerProof"
+
+     return G.HashToScalar(proof_transcript)
+
+      XXX Why bind the issuance and redemption context?  The redemption
+      context is covered by the issued signature, so I don't see why it
+      needs to be covered by the transcript.  Likewise for the issuance
+      context: If the context doesn't match the value used during
+      issuance, then signature verification should fail.  Otherwise,
+      there's nothing that guarantees that all three parties agree on
+      the value.
+
+   The length of the Anchor Set n is prefixed and Element encodings are
+   fixed-length, so anchor_set_enc and ck_enc are unambiguous without
+   length prefixes of their own; q, and with it the number of commitment
+   keys, is determined by n.  The label "IssuerProof" separates this
+   transcript from the issuance transcript of Section 5.2, which is
+   hashed with the same function.
+
+      XXX What does q refer to here?
+
+   Unlike ComputeChallenge, this function accepts zero rather than
+   aborting and retrying: a challenge of zero yields a proof that
+   verifies, and no branch is privileged by it.
+
+6.2.4.  Proving
+
+   Input:
+
+     Element anchor_set[n]
+     uint16 index
+     Scalar delta
+     Element X_hat
+     Endorsement endorsement
+     PublicInput ctx_iss
+     PublicInput ctx_red
+     PublicInput challenge_digest
+     opaque rand[(3 * q + 1) * Nseed]
+
+   Output:
+
+     Scalar proof_challenge
+     Scalar response
+     Element commitment_keys[q]
+     Scalar openings[q]
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+     Nseed
+
+   Errors: DeriveError
+
+def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
+                ctx_red, challenge_digest, rand):
+  (Y, q) = Statements(anchor_set, X_hat)
+  # TODO: handle randomness in better way
+  r = G.RandomScalar()
+  A = G.Generator() * r
+
+  (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand)
+  # First move: commit along the binding path, sibling value zero.
+  (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
+
+  proof_challenge = ComputeProofChallenge(anchor_set, X_hat,
+                                          endorsement, ctx_iss,
+                                          ctx_red, challenge_digest,
+                                          commitment_keys, root)
+
+  # Third move: one response, reused by every branch.
+  response = r - proof_challenge * delta
+
+  for i in range(len(Y)):
+    V[i] = BranchCommitment(proof_challenge, response, Y[i])
+  openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
+  return proof_challenge, response, commitment_keys, openings
+
+6.2.5.  Verifying
+
+   Input:
+
+     Element anchor_set[n]
+     Element X_hat
+     Endorsement endorsement
+     PublicInput ctx_iss
+     PublicInput ctx_red
+     PublicInput challenge_digest
+     Scalar proof_challenge
+     Scalar response
+     Element commitment_keys[q]
+     Scalar openings[2 * q]
+
+   Output:
+
+     boolean verified
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   def VerifyIssuer(anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
+                    challenge_digest, proof_challenge, response,
+                    commitment_keys, openings):
+     n = len(anchor_set)
+     if n < 2:
+       return false
+
+     (Y, q) = Statements(anchor_set, X_hat)
+     if len(commitment_keys) != q:
+       return false
+     if len(openings) != q:
+       return false
+
+     for i in range(n):
+       T[i] = BranchCommitment(proof_challenge, response, Y[i])
+
+     root = VecCommit(T, commitment_keys, openings)
+
+     return proof_challenge == ComputeProofChallenge(
+         anchor_set, X_hat, endorsement, ctx_iss, ctx_red,
+         challenge_digest, commitment_keys, root)
+
+   The verifier computes a commitment for every branch from the single
+   response, rebuilds the whole tree from those commitments and the
+   openings it was given, and checks that the root it arrives at is the
+   one the challenge was computed over.  Neither the branch commitments
+   nor the interior nodes are transmitted.
+
+   VerifyIssuer returns false rather than raising an error, so that it
+   is a total predicate on its inputs, as Verify (Section 5.5) is.  Two
+   of its three rejections are defensive restatements of its input
+   types: the lengths of commitment_keys and openings are fixed by the
+   Anchor Set, and a redemption whose vectors have any other length is
+   rejected before this algorithm is reached, when it is deserialized
+   (Section 6.5).  The third, n < 2, is not a property of the redemption
+   at all but of the Moderator's own Anchor Set; reaching it means the
+   Moderator is misconfigured (Section 6.4).
+
+   A proof produced by ProveIssuer is accepted by VerifyIssuer.  On
+   branch index,
+
+     proof_challenge * Y[index] + response * B
+       = proof_challenge * delta * B
+         + (r - proof_challenge * delta) * B
+       = r * B
+
+   This is the commitment the Client committed at the binding leaf, and
+   every other leaf holds by definition the commitment the verifier
+   recomputes.  Each level then reproduces the node the Client
+   committed: the binding side is unchanged, and the equivocal side was
+   shifted to match.
+
+   Conversely, the binding leaf is fixed before proof_challenge exists
+   and cannot be moved afterwards, so a Client that could produce an
+   accepting proof for two different challenges would yield delta for
+   that leaf's statement.  The soundness of the proof rests on that, and
+   on nothing about the other branches; see Section 8.
+
+6.3.  Redemption
+
+   The Client produces a redemption from an Endorsement it holds.
+
+   Input:
+
+     Element anchor_set[n]
+     uint16 index
+     Endorsement endorsement
+     PublicInput ctx_iss
+     PublicInput ctx_red
+     PublicInput challenge_digest
+
+   Output:
+
+     Redemption redemption
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+     Nseed
+
+   Errors: VerifyError, DeriveError
+
+   def Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
+              challenge_digest):
+     (c, s, y, t, nf) = endorsement
+     n = len(anchor_set)
+
+     if n < 2:
+       raise VerifyError
+
+     (Y, q) = Statements(anchor_set, Identity())
+     nrand = (3 * q + 2) * Nseed
+
+     rand = random(nrand)
+     delta = DeriveScalar(Seed(rand, 0), "delta")
+
+     X_hat = anchor_set[index] + delta * B
+     s_hat = s + (c * y) * delta
+     shown = Endorsement(c, s_hat, y, t, nf)
+
+     proof_challenge, response, commitment_keys, openings =
+       ProveIssuer(anchor_set, index, delta, X_hat, shown, ctx_iss,
+                   ctx_red, challenge_digest, rand[Nseed .. nrand])
+
+     return Redemption(X_hat, shown, proof_challenge, response,
+                       commitment_keys, openings)
+
+   In order to keep the Anchor anonymous, the Client MUST NOT redeem
+   against an Anchor Set of fewer than two keys.  Refusing also keeps
+   the depth q of the tree at least one, so a redemption always carries
+   at least one commitment key.
+
+      XXX This is fine, but we will likely live in a world for a little
+      while in which there is only one Anchor, and we want to redeem
+      Endorsements anyway.  How will this work?
+
+   delta MUST be freshly derived for every redemption, and MUST NOT be
+   derived from the Endorsement or from any other value a Client reuses.
+   It is what makes the redemption unlinkable to the Anchor, and reusing
+   it across two redemptions would link them to each other.
+
+6.4.  Redemption Verification
+
+   The Moderator checks the signature under the rerandomized key and the
+   proof against its Anchor Set.
+
+   Input:
+
+     Element anchor_set[n]
+     Redemption redemption
+     PublicInput ctx_iss
+     PublicInput ctx_red
+     PublicInput challenge_digest
+
+   Output:
+
+     opaque nf[Nn]
+
+   Parameters:
+
+     Group G
+     PublicInput ctx_proto
+
+   Errors: VerifyError
+
+   def VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
+                        challenge_digest):
+     (X_hat, shown, proof_challenge, response,
+      commitment_keys, openings) = redemption
+
+     if not Verify(X_hat, shown, ctx_iss, ctx_red):
+       raise VerifyError
+
+     if not VerifyIssuer(anchor_set, X_hat, shown, ctx_iss, ctx_red,
+                         challenge_digest, proof_challenge, response,
+                         commitment_keys, openings):
+       raise VerifyError
+
+     return shown.nf
+
+   The first check is the endorsement verification of Section 5.5, run
+   against the rerandomized key.  Together the two checks establish that
+   the Client holds an Endorsement issued under ctx_iss and ctx_red by
+   one of the Anchors in anchor_set, and reveal nothing further about
+   which one.  On success, VerifyRedemption returns the nullifier;
+   either failed check raises a VerifyError.
+
+   VerifyRedemption does not enforce single use.  The nullifier nf is in
+   the clear in the redemption, and a Moderator that accepts a
+   redemption MUST reject it if it has already recorded that nf, and
+   MUST record nf before granting anything on the strength of it.  A
+   Moderator SHOULD scope its nullifier store to the issuance context,
+   since an Endorsement issued under a different ctx_iss does not verify
+   anyway.  [PROTOCOLS] places these checks, and the check that ctx_iss
+   is current, at the Moderator.
+
+   A Moderator MUST NOT offer an Anchor Set of one key: with n = 1 the
+   tree has depth zero, the proof carries no commitment key, and what
+   remains is a plain proof of knowledge of delta for the single key,
+   which identifies the Anchor.  VerifyIssuer rejects that case, but
+   that rejection is a guard on the Moderator's own configuration rather
+   than a verdict on the redemption: a Moderator that configures it has
+   already lost the property before any proof is checked.  See
+   Section 8.
+
+6.5.  Encodings
+
+   A redemption is carried in the bytes field of the Presentation
+   structure of [PROTOCOLS], which a Client sends in the
+   endorsement_presentation field of a CredentialRequest.
+
+   struct {
+     Element rerandomized_key;
+     Endorsement shown_endorsement;
+     Scalar proof_challenge;
+     Scalar response;
+     Element commitment_keys<V>;
+     Scalar openings<V>;
+   } Redemption;
+
+   shown_endorsement uses the Endorsement structure of Section 5.6.2,
+   with s carrying s_hat.  It is a valid Endorsement under
+   rerandomized_key, which is the point of Section 6.1; it is not the
+   Endorsement the Client stored, and the Client MUST NOT send that one.
+
+   commitment_keys MUST hold exactly q elements and openings exactly 2 *
+   q scalars, where q is the depth of the tree determined by the Anchor
+   Set the Moderator offered (Section 6.2.2).  The two openings of level
+   j are at positions 2 * (j - 1) and 2 * (j - 1) + 1, in that order.  A
+   Moderator MUST reject any other length with a DeserializeError rather
+   than truncating or padding, and MUST NOT infer the size of its own
+   Anchor Set from the redemption.
+
+      XXX Give an explicit formula for q.
+
+   A redemption is therefore Ne + 4 * Ns + Nn + 2 * Ns + q * Ne + 2 * q
+   * Ns bytes plus the two vector length prefixes, which are two bytes
+   each at the sizes below.  For IHAT(P-256, SHA-256) and an Anchor Set
+   of ten keys, q = 4 and a redemption is 649 bytes, of which 456 are
+   the proof; at 64 keys it is 843 bytes, of which 650 are the proof.
+   The corresponding linear disjunction [CDS94] would be 837 and 4293
+   bytes respectively.  The stacked proof is the smaller of the two for
+   every Anchor Set of six or more keys, and its advantage grows with
+   the set, which is the reason for using it.
+
+      XXX I'm guessing the estimates for disjunction is generated by AI.
+      Instead I think it ought to be generated by a reference
+      implemntation.  Absent this implementation, I think we should not
+      include these numbers.
+
+7.  Ciphersuites
+
+   A ciphersuite fixes the group, the hash functions, and the associated
+   encodings and domain separation tags.  Both parties are assumed to
+   agree on the ciphersuite in use (Section 4.1).
+
+   For each ciphersuite, ctx_proto is as computed in Section 4.1.  The
+   nullifier length is Nn = 32 bytes and the seed length is Nseed = Ns +
+   16 bytes, that is 48 bytes, for both ciphersuites below.  The 16
+   bytes in excess of Ns are what makes a derived scalar statistically
+   close to uniform (Section 4.2), on the same grounds that [HASH2CURVE]
+   oversamples by 16 bytes when it maps a byte string to a field
+   element.
+
+7.1.  IHAT(P-256, SHA-256)
+
+   This ciphersuite uses P-256 (secp256r1) [NISTCurves] for the group
+   and SHA-256 for the hash function, with Nh = 32.  The value of the
+   ciphersuite identifier is "P256-SHA256".
+
+   The interface of Section 3.1 is instantiated as follows.
+
+   Order():  Return
+      0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
+
+   Identity(), Generator(), ScalarMultGen(r):  As defined in
+      [NISTCurves].
+
+   HashToGroup(x):  Use hash_to_curve with suite P256_XMD:SHA-
+      256_SSWU_RO_ [HASH2CURVE] and DST = "HashToGroup-" || ctx_proto.
+
+   HashToScalar(x):  Use hash_to_field from [HASH2CURVE] with L = 48,
+      expand_message_xmd with SHA-256, DST = "HashToScalar-" ||
+      ctx_proto, and a prime modulus equal to Order().
+
+   ScalarInverse(s):  The multiplicative inverse of s modulo Order().
+
+   SerializeElement(A):  The compressed Elliptic-Curve-Point-to-Octet-
+      String method of [SEC1]; Ne = 33.
+
+   DeserializeElement(buf):  Deserialize a 33-byte input using the
+      compressed Octet-String-to-Elliptic-Curve-Point method of [SEC1],
+      then perform partial public key validation as in Section 4.3 of
+      [OPRF].  This includes checking that the coordinates are in range,
+      that the point is on the curve, and that the point is not the
+      identity element.  Raise a DeserializeError if any check fails.
+
+   SerializeScalar(s):  The Field-Element-to-Octet-String conversion of
+      [SEC1]; Ns = 32.
+
+   DeserializeScalar(buf):  Deserialize a 32-byte input using Octet-
+      String-to-Field-Element from [SEC1].  Raise a DeserializeError if
+      the result is not in [0, Order()-1].
+
+   P:  P(G) is obtained as follows: Serialize a G to a 33 byte This is a
+      33 byte vector where the first byte is 0x03 or 0x04.  Subtract 3
+      from that first byte to make it 0x00 or 0x01.  Now this is a 33
+      byte vector, buf.  Define Pbuf as 4 iterations of the following:
+      left = buf[0:17] # 17 bytes right = buf[17:33] # 16 bytes left ^=
+      SHAKE256(right, 17) left[0] &= 0x01 right ^ = SHAKE256(left, 16)
+      left ^= SHAKE256(right, 17) left[0] &= 0x01 right ^ =
+      SHAKE256(left, 16) buf = left || right Pbuf is indistinguishable
+      from random permutation on 257 bit vectors if we model SHAKE256 as
+      a random oracle.  P is defined as the result of deserializing the
+      first entry in Pbuf(buf), Pbuf(Pbuf(buf)), etc to deserialize.
+      Note that one has to add 3 again to get buf in SEC1 format.  On
+      average this takes 2 iterations of Pbuf.  The inverse is obtained
+      by applying Pbuf inverse.
+
+      XXX Replace this with pseudocode
+
+7.2.  IHAT(ristretto255, SHA-512)
+
+   This ciphersuite uses ristretto255 [RISTRETTO] for the group and
+   SHA-512 for the hash function, with Nh = 64.  The value of the
+   ciphersuite identifier is "ristretto255-SHA512".
+
+   The interface of Section 3.1 is instantiated as follows.
+
+   Order():  Return 2^252 + 27742317777372353535851937790883648493, as
+      defined in [RISTRETTO].
+
+   Identity(), Generator(), ScalarMultGen(r):  As defined in
+      [RISTRETTO].
+
+   HashToGroup(x):  Use hash_to_ristretto255 [HASH2CURVE] with DST =
+      "HashToGroup-" || ctx_proto and expand_message_xmd using SHA-512.
+
+   HashToScalar(x):  Compute uniform_bytes using expand_message_xmd with
+      SHA-512, DST = "HashToScalar-" || ctx_proto, and an output length
+      of 64 bytes; interpret uniform_bytes as a 512-bit integer in
+      little-endian order and reduce it modulo Order().
+
+   ScalarInverse(s):  The multiplicative inverse of s modulo Order().
+
+   SerializeElement(A):  The Encode function of Section 4.3.2 of
+      [RISTRETTO]; Ne = 32.
+
+   DeserializeElement(buf):  The Decode function of Section 4.3.1 of
+      [RISTRETTO], additionally validating that the result is not the
+      identity element.  Raise a DeserializeError if any check fails.
+
+   SerializeScalar(s):  The little-endian 32-byte encoding of the
+      Scalar, with the top three bits set to zero; Ns = 32.
+
+   DeserializeScalar(buf):  Deserialize a Scalar from a little-endian
+      32-byte string.  Raise a DeserializeError if the result is not in
+      [0, Order()-1]; note that this requires the top three bits of the
+      input to be zero.
+
+   P  Very similar to above, but 32 byte random permutations are easier
+      to use instantiate with a symmetric Feisel network.
+
+      XXX Just delete this until we need it.
+
+7.3.  Randomness
+
+   Every random value in this document is a seed of Nseed bytes, drawn
+   with random and consumed by DeriveScalar (Section 4.2); no scalar is
+   sampled directly.  Implementations MUST draw seeds with a
+   cryptographically secure random number generator and MUST NOT reuse a
+   seed across derivations.  They SHOULD treat a seed as being as
+   sensitive as the values derived from it, and SHOULD handle both in
+   constant time: the seed drawn in Commit determines the Anchor's
+   session state, and the seed drawn in Challenge determines the
+   Client's blinding factors, so recovering either undoes the property
+   that algorithm provides.
+
+      *Editorial note.* This document does not use the RandomScalar()
+      member of [OPRF]'s group interface, and so does not have to
+      resolve an inconsistency in it: Section 2.1 of [OPRF] defines
+      RandomScalar() as "Chooses at random a nonzero element in GF(p)",
+      while each of its ciphersuites defines it as "a uniformly random
+      Scalar in the range [0, G.Order() - 1]", which includes zero.
+      *TODO:* report the inconsistency against [OPRF].
+
+      XXX https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392
+
+8.  Security Considerations
+
+      *TODO.* This section is a summary of the properties the
+      construction is intended to provide and of the requirements
+      implementations must meet.  Formal statements and the
+      corresponding reductions are not yet written.
+
+   The issuance protocol is the partially blind signature scheme of
+   Tessaro and Zhu [TESSZHU], instantiated with the public input set to
+   the issuance context.  Its security is analysed in the random oracle
+   model, and one-more unforgeability additionally in the algebraic
+   group model under the discrete logarithm assumption.  Notably, its
+   concurrent security does not rely on the hardness of the ROS problem,
+   which is broken in polynomial time, nor on the mROS problem, which
+   admits sub-exponential attacks.
+
+   Blindness:  The Anchor's view of a session is the blinded challenge c
+      alone.  Because gamma2 is uniform and nonzero, c is uniformly
+      distributed and independent of the message and of the resulting
+      signature.  The scheme is perfectly blind [TESSZHU], so an Anchor
+      cannot link an Endorsement to the session that produced it, even
+      with unbounded computation.  This is what makes endorsement grants
+      and redemptions unlinkable as required by [ARCH], including
+      against an attacker with a quantum computer that records
+      transcripts today.
+
+   Derived blinding factors:  Blindness is unconditional only if the
+      blinding factors are.  Challenge derives them from seeds rather
+      than sampling them, and Redeem derives delta and the proof's
+      nonces the same way, so the guarantee is statistical rather than
+      perfect: an Endorsement and a session are linkable by an adversary
+      that can find a seed consistent with both.  Two properties of
+      Section 4.2 keep the loss negligible.  Each scalar gets its own
+      seed, so a seed consistent with any given value exists with
+      overwhelming probability and finding one therefore separates
+      nothing; and each seed is Ns + 16 bytes, so each derived scalar is
+      within about 2^-128 of uniform.  Deriving several scalars from one
+      seed, or from a seed of Ns bytes, would break this: the blinding
+      factors of a session would then be jointly determined by fewer
+      bits than they contain, an exhaustive search over seeds would
+      identify the one session consistent with a given Endorsement, and
+      unlinkability would hold only against a bounded adversary.
+      Implementations MUST NOT do either.
+
+   One-more unforgeability:  A Client that completes k issuance sessions
+      under a given issuance context cannot produce k+1 distinct valid
+      Endorsements under that context, regardless of how many sessions
+      it has completed under _other_ issuance contexts [TESSZHU].  This
+      is what allows a Moderator to conclude that an accepted
+      Endorsement corresponds to exactly one grant by a trusted Anchor.
+
+   Unforgeability under rerandomization:  Rerandomization is additive
+      and applies only after issuance, so issuance is the unmodified
+      scheme of [TESSZHU] and its unforgeability is intended to carry
+      over directly: a reduction relays the signing oracle verbatim,
+      extracts delta and the branch it belongs to from the issuer-hiding
+      proof, and undoes the public shift to obtain a forgery under the
+      Anchor's own key.  The extraction is the special soundness of the
+      stacking composition (Section 7 of [STACKSIG]): two accepting
+      proofs that share a first move but answer different challenges
+      agree on the branch commitment at the binding position, and the
+      branch proof of Section 6.2.1 then yields delta for that branch's
+      statement.  Nothing in Redeem gives a Client a signature it did
+      not already hold: X_hat and s_hat are computed from values it has,
+      and a Client that could produce an accepted redemption without an
+      Endorsement from some Anchor in anchor_set would yield a forgery.
+      *TODO:* this reduction is stated, not written out, and must
+      account for multiple redemptions in the one-more unforgeability
+      game.
+
+   Issuer hiding:  Up to the statistical distance described below, a
+      redemption reveals no information about which Anchor in anchor_set
+      issued the Endorsement, so a Moderator, an Anchor, and the two
+      colluding learn only that some key in anchor_set was used.  Three
+      facts establish this.  X_hat and the response of the single branch
+      proof are statistically close to uniform independently of the
+      branch (Section 6.2.1).  And the commitment scheme of
+      Section 6.2.2 hides which position it binds: a commitment key is
+      distributed over the group essentially independently of that
+      position, and an opening essentially independently of whether the
+      value it opens to was committed or equivocated.  The proof
+      therefore reveals the branch only through values that are almost
+      independent of it, which is witness indistinguishability of the
+      composition (Section 7 of [STACKSIG]).
+
+      The commitment of Section 6.2.2 would be _perfectly_ hiding if its
+      randomness were uniform, and is _statistically_ hiding as
+      specified here, because DeriveScalar never returns zero
+      (Section 4.2).  The two cases of CreateCommitmentKey therefore
+      have slightly different supports -- E - G0 is never -G0 and G0 - E
+      is never G0 -- so a commitment key that happened to equal G0 or
+      -G0 would reveal which position it binds, and the same exclusion
+      applies to each opening and to response.  Each of these 3 * q + 1
+      values excludes at most one point of a field of order p, so the
+      total statistical distance is at most (3 * q + 1) / p, below
+      2^-250 for both ciphersuites of Section 7.  Like blindness, issuer
+      hiding therefore holds against unbounded computation up to a
+      statistical loss, here from this exclusion as well as from the
+      seed length of the derived randomness above.  Note that it is the
+      _binding_ property of the commitment, and not its hiding, that is
+      computational, which is the direction [ARCH] requires.
+
+   Partially binding commitments:  The soundness of the issuer-hiding
+      proof rests on two things: the commitment of Section 6.2.2 binding
+      one position of each node, and the collision resistance of the
+      CompressValue of Section 6.2.2, without which a leaf or a node
+      could be opened to a colliding value and no discrete logarithm
+      would be extractable.  The binding property is computational and
+      reduces tightly to the discrete logarithm problem (Section 5.2 of
+      [STACKSIG]): a Client that can open one position of a node two
+      ways knows the discrete logarithm of that position's base, and a
+      Client that can do so at both positions knows that of G0, since
+      the two bases sum to G0 + G0.  G0 MUST therefore be the
+      HashToGroup output specified in Section 6.2.2 and MUST NOT be
+      chosen, negotiated, or supplied by any party: a Client that knew
+      its discrete logarithm could equivocate every position of every
+      node, open the binding leaf to whatever the challenge required,
+      and produce accepting redemptions holding no Endorsement at all.
+      The same reduction also motivates committing the two values under
+      two _separate_ Pedersen commitments.  With a single commitment
+      over both bases, the binding equation would involve both bases, so
+      the reduction above would not directly extract a discrete
+      logarithm.
+
+   Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
+      Set_, so the set is the anonymity set, and a redemption against a
+      single-key set would name the Anchor outright (Section 6.4); a
+      Client MUST refuse such a set rather than rely on the Moderator to
+      avoid offering one (Section 6.3).  Padding the set to a power of
+      two (Section 6.2.2) does not enlarge it: a padded leaf repeats a
+      statement rather than adding an Anchor, and the anonymity set is
+      n, never N.  More generally a Moderator that offers different
+      Anchor Sets to different Clients partitions them, and one that
+      reorders the set between Clients does the same; the set and its
+      order MUST be the same for every Client offered a given ctx_iss.
+      See [ARCH] for how set size interacts with Anchor diversity.
+
+   Proof size and cost:  The proof is logarithmic in the size of the
+      Anchor Set: two scalars, plus one element and two scalars for each
+      of the q levels of the tree (Section 6.5).  Computation is not.
+      Both the prover and the verifier evaluate every branch and every
+      node, which is N branch commitments and N - 1 node commitments, so
+      each performs a number of scalar multiplications linear in N.  A
+      large Anchor Set is therefore cheap in bandwidth and not in CPU,
+      which reverses the tradeoff of the linear disjunction [CDS94] for
+      bandwidth but not for work; [FFKLLS26] notes the same for its own
+      instantiations.  Two consequences for deployments: the linear
+      disjunction is smaller for Anchor Sets of five keys or fewer, and
+      because the tree is padded to a power of two, an Anchor Set of 2^q
+      + 1 keys costs a whole extra level while adding one Anchor to the
+      anonymity set.
+
+   Constant-time proving:  ProveIssuer treats one leaf, and one side of
+      each node on the path to it, differently from the others, and
+      which leaf that is is exactly the secret the proof exists to hide.
+      Implementations MUST NOT allow the binding path to be
+      distinguished by timing, memory access patterns, or the amount of
+      randomness consumed.  The specification is written so that the
+      last of these is not a signal: the randomness a redemption
+      consumes is a function of q alone (Section 6.3).  The first move
+      commits along the path only, and the third move visits every node
+      of the tree; an implementation that instead recomputes the path
+      lazily, or that branches on the value of right in a way an
+      adversary can observe, reintroduces the signal.
+
+   Single-use sessions:  *Implementations MUST ensure that the session
+      state produced by Commit is never used more than once.* This
+      requirement is load-bearing, not defensive.  If an Anchor answers
+      two distinct challenges c1 != c2 on one Commit state, then from
+      the two responses s1 = a + c1*y*skA and s2 = a + c2*y*skA, with y
+      revealed in both, anyone recovers the signing key as skA = (s1 -
+      s2) * ScalarInverse((c1 - c2) * y).  The requirement extends to
+      process restarts, to replicas sharing a signing key, and to any
+      retry or replay of a ChallengeMessage: an Anchor MUST treat a
+      session as closed the moment it emits a response, and MUST answer
+      a repeated session_id with a SessionError rather than recomputing.
+      Anchors are stateful for this reason, and this state cannot be
+      made stateless by sealing it into a cookie handed to the Client:
+      sealing preserves the secrecy of (a, y, t) but not their single
+      use, and single use is the property that matters here.
+
+   Challenge binding:  challenge_digest enters the proof transcript
+      (Section 6.2.3), so a proof produced for one challenge does not
+      verify under any other.  Whether that amounts to replay protection
+      depends on the challenge being fresh, which this document does not
+      control: [PROTOCOLS] fixes what the Moderator's challenge
+      contains, and a challenge that carries only the Moderator's
+      configuration takes the same value for every Client and every
+      session.  Under such a challenge, challenge_digest binds a proof
+      to the Moderator rather than to a session, and it is the nullifier
+      check of Section 6.4 that prevents a redemption from being
+      replayed.  A deployment that wants challenge binding to carry
+      session freshness needs the challenge to include a value that
+      varies per session.  It binds the proof, not the signature: the
+      signature is the same bytes whatever challenge is answered, which
+      is why the nullifier check and not challenge binding is what makes
+      an Endorsement single-use.
+
+   Context binding:  The issuance context enters both the commitment
+      base and the challenge transcript, and the redemption context
+      enters the signed message, so an Endorsement does not verify under
+      any other pair of contexts.  Neither context is carried in the
+      Endorsement; both are supplied by the verifier (Section 5.5), so a
+      Client cannot assert the pair its Endorsement is checked against.
+      A Client also cannot select the issuance context unilaterally: it
+      is never sent from the Client to the Anchor, and using a value
+      other than the one the Anchor committed under fails the opening
+      check in Finalize.
+
+   Nullifier reuse:  A Client that reuses a nullifier across
+      Endorsements links those Endorsements to each other at redemption
+      and, depending on the Moderator's nullifier store, causes all but
+      the first redemption to be rejected.  Nullifiers MUST be freshly
+      generated.
+
+   Aborts on zero:  Challenge aborts when the challenge hashes to zero
+      and Respond aborts on a zero challenge.  Both events occur with
+      probability approximately 1/p for honest parties, where p is the
+      order of the group.  A Client that observes such an abort learns
+      nothing and SHOULD start a fresh session.
+
+   Context granularity:  The unlinkability arguments above are
+      cryptographic; the anonymity set they operate over is set by the
+      contexts.  Both contexts are visible at redemption, the issuance
+      context directly and the redemption context through the fact that
+      the Endorsement verifies under it, so each partitions Clients into
+      the set that shares its value.  Whatever [ARCH] eventually
+      specifies them to be (Section 4.4), both values must therefore be
+      *coarse*. Every Client holding an Endorsement issued under a given
+      issuance context MUST derive the byte-identical ctx_iss, and every
+      Client redeeming under a given redemption context MUST derive the
+      byte-identical ctx_red.  A deployment that refines either value,
+      for instance by using a per-request timestamp rather than a shared
+      epoch, or a per-Client identifier rather than a value shared by
+      every Client redeeming in the same place, reduces the anonymity
+      set accordingly, in the limit to a single Client, and does so
+      without violating any cryptographic property of the construction.
+      Implementations MUST NOT do so.
+
+   Session identifiers:  The session_id of Section 5.6 is chosen by the
+      Anchor and so is a value the Anchor recognises.  It is confined to
+      the transport: it is not an input to any algorithm of Section 5,
+      nor is it included in the challenge transcript.  Were it bound
+      into the Endorsement, the Anchor could recognise its own
+      identifier at redemption and link the redemption to the issuance
+      session.
+
+   Anonymity sets:  The effective privacy a Client obtains also depends
+      on deployment properties beyond this document, in particular the
+      number of Clients an Anchor serves per epoch and the size of a
+      Moderator's Anchor Set; see [ARCH].
+
+9.  IANA Considerations
+
+   This document has no IANA actions.  The endorsement type for the
+   scheme specified here is registered by [PROTOCOLS].
+
+10.  References
+
+10.1.  Normative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [HASH2CURVE]
+              Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
+              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
+              DOI 10.17487/RFC9380, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9380>.
+
+   [HTTP-TRANSPORT]
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
+              Transport", Work in Progress, Internet-Draft, draft-jms-
+              mole-http-transport-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              http-transport-00>.
+
+   [I2OSP]    Moriarty, K., Ed., Kaliski, B., Jonsson, J., and A. Rusch,
+              "PKCS #1: RSA Cryptography Specifications Version 2.2",
+              RFC 8017, DOI 10.17487/RFC8017, November 2016,
+              <https://www.rfc-editor.org/rfc/rfc8017>.
+
+   [NISTCurves]
+              National Institute of Standards and Technology (NIST),
+              "Digital Signature Standard (DSS)", FIPS PUB 186-5,
+              February 2023, <https://doi.org/10.6028/NIST.FIPS.186-5>.
+
+   [OPRF]     Davidson, A., Faz-Hernandez, A., Sullivan, N., and C. A.
+              Wood, "Oblivious Pseudorandom Functions (OPRFs) Using
+              Prime-Order Groups", RFC 9497, DOI 10.17487/RFC9497,
+              December 2023, <https://www.rfc-editor.org/rfc/rfc9497>.
+
+   [PROTOCOLS]
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
+              Protocols", Work in Progress, Internet-Draft, draft-jms-
+              mole-protocols-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              protocols-00>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [RISTRETTO]
+              de Valence, H., Grigg, J., Hamburg, M., Lovecruft, I.,
+              Tankersley, G., and F. Valsorda, "The ristretto255 and
+              decaf448 Groups", RFC 9496, DOI 10.17487/RFC9496, December
+              2023, <https://www.rfc-editor.org/rfc/rfc9496>.
+
+   [SEC1]     Standards for Efficient Cryptography Group (SECG), "SEC 1:
+              Elliptic Curve Cryptography", 2009,
+              <https://www.secg.org/sec1-v2.pdf>.
+
+   [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
+
+10.2.  Informative References
+
+   [CDS94]    Cramer, R., Damgard, I., and B. Schoenmakers, "Proofs of
+              Partial Knowledge and Simplified Design of Witness Hiding
+              Protocols", CRYPTO 1994, 1994,
+              <https://doi.org/10.1007/3-540-48658-5_19>.
+
+   [FFKLLS26] Flamini, A., Friedrichs, F., Katz, J., Ladd, W., Lehmann,
+              A., and C. Sefranek, "Issuer-Hiding BBS-Based Anonymous
+              Credentials without Policy Keys", 2026,
+              <https://eprint.iacr.org/2026/870>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
+              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
+              protocols-03, 16 August 2026,
+              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
+              sigma-protocols-03>.
+
+   [STACKSIG] Goel, A., Green, M., Hall-Andersen, M., and G. Kaptchuk,
+              "Stacking Sigmas: A Framework to Compose Sigma-Protocols
+              for Disjunctions", EUROCRYPT 2022, 2022,
+              <https://eprint.iacr.org/2021/422>.
+
+   [TESSZHU]  Tessaro, S. and C. Zhu, "Short Pairing-Free Blind
+              Signatures with Exponential Security", EUROCRYPT 2022,
+              2022, <https://eprint.iacr.org/2022/047>.
+
+Appendix A.  Test Vectors
+
+      *TODO.* Test vectors for DeriveKeyPair, DeriveScalar,
+      CreateContextBase, Message, ComputeChallenge, the four issuance
+      algorithms, Verify, G0, CommitNode, CompressValue,
+      ComputeProofChallenge, Redeem, and VerifyRedemption, for each
+      ciphersuite in Section 7.  Issuance and redemption are randomized,
+      but every algorithm is a deterministic function of the bytes it
+      draws from random, so a vector fixes one value per algorithm: the
+      key seed, the rand of Commit, the rand of Challenge, and the rand
+      of Redeem.  A redemption vector also has to fix the Anchor Set,
+      its order, the Client's index in it, and a challenge_digest, and
+      SHOULD include one Anchor Set whose size is not a power of two, so
+      that the padding of Section 6.2.2 is covered.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Author's Address
+
+   Deep Inder Mohan
+   Georgia Institute of Technology
+   Email: dmohan@gatech.edu
