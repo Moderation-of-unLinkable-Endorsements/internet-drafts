@@ -2427,23 +2427,12 @@ key.<a href="#section-6.1-7" class="pilcrow">¶</a></p>
         <h3 id="name-the-issuer-hiding-proof">
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-the-issuer-hiding-proof" class="section-name selfRef">The Issuer-Hiding Proof</a>
         </h3>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2-1.1">
-            <p id="section-6.2-1.1.1">XXX Can we rename this to "redemption proof" to match Moussaka?<a href="#section-6.2-1.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-6.2-2">The Client proves knowledge of <code>delta</code> such that
+<p id="section-6.2-1">The Client proves knowledge of <code>delta</code> such that
 <code>X_hat - anchor_set[i] = delta * B</code> for at least one <code>i</code>, without revealing
 <code>i</code>. This is a one-out-of-<code>n</code>
 disjunction of Schnorr statements, all of them over the same base
-<code>B = G.Generator()</code>.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2-3.1">
-            <p id="section-6.2-3.1.1">XXX Would be nice to reword this without saying "Schnorr statement", since we
-haven't defined what this means.<a href="#section-6.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
-<p id="section-6.2-4">Such a disjunction is classically composed with the technique of Cramer,
+<code>B = G.Generator()</code>.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2">Such a disjunction is classically composed with the technique of Cramer,
 Damgard and Schoenmakers <span>[<a href="#CDS94" class="cite xref">CDS94</a>]</span>, in which the Client answers the branch it
 can and simulates the others, sending one challenge and one response per
 branch. That proof is linear in <code>n</code>, and the Anchor Set is also the anonymity
@@ -2452,24 +2441,24 @@ with the <em>stacking</em> technique of Goel, Green, Hall-Andersen and Kaptchuk
 <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>, whose proof is logarithmic in <code>n</code>: the Client sends a single
 response, which every branch reuses, together with a commitment whose opening
 forces one branch to have been answered honestly. <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span> applies the same
-two compositions, for the same purpose, to a pairing-based credential.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2-5">Both compositions are used with the same rerandomization (<a href="#rerandomization" class="auto internal xref">Section 6.1</a>),
-and switching between them changes neither issuance nor <a href="#verify" class="auto internal xref">Section 5.5</a>.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
-<p id="section-6.2-6">The construction below first defines the branch proof, then builds a partially
+two compositions, for the same purpose, to a pairing-based credential.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3">Both compositions are used with the same rerandomization (<a href="#rerandomization" class="auto internal xref">Section 6.1</a>),
+and switching between them changes neither issuance nor <a href="#verify" class="auto internal xref">Section 5.5</a>.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4">The construction below first defines the branch proof, then builds a partially
 binding tree commitment over its branches. It finally specifies the
-Fiat-Shamir challenge and the proving and verification algorithms.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
-<p id="section-6.2-7">Each branch is the discrete logarithm proof of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, and the composition
+Fiat-Shamir challenge and the proving and verification algorithms.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5">Each branch is the discrete logarithm proof of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, and the composition
 below could be expressed in that framework. It is written out here instead, so
 that this document fixes the transcript and the encodings without depending on
-work in progress.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
+work in progress.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2-8.1">
-            <p id="section-6.2-8.1.1"><strong>TODO:</strong> Revisit once <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> is stable.<a href="#section-6.2-8.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-6.2-6.1">
+            <p id="section-6.2-6.1.1"><strong>TODO:</strong> Revisit once <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> is stable.<a href="#section-6.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-6.2-9">Throughout this section and its subsections, <code>x / y</code> denotes integer division
+<p id="section-6.2-7">Throughout this section and its subsections, <code>x / y</code> denotes integer division
 of nonnegative integers, that is the quotient rounded down, and <code>x mod y</code> the
-remainder.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+remainder.<a href="#section-6.2-7" class="pilcrow">¶</a></p>
 <div id="branch">
 <section id="section-6.2.1">
           <h4 id="name-the-branch-proof">
@@ -2505,13 +2494,7 @@ n = len(anchor_set)
 return (Y, q)
 </pre><a href="#section-6.2.1-6" class="pilcrow">¶</a>
 </div>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.1-7.1">
-              <p id="section-6.2.1-7.1.1">XXX The draft's range expression is malformed. This is the apparent intended
-transcription; unlike the preceding revision, it does not pad.<a href="#section-6.2.1-7.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.2.1-8">Two properties of this branch proof are what allow the composition below, and
+<p id="section-6.2.1-7">Two properties of this branch proof are what allow the composition below, and
 <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> calls a Sigma protocol with both of them <em>stackable</em>. First, a
 verifying commitment can be computed for <em>any</em> statement from a challenge and a
 response, by the function above, without knowing a witness; this is the
@@ -2519,12 +2502,12 @@ extended honest-verifier zero-knowledge property. Second, the response is
 statistically close to uniform independently of the statement and witness,
 because it is a fixed shift of the derived nonce <code>r</code>; see
 <a href="#security-considerations" class="auto internal xref">Section 8</a>. One response can therefore be reused across
-branches without revealing which branch produced it.<a href="#section-6.2.1-8" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-9">It follows that a verifier given <code>proof_challenge</code> and one <code>response</code> can
+branches without revealing which branch produced it.<a href="#section-6.2.1-7" class="pilcrow">¶</a></p>
+<p id="section-6.2.1-8">It follows that a verifier given <code>proof_challenge</code> and one <code>response</code> can
 compute a commitment for every branch, and that every branch then verifies by
 construction. Nothing is proved by the responses themselves. What has to be
 enforced is that the Client fixed the commitment of one branch before the
-challenge existed, and could not afterwards change it.<a href="#section-6.2.1-9" class="pilcrow">¶</a></p>
+challenge existed, and could not afterwards change it.<a href="#section-6.2.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="pbvc">
@@ -2544,25 +2527,14 @@ key.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-2">This document uses the commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.2-3.1">
-              <p id="section-6.2.2-3.1.1">XXX Our encoding of P256 points is always compressed, correct? Do we need to
-reiterate here?<a href="#section-6.2.2-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.2.2-4">We require a random permutation <code>P</code> on group elements. We defer discussing its
+<p id="section-6.2.2-3">We require a random permutation <code>P</code> on group elements. We defer discussing its
 instantiation to a later section. Being a permutation, <code>P</code> has an inverse,
-which we denote by <code>Pinv</code>.<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-5">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
-we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.2-6.1">
-              <p id="section-6.2.2-6.1.1">XXX What does this mean?<a href="#section-6.2.2-6.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.2.2-7">The parameters for our 1-of-2 binding commitments will be a point <code>Q</code>, and openings
-will be a single scalar, the randomness used in the commitment.<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-8">
+which we denote by <code>Pinv</code>.<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-4">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
+we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-5">The parameters for our 1-of-2 binding commitments will be a point <code>Q</code>, and openings
+will be a single scalar, the randomness used in the commitment.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2.2-6">
 <pre>
 def CommitStep(Q, left, right, randomness):
     C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)
@@ -2582,11 +2554,11 @@ def GenerateStep(bind_direction):
 
 def EquivocateStep(old,new, randomness, secret):
     return randomenss + (old - new)*secret
-</pre><a href="#section-6.2.2-8" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-9">Let V[0], V[1], ... V[n-1] be a vector of bytestrings. We will use a logarithmic number of reductions
-to create a single commitment to the entire vector.<a href="#section-6.2.2-9" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.2-10">
+<p id="section-6.2.2-7">Let V[0], V[1], ... V[n-1] be a vector of bytestrings. We will use a logarithmic number of reductions
+to create a single commitment to the entire vector.<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2.2-8">
 <pre>
 def VecCommit(V, Qi, rands):
     if len(V) == 1 :
@@ -2596,17 +2568,11 @@ def VecCommit(V, Qi, rands):
     if len(V) % 2 == 1 :
         V'[len(V)/2+1] = V[len(V)-1]
     return VecCommit(V', Qi[1:], rands[1:])
-</pre><a href="#section-6.2.2-10" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-11">Creating parameters that bind in only one specified position of the vector V is
+<p id="section-6.2.2-9">Creating parameters that bind in only one specified position of the vector V is
 an exercise in bookkeeping. Note that there is significant savings in verification
-from caching the computation of <code>G.Generator()*rands[i]</code> across the level.<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.2-12.1">
-              <p id="section-6.2.2-12.1.1">XXX It would be useful to add an aasvg diagram here that visualizes the
-construction of a vector commitment.<a href="#section-6.2.2-12.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
+from caching the computation of <code>G.Generator()*rands[i]</code> across the level.<a href="#section-6.2.2-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-challenge">
@@ -2650,29 +2616,14 @@ def ComputeProofChallenge(anchor_set, X_hat, endorsement, ctx_iss,
   return G.HashToScalar(proof_transcript)
 </pre><a href="#section-6.2.3-2" class="pilcrow">¶</a>
 </div>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.3-3.1">
-              <p id="section-6.2.3-3.1.1">XXX Why bind the issuance and redemption context? The redemption context is
-covered by the issued signature, so I don't see why it needs to be covered by
-the transcript. Likewise for the issuance context: If the context doesn't
-match the value used during issuance, then signature verification should
-fail. Otherwise, there's nothing that guarantees that all three parties agree
-on the value.<a href="#section-6.2.3-3.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.2.3-4">The length of the Anchor Set <code>n</code> is prefixed and <code>Element</code> encodings are
+<p id="section-6.2.3-3">The length of the Anchor Set <code>n</code> is prefixed and <code>Element</code> encodings are
 fixed-length, so <code>anchor_set_enc</code> and <code>ck_enc</code> are unambiguous without length
 prefixes of their own; <code>q</code>, and with it the number of commitment keys, is
 determined by <code>n</code>. The label <code>"IssuerProof"</code> separates this transcript from the
-issuance transcript of <a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6.2.3-5.1">
-              <p id="section-6.2.3-5.1.1">XXX What does <code>q</code> refer to here?<a href="#section-6.2.3-5.1.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-<p id="section-6.2.3-6">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
+issuance transcript of <a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-4">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
 retrying: a challenge of zero yields a proof that verifies, and no branch is
-privileged by it.<a href="#section-6.2.3-6" class="pilcrow">¶</a></p>
+privileged by it.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prove-issuer">
@@ -2739,6 +2690,13 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
   return proof_challenge, response, commitment_keys, openings
 </pre><a href="#section-6.2.4-8" class="pilcrow">¶</a>
 </div>
+<p id="section-6.2.4-9">The first move commits only the path from leaf <code>index</code> to the root: at each
+level the Client commits the value it holds on one side and zero on the other,
+having generated that level's commitment key so that the <em>other</em> side is the
+equivocal one. The third move then computes the branch commitment of every
+statement from the single response, equivocates each level to the value its
+sibling subtree now has, and rebuilds the tree with the equivocated randomness.
+The root is unchanged by this, which is why the verifier can recompute it.<a href="#section-6.2.4-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="verify-issuer">

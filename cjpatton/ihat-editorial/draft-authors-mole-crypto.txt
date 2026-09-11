@@ -1075,15 +1075,10 @@ Table of Contents
 
 6.2.  The Issuer-Hiding Proof
 
-      XXX Can we rename this to "redemption proof" to match Moussaka?
-
    The Client proves knowledge of delta such that X_hat - anchor_set[i]
    = delta * B for at least one i, without revealing i.  This is a one-
    out-of-n disjunction of Schnorr statements, all of them over the same
    base B = G.Generator().
-
-      XXX Would be nice to reword this without saying "Schnorr
-      statement", since we haven't defined what this means.
 
    Such a disjunction is classically composed with the technique of
    Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
@@ -1148,10 +1143,6 @@ Table of Contents
 
    return (Y, q)
 
-      XXX The draft's range expression is malformed.  This is the
-      apparent intended transcription; unlike the preceding revision, it
-      does not pad.
-
    Two properties of this branch proof are what allow the composition
    below, and [STACKSIG] calls a Sigma protocol with both of them
    _stackable_. First, a verifying commitment can be computed for _any_
@@ -1188,9 +1179,6 @@ Table of Contents
    commitments are arbitrary strings of bytes, and the outputs are
    compressed group elements.
 
-      XXX Our encoding of P256 points is always compressed, correct?  Do
-      we need to reiterate here?
-
    We require a random permutation P on group elements.  We defer
    discussing its instantiation to a later section.  Being a
    permutation, P has an inverse, which we denote by Pinv.
@@ -1198,8 +1186,6 @@ Table of Contents
    If we need a 1-of-1 binding commitment, we use the identity function.
    Thankfully we apply this commitment to group elements, so the output
    is always the same size.
-
-      XXX What does this mean?
 
    The parameters for our 1-of-2 binding commitments will be a point Q,
    and openings will be a single scalar, the randomness used in the
@@ -1242,9 +1228,6 @@ def EquivocateStep(old,new, randomness, secret):
    significant savings in verification from caching the computation of
    G.Generator()*rands[i] across the level.
 
-      XXX It would be useful to add an aasvg diagram here that
-      visualizes the construction of a vector commitment.
-
 6.2.3.  Challenge Computation
 
    The Fiat-Shamir challenge covers the whole statement -- the Anchor
@@ -1282,22 +1265,12 @@ def EquivocateStep(old,new, randomness, secret):
 
      return G.HashToScalar(proof_transcript)
 
-      XXX Why bind the issuance and redemption context?  The redemption
-      context is covered by the issued signature, so I don't see why it
-      needs to be covered by the transcript.  Likewise for the issuance
-      context: If the context doesn't match the value used during
-      issuance, then signature verification should fail.  Otherwise,
-      there's nothing that guarantees that all three parties agree on
-      the value.
-
    The length of the Anchor Set n is prefixed and Element encodings are
    fixed-length, so anchor_set_enc and ck_enc are unambiguous without
    length prefixes of their own; q, and with it the number of commitment
    keys, is determined by n.  The label "IssuerProof" separates this
    transcript from the issuance transcript of Section 5.2, which is
    hashed with the same function.
-
-      XXX What does q refer to here?
 
    Unlike ComputeChallenge, this function accepts zero rather than
    aborting and retrying: a challenge of zero yields a proof that
@@ -1355,6 +1328,15 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
     V[i] = BranchCommitment(proof_challenge, response, Y[i])
   openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
   return proof_challenge, response, commitment_keys, openings
+
+   The first move commits only the path from leaf index to the root: at
+   each level the Client commits the value it holds on one side and zero
+   on the other, having generated that level's commitment key so that
+   the _other_ side is the equivocal one.  The third move then computes
+   the branch commitment of every statement from the single response,
+   equivocates each level to the value its sibling subtree now has, and
+   rebuilds the tree with the equivocated randomness.  The root is
+   unchanged by this, which is why the verifier can recompute it.
 
 6.2.5.  Verifying
 
