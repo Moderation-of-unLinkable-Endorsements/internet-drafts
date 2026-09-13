@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-10T03:46:20.485738+00:00",
+  "timestamp": "2026-09-13T03:55:21.590156+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -7698,6 +7698,796 @@
       "mergeCommit": null,
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 68,
+      "id": "PR_kwDOSX6krs8AAAABDNGJKA",
+      "title": "ihat: Convert pseudocode to Python",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/68",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Add an (incomplete) reference implementation of IHAT and replace the pseudocode in the draft with snippets from the reference implementation.",
+      "createdAt": "2026-09-11T21:57:13Z",
+      "updatedAt": "2026-09-11T23:30:22Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/transcribe-ihat-to-python",
+      "headRefOid": "3b7ded597e1da114d18ac07d55549a4fc9709b70",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPrluw",
+          "commit": {
+            "abbreviatedOid": "b7d0a73"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:11:14Z",
+          "updatedAt": "2026-09-11T22:11:14Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "Note: This is for scalar field arithmetic. EccPoint doesn't export this directly as far as I know.",
+              "createdAt": "2026-09-11T22:11:14Z",
+              "updatedAt": "2026-09-11T22:11:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPr8mw",
+          "commit": {
+            "abbreviatedOid": "b7d0a73"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:12:25Z",
+          "updatedAt": "2026-09-11T22:12:25Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "The hash-to-curve draft has an implementation, but we can't use it directly:\nhttps://github.com/cfrg/draft-irtf-cfrg-hash-to-curve/tree/main/poc\n\nWe confirm interop with test vectors.",
+              "createdAt": "2026-09-11T22:12:25Z",
+              "updatedAt": "2026-09-11T22:12:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPsC2w",
+          "commit": {
+            "abbreviatedOid": "b7d0a73"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:12:44Z",
+          "updatedAt": "2026-09-11T22:12:44Z",
+          "comments": [
+            {
+              "originalPosition": 190,
+              "body": "This is also covered by test vectors.",
+              "createdAt": "2026-09-11T22:12:44Z",
+              "updatedAt": "2026-09-11T22:12:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPuilg",
+          "commit": {
+            "abbreviatedOid": "b9e72ad"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:20:40Z",
+          "updatedAt": "2026-09-11T22:20:40Z",
+          "comments": [
+            {
+              "originalPosition": 284,
+              "body": "Likewise, these are reimplemented from the hash-to-curve draft. Test vectors confirm interop.\n\nThat said, I'd appreciate extra eyes to make sure the implementation is correct.",
+              "createdAt": "2026-09-11T22:20:40Z",
+              "updatedAt": "2026-09-11T22:20:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPvrQQ",
+          "commit": {
+            "abbreviatedOid": "b9e72ad"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:24:20Z",
+          "updatedAt": "2026-09-11T22:24:20Z",
+          "comments": [
+            {
+              "originalPosition": 378,
+              "body": "I don't see much point in hinting at a potential design decision for an implementation. Besides, the keyword MAY is inappropriate here.",
+              "createdAt": "2026-09-11T22:24:20Z",
+              "updatedAt": "2026-09-11T22:24:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNPxoaw",
+          "commit": {
+            "abbreviatedOid": "b9e72ad"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:29:15Z",
+          "updatedAt": "2026-09-11T22:29:16Z",
+          "comments": [
+            {
+              "originalPosition": 990,
+              "body": "@wbl This was previously `EncodeNode(root)`, but `EncodeNode` was undefined. Perhaps `U16Prefixed(root)` is what you want?",
+              "createdAt": "2026-09-11T22:29:15Z",
+              "updatedAt": "2026-09-11T22:29:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP2jIA",
+          "commit": {
+            "abbreviatedOid": "b9e72ad"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:44:37Z",
+          "updatedAt": "2026-09-11T22:44:37Z",
+          "comments": [
+            {
+              "originalPosition": 990,
+              "body": "The root of the tree will always be a group element in this design (if n=1 it's a commitment), so I don't know why we need to length prefix it? Maybe I'm missing something. EncodeNode definitely was not what I meant.",
+              "createdAt": "2026-09-11T22:44:37Z",
+              "updatedAt": "2026-09-11T22:44:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP88mQ",
+          "commit": {
+            "abbreviatedOid": "b9e72ad"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T23:04:04Z",
+          "updatedAt": "2026-09-11T23:04:04Z",
+          "comments": [
+            {
+              "originalPosition": 990,
+              "body": "Ah Ok, this may actually have been from @deep-inder. If you don't think we need it, then we don't :)",
+              "createdAt": "2026-09-11T23:04:04Z",
+              "updatedAt": "2026-09-11T23:04:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP3CMg",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "I haven't checked the SWU implementation in detail, and there's some things highlighted I'll need to address (or someone can hop in on), but this is a good step.",
+          "createdAt": "2026-09-11T22:46:11Z",
+          "updatedAt": "2026-09-11T23:30:22Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "Should I then change P to reduce number of distinct hash functions needed?",
+              "createdAt": "2026-09-11T22:46:11Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 241,
+              "body": "What I meant to say was the SEC1 prefix of 0x02, 0x03 gets mapped to 0x0, 0x01, and then mapped back for decoding. Probably needs a tweak to make that clearer. The inverse is going to be apply the inverse on the strings until you get to a group element: again, some text might help which I can add (but will be away for a bit to do so).",
+              "createdAt": "2026-09-11T22:48:11Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 255,
+              "body": "This is where I would expect to see token randomization",
+              "createdAt": "2026-09-11T23:05:17Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 287,
+              "body": "This ends up making left and right fixed length because of the check in DeriveScalar, and they don't have to be. ",
+              "createdAt": "2026-09-11T23:08:00Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 325,
+              "body": "Sol should be smarter / drawing a few diagrams should clear it up, but the code is right.",
+              "createdAt": "2026-09-11T23:09:53Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 374,
+              "body": "This is supposed to figure out what path to take, and take it in a vector of length q to bind at index index.",
+              "createdAt": "2026-09-11T23:11:51Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 379,
+              "body": "Will fill in: the naive form can just pad out the rest of the vector with whatever, but there is an optimized one",
+              "createdAt": "2026-09-11T23:11:53Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 349,
+              "body": "I feel very confused now. Isn't this the same as the anchor set, or derivable from it in some way?",
+              "createdAt": "2026-09-11T23:11:59Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            },
+            {
+              "originalPosition": 405,
+              "body": "We'll probably need less. The need to propagate the randomness consumption through the calls is annoying, maybe we can have a better interface?",
+              "createdAt": "2026-09-11T23:13:52Z",
+              "updatedAt": "2026-09-11T23:30:22Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 69,
+      "id": "PR_kwDOSX6krs8AAAABDNSP6g",
+      "title": "ihat: Editorial pass",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/69",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Editorial changes. I've also dropped some comments with some non-editorial things I wanted to discuss.",
+      "createdAt": "2026-09-11T22:36:57Z",
+      "updatedAt": "2026-09-12T01:41:48Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-editorial",
+      "headRefOid": "775d7ce426408c51b5ec4473369cf9abad4d7ee4",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP0qhA",
+          "commit": {
+            "abbreviatedOid": "b1d4560"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:37:57Z",
+          "updatedAt": "2026-09-11T22:37:57Z",
+          "comments": [
+            {
+              "originalPosition": 108,
+              "body": "This seems more strict than necessary. For instance, couldn't scalars derived from the same `seed` but `info`s be treated as independent, pseudorandom numbers? Why do they need to be statistically close to random?",
+              "createdAt": "2026-09-11T22:37:57Z",
+              "updatedAt": "2026-09-11T22:37:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP1UDA",
+          "commit": {
+            "abbreviatedOid": "34bd1c8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:40:17Z",
+          "updatedAt": "2026-09-11T22:40:20Z",
+          "comments": [
+            {
+              "originalPosition": 138,
+              "body": "How about just passing rand to Commit explicitly? Likewise for the others.",
+              "createdAt": "2026-09-11T22:40:17Z",
+              "updatedAt": "2026-09-11T22:40:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP2H8A",
+          "commit": {
+            "abbreviatedOid": "afc101a"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:43:13Z",
+          "updatedAt": "2026-09-11T22:43:13Z",
+          "comments": [
+            {
+              "originalPosition": 209,
+              "body": "I don'/t think this table is particularly helpful.",
+              "createdAt": "2026-09-11T22:43:13Z",
+              "updatedAt": "2026-09-11T22:43:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP2TWw",
+          "commit": {
+            "abbreviatedOid": "afc101a"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:43:50Z",
+          "updatedAt": "2026-09-11T22:43:50Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "Since the session identifier has security considerations, we should specify a fixed length for it rather than leaving this up to the Anchor.",
+              "createdAt": "2026-09-11T22:43:50Z",
+              "updatedAt": "2026-09-11T22:43:50Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP3fFA",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:47:51Z",
+          "updatedAt": "2026-09-11T22:47:51Z",
+          "comments": [
+            {
+              "originalPosition": 300,
+              "body": "Can we rename this to \"redemption proof\" to match Moussaka? It's also a bit clearer.",
+              "createdAt": "2026-09-11T22:47:51Z",
+              "updatedAt": "2026-09-11T22:47:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP3sww",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:48:36Z",
+          "updatedAt": "2026-09-11T22:48:36Z",
+          "comments": [
+            {
+              "originalPosition": 308,
+              "body": "Is there a way to reword this without saying \"Schnorr statement\"? We don't define this anywhere, so I don't think this will be clear to all readers.",
+              "createdAt": "2026-09-11T22:48:36Z",
+              "updatedAt": "2026-09-11T22:48:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP4APQ",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:49:36Z",
+          "updatedAt": "2026-09-11T22:49:36Z",
+          "comments": [
+            {
+              "originalPosition": 318,
+              "body": "GPT-5.6 Sol made the following comment here:\n\n> The draft's range expression is malformed. This is the apparent intended transcription; unlike the preceding revision, it does not pad.",
+              "createdAt": "2026-09-11T22:49:36Z",
+              "updatedAt": "2026-09-11T22:49:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP4HgA",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:50:03Z",
+          "updatedAt": "2026-09-11T22:50:03Z",
+          "comments": [
+            {
+              "originalPosition": 353,
+              "body": "Our encoding of P256 points is always compressed, correct? Do we need to reiterate here?",
+              "createdAt": "2026-09-11T22:50:03Z",
+              "updatedAt": "2026-09-11T22:50:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP4OFQ",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:50:22Z",
+          "updatedAt": "2026-09-11T22:50:23Z",
+          "comments": [
+            {
+              "originalPosition": 363,
+              "body": "I don't understand what this means :)",
+              "createdAt": "2026-09-11T22:50:23Z",
+              "updatedAt": "2026-09-11T22:50:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP4lzg",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:51:41Z",
+          "updatedAt": "2026-09-11T22:51:41Z",
+          "comments": [
+            {
+              "originalPosition": 339,
+              "body": "I didn't try all that hard, but I don't quite understand how batched Sigma works from this description. A slightly slower build up with a small running example, would probably help. An aasvg diagram would go along way as well.",
+              "createdAt": "2026-09-11T22:51:41Z",
+              "updatedAt": "2026-09-11T22:51:41Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP44BA",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:52:47Z",
+          "updatedAt": "2026-09-11T22:52:47Z",
+          "comments": [
+            {
+              "originalPosition": 381,
+              "body": "Why bind the issuance and redemption context? The redemption context is covered by the issued signature, so I don't see why it needs to be covered by the transcript. Likewise for the issuance context: If the context doesn't match the value used during issuance, then signature verification should fail.  Otherwise, there's nothing that guarantees that all three parties agree on the value.\n",
+              "createdAt": "2026-09-11T22:52:47Z",
+              "updatedAt": "2026-09-11T22:52:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP5sgQ",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:55:36Z",
+          "updatedAt": "2026-09-11T22:55:37Z",
+          "comments": [
+            {
+              "originalPosition": 402,
+              "body": "The first paragraph has a pretty gross Claudism in it. But stepping back, this section feels a lot like Claude convincing itself that something works. I don't think it's a super useful analysis in the final product.\n\nI was also wondering what `N` is. I'm not sure if that's part of an AI's context that's missing in the final product.",
+              "createdAt": "2026-09-11T22:55:36Z",
+              "updatedAt": "2026-09-11T22:55:37Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP54ow",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:56:18Z",
+          "updatedAt": "2026-09-11T22:56:18Z",
+          "comments": [
+            {
+              "originalPosition": 429,
+              "body": "This requirement is fine, but we will likely live in a world for a little while in which there is only one Anchor, and we want to redeem Endorsements anyway. How will this work?",
+              "createdAt": "2026-09-11T22:56:18Z",
+              "updatedAt": "2026-09-11T22:56:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP5_9A",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:56:46Z",
+          "updatedAt": "2026-09-11T22:56:46Z",
+          "comments": [
+            {
+              "originalPosition": 434,
+              "body": "This seems unnecessary.",
+              "createdAt": "2026-09-11T22:56:46Z",
+              "updatedAt": "2026-09-11T22:56:46Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP6FwA",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:57:07Z",
+          "updatedAt": "2026-09-11T22:57:07Z",
+          "comments": [
+            {
+              "originalPosition": 443,
+              "body": "Give an explicit formula for `q`.",
+              "createdAt": "2026-09-11T22:57:07Z",
+              "updatedAt": "2026-09-11T22:57:07Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP6Rng",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T22:57:51Z",
+          "updatedAt": "2026-09-11T22:57:51Z",
+          "comments": [
+            {
+              "originalPosition": 452,
+              "body": "I'm guessing the estimates for disjunction is generated by AI. Instead I think it ought to be generated by a reference implemntation. Absent this implementation, I think we should not include these numbers.",
+              "createdAt": "2026-09-11T22:57:51Z",
+              "updatedAt": "2026-09-11T22:57:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP7gng",
+          "commit": {
+            "abbreviatedOid": "77831c0"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T23:01:35Z",
+          "updatedAt": "2026-09-11T23:01:35Z",
+          "comments": [
+            {
+              "originalPosition": 518,
+              "body": "This is likely to code rot. I say we remove it and add it back once someone asks for it.",
+              "createdAt": "2026-09-11T23:01:35Z",
+              "updatedAt": "2026-09-11T23:01:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP8DvA",
+          "commit": {
+            "abbreviatedOid": "775d7ce"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T23:02:31Z",
+          "updatedAt": "2026-09-11T23:02:32Z",
+          "comments": [
+            {
+              "originalPosition": 533,
+              "body": "https://github.com/cfrg/draft-irtf-cfrg-voprf/issues/392\n",
+              "createdAt": "2026-09-11T23:02:32Z",
+              "updatedAt": "2026-09-11T23:02:32Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNP8gig",
+          "commit": {
+            "abbreviatedOid": "775d7ce"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-11T23:03:19Z",
+          "updatedAt": "2026-09-11T23:03:19Z",
+          "comments": [
+            {
+              "originalPosition": 534,
+              "body": "Note: I haven't looked closely at this section yet.",
+              "createdAt": "2026-09-11T23:03:19Z",
+              "updatedAt": "2026-09-11T23:03:19Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNQZvJg",
+          "commit": {
+            "abbreviatedOid": "b1d4560"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-12T01:11:35Z",
+          "updatedAt": "2026-09-12T01:11:35Z",
+          "comments": [
+            {
+              "originalPosition": 108,
+              "body": "Information theoretic privacy wouldn't hold, but that's not what we need: a PRF is fine to use everywhere.",
+              "createdAt": "2026-09-12T01:11:35Z",
+              "updatedAt": "2026-09-12T01:11:36Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNQZ3zg",
+          "commit": {
+            "abbreviatedOid": "775d7ce"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-12T01:12:25Z",
+          "updatedAt": "2026-09-12T01:41:48Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I think there's some question about where this should be specified: at a higher level protocol wrapping these crypto bits would be my guess. The wording change is fine by me.",
+              "createdAt": "2026-09-12T01:12:25Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 94,
+              "body": "When, and potentially where. Agree with the typography change",
+              "createdAt": "2026-09-12T01:14:13Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 112,
+              "body": "```suggestion\nrevealed during redemption, so the Moderator ensures each\n```",
+              "createdAt": "2026-09-12T01:15:58Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 138,
+              "body": "I think this is potentially a much better way of proceeding, and could avoid the need to do a bunch of arithmetic up front as well as harden the test vectors against innocent reorderings. But we'd need to ensure each call using the seed was distinguished: not that hard, does slightly complicate loops but not that much. We'd then have GetRandomScalar(where, iter, rand) where iter can be used for loops and where has to be distinct for each callsite in the doc.",
+              "createdAt": "2026-09-12T01:18:17Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 195,
+              "body": "The Anchor could be a Moderator, I'm not sure why this last sentence is needed. The common context should also be part of the Endorsement as stored as its needed for redemption.",
+              "createdAt": "2026-09-12T01:20:36Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 211,
+              "body": "@martinthomson who knows HTTP language better than I do: should we say empty request, or empty body?",
+              "createdAt": "2026-09-12T01:21:30Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 211,
+              "body": "Also if the common data that goes into Z is going to be client specified or anchor specified it has to go to the other party. That data will change if we use it to enforce expiry dates!",
+              "createdAt": "2026-09-12T01:23:32Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "So in chat we thought that maybe we can drop the session ID as the client and Anchor probably have a cookie. I think that's a bad idea now given that we're in a context where there might be concurrency and I don't think there are a lot of alternatives. That said, I'm not quite sure what security considerations apply uniformly here. There is a client Anchor authentication underlying this and the Anchor has a variety of sensible means to issue session_ids and use them that may vary with underlying deployment technologies. It could be contextual to the user identity in a cookie, or it could be some global storage address with some imposed structure from that system.\n\nOverall this has a very non-RESTy flavor and we might find ourselves regretting that: this is especially the case for the session_id being represented this custom way, vs. in a place where intermediaries are frequently configured to poke at it.",
+              "createdAt": "2026-09-12T01:28:10Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 244,
+              "body": "I could see implementations being hamstrung by this language in cases where a single Anchor is geographically distributed and users are using only one instance of it.",
+              "createdAt": "2026-09-12T01:29:04Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 308,
+              "body": "Could `one-out-of-n discrete logarithms` work?",
+              "createdAt": "2026-09-12T01:31:27Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 339,
+              "body": "How as in why, or as in some of the details? The solutions are a bit different.\n\nYes, I think a few trees, particularly with leaves getting joined in at different heights due to odd size could really help. Will make a note to draw them.",
+              "createdAt": "2026-09-12T01:33:33Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 363,
+              "body": "So when n=1, there's a great way to prove a 1-out-of-1 statement: just do it. But if the first message of that sigma protocol was a different size than the output of the commitment scheme, upper layer code would have to be deeply aware of that fact when serializing. Because that's not the case, we can just use the identity function as a 1-out-of-1 binding commitment without complications about the size of the returned bytes.",
+              "createdAt": "2026-09-12T01:35:48Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 429,
+              "body": "I think in that case you don't get any anonymity, and letting the commitment scheme be the identity works. ",
+              "createdAt": "2026-09-12T01:40:16Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "This is now wrong",
+              "createdAt": "2026-09-12T01:40:32Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            },
+            {
+              "originalPosition": 443,
+              "body": "2^ceil(log_2(n)) I think. ",
+              "createdAt": "2026-09-12T01:40:57Z",
+              "updatedAt": "2026-09-12T01:41:48Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
