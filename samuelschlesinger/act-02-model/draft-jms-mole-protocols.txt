@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 13 March 2027                                           Mozilla
+Expires: 18 March 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                        9 September 2026
+                                                       14 September 2026
 
 
                              MoLE Protocols
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 18 March 2027.
 
 Copyright Notice
 
@@ -332,7 +332,7 @@ Table of Contents
    another.
 
    The Challenge algorithm and ChallengeMessage in IHAT issuance are
-   defined by [CRYPTO] and are unrelated to a ModeratorChallenge.
+   defined by [IHAT] and are unrelated to a ModeratorChallenge.
 
 4.2.  Abstract Endorsement API
 
@@ -370,13 +370,13 @@ Table of Contents
 
    Endorsement type: 0x0002.
 
-   This protocol uses the IHAT-TZ variant defined in [CRYPTO].  IHAT is
-   a pairing-free, issuer-hiding endorsement scheme.  The Anchor blindly
+   This protocol uses the IHAT-TZ variant defined in [IHAT].  IHAT is a
+   pairing-free, issuer-hiding endorsement scheme.  The Anchor blindly
    signs a Client-chosen nullifier.  The Client later proves, with an
    issuer-hiding proof, that its Endorsement verifies under one of the
    Anchor keys the Moderator accepts.  The cryptographic operations, and
    the contents and encodings of every message body, are defined in
-   [CRYPTO].
+   [IHAT].
 
    The following primitive types are ciphersuite-dependent:
 
@@ -387,10 +387,10 @@ Table of Contents
 
    The Client needs, from Anchor configuration (Section 6):
 
-   IHAT Ciphersuite  A ciphersuite identifier defined by [CRYPTO].  It
+   IHAT Ciphersuite  A ciphersuite identifier defined by [IHAT].  It
       determines Element, Scalar, and all cryptographic encodings.
 
-   Anchor Public Key  pkA, an Element, as generated in [CRYPTO], with a
+   Anchor Public Key  pkA, an Element, as generated in [IHAT], with a
       stable key ID.
 
    Issuance Context  ctx_iss, the canonical encoding of the issuance
@@ -399,14 +399,14 @@ Table of Contents
    Redemption Context  ctx_red, the ASCII string "MoLE-IHAT-ctx_red-v1",
       without a terminating NUL byte.  This fixed, domain-separated
       value is the same for all Moderators.  This is the cryptographic
-      redemption Context defined by [CRYPTO], not a Moderator Challenge.
+      redemption Context defined by [IHAT], not a Moderator Challenge.
       A specific redemption operation is bound separately by
       challenge_digest.
 
 4.4.2.  Grant
 
    The grant takes two HTTP exchanges and three protocol messages.  The
-   Anchor speaks first, as specified by [CRYPTO]:
+   Anchor speaks first, as specified by [IHAT]:
 
    1.  The Client sends an EndorsementRequest with an empty body.  The
        Anchor runs Commit(skA, ctx_iss), stores the returned state under
@@ -424,23 +424,23 @@ Table of Contents
        Respond.
 
    3.  The Client runs Finalize(pkA, state, response) as specified by
-       [CRYPTO].  On failure it MUST discard the session state and MUST
+       [IHAT].  On failure it MUST discard the session state and MUST
        NOT retry with that state.
 
    CommitMessage, ChallengeMessage, ResponseMessage, session_id, and the
-   Endorsement encoding are defined by [CRYPTO].  The session identifier
+   Endorsement encoding are defined by [IHAT].  The session identifier
    is only transport correlation and is not bound into the Endorsement.
 
    The Anchor learns neither nf nor the final Endorsement.  Under the
-   statistical blindness claim in [CRYPTO], its protocol transcript does
+   statistical blindness claim in [IHAT], its protocol transcript does
    not let it recognize the Endorsement when it is later redeemed.
    Timing, network, and configuration metadata are outside that claim.
 
 4.4.3.  Redemption
 
    The type-specific Redemption payload is the encoding of Redemption in
-   [CRYPTO].  RedeemRequest derives challenge_digest as in Section 4.1
-   and calls Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
+   [IHAT].  RedeemRequest derives challenge_digest as in Section 4.1 and
+   calls Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
    challenge_digest).  The ordered anchor_set comes from Moderator
    configuration; index selects the Anchor that issued the Endorsement.
    The Client rejects a set containing fewer than two keys or one that
@@ -1079,10 +1079,6 @@ FinalizeUpdate(presentation_state, update, configuration)
               6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
               jms-mole-architecture-00>.
 
-   [CRYPTO]   "MoLE Cryptography", n.d., <https://moderation-of-
-              unlinkable-endorsements.github.io/internet-drafts/draft-
-              authors-mole-crypto.html>.
-
    [HTTP-TRANSPORT]
               Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
               Transport", Work in Progress, Internet-Draft, draft-jms-
@@ -1094,6 +1090,10 @@ FinalizeUpdate(presentation_state, update, configuration)
               Writing an IANA Considerations Section in RFCs", BCP 26,
               RFC 8126, DOI 10.17487/RFC8126, June 2017,
               <https://www.rfc-editor.org/rfc/rfc8126>.
+
+   [IHAT]     "Issuer-Hiding Anonymous Tokens (IHAT)", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ihat.html>.
 
    [LONGFELLOW]
               Frigo, M. and A. shelat, "Longfellow ZK", Work in

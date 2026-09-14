@@ -5,36 +5,28 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                Google LLC
-Expires: 13 March 2027                                  A. Faz-Hernandez
+Expires: 18 March 2027                                  A. Faz-Hernandez
                                                         Cloudflare, Inc.
                                                              D. I. Mohan
                                          Georgia Institute of Technology
-                                                        9 September 2026
+                                                       14 September 2026
 
 
-                           MoLE Cryptography
-                    draft-authors-mole-crypto-latest
+                 Issuer-Hiding Anonymous Tokens (IHAT)
+                     draft-authors-mole-ihat-latest
 
 Abstract
 
-   This document specifies the cryptographic constructions used to
-   produce and consume MoLE Endorsements and MoLE Credentials.  An
-   Endorsement is an anonymous token that an Anchor issues to a Client,
-   and that the Client later redeems at a Moderator without the Anchor
-   being able to link the redemption to the issuance.  A Credential is
-   an anonymous credit token that a Moderator issues to a Client in
-   return for an Endorsement, and that the Client later presents to the
-   Moderator, which learns only that the Credential's hidden balance
-   covers the presented amount and returns an updated Credential,
-   without being able to link the presentation to the issuance or to
-   other presentations.
+   This document specifies the cryptographic construction used to
+   produce and consume MoLE Endorsements.  An Endorsement is an
+   anonymous token that an Anchor issues to a Client, and that the
+   Client later redeems at a Moderator without the Anchor being able to
+   link the redemption to the issuance.
 
    This document defines the endorsement issuance protocol, built from a
-   pairing-free partially blind signature scheme, and the credential
-   issuance and spending protocols, built from a keyed-verification
-   anonymous credential over a pairing-free BBS-style signature,
-   together with the group, encoding, and context-binding rules that all
-   parties follow.
+   pairing-free partially blind signature scheme, together with the
+   group, encoding, and context-binding rules that both the Anchor and
+   the Client follow.
 
 About This Document
 
@@ -42,8 +34,8 @@ About This Document
 
    The latest revision of this draft can be found at https://moderation-
    of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-crypto.html.  Status information for this document may be found
-   at https://datatracker.ietf.org/doc/draft-authors-mole-crypto/.
+   mole-ihat.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-authors-mole-ihat/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -64,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 13 March 2027.
+   This Internet-Draft will expire on 18 March 2027.
 
 Copyright Notice
 
@@ -115,47 +107,28 @@ Table of Contents
      6.3.  Redemption
      6.4.  Redemption Verification
      6.5.  Encodings
-   7.  The Credential Scheme
-     7.1.  Configuration
-       7.1.1.  Generators
-       7.1.2.  Key Generation
-     7.2.  Credential Context
-     7.3.  Amounts
-   8.  Ciphersuites
-     8.1.  IHAT(P-256, SHA-256)
-     8.2.  IHAT(ristretto255, SHA-512)
-     8.3.  Randomness
-   9.  Security Considerations
-     9.1.  Credential Scheme
-   10. IANA Considerations
-   11. References
-     11.1.  Normative References
-     11.2.  Informative References
+   7.  Ciphersuites
+     7.1.  IHAT(P-256, SHA-256)
+     7.2.  IHAT(ristretto255, SHA-512)
+     7.3.  Randomness
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
    Appendix A.  Test Vectors
    Acknowledgments
    Authors' Addresses
 
 1.  Introduction
 
-   The MoLE architecture [ARCH] defines two cryptographic objects, and
-   this document specifies a construction for each.
-
    MoLE Endorsements have a number of constraints imposed by the
-   architecture.  They must be unlinkable by the Anchor that issued
-   them, they must be publicly verifiable, and a redemption must hide
-   which Anchor issued the Endorsement among the set of Anchors a
+   architecture [ARCH].  They must be unlinkable by the Anchor that
+   issued them, they must be publicly verifiable, and a redemption must
+   hide which Anchor issued the Endorsement among the set of Anchors a
    Moderator accepts.  Existing systems do not meet all of these needs.
    This document defines such a system, the Issuer-Hiding Anonymous
    Token (IHAT), which is endorsement type 0x0002 in [PROTOCOLS].
-
-   MoLE Credentials carry per-Client state that a Moderator tests and
-   updates at each presentation without learning it, and without being
-   able to link presentations to each other or to issuance.  This
-   document defines the Anonymous Credit Token (ACT), which is
-   credential type 0x0001 in [PROTOCOLS]: a credential whose state is a
-   numeric balance, from which a Client spends a public amount and
-   receives, in the same exchange, a fresh Credential for the remainder
-   (Section 7).
 
    The construction is a pairing-free partially blind signature
    [TESSZHU].  An Anchor holds a signing key and issues, in three moves,
@@ -182,7 +155,7 @@ Table of Contents
    *  the prime-order group interface and encodings (Section 3);
 
    *  the protocol context, scalar derivation, Anchor key generation,
-      and context binding of the Endorsement scheme (Section 4);
+      and context binding (Section 4);
 
    *  the endorsement issuance protocol, that is, the four algorithms
       Commit, Challenge, Respond, and Finalize, along with the wire
@@ -194,23 +167,20 @@ Table of Contents
       logarithmic in that of the Anchor Set, and the algorithms Redeem
       and VerifyRedemption (Section 6);
 
-   *  the Credential scheme: its model, parameters, and credential
-      context (Section 7);
-
-   *  two ciphersuites, over P-256 and ristretto255 (Section 8).
+   *  two ciphersuites, over P-256 and ristretto255 (Section 7).
 
    The following are *not yet specified* and are marked as such in the
    text:
 
-   *  the full security considerations (Section 9);
+   *  the full security considerations (Section 8);
 
    *  test vectors (Appendix A).
 
-   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant,
-   redemption, and credential APIs.  It supplies the issuance,
-   redemption, credential, and spend contexts; this document treats
-   those contexts as opaque byte strings.  Configuration encodings and
-   discovery remain open work in [PROTOCOLS].
+   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
+   redemption APIs.  It supplies the issuance and redemption contexts;
+   this document treats those contexts as opaque byte strings.
+   Configuration encodings and discovery remain open work in
+   [PROTOCOLS].
 
 2.  Conventions and Definitions
 
@@ -258,13 +228,10 @@ Table of Contents
 
    Seed(x, k) denotes the k-th seed in a byte string of concatenated
    seeds, that is x[k * Nseed .. (k + 1) * Nseed], with k counted from
-   zero.  Section 8 fixes the seed length Nseed.
+   zero.  Section 7 fixes the seed length Nseed.
 
    String values in monospace and quotes, such as "Challenge", are ASCII
    string literals and do not include a terminating NUL byte.
-
-   x >> j denotes the integer x shifted right by j bits, and x & 1 its
-   least significant bit.
 
    All algorithms are laid out in Python-like pseudocode.  Each
    algorithm takes a set of inputs and parameters and produces a set of
@@ -277,7 +244,7 @@ Table of Contents
    The construction has two dependencies:
 
    Group:  A prime-order group implementing the interface in
-      Section 3.1.  Section 8 gives concrete instances.
+      Section 3.1.  Section 7 gives concrete instances.
 
    Hash:  A cryptographic hash function whose output length is Nh bytes.
 
@@ -303,10 +270,10 @@ Table of Contents
 
    HashToGroup(x):  Deterministically maps a byte string x to an
       Element.  Parameterized by a domain separation tag (DST); see
-      Section 8.
+      Section 7.
 
    HashToScalar(x):  Deterministically maps a byte string x to a Scalar.
-      Parameterized by a DST; see Section 8.
+      Parameterized by a DST; see Section 7.
 
    ScalarInverse(s):  Outputs the multiplicative inverse of the nonzero
       Scalar s modulo p.
@@ -347,9 +314,6 @@ Table of Contents
 
    DeriveError:  A deterministic derivation from a seed failed to
       produce a usable value.  See Section 4.2.
-
-   AmountError:  A credit amount of the Credential scheme is outside the
-      range the scheme admits.  See Section 7.3.
 
    An implementation that raises an error MUST abort the protocol run.
    Errors are fatal to the affected session; see Section 5.7.
@@ -403,7 +367,7 @@ Table of Contents
 
 4.1.  Configuration and Protocol Context
 
-   A ciphersuite (Section 8) is identified by an ASCII string
+   A ciphersuite (Section 7) is identified by an ASCII string
    identifier.  Both parties MUST agree on the ciphersuite before
    running the protocol; [PROTOCOLS] describes how this agreement is
    reached.
@@ -414,17 +378,15 @@ Table of Contents
    def CreateProtocolContext(identifier):
      return "IHATv1-" || identifier
 
-   Throughout Section 4, Section 5, and Section 6, ctx_proto denotes the
-   output of CreateProtocolContext for the ciphersuite in use; the
-   Credential scheme derives its own protocol context, with a different
-   prefix, in Section 7.1.  It is distinct from the issuance and
-   redemption contexts of Section 4.4: those are inputs to the protocol,
-   chosen by its participants, whereas ctx_proto is fixed by the
-   ciphersuite.
+   Throughout the remainder of this document, ctx_proto denotes the
+   output of CreateProtocolContext for the ciphersuite in use.  It is
+   distinct from the issuance and redemption contexts of Section 4.4:
+   those are inputs to the protocol, chosen by its participants, whereas
+   ctx_proto is fixed by the ciphersuite.
 
    Every hash this document computes is domain-separated by ctx_proto,
    which it carries in its DST rather than in its input: HashToGroup and
-   HashToScalar are so parameterized (Section 8), and so is DeriveScalar
+   HashToScalar are so parameterized (Section 7), and so is DeriveScalar
    (Section 4.2).  Every algorithm below therefore depends on ctx_proto,
    including those in which it does not appear explicitly, and a value
    produced under one ciphersuite does not verify under another.  Each
@@ -476,18 +438,16 @@ Table of Contents
    A seed MUST be Nseed bytes of random output, and MUST NOT be used for
    more than one derivation.  An algorithm that needs several scalars
    therefore draws Nseed bytes for each of them, and additionally
-   separates them by info.  Nseed is larger than Ns (Section 8) so that
+   separates them by info.  Nseed is larger than Ns (Section 7) so that
    the derived scalar is statistically close to uniform rather than
    merely unpredictable; deriving several scalars from one seed instead
    would cap their joint entropy at the length of that seed, which the
-   unlinkability argument of Section 9 does not permit.  See
-   Section 8.3.
+   unlinkability argument of Section 8 does not permit.  See
+   Section 7.3.
 
 4.3.  Key Generation
 
-   An Anchor holds a key pair (skA, pkA); a Moderator holds one for the
-   Credential scheme (Section 7.1.2), generated in the same way under
-   that scheme's protocol context.  A key pair is derived from a seed,
+   An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
    which is what allows the test vectors in Appendix A to fix a key.
    The procedure is the key generation of Section 3.2 of [OPRF].  Note
    that, by design, knowledge of both seed and info is required, so the
@@ -615,7 +575,7 @@ Table of Contents
    The values the two contexts take determine the anonymity set a Client
    redeems in, and a deployment can destroy the unlinkability the
    construction provides without breaking any of its cryptographic
-   properties; see Section 9.
+   properties; see Section 8.
 
 5.  Endorsement Issuance
 
@@ -779,7 +739,7 @@ Table of Contents
    than resampling, so that the challenge remains a deterministic
    function of the transcript.  The abort occurs with probability
    approximately 1/p and is not expected to be observed in practice; see
-   Section 9.
+   Section 8.
 
    The Client sends challenge to the Anchor in a ChallengeMessage
    (Section 5.6) and retains state.
@@ -1051,7 +1011,7 @@ Table of Contents
    An Anchor is stateful: it holds the secret state produced by Commit
    from the moment it sends CommitMessage until it answers or discards
    the session.  That state is single-use; see Section 5.3 and
-   Section 9.
+   Section 8.
 
    An Anchor SHOULD bound both the number of concurrent open sessions
    per Client and the lifetime of an open session, and SHOULD discard
@@ -1137,7 +1097,7 @@ Table of Contents
    place of pkA.
 
    This shift is _additive_, so issuance is left completely unmodified
-   and the unforgeability of Section 5 carries over (Section 9).  But
+   and the unforgeability of Section 5 carries over (Section 8).  But
    X_hat by itself provides no evidence that it was derived from an
    Anchor key.  The Client therefore also proves knowledge of delta
    relating X_hat to a key in anchor_set, without revealing which key.
@@ -1153,7 +1113,7 @@ Table of Contents
    Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
    the branch it can and simulates the others, sending one challenge and
    one response per branch.  That proof is linear in n, and the Anchor
-   Set is also the anonymity set (Section 9).  This document instead
+   Set is also the anonymity set (Section 8).  This document instead
    composes the branches with the _stacking_ technique of Goel, Green,
    Hall-Andersen and Kaptchuk [STACKSIG], whose proof is logarithmic in
    n: the Client sends a single response, which every branch reuses,
@@ -1219,7 +1179,7 @@ Table of Contents
    without knowing a witness; this is the extended honest-verifier zero-
    knowledge property.  Second, the response is statistically close to
    uniform independently of the statement and witness, because it is a
-   fixed shift of the derived nonce r; see Section 9.  One response can
+   fixed shift of the derived nonce r; see Section 8.  One response can
    therefore be reused across branches without revealing which branch
    produced it.
 
@@ -1426,7 +1386,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
 
    Proving is linear in n: the second loop computes N branch commitments
    and N - 1 node commitments, however short the proof is.  The saving
-   is in communication, not in computation; see Section 9.
+   is in communication, not in computation; see Section 8.
 
 6.2.5.  Verifying
 
@@ -1508,7 +1468,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    and cannot be moved afterwards, so a Client that could produce an
    accepting proof for two different challenges would yield delta for
    that leaf's statement.  The soundness of the proof rests on that, and
-   on nothing about the other branches; see Section 9.
+   on nothing about the other branches; see Section 8.
 
 6.3.  Redemption
 
@@ -1643,7 +1603,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    that rejection is a guard on the Moderator's own configuration rather
    than a verdict on the redemption: a Moderator that configures it has
    already lost the property before any proof is checked.  See
-   Section 9.
+   Section 8.
 
 6.5.  Encodings
 
@@ -1687,192 +1647,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    stored.  Sending any of them defeats the point of redeeming under
    X_hat.
 
-7.  The Credential Scheme
-
-   A MoLE Credential is an Anonymous Credit Token (ACT).  It is a keyed-
-   verification anonymous credential [KVAC] over a privately verifiable,
-   pairing-free BBS-style signature [BBS] [TZ23], whose hidden state is
-   a _balance_: an integer number of credits.  A Moderator issues a
-   Credential with an initial balance, and the Client later _spends_
-   from it.  A spend reveals a public amount s and proves, in zero
-   knowledge, that the Credential holds at least s credits and has not
-   been spent before.  In the same exchange the Moderator issues a
-   _refund_: a fresh Credential whose balance is the remainder plus a
-   Moderator-chosen return amount t.  A spend may also declare a public
-   _top-up_ a, in which case the refund may return up to s + a, raising
-   the balance; without one, t is at most s.  The Moderator never learns
-   the balance, and cannot link a spend to the issuance or refund that
-   produced the Credential it consumed, nor two spends to each other.
-
-   This is the credential type 0x0001 of [PROTOCOLS].  In the vocabulary
-   of [ARCH], a spend is a _Presentation_ whose _Predicate_ is "the
-   balance is at least s", and the refund is the _Update_.
-
-   The scheme is a two-party protocol between a Client and a Moderator.
-   The Moderator holds a key pair (skM, pkM) and is both the issuer and
-   the verifier: Credentials are not publicly verifiable, and only their
-   issuer can check a spend.  Each of the two flows, issuance and
-   spending, is a single request/response exchange followed by a Client-
-   local finalization.
-
-      Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
-    ------------------------------------------------------------------
-      state, request = IssueRequest()
-
-                                 request
-                                 -------->
-
-                    response = IssueResponse(skM, ctx_cred, c, request)
-
-                                 response
-                                 <--------
-
-      credential = FinalizeIssuance(pkM, ctx_cred, state, response)
-
-                      ...
-
-      state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
-
-                                   proof
-                                 -------->
-
-                      VerifySpend(skM, ctx_cred, ctx_spend, proof)
-                      refund = IssueRefund(skM, ctx_cred, proof, t)
-
-                                  refund
-                                 <--------
-
-      credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
-
-            Figure 3: Credential issuance and spending overview
-
-   The Moderator chooses the initial balance c and the return amount t
-   according to its policy; both are outside the scope of this document,
-   as is the nullifier store the Moderator keeps to reject a second
-   spend of the same Credential.  [PROTOCOLS] specifies both, together
-   with the carriage of the four messages.
-
-7.1.  Configuration
-
-   As for the Endorsement scheme, a ciphersuite (Section 8) is
-   identified by an ASCII string identifier, and both parties MUST agree
-   on it before running the protocol.  The Credential scheme is
-   specified for the P-256 ciphersuite of Section 8, whose Sigma-
-   protocol instantiation [SIGMA] defines; its protocol context is
-
-   def CreateCredentialProtocolContext(identifier):
-     return "ACTv1-" || identifier
-
-   Throughout this section and wherever the algorithms of this section
-   are invoked, ctx_proto denotes this value, and HashToGroup,
-   HashToScalar, DeriveScalar, and the key generation of Section 4.3 are
-   parameterized by it.  The prefix differs from that of Section 4.1, so
-   no hash output, and no key, is shared between the two schemes even
-   under the same ciphersuite.
-
-   The scheme has one further parameter, the _balance width_ L.
-   Balances and amounts are integers in [0, 2^L).  L MUST satisfy 1 <= L
-   <= MAX_BIT_LENGTH, where MAX_BIT_LENGTH is fixed by the ciphersuite.
-   The size of a spend proof and the cost of producing and verifying it
-   grow linearly in L, so a deployment SHOULD choose the smallest L that
-   accommodates its largest balance.  The Moderator publishes L together
-   with its public key ([PROTOCOLS]); a Client MUST use the published
-   value.
-
-   L is fixed for the lifetime of a key and credential context.  The
-   invariant that every balance the Moderator has signed lies below 2^L,
-   on which Section 9.1 relies, is argued by induction over issuances
-   and refunds under one value of L, and does not survive a change of L
-   under a key and context that still have outstanding Credentials.  A
-   Moderator that changes L MUST do so together with the credential
-   context or the key.  Deployments are RECOMMENDED to fold L into the
-   credential context, for instance by appending I2OSP(L, 1) to it, so
-   that a change of L is a change of context by construction.
-
-7.1.1.  Generators
-
-   The scheme uses the group generator B = G.Generator() and four
-   further elements H1, H2, H3, H4, fixed by the ciphersuite:
-
-   def CreateGenerators():
-     H1 = G.HashToGroup("GenH1")
-     H2 = G.HashToGroup("GenH2")
-     H3 = G.HashToGroup("GenH3")
-     H4 = G.HashToGroup("GenH4")
-
-     return (H1, H2, H3, H4)
-
-   H1 commits to the balance, H2 to the nullifier, H3 is the blinding
-   base, and H4 binds the credential context (Section 7.2).  The
-   discrete logarithm of any of these elements with respect to any
-   other, or to B, MUST NOT be known to any party; deriving them by
-   hashing fixed labels ensures this.  The five elements are pairwise
-   distinct except with negligible probability; an implementation MAY
-   verify this once when instantiating a ciphersuite.
-
-7.1.2.  Key Generation
-
-   A Moderator holds a key pair (skM, pkM), generated with
-   GenerateKeyPair of Section 4.3 under the protocol context of this
-   section, or derived from a seed with DeriveKeyPair.  The Moderator
-   publishes SerializeElement(pkM) in its configuration ([PROTOCOLS]).
-   The signing key skM is also the verification key: VerifySpend
-   requires it.
-
-7.2.  Credential Context
-
-   Every Credential is bound at issuance to a _credential context_
-   ctx_cred, an opaque byte string of at most 2^16 - 1 bytes chosen by
-   the Moderator and agreed with the Client out of band; [PROTOCOLS]
-   says how.  It plays the role that the issuance context plays for
-   Endorsements (Section 4.4): it restricts _when_, or under which
-   policy, a Credential may be spent, so that a Moderator can for
-   instance expire all Credentials of an epoch at once without rotating
-   its key.
-
-   The context is bound as a signed attribute.  It is mapped to a scalar
-   and carried under H4:
-
-   def CreateContextScalar(ctx_cred):
-     context_input =
-       I2OSP(len(ctx_cred), 2) || ctx_cred ||
-       "CredentialContext"
-
-     return G.HashToScalar(context_input)
-
-   The context is never carried on the wire.  It is an input to every
-   algorithm of this section that computes or checks a signature,
-   supplied by the party running it, so that a spend verifies only under
-   the context the Credential was issued under: a Moderator states the
-   context it accepts and learns whether the Credential was issued under
-   it, rather than being told by the Client.  A Client keeps its own
-   copy of the context for as long as it holds the Credential.
-
-   Like the contexts of Section 4.4, the credential context partitions
-   Clients into the set that shares its value, and MUST be coarse; see
-   Section 9.
-
-7.3.  Amounts
-
-   Balances and amounts are nonnegative integers below 2^L.  On the wire
-   they are uint64 values; in the algebra they enter as scalars.
-   Scalar(x) denotes the Scalar whose integer value is x, and Bits(x)
-   its binary decomposition, least significant bit first, into L scalars
-   each equal to 0 or 1:
-
-   def Bits(x):
-     return [Scalar((x >> j) & 1) for j in 0 .. L-1]
-
-   An implementation MUST compute Bits in constant time with respect to
-   x, which is the Client's hidden balance.
-
-   A party that receives an amount MUST check that it is below 2^L
-   before using it, and MUST raise an AmountError otherwise.  The spend
-   range proof bounds a difference of amounts.  The bounds on each
-   amount are needed to interpret this difference over the integers
-   (Section 9).
-
-8.  Ciphersuites
+7.  Ciphersuites
 
    A ciphersuite fixes the group, the hash functions, and the associated
    encodings and domain separation tags.  Both parties are assumed to
@@ -1886,7 +1661,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    oversamples by 128 bits when it maps a byte string to a field
    element.
 
-8.1.  IHAT(P-256, SHA-256)
+7.1.  IHAT(P-256, SHA-256)
 
    This ciphersuite uses P-256 (secp256r1) [NISTCurves] for the group
    and SHA-256 for the hash function, with Nh = 32.  The value of the
@@ -1941,7 +1716,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       average this takes 2 iterations of Pbuf.  The inverse is obtained
       by applying Pbuf inverse.
 
-8.2.  IHAT(ristretto255, SHA-512)
+7.2.  IHAT(ristretto255, SHA-512)
 
    This ciphersuite uses ristretto255 [RISTRETTO] for the group and
    SHA-512 for the hash function, with Nh = 64.  The value of the
@@ -1983,7 +1758,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
    P  Very similar to above, but 32 byte random permutations are easier
       to use instantiate with a symmetric Feisel network.
 
-8.3.  Randomness
+7.3.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
    with random and consumed by DeriveScalar (Section 4.2); no scalar is
@@ -2004,7 +1779,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       Scalar in the range [0, G.Order() - 1]", which includes zero.
       *TODO:* report the inconsistency against [OPRF].
 
-9.  Security Considerations
+8.  Security Considerations
 
       *TODO.* This section is a summary of the properties the
       construction is intended to provide and of the requirements
@@ -2099,7 +1874,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       applies to each opening and to response.  Each of these 3 * q + 1
       values excludes at most one point of a field of order p, so the
       total statistical distance is at most (3 * q + 1) / p, below
-      2^-250 for both ciphersuites of Section 8.  Like blindness, issuer
+      2^-250 for both ciphersuites of Section 7.  Like blindness, issuer
       hiding therefore holds against unbounded computation up to a
       statistical loss, here from this exclusion as well as from the
       seed length of the derived randomness above.  Note that it is the
@@ -2256,87 +2031,20 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
       number of Clients an Anchor serves per epoch and the size of a
       Moderator's Anchor Set; see [ARCH].
 
-9.1.  Credential Scheme
+9.  IANA Considerations
 
-   The Credential scheme is a keyed-verification anonymous credential
-   [KVAC] over the pairing-free BBS-style signature of [BBS] as analysed
-   by [TZ23], with the balance, the nullifier, the blinding factor, and
-   the context scalar as the signed attributes.  Because the Moderator
-   is both issuer and verifier and there is no pairing, the scheme is an
-   algebraic MAC in the sense of [KVAC], of the shape introduced as
-   MAC_BB by [BBDT16].
+   This document has no IANA actions.  The endorsement type for the
+   scheme specified here is registered by [PROTOCOLS].
 
-   Credit conservation assumptions:  The credit-conservation argument
-      uses the following assumptions.
+10.  References
 
-      *  The q-SDH assumption in G, for the unforgeability of the
-         signature [TZ23].
-
-      *  The discrete-logarithm-relation assumption among B, H1, H2, H3,
-         and H4: no party can produce a nontrivial linear relation among
-         them.  The generators are derived by hash-to-curve in the
-         random oracle model (Section 7.1.1).  Commitment binding and
-         the range and spend proofs rely on this assumption.
-
-      *  The random oracle model for HashToGroup, HashToScalar, and the
-         Fiat-Shamir transform of [FIAT-SHAMIR], together with special
-         soundness of the credential Sigma protocols.
-
-      *  Extraction for issuance and spend proofs across adaptive
-         sessions, including the keyed-verification oracle.  An ACT
-         reduction covering verification queries and secret-derived
-         signing exponents and proof nonces remains open; the results of
-         [TZ23] and [BBDT16] do not cover this composition.
-
-   Verification key secrecy:  VerifySpend requires skM, so a Credential
-      can be verified only by the Moderator that issued it.  A Moderator
-      that shares skM with another party lets that party issue
-      Credentials in its name.
-
-   Context granularity:  The credential context is visible at every
-      spend through the fact that the proof verifies under it, and so
-      partitions Clients into the set sharing its value, exactly as the
-      contexts of the Endorsement scheme do.  It MUST be coarse: every
-      Client issued under a given context MUST derive the byte-identical
-      ctx_cred.  The spend context does not partition Clients, since it
-      binds a single presentation to a single challenge.
-
-   Balance width:  L is public and identical for all Clients of a
-      Moderator, and fixed for the lifetime of a key and context
-      (Section 7.1).  A Moderator that used different values of L for
-      different Clients would partition them by the length of their
-      spend proofs, and one that changed L under a key and context with
-      outstanding Credentials would invalidate the balance invariant of
-      the conservation argument.
-
-   System requirements:  Deployments must provide an atomic and durable
-      nullifier store ([PROTOCOLS]), consistent configuration across
-      Clients ([ARCH]), and coarse credential contexts.  Privacy relies
-      on the randomness requirements of Section 8.3.  Clients must use
-      each Credential and each issuance or spend state only once,
-      including across backups and restores.
-
-10.  IANA Considerations
-
-   This document has no IANA actions.  The endorsement type and the
-   credential type for the schemes specified here are registered by
-   [PROTOCOLS].
-
-11.  References
-
-11.1.  Normative References
+10.1.  Normative References
 
    [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
               of unLinkable Endorsements (MoLE) Architecture", Work in
               Progress, Internet-Draft, draft-jms-mole-architecture-00,
               6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
               jms-mole-architecture-00>.
-
-   [FIAT-SHAMIR]
-              Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
-              Internet-Draft, draft-irtf-cfrg-fiat-shamir-02, 2 March
-              2026, <https://datatracker.ietf.org/doc/html/draft-irtf-
-              cfrg-fiat-shamir-02>.
 
    [HASH2CURVE]
               Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
@@ -2401,18 +2109,7 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
 
-11.2.  Informative References
-
-   [BBDT16]   Barki, A., Brunet, S., Desmoulins, N., and J. Traore,
-              "Improved Algebraic MACs and Practical Keyed-Verification
-              Anonymous Credentials", SAC 2016, 2016,
-              <https://crypto.orange-labs.fr/acg/publication/
-              infoPublication.php?id=225>.
-
-   [BBS]      Boneh, D., Boyen, X., and H. Shacham, "Short Group
-              Signatures", CRYPTO 2004, 2004,
-              <https://crypto.stanford.edu/~dabo/pubs/papers/
-              groupsigs.pdf>.
+10.2.  Informative References
 
    [CDS94]    Cramer, R., Damgard, I., and B. Schoenmakers, "Proofs of
               Partial Knowledge and Simplified Design of Witness Hiding
@@ -2424,10 +2121,6 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
               Credentials without Policy Keys", 2026,
               <https://eprint.iacr.org/2026/870>.
 
-   [KVAC]     Chase, M., Meiklejohn, S., and G. Zaverucha, "Algebraic
-              MACs and Keyed-Verification Anonymous Credentials",
-              CCS 2014, 2014, <https://eprint.iacr.org/2013/516>.
-
    [STACKSIG] Goel, A., Green, M., Hall-Andersen, M., and G. Kaptchuk,
               "Stacking Sigmas: A Framework to Compose Sigma-Protocols
               for Disjunctions", EUROCRYPT 2022, 2022,
@@ -2437,16 +2130,13 @@ def ProveIssuer(anchor_set, index, delta, X_hat, endorsement, ctx_iss,
               Signatures with Exponential Security", EUROCRYPT 2022,
               2022, <https://eprint.iacr.org/2022/047>.
 
-   [TZ23]     Tessaro, S. and C. Zhu, "Revisiting BBS Signatures",
-              EUROCRYPT 2023, 2023, <https://eprint.iacr.org/2023/275>.
-
 Appendix A.  Test Vectors
 
       *TODO.* Test vectors for DeriveKeyPair, DeriveScalar,
       CreateContextBase, Message, ComputeChallenge, the four issuance
       algorithms, Verify, G0, CommitNode, CompressValue,
       ComputeProofChallenge, Redeem, and VerifyRedemption, for each
-      ciphersuite in Section 8.  Issuance and redemption are randomized,
+      ciphersuite in Section 7.  Issuance and redemption are randomized,
       but every algorithm is a deterministic function of the bytes it
       draws from random, so a vector fixes one value per algorithm: the
       key seed, the rand of Commit, the rand of Challenge, and the rand
