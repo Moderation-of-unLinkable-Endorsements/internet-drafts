@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-13T03:55:21.590156+00:00",
+  "timestamp": "2026-09-15T04:01:17.271727+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -679,6 +679,26 @@
           "updatedAt": "2026-08-26T08:19:26Z"
         }
       ]
+    },
+    {
+      "number": 71,
+      "id": "I_kwDOSX6krs8AAAABRQmHew",
+      "title": "ihat: Use the same hash function for the permuation as for the rest of the scheme",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/71",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "wbl"
+      ],
+      "labels": [
+        "crypto"
+      ],
+      "body": "\n\nSee https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/68#discussion_r4008394388 for details.\n            ",
+      "createdAt": "2026-09-14T18:43:53Z",
+      "updatedAt": "2026-09-14T18:45:34Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -7676,22 +7696,22 @@
     {
       "number": 67,
       "id": "PR_kwDOSX6krs8AAAABC3DEbg",
-      "title": "Define the ACT credential model, parameters, and security goals",
+      "title": "put ACT in its own draft",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/67",
       "state": "OPEN",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
-      "body": "Introduce the balance credential model, domain separation, generators, key and context rules, and balance parameters. State the assumptions for credit conservation and the deployment requirements.\r\n\r\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.",
+      "body": "this puts ACT in its own draft, on top of the IHAT split. it\u2019s the same model and assumptions as before, with the shared definitions copied over so it can be read on its own.\n\nstacked on #70.\n\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.\n",
       "createdAt": "2026-09-09T16:02:01Z",
-      "updatedAt": "2026-09-09T16:02:01Z",
+      "updatedAt": "2026-09-14T18:16:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
-      "baseRefName": "main",
-      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "baseRefName": "samuelschlesinger/act-draft-split",
+      "baseRefOid": "ff1440037d761e32e765677de60cf56ec167811e",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/act-02-model",
-      "headRefOid": "9928364456b16e24effc036299a80f5201f6aa41",
+      "headRefOid": "dc959ce10d745bd3f0b22f62d7fd3f9b9c46704e",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -7704,7 +7724,7 @@
       "id": "PR_kwDOSX6krs8AAAABDNGJKA",
       "title": "ihat: Convert pseudocode to Python",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/68",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -7713,17 +7733,19 @@
       ],
       "body": "Add an (incomplete) reference implementation of IHAT and replace the pseudocode in the draft with snippets from the reference implementation.",
       "createdAt": "2026-09-11T21:57:13Z",
-      "updatedAt": "2026-09-11T23:30:22Z",
+      "updatedAt": "2026-09-15T00:06:14Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/transcribe-ihat-to-python",
-      "headRefOid": "3b7ded597e1da114d18ac07d55549a4fc9709b70",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "c6b06b42ccfd23e76d8c3f4a6a9dd43bc1c5845b",
+      "closedAt": "2026-09-15T00:06:14Z",
+      "mergedAt": "2026-09-15T00:06:14Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "2874e2b1e834c59b68719a02eaadb491c8a12e37"
+      },
       "comments": [],
       "reviews": [
         {
@@ -7951,6 +7973,246 @@
               "body": "We'll probably need less. The need to propagate the randomness consumption through the calls is annoying, maybe we can have a better interface?",
               "createdAt": "2026-09-11T23:13:52Z",
               "updatedAt": "2026-09-11T23:30:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgiz2w",
+          "commit": {
+            "abbreviatedOid": "b7d0a73"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:43:07Z",
+          "updatedAt": "2026-09-14T18:43:08Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "I think that would be a good idea :)",
+              "createdAt": "2026-09-14T18:43:07Z",
+              "updatedAt": "2026-09-14T18:43:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgkCEQ",
+          "commit": {
+            "abbreviatedOid": "b7d0a73"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:45:08Z",
+          "updatedAt": "2026-09-14T18:45:08Z",
+          "comments": [
+            {
+              "originalPosition": 111,
+              "body": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/71",
+              "createdAt": "2026-09-14T18:45:08Z",
+              "updatedAt": "2026-09-14T18:45:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgk9cQ",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:46:30Z",
+          "updatedAt": "2026-09-14T18:46:30Z",
+          "comments": [
+            {
+              "originalPosition": 241,
+              "body": "will leave as a TODO here for now.",
+              "createdAt": "2026-09-14T18:46:30Z",
+              "updatedAt": "2026-09-14T18:46:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgoCng",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:52:16Z",
+          "updatedAt": "2026-09-14T18:52:16Z",
+          "comments": [
+            {
+              "originalPosition": 255,
+              "body": "Actually `Verify()` is transcribed from the draft without any changes. This is a standalone function that's used in the draft to clarify how the proof works, it's not actually used by the Moderator.",
+              "createdAt": "2026-09-14T18:52:16Z",
+              "updatedAt": "2026-09-14T18:52:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgoyMw",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:53:33Z",
+          "updatedAt": "2026-09-14T18:53:34Z",
+          "comments": [
+            {
+              "originalPosition": 325,
+              "body": "I'll delete the comment.",
+              "createdAt": "2026-09-14T18:53:33Z",
+              "updatedAt": "2026-09-14T18:53:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgqvRQ",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:57:05Z",
+          "updatedAt": "2026-09-14T18:57:05Z",
+          "comments": [
+            {
+              "originalPosition": 287,
+              "body": "This function was previously as follows in the draft:\n\n```\ndef CommitStep(Q, left, right, randomness):\n    C = randomness*G.Generator()+G.DeriveScalar(left)*Q+G.DeriveScalar(right)*P(Q)\n    return G.SerializeElement(C)\n```\n\n`G.DeriveScalar()` was not defined, but the intent appears to be `DeriveScalar()`. In other words I don't think I've actually changed anything here.",
+              "createdAt": "2026-09-14T18:57:05Z",
+              "updatedAt": "2026-09-14T18:57:05Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgsHWw",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T18:59:34Z",
+          "updatedAt": "2026-09-14T18:59:34Z",
+          "comments": [
+            {
+              "originalPosition": 349,
+              "body": "All I did was transcribe verbatim. Here's the original:\n\nhttps://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blame/99c650f11da28a8e5b8718c450e9a672ef38b198/draft-authors-mole-crypto.md#L1334-L1361",
+              "createdAt": "2026-09-14T18:59:34Z",
+              "updatedAt": "2026-09-14T18:59:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgsvxQ",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T19:00:44Z",
+          "updatedAt": "2026-09-14T19:00:45Z",
+          "comments": [
+            {
+              "originalPosition": 374,
+              "body": "Got it! It wasn't specified in the draft so I just left as a stub here.",
+              "createdAt": "2026-09-14T19:00:44Z",
+              "updatedAt": "2026-09-14T19:00:45Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgtI5g",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T19:01:27Z",
+          "updatedAt": "2026-09-14T19:01:27Z",
+          "comments": [
+            {
+              "originalPosition": 379,
+              "body": "If naive is simpler to implement but still asymptotically logarithmic, then I say keep it simple",
+              "createdAt": "2026-09-14T19:01:27Z",
+              "updatedAt": "2026-09-14T19:01:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgtv9w",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T19:02:27Z",
+          "updatedAt": "2026-09-14T19:02:27Z",
+          "comments": [
+            {
+              "originalPosition": 405,
+              "body": "Agreed. Again, I'm just copying verbatim from the spec.",
+              "createdAt": "2026-09-14T19:02:27Z",
+              "updatedAt": "2026-09-14T19:02:27Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNjDLZQ",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T00:05:21Z",
+          "updatedAt": "2026-09-15T00:05:22Z",
+          "comments": [
+            {
+              "originalPosition": 287,
+              "body": "We might have to tweak derive scalar then, I'll do it in another pass",
+              "createdAt": "2026-09-15T00:05:21Z",
+              "updatedAt": "2026-09-15T00:05:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNjDZcA",
+          "commit": {
+            "abbreviatedOid": "3b7ded5"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T00:06:06Z",
+          "updatedAt": "2026-09-15T00:06:07Z",
+          "comments": [
+            {
+              "originalPosition": 349,
+              "body": "I'll make a note to look at this harder",
+              "createdAt": "2026-09-15T00:06:06Z",
+              "updatedAt": "2026-09-15T00:06:07Z"
             }
           ]
         }
@@ -8488,6 +8750,32 @@
           ]
         }
       ]
+    },
+    {
+      "number": 70,
+      "id": "PR_kwDOSX6krs8AAAABDfl-UQ",
+      "title": "give IHAT its own draft",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/70",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "this renames the crypto draft to IHAT and updates the references. the protocol itself is unchanged. ACT will live in a separate draft.\n\nACT follows in #67.\n",
+      "createdAt": "2026-09-14T18:15:27Z",
+      "updatedAt": "2026-09-15T00:28:10Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-draft-split",
+      "headRefOid": "ff1440037d761e32e765677de60cf56ec167811e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
