@@ -1,4 +1,4 @@
-"""IHAT algorithms transcribed from draft-authors-mole-crypto.md."""
+"""IHAT algorithms transcribed from draft-authors-mole-ihat.md."""
 
 from __future__ import annotations
 
