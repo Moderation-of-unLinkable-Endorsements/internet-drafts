@@ -9,7 +9,7 @@ from Cryptodome.Hash import SHA256
 from Cryptodome.PublicKey import ECC
 from Cryptodome.PublicKey.ECC import EccPoint
 
-from .common import I2OSP
+from .common import I2OSP, Nseed, U16Prefixed, random
 
 
 FIELD_MODULUS = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
@@ -23,6 +23,10 @@ GENERATOR_Y = 0x4FE342E2FE1A7F9B8EE7EB4A7C0F9E162BCE33576B315ECECBB6406837BF51F5
 
 class DeserializeError(ValueError):
     """A byte string is not a canonical encoding of the expected type."""
+
+
+class DeriveError(Exception):
+    """A deterministic derivation failed to produce a usable scalar."""
 
 
 Suite = TypeVar("Suite")
@@ -194,6 +198,28 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         dst = DST if DST is not None else b"HashToScalar-" + self.ctx_proto
         uniform = expand_message_xmd(value, dst, 48)
         return P256Scalar(int.from_bytes(uniform, "big") % ORDER)
+
+    def DeriveScalar(self, seed: bytes, info: bytes) -> P256Scalar:
+        if len(seed) != Nseed:
+            raise ValueError(f"seed must be exactly {Nseed} bytes")
+        derive_input = seed + U16Prefixed(info)
+        for counter in range(256):
+            s = self.HashToScalar(
+                derive_input + I2OSP(counter, 1),
+                DST=b"DeriveScalar-" + self.ctx_proto,
+            )
+            if not s.isZero():
+                return s
+        raise DeriveError
+
+    def DeriveKeyPair(self, seed: bytes, info: bytes) -> tuple[P256Scalar, P256Element]:
+        skA = self.DeriveScalar(seed, info)
+        pkA = self.ScalarMultGen(skA)
+        return (skA, pkA)
+
+    def GenerateKeyPair(self) -> tuple[P256Scalar, P256Element]:
+        seed = random(Nseed)
+        return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 
     def ScalarInverse(self, scalar: Scalar[P256SHA256]) -> P256Scalar:
         if scalar.isZero():

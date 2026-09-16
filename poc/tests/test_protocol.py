@@ -4,7 +4,6 @@ import ihat.protocol as protocol
 from ihat.protocol import (
     Challenge,
     Commit,
-    DeriveKeyPair,
     Endorsement,
     Finalize,
     ProveIssuer,
@@ -16,7 +15,7 @@ from ihat.protocol import (
 
 
 def _issue(ctx_iss=b"epoch-1", ctx_red=b"moderator-1"):
-    skA, pkA = DeriveKeyPair(bytes(range(48)), b"anchor")
+    skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
     anchor_state, commitment = Commit(ctx_iss)
     client_state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
     response = Respond(skA, anchor_state, challenge)
@@ -48,7 +47,7 @@ def test_endorsement_tampering_fails():
 
 
 def test_finalize_rejects_false_response():
-    skA, pkA = DeriveKeyPair(bytes(range(48)), b"anchor")
+    skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
     anchor_state, commitment = Commit(b"epoch-1")
     client_state, challenge = Challenge(pkA, b"epoch-1", b"moderator", commitment)
     response = Respond(skA, anchor_state, challenge)
@@ -60,7 +59,7 @@ def test_finalize_rejects_false_response():
 
 
 def test_respond_rejects_zero_challenge():
-    skA, _ = DeriveKeyPair(bytes(range(48)), b"anchor")
+    skA, _ = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
     state, _ = Commit(b"epoch-1")
     with pytest.raises(VerifyError):
         Respond(skA, state, protocol.G.scalar(0))
