@@ -1282,37 +1282,17 @@ contexts. This document treats those contexts as opaque byte strings.<a href="#s
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">The terms Client, Moderator, and Credential are used as defined in
-<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">Unless otherwise specified, this document encodes protocol messages in TLS
-notation (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte
-order. <code>PublicInput</code> denotes a public byte string; each operation specifies
-its contents and length bounds.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">The following functions and notation are used throughout this document.<a href="#section-2-4" class="pilcrow">¶</a></p>
-<p id="section-2-5">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
-<p id="section-2-6">For two byte strings <code>x</code> and <code>y</code>, <code>x || y</code> denotes their concatenation.<a href="#section-2-6" class="pilcrow">¶</a></p>
-<p id="section-2-7">For a byte string <code>x</code>, <code>x[i..j]</code> denotes the substring of <code>x</code> that begins at
-its byte with index <code>i</code> and ends just before its byte with index <code>j</code>, where
-indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-7" class="pilcrow">¶</a></p>
-<p id="section-2-8">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
-<code>x[i..j]</code> denotes the sublist from index <code>i</code> up to but not including index <code>j</code>,
-and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-8" class="pilcrow">¶</a></p>
-<p id="section-2-9"><code>I2OSP(x, xLen)</code> converts a nonnegative integer <code>x</code> into a byte string of
-length <code>xLen</code> in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>.<a href="#section-2-9" class="pilcrow">¶</a></p>
-<p id="section-2-10"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
-them with a cryptographically secure random number generator. It is the only
-source of randomness in this document: every other value that has to be
-unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>).<a href="#section-2-10" class="pilcrow">¶</a></p>
-<p id="section-2-11"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
-that is <code>x[k * Nseed .. (k + 1) * Nseed]</code>, with <code>k</code> counted from zero.
-<a href="#ciphersuites" class="auto internal xref">Section 5</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-11" class="pilcrow">¶</a></p>
-<p id="section-2-12">String values in monospace and quotes, such as <code>"Challenge"</code>, are ASCII string
-literals and do not include a terminating NUL byte.<a href="#section-2-12" class="pilcrow">¶</a></p>
-<p id="section-2-13"><code>x &gt;&gt; j</code> denotes the integer <code>x</code> shifted right by <code>j</code> bits, and <code>x &amp; 1</code> its
-least significant bit.<a href="#section-2-13" class="pilcrow">¶</a></p>
-<p id="section-2-14">All algorithms are laid out in Python-like pseudocode. Each algorithm takes a
-set of inputs and parameters and produces a set of outputs. Parameters become
-constant values once the ciphersuite is fixed. An algorithm that can fail
-raises an error; the errors used in this document are listed in <a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. The message-encoding conventions, Python notation, and helpers
+<code>I2OSP</code>, <code>U16Prefixed</code>, <code>random</code>, and <code>Seed</code> are those of
+Section 2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The algorithms use <code>bytes</code> for byte strings, <code>int</code>
+for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code> module.
+Record fields appear in the same order as their tuple representation.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The group <code>G</code>, protocol context <code>ctx_proto</code>, seed length <code>Nseed</code>, generators,
+and balance width <code>L</code> are globals fixed by the ACT configuration
+(<a href="#act-config" class="auto internal xref">Section 4.1</a>). Shared algorithms from <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> are instantiated with
+these ACT globals, including ACT's domain separation, wherever they are
+used in this document. Public byte-string inputs retain the length bounds
+specified by the operation that uses them.<a href="#section-2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1339,83 +1319,13 @@ gives concrete instances.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
         <h3 id="name-prime-order-group">
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prime-order-group" class="section-name selfRef">Prime-Order Group</a>
         </h3>
-<p id="section-3.1-1">This document uses an additive, prime-order group, denoted <code>G</code>, of order <code>p</code>,
-as described in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. The types <code>Element</code> and <code>Scalar</code>
-denote elements of the group and of its scalar field respectively. Group
-elements are added with <code>+</code> and subtracted with <code>-</code>; scalar multiplication of
-an <code>Element</code> <code>A</code> by a <code>Scalar</code> <code>r</code> is written <code>r * A</code>. Scalars are added,
-subtracted, and multiplied modulo <code>p</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">The following member functions are used. Except where noted, they are as
-defined in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.1-3">
-          <dt id="section-3.1-3.1">Order():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.2">
-            <p id="section-3.1-3.2.1">Outputs the order <code>p</code> of the group.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.3">Identity():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.4">
-            <p id="section-3.1-3.4.1">Outputs the identity element of the group.<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.5">Generator():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.6">
-            <p id="section-3.1-3.6.1">Outputs the generator element <code>B</code> of the group.<a href="#section-3.1-3.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.7">ScalarMultGen(r):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.8">
-            <p id="section-3.1-3.8.1">Outputs <code>r * B</code>, where <code>B</code> is the group generator.<a href="#section-3.1-3.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.9">HashToGroup(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.10">
-            <p id="section-3.1-3.10.1">Deterministically maps a byte string <code>x</code> to an <code>Element</code>. Parameterized by a
-domain separation tag (DST); see <a href="#ciphersuites" class="auto internal xref">Section 5</a>.<a href="#section-3.1-3.10.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.11">HashToScalar(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.12">
-            <p id="section-3.1-3.12.1">Deterministically maps a byte string <code>x</code> to a <code>Scalar</code>. Parameterized by a
-DST; see <a href="#ciphersuites" class="auto internal xref">Section 5</a>.<a href="#section-3.1-3.12.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.13">ScalarInverse(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.14">
-            <p id="section-3.1-3.14.1">Outputs the multiplicative inverse of the nonzero <code>Scalar</code> <code>s</code> modulo <code>p</code>.<a href="#section-3.1-3.14.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.15">SerializeElement(A):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.16">
-            <p id="section-3.1-3.16.1">Maps an <code>Element</code> <code>A</code> to a canonical byte string of fixed length <code>Ne</code>.<a href="#section-3.1-3.16.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.17">DeserializeElement(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.18">
-            <p id="section-3.1-3.18.1">Attempts to map a byte string <code>buf</code> to an <code>Element</code>. Raises a
-<code>DeserializeError</code> if <code>buf</code> is not the canonical encoding of a group element,
-or if it encodes the identity element.<a href="#section-3.1-3.18.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.19">SerializeScalar(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.20">
-            <p id="section-3.1-3.20.1">Maps a <code>Scalar</code> <code>s</code> to a canonical byte string of fixed length <code>Ns</code>.<a href="#section-3.1-3.20.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.1-3.21">DeserializeScalar(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.22">
-            <p id="section-3.1-3.22.1">Attempts to map a byte string <code>buf</code> to a <code>Scalar</code>. Raises a
-<code>DeserializeError</code> if <code>buf</code> does not encode a <code>Scalar</code> in the range
-<code>[0, p-1]</code>.<a href="#section-3.1-3.22.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-3.1-4">This document does not use the <code>RandomScalar()</code> member of
-<span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Every scalar that has to be unpredictable is instead
-obtained from <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>), which is deterministic in a
-random seed. This makes each algorithm reproducible from the seed it is given,
-which is what allows the test vectors of <a href="#act-test-vectors" class="auto internal xref">Appendix A</a> to pin the randomness
-of an otherwise randomized protocol.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+<p id="section-3.1-1">ACT uses the prime-order group interface and the <code>Element</code> and <code>Scalar</code>
+types of Section 3.1 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, instantiated as in <a href="#ciphersuites" class="auto internal xref">Section 5</a>.
+The Python interface provides <code>G.scalar(x)</code> for an integer <code>x</code> in
+<code>[0, G.Order())</code>, <code>s.isZero()</code> for a scalar, and <code>A.isIdentity()</code> for an
+element. Arithmetic combines values of the same type: integer constants
+are converted with <code>G.scalar</code> before scalar arithmetic. The negative of
+an element <code>A</code> is <code>G.Identity() - A</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="errors">
@@ -1423,33 +1333,17 @@ of an otherwise randomized protocol.<a href="#section-3.1-4" class="pilcrow">¶<
         <h3 id="name-errors">
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-errors" class="section-name selfRef">Errors</a>
         </h3>
-<p id="section-3.2-1">The following errors are used.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.2-2">
-          <dt id="section-3.2-2.1">DeserializeError:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.2">
-            <p id="section-3.2-2.2.1">A received byte string is not a valid encoding of the expected type.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.2-2.3">VerifyError:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.4">
-            <p id="section-3.2-2.4.1">A received value failed a verification check.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.2-2.5">DeriveError:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.6">
-            <p id="section-3.2-2.6.1">A deterministic derivation from a seed failed to produce a usable value. See
-<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>.<a href="#section-3.2-2.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-3.2-2.7">AmountError:</dt>
-          <dd style="margin-left: 1.5em" id="section-3.2-2.8">
-            <p id="section-3.2-2.8.1">A credit amount of the Credential scheme is outside the range the scheme
-admits. See <a href="#act-amounts" class="auto internal xref">Section 4.3</a>.<a href="#section-3.2-2.8.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
-<p id="section-3.2-3">An implementation that raises an error <span class="bcp14">MUST</span> abort the protocol run. Errors are
-fatal to the affected session.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+<p id="section-3.2-1"><code>DeserializeError</code>, <code>VerifyError</code>, <code>DeriveError</code>, and <code>ValueError</code> have the
+meanings given in Section 3.2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. ACT additionally uses
+<code>AmountError</code> when a balance or amount is outside the range admitted by
+<a href="#act-amounts" class="auto internal xref">Section 4.3</a>:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-3.2-2">
+<pre>
+class AmountError(ValueError):
+    """A credit amount is outside its permitted range."""
+</pre><a href="#section-3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-3">An implementation that raises an error <span class="bcp14">MUST</span> abort the affected protocol run.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-scalar">
@@ -1457,59 +1351,19 @@ fatal to the affected session.<a href="#section-3.2-3" class="pilcrow">¶</a></p
         <h3 id="name-deriving-scalars">
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
         </h3>
-<p id="section-3.3-1">Scalars that have to be unpredictable are not sampled directly. They are
-derived from a random seed, so that an algorithm is a deterministic function of
-the seed it is given:<a href="#section-3.3-1" class="pilcrow">¶</a></p>
-<p id="section-3.3-2">Input:<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3-3">
-<pre>
-  opaque seed[Nseed]
-  PublicInput info
-</pre><a href="#section-3.3-3" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3-4">Output:<a href="#section-3.3-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3-5">
-<pre>
-  Scalar s
-</pre><a href="#section-3.3-5" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3-6">Parameters:<a href="#section-3.3-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3-7">
-<pre>
-  Group G
-  PublicInput ctx_proto
-</pre><a href="#section-3.3-7" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3-8">Errors: <code>DeriveError</code><a href="#section-3.3-8" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.3-9">
-<pre>
-def DeriveScalar(seed, info):
-  derive_input = seed || I2OSP(len(info), 2) || info
-  counter = 0
-  s = 0
-
-  while s == 0:
-    if counter &gt; 255:
-      raise DeriveError
-    s = G.HashToScalar(derive_input || I2OSP(counter, 1),
-                       DST = "DeriveScalar-" || ctx_proto)
-    counter = counter + 1
-
-  return s
-</pre><a href="#section-3.3-9" class="pilcrow">¶</a>
-</div>
-<p id="section-3.3-10">The output is never zero, so a caller that needs a nonzero scalar needs no
-further check. The loop terminates after one iteration except with probability
-approximately <code>1/p</code>, and <code>DeriveError</code> is raised only if 256 consecutive
-iterations yield zero; neither is expected to be observed.<a href="#section-3.3-10" class="pilcrow">¶</a></p>
-<p id="section-3.3-11">A seed <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of <code>random</code> output, and <span class="bcp14">MUST NOT</span> be used for more
+<p id="section-3.3-1">Use <code>DeriveScalar(seed: bytes, info: bytes) -&gt; Scalar</code> from
+Section 4.2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, instantiated with ACT's <code>G</code>, <code>ctx_proto</code>, and
+<code>Nseed</code>. It rejects seeds of the wrong length with <code>ValueError</code>, rejects
+zero outputs, and raises <code>DeriveError</code> if all 256 counter values yield zero.
+ACT applies the following seed requirements to this shared algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">A seed <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of <code>random</code> output, and <span class="bcp14">MUST NOT</span> be used for more
 than one derivation. An algorithm that needs several scalars therefore draws
 <code>Nseed</code> bytes for each of them, and additionally separates them by <code>info</code>.
 <code>Nseed</code> is larger than <code>Ns</code> (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) so that the derived scalar is
 statistically close to uniform rather than merely unpredictable; deriving
 several scalars from one seed instead would cap their joint entropy at the
 length of that seed, which the unlinkability argument of
-<a href="#act-security" class="auto internal xref">Section 6</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-11" class="pilcrow">¶</a></p>
+<a href="#act-security" class="auto internal xref">Section 6</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
@@ -1517,80 +1371,11 @@ length of that seed, which the unlinkability argument of
         <h3 id="name-key-generation">
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
         </h3>
-<p id="section-3.4-1">A Moderator holds a key pair <code>(skM, pkM)</code> under the protocol context of
-<a href="#act-config" class="auto internal xref">Section 4.1</a>. A key pair is derived from a seed, which is what
-allows the test vectors in <a href="#act-test-vectors" class="auto internal xref">Appendix A</a> to fix a key. The procedure is
-the key generation of <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Note that, by design, knowledge
-of both <code>seed</code> and <code>info</code> is required, so the secrecy of <code>skM</code> rests on the
-secrecy of <code>seed</code>; <code>info</code> is public.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
-<p id="section-3.4-2">Input:<a href="#section-3.4-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-3">
-<pre>
-  opaque seed[Nseed]
-  PublicInput info
-</pre><a href="#section-3.4-3" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-4">Output:<a href="#section-3.4-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-5">
-<pre>
-  Scalar skM
-  Element pkM
-</pre><a href="#section-3.4-5" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-6">Parameters:<a href="#section-3.4-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-7">
-<pre>
-  Group G
-  PublicInput ctx_proto
-</pre><a href="#section-3.4-7" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-8">Errors: <code>DeriveError</code><a href="#section-3.4-8" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-9">
-<pre>
-def DeriveKeyPair(seed, info):
-  skM = DeriveScalar(seed, info)
-  pkM = G.ScalarMultGen(skM)
-
-  return (skM, pkM)
-</pre><a href="#section-3.4-9" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-10">The derivation is the one <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> performs inline: hash
-<code>seed || I2OSP(len(info), 2) || info</code> together with a counter, rejecting zero
-(<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>). It differs only in its domain separation tag, which comes
-from the protocol context of this document rather than from an OPRF context
-string, and in the length of the seed.<a href="#section-3.4-10" class="pilcrow">¶</a></p>
-<p id="section-3.4-11">A fresh key pair is generated by deriving one from a random seed.<a href="#section-3.4-11" class="pilcrow">¶</a></p>
-<p id="section-3.4-12">Input:<a href="#section-3.4-12" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-13">
-<pre>
-  None
-</pre><a href="#section-3.4-13" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-14">Output:<a href="#section-3.4-14" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-15">
-<pre>
-  Scalar skM
-  Element pkM
-</pre><a href="#section-3.4-15" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-16">Parameters:<a href="#section-3.4-16" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-17">
-<pre>
-  Group G
-  PublicInput ctx_proto
-</pre><a href="#section-3.4-17" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-18">Errors: <code>DeriveError</code><a href="#section-3.4-18" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-3.4-19">
-<pre>
-def GenerateKeyPair():
-  seed = random(Nseed)
-
-  return DeriveKeyPair(seed, "GenerateKeyPair")
-</pre><a href="#section-3.4-19" class="pilcrow">¶</a>
-</div>
-<p id="section-3.4-20">The Moderator publishes <code>SerializeElement(pkM)</code> in its configuration; see
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-3.4-20" class="pilcrow">¶</a></p>
+<p id="section-3.4-1">Use <code>DeriveKeyPair(seed, info)</code> and <code>GenerateKeyPair()</code> from
+Section 4.3 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, with the ACT globals of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both return
+<code>tuple[Scalar, Element]</code>; ACT names the returned keys <code>(skM, pkM)</code> because
+the Moderator is the issuer. The Moderator publishes
+<code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1669,15 +1454,15 @@ four messages.<a href="#section-4-5" class="pilcrow">¶</a></p>
         <h3 id="name-configuration">
 <a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
         </h3>
-<p id="section-4.1-1">A ciphersuite (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) is identified by an ASCII string
+<p id="section-4.1-1">A ciphersuite (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) is identified by an ASCII byte string
 <code>identifier</code>, and both parties <span class="bcp14">MUST</span> agree on it before
 running the protocol. The Credential scheme is specified for the P-256
 ciphersuite of <a href="#ciphersuites" class="auto internal xref">Section 5</a>, whose Sigma-protocol instantiation <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>
 defines; its protocol context is<a href="#section-4.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.1-2">
+<div class="lang-python sourcecode" id="section-4.1-2">
 <pre>
-def CreateCredentialProtocolContext(identifier):
-  return "ACTv1-" || identifier
+def CreateCredentialProtocolContext(identifier: bytes) -&gt; bytes:
+    return b"ACTv1-" + identifier
 </pre><a href="#section-4.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-4.1-3">Throughout this section and wherever the algorithms of this section are
@@ -1706,15 +1491,15 @@ by construction.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
           </h4>
 <p id="section-4.1.1-1">The scheme uses the group generator <code>B = G.Generator()</code> and four further
 elements <code>H1</code>, <code>H2</code>, <code>H3</code>, <code>H4</code>, fixed by the ciphersuite:<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.1.1-2">
+<div class="lang-python sourcecode" id="section-4.1.1-2">
 <pre>
-def CreateGenerators():
-  H1 = G.HashToGroup("GenH1")
-  H2 = G.HashToGroup("GenH2")
-  H3 = G.HashToGroup("GenH3")
-  H4 = G.HashToGroup("GenH4")
-
-  return (H1, H2, H3, H4)
+def CreateGenerators() -&gt; tuple[Element, Element, Element, Element]:
+    return (
+        G.HashToGroup(b"GenH1"),
+        G.HashToGroup(b"GenH2"),
+        G.HashToGroup(b"GenH3"),
+        G.HashToGroup(b"GenH4"),
+    )
 </pre><a href="#section-4.1.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-4.1.1-3"><code>H1</code> commits to the balance, <code>H2</code> to the nullifier, <code>H3</code> is the blinding
@@ -1751,14 +1536,12 @@ Moderator can for instance expire all Credentials of an epoch at once without
 rotating its key.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <p id="section-4.2-2">The context is bound as a signed attribute. It is mapped to a scalar and
 carried under <code>H4</code>:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.2-3">
+<div class="lang-python sourcecode" id="section-4.2-3">
 <pre>
-def CreateContextScalar(ctx_cred):
-  context_input =
-    I2OSP(len(ctx_cred), 2) || ctx_cred ||
-    "CredentialContext"
-
-  return G.HashToScalar(context_input)
+def CreateContextScalar(ctx_cred: bytes) -&gt; Scalar:
+    return G.HashToScalar(
+        U16Prefixed(ctx_cred) + b"CredentialContext"
+    )
 </pre><a href="#section-4.2-3" class="pilcrow">¶</a>
 </div>
 <p id="section-4.2-4">The context is never carried on the wire. It is an input to every algorithm
@@ -1779,13 +1562,13 @@ value, and <span class="bcp14">MUST</span> be coarse; see <a href="#act-security
         </h3>
 <p id="section-4.3-1">Balances and amounts are nonnegative integers below <code>2^L</code>. On the wire they
 are <code>uint64</code> values; in the algebra they enter as scalars.
-<code>Scalar(x)</code> denotes the <code>Scalar</code> whose integer value is <code>x</code>, and <code>Bits(x)</code> its
+<code>G.scalar(x)</code> denotes the <code>Scalar</code> whose integer value is <code>x</code>, and <code>Bits(x)</code> its
 binary decomposition, least significant bit first, into <code>L</code> scalars each equal
 to <code>0</code> or <code>1</code>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-4.3-2">
+<div class="lang-python sourcecode" id="section-4.3-2">
 <pre>
-def Bits(x):
-  return [Scalar((x &gt;&gt; j) &amp; 1) for j in 0 .. L-1]
+def Bits(x: int) -&gt; list[Scalar]:
+    return [G.scalar((x &gt;&gt; j) &amp; 1) for j in range(L)]
 </pre><a href="#section-4.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-4.3-3">An implementation <span class="bcp14">MUST</span> compute <code>Bits</code> in constant time with respect to <code>x</code>,
@@ -1816,68 +1599,14 @@ element.<a href="#section-5-2" class="pilcrow">¶</a></p>
         <h3 id="name-actp-256-sha-256">
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-actp-256-sha-256" class="section-name selfRef">ACT(P-256, SHA-256)</a>
         </h3>
-<p id="section-5.1-1">This ciphersuite uses P-256 (secp256r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span> for the group and
+<p id="section-5.1-1">This ciphersuite uses P-256 (secp256r1) for the group and
 SHA-256 for the hash function, with <code>Nh = 32</code>. The value of the ciphersuite
-identifier is <code>"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.1-2">The interface of <a href="#group" class="auto internal xref">Section 3.1</a> is instantiated as follows.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-5.1-3">
-          <dt id="section-5.1-3.1">Order():</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.2">
-            <p id="section-5.1-3.2.1">Return 0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.3">Identity(), Generator(), ScalarMultGen(r):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.4">
-            <p id="section-5.1-3.4.1">As defined in <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span>.<a href="#section-5.1-3.4.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.5">HashToGroup(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.6">
-            <p id="section-5.1-3.6.1">Use <code>hash_to_curve</code> with suite <code>P256_XMD:SHA-256_SSWU_RO_</code> <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> and
-<code>DST = "HashToGroup-" || ctx_proto</code>.<a href="#section-5.1-3.6.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.7">HashToScalar(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.8">
-            <p id="section-5.1-3.8.1">Use <code>hash_to_field</code> from <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> with <code>L = 48</code>, <code>expand_message_xmd</code>
-with SHA-256, <code>DST = "HashToScalar-" || ctx_proto</code>, and a prime modulus
-equal to <code>Order()</code>.<a href="#section-5.1-3.8.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.9">ScalarInverse(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.10">
-            <p id="section-5.1-3.10.1">The multiplicative inverse of <code>s</code> modulo <code>Order()</code>.<a href="#section-5.1-3.10.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.11">SerializeElement(A):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.12">
-            <p id="section-5.1-3.12.1">The compressed Elliptic-Curve-Point-to-Octet-String method of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>;
-<code>Ne = 33</code>.<a href="#section-5.1-3.12.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.13">DeserializeElement(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.14">
-            <p id="section-5.1-3.14.1">Deserialize a 33-byte input using the compressed
-Octet-String-to-Elliptic-Curve-Point method of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>, then perform partial
-public key validation as in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-4.3" class="relref">Section 4.3</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. This includes checking
-that the coordinates are in range, that the point is on the curve, and that
-the point is not the identity element. Raise a <code>DeserializeError</code> if any
-check fails.<a href="#section-5.1-3.14.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.15">SerializeScalar(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.16">
-            <p id="section-5.1-3.16.1">The Field-Element-to-Octet-String conversion of <span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>; <code>Ns = 32</code>.<a href="#section-5.1-3.16.1" class="pilcrow">¶</a></p>
-</dd>
-          <dd class="break"></dd>
-<dt id="section-5.1-3.17">DeserializeScalar(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-5.1-3.18">
-            <p id="section-5.1-3.18.1">Deserialize a 32-byte input using Octet-String-to-Field-Element from
-<span>[<a href="#SEC1" class="cite xref">SEC1</a>]</span>. Raise a <code>DeserializeError</code> if the result is not in
-<code>[0, Order()-1]</code>.<a href="#section-5.1-3.18.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-</dl>
+identifier is <code>b"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
+algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. ACT uses
+<code>Ne = 33</code>, <code>Ns = 32</code>, and <code>Nseed = 48</code>. Instantiate every hash with the
+ACT <code>ctx_proto</code> of <a href="#act-config" class="auto internal xref">Section 4.1</a>, including the explicit DST passed by
+<code>DeriveScalar</code>; the group-element permutation used by IHAT is not needed.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="randomness">
@@ -2009,17 +1738,9 @@ restores.<a href="#section-6-2.10.1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="I2OSP">[I2OSP]</dt>
+<dt id="IHAT">[IHAT]</dt>
         <dd>
-<span class="refAuthor">Moriarty, K., Ed.</span>, <span class="refAuthor">Kaliski, B.</span>, <span class="refAuthor">Jonsson, J.</span>, and <span class="refAuthor">A. Rusch</span>, <span class="refTitle">"PKCS #1: RSA Cryptography Specifications Version 2.2"</span>, <span class="seriesInfo">RFC 8017</span>, <span class="seriesInfo">DOI 10.17487/RFC8017</span>, <time datetime="2016-11" class="refDate">November 2016</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8017">https://www.rfc-editor.org/rfc/rfc8017</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="NISTCurves">[NISTCurves]</dt>
-        <dd>
-<span class="refAuthor">National Institute of Standards and Technology (NIST)</span>, <span class="refTitle">"Digital Signature Standard (DSS)"</span>, <span class="seriesInfo">FIPS PUB 186-5</span>, <time datetime="2023-02" class="refDate">February 2023</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.186-5">https://doi.org/10.6028/NIST.FIPS.186-5</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="OPRF">[OPRF]</dt>
-        <dd>
-<span class="refAuthor">Davidson, A.</span>, <span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Sullivan, N.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Oblivious Pseudorandom Functions (OPRFs) Using Prime-Order Groups"</span>, <span class="seriesInfo">RFC 9497</span>, <span class="seriesInfo">DOI 10.17487/RFC9497</span>, <time datetime="2023-12" class="refDate">December 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9497">https://www.rfc-editor.org/rfc/rfc9497</a>&gt;</span>. </dd>
+<span class="refTitle">"Issuer-Hiding Anonymous Tokens (IHAT)"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PROTOCOLS">[PROTOCOLS]</dt>
         <dd>
@@ -2033,17 +1754,9 @@ restores.<a href="#section-6-2.10.1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
-<dt id="SEC1">[SEC1]</dt>
-        <dd>
-<span class="refAuthor">Standards for Efficient Cryptography Group (SECG)</span>, <span class="refTitle">"SEC 1: Elliptic Curve Cryptography"</span>, <time datetime="2009" class="refDate">2009</time>, <span>&lt;<a href="https://www.secg.org/sec1-v2.pdf">https://www.secg.org/sec1-v2.pdf</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="SIGMA">[SIGMA]</dt>
-        <dd>
-<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Interactive Sigma Proofs"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="TLS13">[TLS13]</dt>
       <dd>
-<span class="refAuthor">Rescorla, E.</span>, <span class="refTitle">"The Transport Layer Security (TLS) Protocol Version 1.3"</span>, <span class="seriesInfo">RFC 8446</span>, <span class="seriesInfo">DOI 10.17487/RFC8446</span>, <time datetime="2018-08" class="refDate">August 2018</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8446">https://www.rfc-editor.org/rfc/rfc8446</a>&gt;</span>. </dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Interactive Sigma Proofs"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
