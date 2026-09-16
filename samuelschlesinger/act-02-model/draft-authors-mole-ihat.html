@@ -1442,12 +1442,18 @@ unpredictable is derived from its output (<a href="#derive-scalar" class="auto i
 <p id="section-2-11"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
 that is <code>x[k * Nseed:(k + 1) * Nseed]</code>, with <code>k</code> counted from zero.
 <a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-11" class="pilcrow">¶</a></p>
-<p id="section-2-12">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
-do not include a terminating NUL byte.<a href="#section-2-12" class="pilcrow">¶</a></p>
-<p id="section-2-13">The definitions of the record types named in function signatures are implicit.
+<div class="lang-python sourcecode" id="section-2-12">
+<pre>
+def Seed(value: bytes, index: int) -&gt; bytes:
+    return value[index * Nseed : (index + 1) * Nseed]
+</pre><a href="#section-2-12" class="pilcrow">¶</a>
+</div>
+<p id="section-2-13">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
+do not include a terminating NUL byte.<a href="#section-2-13" class="pilcrow">¶</a></p>
+<p id="section-2-14">The definitions of the record types named in function signatures are implicit.
 Parameters become constant values once the ciphersuite is fixed. An algorithm
 that can fail raises an error; the errors used in this document are listed in
-<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-13" class="pilcrow">¶</a></p>
+<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1480,77 +1486,79 @@ denote elements of the group and of its scalar field respectively. Group
 elements are added with <code>+</code> and subtracted with <code>-</code>; scalar multiplication of
 an <code>Element</code> <code>A</code> by a <code>Scalar</code> <code>r</code> is written <code>r * A</code>. Scalars are added,
 subtracted, and multiplied modulo <code>p</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
-<p id="section-3.1-2">The following member functions are used. Except where noted, they are as
-defined in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
-<span class="break"></span><dl class="dlParallel" id="section-3.1-3">
-          <dt id="section-3.1-3.1">Order():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.2">
-            <p id="section-3.1-3.2.1">Outputs the order <code>p</code> of the group.<a href="#section-3.1-3.2.1" class="pilcrow">¶</a></p>
+<p id="section-3.1-2">The group also provides <code>G.DeriveScalar</code>, <code>G.DeriveKeyPair</code>, and
+<code>G.GenerateKeyPair</code>, defined in <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> and <a href="#keygen" class="auto internal xref">Section 4.3</a>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<p id="section-3.1-3">The following member functions are used. Except where noted, they are as
+defined in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3.1-4">
+          <dt id="section-3.1-4.1">Order():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.2">
+            <p id="section-3.1-4.2.1">Outputs the order <code>p</code> of the group.<a href="#section-3.1-4.2.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.3">Identity():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.4">
-            <p id="section-3.1-3.4.1">Outputs the identity element of the group.<a href="#section-3.1-3.4.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.3">Identity():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.4">
+            <p id="section-3.1-4.4.1">Outputs the identity element of the group.<a href="#section-3.1-4.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.5">Generator():</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.6">
-            <p id="section-3.1-3.6.1">Outputs the generator element <code>B</code> of the group.<a href="#section-3.1-3.6.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.5">Generator():</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.6">
+            <p id="section-3.1-4.6.1">Outputs the generator element <code>B</code> of the group.<a href="#section-3.1-4.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.7">ScalarMultGen(r):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.8">
-            <p id="section-3.1-3.8.1">Outputs <code>r * B</code>, where <code>B</code> is the group generator.<a href="#section-3.1-3.8.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.7">ScalarMultGen(r):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.8">
+            <p id="section-3.1-4.8.1">Outputs <code>r * B</code>, where <code>B</code> is the group generator.<a href="#section-3.1-4.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.9">HashToGroup(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.10">
-            <p id="section-3.1-3.10.1">Deterministically maps a byte string <code>x</code> to an <code>Element</code>. Parameterized by a
-domain separation tag (DST); see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-3.10.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.9">HashToGroup(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.10">
+            <p id="section-3.1-4.10.1">Deterministically maps a byte string <code>x</code> to an <code>Element</code>. Parameterized by a
+domain separation tag (DST); see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-4.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.11">HashToScalar(x):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.12">
-            <p id="section-3.1-3.12.1">Deterministically maps a byte string <code>x</code> to a <code>Scalar</code>. Parameterized by a
-DST; see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-3.12.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.11">HashToScalar(x):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.12">
+            <p id="section-3.1-4.12.1">Deterministically maps a byte string <code>x</code> to a <code>Scalar</code>. Parameterized by a
+DST; see <a href="#ciphersuites" class="auto internal xref">Section 7</a>.<a href="#section-3.1-4.12.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.13">ScalarInverse(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.14">
-            <p id="section-3.1-3.14.1">Outputs the multiplicative inverse of the nonzero <code>Scalar</code> <code>s</code> modulo <code>p</code>.<a href="#section-3.1-3.14.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.13">ScalarInverse(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.14">
+            <p id="section-3.1-4.14.1">Outputs the multiplicative inverse of the nonzero <code>Scalar</code> <code>s</code> modulo <code>p</code>.<a href="#section-3.1-4.14.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.15">SerializeElement(A):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.16">
-            <p id="section-3.1-3.16.1">Maps an <code>Element</code> <code>A</code> to a canonical byte string of fixed length <code>Ne</code>.<a href="#section-3.1-3.16.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.15">SerializeElement(A):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.16">
+            <p id="section-3.1-4.16.1">Maps an <code>Element</code> <code>A</code> to a canonical byte string of fixed length <code>Ne</code>.<a href="#section-3.1-4.16.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.17">DeserializeElement(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.18">
-            <p id="section-3.1-3.18.1">Attempts to map a byte string <code>buf</code> to an <code>Element</code>. Raises a
+<dt id="section-3.1-4.17">DeserializeElement(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.18">
+            <p id="section-3.1-4.18.1">Attempts to map a byte string <code>buf</code> to an <code>Element</code>. Raises a
 <code>DeserializeError</code> if <code>buf</code> is not the canonical encoding of a group element,
-or if it encodes the identity element.<a href="#section-3.1-3.18.1" class="pilcrow">¶</a></p>
+or if it encodes the identity element.<a href="#section-3.1-4.18.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.19">SerializeScalar(s):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.20">
-            <p id="section-3.1-3.20.1">Maps a <code>Scalar</code> <code>s</code> to a canonical byte string of fixed length <code>Ns</code>.<a href="#section-3.1-3.20.1" class="pilcrow">¶</a></p>
+<dt id="section-3.1-4.19">SerializeScalar(s):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.20">
+            <p id="section-3.1-4.20.1">Maps a <code>Scalar</code> <code>s</code> to a canonical byte string of fixed length <code>Ns</code>.<a href="#section-3.1-4.20.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
-<dt id="section-3.1-3.21">DeserializeScalar(buf):</dt>
-          <dd style="margin-left: 1.5em" id="section-3.1-3.22">
-            <p id="section-3.1-3.22.1">Attempts to map a byte string <code>buf</code> to a <code>Scalar</code>. Raises a
+<dt id="section-3.1-4.21">DeserializeScalar(buf):</dt>
+          <dd style="margin-left: 1.5em" id="section-3.1-4.22">
+            <p id="section-3.1-4.22.1">Attempts to map a byte string <code>buf</code> to a <code>Scalar</code>. Raises a
 <code>DeserializeError</code> if <code>buf</code> does not encode a <code>Scalar</code> in the range
-<code>[0, p-1]</code>.<a href="#section-3.1-3.22.1" class="pilcrow">¶</a></p>
+<code>[0, p-1]</code>.<a href="#section-3.1-4.22.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 </dl>
-<p id="section-3.1-4">This document does not use the <code>RandomScalar()</code> member of
+<p id="section-3.1-5">This document does not use the <code>RandomScalar()</code> member of
 <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Every scalar that has to be unpredictable is instead
-obtained from <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which is deterministic in a
+obtained from <code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which is deterministic in a
 random seed. This makes each algorithm reproducible from the seed it is given,
 which is what allows the test vectors of <a href="#test-vectors" class="auto internal xref">Appendix A</a> to pin the randomness
-of an otherwise randomized protocol.<a href="#section-3.1-4" class="pilcrow">¶</a></p>
+of an otherwise randomized protocol.<a href="#section-3.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="errors">
@@ -1666,13 +1674,15 @@ def CreateProtocolContext(identifier: bytes) -&gt; bytes:
 issuance and redemption contexts of <a href="#context-binding" class="auto internal xref">Section 4.4</a>: those are inputs to
 the protocol, chosen by its participants, whereas <code>ctx_proto</code> is fixed by the
 ciphersuite.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
-<p id="section-4.1-5">Every hash this document computes is domain-separated by <code>ctx_proto</code>, which it
-carries in its DST rather than in its input: <code>HashToGroup</code> and <code>HashToScalar</code>
-are so parameterized (<a href="#ciphersuites" class="auto internal xref">Section 7</a>), and so is <code>DeriveScalar</code>
-(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). Every algorithm below therefore depends on <code>ctx_proto</code>,
-including those in which it does not appear explicitly, and a value produced
-under one ciphersuite does not verify under another. Each algorithm treats
-<code>ctx_proto</code> as a global variable.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<p id="section-4.1-5">Every hash this document computes is domain-separated by <code>ctx_proto</code>,
+which it carries in its DST rather than in its input: <code>HashToGroup</code> and
+<code>HashToScalar</code> are so parameterized (<a href="#ciphersuites" class="auto internal xref">Section 7</a>), and so is
+<code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). Every algorithm below therefore
+depends on <code>ctx_proto</code>, including those in which it does not appear
+explicitly, and a value produced under one ciphersuite does not verify
+under another. The Python group instance <code>G</code> stores this context as
+<code>G.ctx_proto</code>. The group methods below use <code>self</code> for that instance, so
+the context is fixed when <code>G</code> is constructed.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-scalar">
@@ -1680,19 +1690,19 @@ under one ciphersuite does not verify under another. Each algorithm treats
         <h3 id="name-deriving-scalars">
 <a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
         </h3>
-<p id="section-4.2-1">The following function is used to derive a value in the scalar field of a group
-<code>G</code>. To generate a random scalar, one applies this function to a random seed an
-appropriate choice of <code>info</code> string:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-1">The group method <code>G.DeriveScalar</code> derives a value in the scalar field
+of <code>G</code>. To generate a random scalar, call it with a fresh random seed
+and an appropriate <code>info</code> string:<a href="#section-4.2-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-4.2-2">
 <pre>
-def DeriveScalar(seed: bytes, info: bytes) -&gt; Scalar:
+def DeriveScalar(self, seed: bytes, info: bytes) -&gt; Scalar:
     if len(seed) != Nseed:
         raise ValueError(f"seed must be exactly {Nseed} bytes")
     derive_input = seed + U16Prefixed(info)
     for counter in range(256):
-        s = G.HashToScalar(
+        s = self.HashToScalar(
             derive_input + I2OSP(counter, 1),
-            DST=b"DeriveScalar-" + ctx_proto,
+            DST=b"DeriveScalar-" + self.ctx_proto,
         )
         if not s.isZero():
             return s
@@ -1734,9 +1744,11 @@ of both <code>seed</code> and <code>info</code> is required, so the secrecy of <
 secrecy of <code>seed</code>. On the other hand, the <code>info</code> string is usually public.<a href="#section-4.3-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-4.3-2">
 <pre>
-def DeriveKeyPair(seed: bytes, info: bytes) -&gt; tuple[Scalar, Element]:
-    skA = DeriveScalar(seed, info)
-    pkA = G.ScalarMultGen(skA)
+def DeriveKeyPair(
+    self, seed: bytes, info: bytes
+) -&gt; tuple[Scalar, Element]:
+    skA = self.DeriveScalar(seed, info)
+    pkA = self.ScalarMultGen(skA)
     return (skA, pkA)
 </pre><a href="#section-4.3-2" class="pilcrow">¶</a>
 </div>
@@ -1748,9 +1760,9 @@ string, and in the length of the seed.<a href="#section-4.3-3" class="pilcrow">�
 <p id="section-4.3-4">A fresh key pair is generated by deriving one from a random seed.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-4.3-5">
 <pre>
-def GenerateKeyPair() -&gt; tuple[Scalar, Element]:
+def GenerateKeyPair(self) -&gt; tuple[Scalar, Element]:
     seed = random(Nseed)
-    return DeriveKeyPair(seed, b"GenerateKeyPair")
+    return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 </pre><a href="#section-4.3-5" class="pilcrow">¶</a>
 </div>
 <p id="section-4.3-6">The Anchor publishes <code>SerializeElement(pkA)</code> in its configuration; see
@@ -1859,9 +1871,9 @@ def Commit(ctx_iss: bytes) -&gt; tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
     rand = random(3 * Nseed)
-    a = DeriveScalar(Seed(rand, 0), b"a")
-    t = DeriveScalar(Seed(rand, 1), b"t")
-    y = DeriveScalar(Seed(rand, 2), b"y")
+    a = G.DeriveScalar(Seed(rand, 0), b"a")
+    t = G.DeriveScalar(Seed(rand, 1), b"t")
+    y = G.DeriveScalar(Seed(rand, 2), b"y")
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -1901,10 +1913,10 @@ def Challenge(
     nf = rand[:Nn]
     seeds = rand[Nn:]
 
-    r1 = DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = DeriveScalar(Seed(seeds, 3), b"gamma2")
+    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
+    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
+    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
+    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -2427,8 +2439,8 @@ def CommitStep(
 ) -&gt; bytes:
     C = (
         randomness * B
-        + DeriveScalar(left, b"left") * Q
-        + DeriveScalar(right, b"right") * G.P(Q)
+        + G.DeriveScalar(left, b"left") * Q
+        + G.DeriveScalar(right, b"right") * G.P(Q)
     )
     return G.SerializeElement(C)
 
@@ -2437,7 +2449,7 @@ def CommitStep(
 # binding direction
 
 def GenerateStep(bind_direction: str) -&gt; tuple[Element, Scalar]:
-    secret = DeriveScalar(random(Nseed), b"TODO")
+    secret = G.DeriveScalar(random(Nseed), b"TODO")
     T = secret * B
     if bind_direction == "left":
         return (G.Pinv(T), secret)
@@ -2565,7 +2577,7 @@ def ProveIssuer(
     if len(rand) != (3 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    r = DeriveScalar(Seed(rand, 0), b"r")
+    r = G.DeriveScalar(Seed(rand, 0), b"r")
     A = B * r
 
     (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
@@ -2714,7 +2726,7 @@ def Redeem(
     nrand = (3 * q + 2) * Nseed
 
     rand = random(nrand)
-    delta = DeriveScalar(Seed(rand, 0), b"delta")
+    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -2960,7 +2972,7 @@ inverse.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></p>
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
         </h3>
 <p id="section-7.2-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
-<code>random</code> and consumed by <code>DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>); no scalar is
+<code>random</code> and consumed by <code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>); no scalar is
 sampled directly. Implementations <span class="bcp14">MUST</span> draw seeds with a cryptographically
 secure random number generator and <span class="bcp14">MUST NOT</span> reuse a seed across derivations.
 They <span class="bcp14">SHOULD</span> treat a seed as being as sensitive as the values derived from it,
@@ -3069,7 +3081,7 @@ indistinguishability of the composition (Section 7 of <span>[<a href="#STACKSIG"
         <dd style="margin-left: 1.5em" id="section-8-3.12">
           <p id="section-8-3.12.1">The commitment of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> would be <em>perfectly</em> hiding if its randomness were
 uniform, and is <em>statistically</em> hiding as specified here, because
-<code>DeriveScalar</code> never returns zero (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). The two cases of
+<code>G.DeriveScalar</code> never returns zero (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). The two cases of
 <code>CreateCommitmentKey</code> therefore have slightly different supports -- <code>E - G0</code>
 is never <code>-G0</code> and <code>G0 - E</code> is never <code>G0</code> -- so a commitment key that happened
 to equal <code>G0</code> or <code>-G0</code> would reveal which position it binds, and the same
@@ -3360,7 +3372,7 @@ specified here is registered by <span>[<a href="#PROTOCOLS" class="cite xref">PR
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="appendix-A-1.1">
-          <p id="appendix-A-1.1.1"><strong>TODO.</strong> Test vectors for <code>DeriveKeyPair</code>, <code>DeriveScalar</code>,
+          <p id="appendix-A-1.1.1"><strong>TODO.</strong> Test vectors for <code>G.DeriveKeyPair</code>, <code>G.DeriveScalar</code>,
 <code>CreateContextBase</code>, <code>Message</code>, <code>ComputeChallenge</code>, the four issuance
 algorithms, <code>Verify</code>, <code>G0</code>, <code>CommitNode</code>, <code>CompressValue</code>,
 <code>ComputeProofChallenge</code>, <code>Redeem</code>, and <code>VerifyRedemption</code>, for each ciphersuite

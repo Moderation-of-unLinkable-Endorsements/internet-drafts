@@ -132,11 +132,11 @@ Table of Contents
 
    The group G, protocol context ctx_proto, seed length Nseed,
    generators, and balance width L are globals fixed by the ACT
-   configuration (Section 4.1).  Shared algorithms from [IHAT] are
-   instantiated with these ACT globals, including ACT's domain
-   separation, wherever they are used in this document.  Public byte-
-   string inputs retain the length bounds specified by the operation
-   that uses them.
+   configuration (Section 4.1).  Shared group methods from [IHAT] use
+   the ACT group instance G, which stores ctx_proto and applies ACT
+   domain separation.  The shared Seed helper uses the same Nseed = 48
+   for both schemes.  Public byte-string inputs retain the length bounds
+   specified by the operation that uses them.
 
 3.  Preliminaries
 
@@ -172,11 +172,12 @@ Table of Contents
 
 3.3.  Deriving Scalars
 
-   Use DeriveScalar(seed: bytes, info: bytes) -> Scalar from Section 4.2
-   of [IHAT], instantiated with ACT's G, ctx_proto, and Nseed.  It
-   rejects seeds of the wrong length with ValueError, rejects zero
-   outputs, and raises DeriveError if all 256 counter values yield zero.
-   ACT applies the following seed requirements to this shared algorithm.
+   Use G.DeriveScalar(seed: bytes, info: bytes) -> Scalar from
+   Section 4.2 of [IHAT], using the ACT group instance initialized with
+   ctx_proto.  It rejects seeds of the wrong length with ValueError,
+   rejects zero outputs, and raises DeriveError if all 256 counter
+   values yield zero.  ACT applies the following seed requirements to
+   this shared algorithm.
 
    A seed MUST be Nseed bytes of random output, and MUST NOT be used for
    more than one derivation.  An algorithm that needs several scalars
@@ -190,10 +191,10 @@ Table of Contents
 
 3.4.  Key Generation
 
-   Use DeriveKeyPair(seed, info) and GenerateKeyPair() from Section 4.3
-   of [IHAT], with the ACT globals of Section 4.1.  Both return
-   tuple[Scalar, Element]; ACT names the returned keys (skM, pkM)
-   because the Moderator is the issuer.  The Moderator publishes
+   Use G.DeriveKeyPair(seed, info) and G.GenerateKeyPair() from
+   Section 4.3 of [IHAT], with the ACT group instance of Section 4.1.
+   Both return tuple[Scalar, Element]; ACT names the returned keys (skM,
+   pkM) because the Moderator is the issuer.  The Moderator publishes
    G.SerializeElement(pkM) in its configuration ([PROTOCOLS]).
 
 4.  The Credential Scheme
@@ -201,17 +202,22 @@ Table of Contents
    A MoLE Credential is an Anonymous Credit Token (ACT).  It is a keyed-
    verification anonymous credential [KVAC] over a privately verifiable,
    pairing-free BBS-style signature [BBS] [TZ23], whose hidden state is
-   a _balance_: an integer number of credits.  A Moderator issues a
-   Credential with an initial balance, and the Client later _spends_
-   from it.  A spend reveals a public amount s and proves, in zero
-   knowledge, that the Credential holds at least s credits and has not
-   been spent before.  In the same exchange the Moderator issues a
+   a _balance_: a nonnegative integer number of credits.  A Moderator
+   issues a Credential with an initial balance, and the Client later
+   _spends_ from it.  A spend reveals a public amount s and proves, in
+   zero knowledge, that the Credential holds at least s credits and has
+   not been spent before.  In the same exchange the Moderator issues a
    _refund_: a fresh Credential whose balance is the remainder plus a
    Moderator-chosen return amount t.  A spend may also declare a public
-   _top-up_ a, in which case the refund may return up to s + a, raising
-   the balance; without one, t is at most s.  The Moderator never learns
-   the balance, and cannot link a spend to the issuance or refund that
-   produced the Credential it consumed, nor two spends to each other.
+   _top-up allowance_ a, in which case the refund may return up to s +
+   a, raising the balance; without one, t is at most s.  The Moderator
+   never learns the balance, and cannot link a spend to the issuance or
+   refund that produced the Credential it consumed, nor two spends to
+   each other.
+
+   The allowance a bounds the additional credit the Moderator may grant;
+   t is the amount it actually returns.  The new balance is c - s + t,
+   so its increase over c is at most a.
 
    This is the credential type 0x0001 of [PROTOCOLS].  In the vocabulary
    of [ARCH], a spend is a _Presentation_ whose _Predicate_ is "the
@@ -274,8 +280,8 @@ Table of Contents
 
    Throughout this section and wherever the algorithms of this section
    are invoked, ctx_proto denotes this value, and HashToGroup,
-   HashToScalar, DeriveScalar, and the key generation of Section 3.4 are
-   parameterized by it.
+   HashToScalar, G.DeriveScalar, and the key generation of Section 3.4
+   are parameterized by it.
 
    The scheme has one further parameter, the _balance width_ L.
    Balances and amounts are integers in [0, 2^L).  L MUST satisfy 1 <= L
@@ -320,8 +326,8 @@ Table of Contents
 4.1.2.  Key Generation
 
    A Moderator holds a key pair (skM, pkM), generated with
-   GenerateKeyPair of Section 3.4 under the protocol context of this
-   section, or derived from a seed with DeriveKeyPair.  The Moderator
+   G.GenerateKeyPair of Section 3.4 under the protocol context of this
+   section, or derived from a seed with G.DeriveKeyPair.  The Moderator
    publishes SerializeElement(pkM) in its configuration ([PROTOCOLS]).
    The signing key skM is also the verification key: VerifySpend
    requires it.
@@ -387,6 +393,9 @@ Table of Contents
    grounds that [HASH2CURVE] oversamples by 128 bits when mapping bytes
    to a field element.
 
+   For the Credential scheme, the P-256 ciphersuite sets MAX_BIT_LENGTH
+   = 64.
+
 5.1.  ACT(P-256, SHA-256)
 
    This ciphersuite uses P-256 (secp256r1) for the group and SHA-256 for
@@ -397,14 +406,14 @@ Table of Contents
    algorithms, and canonical encodings of Section 7.1 of [IHAT].  ACT
    uses Ne = 33, Ns = 32, and Nseed = 48.  Instantiate every hash with
    the ACT ctx_proto of Section 4.1, including the explicit DST passed
-   by DeriveScalar; the group-element permutation used by IHAT is not
+   by G.DeriveScalar; the group-element permutation used by IHAT is not
    needed.
 
 5.2.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
-   with random and consumed by DeriveScalar (Section 3.3); no scalar is
-   sampled directly.  Implementations MUST draw seeds with a
+   with random and consumed by G.DeriveScalar (Section 3.3); no scalar
+   is sampled directly.  Implementations MUST draw seeds with a
    cryptographically secure random number generator and MUST NOT reuse a
    seed across derivations.  They SHOULD treat a seed as being as
    sensitive as the values derived from it, and SHOULD handle both in
