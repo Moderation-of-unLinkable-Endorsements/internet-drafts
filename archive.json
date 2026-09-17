@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-15T04:01:17.271727+00:00",
+  "timestamp": "2026-09-17T04:05:02.068455+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -697,6 +697,24 @@
       "body": "\n\nSee https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/68#discussion_r4008394388 for details.\n            ",
       "createdAt": "2026-09-14T18:43:53Z",
       "updatedAt": "2026-09-14T18:45:34Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 72,
+      "id": "I_kwDOSX6krs8AAAABRWpYXQ",
+      "title": "ihat: Make randomness an explicit parameter of each algorithm",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/72",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "This makes it easier to generate reproducible test vectors. See https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/69/changes#r3994560515 for discussion.",
+      "createdAt": "2026-09-15T08:31:15Z",
+      "updatedAt": "2026-09-15T08:31:22Z",
       "closedAt": null,
       "comments": []
     }
@@ -7702,22 +7720,234 @@
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
-      "body": "this puts ACT in its own draft, on top of the IHAT split. it\u2019s the same model and assumptions as before, with the shared definitions copied over so it can be read on its own.\n\nstacked on #70.\n\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.\n",
+      "labels": [
+        "crypto"
+      ],
+      "body": "this puts ACT in its own draft and lines it up with the IHAT Python interfaces. shared definitions now point to IHAT, and the model and key helpers live in `poc/` too.\n\nstacked on #70. the later branches fill in the proofs and the rest of the demo.\n\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.\n",
       "createdAt": "2026-09-09T16:02:01Z",
-      "updatedAt": "2026-09-14T18:16:12Z",
+      "updatedAt": "2026-09-16T19:43:25Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "samuelschlesinger/act-draft-split",
-      "baseRefOid": "ff1440037d761e32e765677de60cf56ec167811e",
+      "baseRefOid": "d756dfc87a56a5e9813a9ac62f291310c40c6c22",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/act-02-model",
-      "headRefOid": "dc959ce10d745bd3f0b22f62d7fd3f9b9c46704e",
+      "headRefOid": "90d1a15eebc8262e8ee709f4fdcd88cba10cc019",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNpy4UA",
+          "commit": {
+            "abbreviatedOid": "dc959ce"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-15T14:16:51Z",
+          "updatedAt": "2026-09-15T14:16:51Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNrrDZQ",
+          "commit": {
+            "abbreviatedOid": "dc959ce"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Very nice, a few thoughts in comments but this is great.",
+          "createdAt": "2026-09-15T16:56:51Z",
+          "updatedAt": "2026-09-15T17:05:03Z",
+          "comments": [
+            {
+              "originalPosition": 166,
+              "body": "Consider deduplicating any conventions or preliminaries that this document has in common with IHAT. In other words, just refer to {{IHAT}} for everything that's shared, sort of like we do for {{ARCH}}:\n\n> The terms Client, Moderator, and Credential are used as defined in\n> {{ARCH}}.\n\nThis might force you to transcribe the pseudocode to Python, but that may be worth doing anyway :)))\n",
+              "createdAt": "2026-09-15T16:56:52Z",
+              "updatedAt": "2026-09-15T17:05:03Z"
+            },
+            {
+              "originalPosition": 448,
+              "body": "?\n\n```suggestion\n*balance*: a positive integer number of credits. A Moderator issues a Credential with\n```",
+              "createdAt": "2026-09-15T16:57:58Z",
+              "updatedAt": "2026-09-15T17:05:03Z"
+            },
+            {
+              "originalPosition": 454,
+              "body": "It might be useful to align notation with {{VOLE-ACT}} here. I.e., I think we would say `x` instead of `a`?",
+              "createdAt": "2026-09-15T16:58:46Z",
+              "updatedAt": "2026-09-15T17:05:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN387Bw",
+          "commit": {
+            "abbreviatedOid": "b8df147"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T17:28:39Z",
+          "updatedAt": "2026-09-16T17:44:10Z",
+          "comments": [
+            {
+              "originalPosition": 3,
+              "body": "This comment about the demo is sort of irrelevant here. Perhaps remove from the doc string?",
+              "createdAt": "2026-09-16T17:28:39Z",
+              "updatedAt": "2026-09-16T17:44:10Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "I wonder if we can deduplicate this and `src/ihat/py.typed` by moving `py.typed` up to `src`?",
+              "createdAt": "2026-09-16T17:30:06Z",
+              "updatedAt": "2026-09-16T17:44:10Z"
+            },
+            {
+              "originalPosition": 27,
+              "body": "is this always going to be `common.random` Could we just import it here?",
+              "createdAt": "2026-09-16T17:33:45Z",
+              "updatedAt": "2026-09-16T17:44:10Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "nice one :)",
+              "createdAt": "2026-09-16T17:34:30Z",
+              "updatedAt": "2026-09-16T17:44:10Z"
+            },
+            {
+              "originalPosition": 1,
+              "body": "It took me a bit, but I think I see what this module is accomplishing: Both ACT and IHAT have some code that depends on a global constant, so this module deduplicates the code that's shared.\n\nThis is reasonable, but makes me think trying to treat these as global variables is complicating the code structure unnecessarily.\n\nWe could move DeriveScalar and DeriveKeyPair and GenerateKeyPair to methods on the group. This changes the notation slightly from the draft: we woiuld write \"G.DeriveScalar\" instead of \"DeriveScalar\" and so on and pass is ctx_proto as a function parameter. But this seems worth it if we can simplify this module a bit.\n\nThe random() function is always going to be the same across IHAT and ACT, so I don't see why we need to include it as input to BindDerivation.\n\nThe Seed() function is a bit more complicated, since `Nseed` seems to differ between IHAT and ACT. We could:\n\n1. Make `Nseed` the same and move it and `Seed` to the common module. This would mean revisiting whether we're cool with pseudorandom values for IHAT. I'm pretty sure we are (cc @wbl).\n2. Just redefine `Seed()` in both IHAT and ACT. This is probably the lowest friction, even if it means decduplicating a bit of code.\n\n\n\n",
+              "createdAt": "2026-09-16T17:44:05Z",
+              "updatedAt": "2026-09-16T17:44:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5VxBg",
+          "commit": {
+            "abbreviatedOid": "b8df147"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:41:16Z",
+          "updatedAt": "2026-09-16T19:41:16Z",
+          "comments": [
+            {
+              "originalPosition": 3,
+              "body": "Done",
+              "createdAt": "2026-09-16T19:41:16Z",
+              "updatedAt": "2026-09-16T19:41:16Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5V5Zg",
+          "commit": {
+            "abbreviatedOid": "b8df147"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:41:25Z",
+          "updatedAt": "2026-09-16T19:41:25Z",
+          "comments": [
+            {
+              "originalPosition": 27,
+              "body": "Yep, done",
+              "createdAt": "2026-09-16T19:41:25Z",
+              "updatedAt": "2026-09-16T19:41:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5WV8Q",
+          "commit": {
+            "abbreviatedOid": "b8df147"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:42:02Z",
+          "updatedAt": "2026-09-16T19:42:02Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "Agreed, moved the derivation methods to G and removed the binding module. Also shared Seed and Nseed because both schemes use 48 bytes.",
+              "createdAt": "2026-09-16T19:42:02Z",
+              "updatedAt": "2026-09-16T19:42:02Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5W4Sw",
+          "commit": {
+            "abbreviatedOid": "dc959ce"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:42:56Z",
+          "updatedAt": "2026-09-16T19:42:56Z",
+          "comments": [
+            {
+              "originalPosition": 454,
+              "body": "Yes, lets align once we can see both in full. VOLE's `x` is the amount returned, which is `t` here. `a` is the top-up allowance. Clarified the text so hopefully that is clearer.",
+              "createdAt": "2026-09-16T19:42:56Z",
+              "updatedAt": "2026-09-16T19:42:57Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5XCHg",
+          "commit": {
+            "abbreviatedOid": "dc959ce"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:43:13Z",
+          "updatedAt": "2026-09-16T19:43:13Z",
+          "comments": [
+            {
+              "originalPosition": 448,
+              "body": "Done, nonnegative because zero is valid.",
+              "createdAt": "2026-09-16T19:43:13Z",
+              "updatedAt": "2026-09-16T19:43:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABN5XJYQ",
+          "commit": {
+            "abbreviatedOid": "dc959ce"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-16T19:43:25Z",
+          "updatedAt": "2026-09-16T19:43:25Z",
+          "comments": [
+            {
+              "originalPosition": 166,
+              "body": "Yes, that's underway as you can see",
+              "createdAt": "2026-09-16T19:43:25Z",
+              "updatedAt": "2026-09-16T19:43:25Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 68,
@@ -8223,7 +8453,7 @@
       "id": "PR_kwDOSX6krs8AAAABDNSP6g",
       "title": "ihat: Editorial pass",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/69",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -8232,17 +8462,19 @@
       ],
       "body": "Editorial changes. I've also dropped some comments with some non-editorial things I wanted to discuss.",
       "createdAt": "2026-09-11T22:36:57Z",
-      "updatedAt": "2026-09-12T01:41:48Z",
+      "updatedAt": "2026-09-15T10:03:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "baseRefOid": "2874e2b1e834c59b68719a02eaadb491c8a12e37",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/ihat-editorial",
-      "headRefOid": "775d7ce426408c51b5ec4473369cf9abad4d7ee4",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "340918017c2dd8dc6f7cbd2b84285d5ab4b087ce",
+      "closedAt": "2026-09-15T10:03:12Z",
+      "mergedAt": "2026-09-15T10:03:12Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "d2898a2fc55e454155d97d0f943b9e6e0c4639b9"
+      },
       "comments": [],
       "reviews": [
         {
@@ -8748,6 +8980,158 @@
               "updatedAt": "2026-09-12T01:41:48Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNgwGvw",
+          "commit": {
+            "abbreviatedOid": "0918bd2"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-14T19:05:57Z",
+          "updatedAt": "2026-09-15T08:40:43Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "The opinion of the draft currently is that it should be specified at the protocol layer. Personally I think that's a much cleaner design. I'll add a TODO to track.",
+              "createdAt": "2026-09-14T19:05:57Z",
+              "updatedAt": "2026-09-15T08:40:43Z"
+            },
+            {
+              "originalPosition": 108,
+              "body": "Agreed. I'll add as a TODO here.",
+              "createdAt": "2026-09-14T19:06:31Z",
+              "updatedAt": "2026-09-15T08:40:43Z"
+            },
+            {
+              "originalPosition": 138,
+              "body": "tracking here: https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/72",
+              "createdAt": "2026-09-15T08:31:32Z",
+              "updatedAt": "2026-09-15T08:40:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNmzdSw",
+          "commit": {
+            "abbreviatedOid": "afc101a"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T09:21:52Z",
+          "updatedAt": "2026-09-15T09:21:52Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "Ok, I'm gonna resolve this one but make a note to bring it up for discussion next time we meet.",
+              "createdAt": "2026-09-15T09:21:52Z",
+              "updatedAt": "2026-09-15T09:21:52Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNm0UHA",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T09:23:22Z",
+          "updatedAt": "2026-09-15T09:23:22Z",
+          "comments": [
+            {
+              "originalPosition": 308,
+              "body": "Done.",
+              "createdAt": "2026-09-15T09:23:22Z",
+              "updatedAt": "2026-09-15T09:23:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNnFOOg",
+          "commit": {
+            "abbreviatedOid": "d805474"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T09:53:38Z",
+          "updatedAt": "2026-09-15T09:53:38Z",
+          "comments": [
+            {
+              "originalPosition": 381,
+              "body": "making a note to discuss this one at the next PACT sync.",
+              "createdAt": "2026-09-15T09:53:38Z",
+              "updatedAt": "2026-09-15T09:53:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNnHIxw",
+          "commit": {
+            "abbreviatedOid": "cfc6a30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T09:57:39Z",
+          "updatedAt": "2026-09-15T09:57:39Z",
+          "comments": [
+            {
+              "originalPosition": 452,
+              "body": "Deleted this paragraph.",
+              "createdAt": "2026-09-15T09:57:39Z",
+              "updatedAt": "2026-09-15T09:57:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNnIV2g",
+          "commit": {
+            "abbreviatedOid": "775d7ce"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T09:59:47Z",
+          "updatedAt": "2026-09-15T09:59:48Z",
+          "comments": [
+            {
+              "originalPosition": 195,
+              "body": "Agreed. I removed the last sentence.",
+              "createdAt": "2026-09-15T09:59:48Z",
+              "updatedAt": "2026-09-15T09:59:48Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNnJjOQ",
+          "commit": {
+            "abbreviatedOid": "775d7ce"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-15T10:01:49Z",
+          "updatedAt": "2026-09-15T10:01:49Z",
+          "comments": [
+            {
+              "originalPosition": 1,
+              "body": "Removed the paragraph.",
+              "createdAt": "2026-09-15T10:01:49Z",
+              "updatedAt": "2026-09-15T10:01:49Z"
+            }
+          ]
         }
       ]
     },
@@ -8760,22 +9144,51 @@
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "crypto"
+      ],
       "body": "this renames the crypto draft to IHAT and updates the references. the protocol itself is unchanged. ACT will live in a separate draft.\n\nACT follows in #67.\n",
       "createdAt": "2026-09-14T18:15:27Z",
-      "updatedAt": "2026-09-15T00:28:10Z",
+      "updatedAt": "2026-09-16T13:13:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
+      "baseRefOid": "d2898a2fc55e454155d97d0f943b9e6e0c4639b9",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/act-draft-split",
-      "headRefOid": "ff1440037d761e32e765677de60cf56ec167811e",
+      "headRefOid": "d756dfc87a56a5e9813a9ac62f291310c40c6c22",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNnKunA",
+          "commit": {
+            "abbreviatedOid": "ff14400"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Boom!",
+          "createdAt": "2026-09-15T10:03:54Z",
+          "updatedAt": "2026-09-15T10:03:54Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABNpye9w",
+          "commit": {
+            "abbreviatedOid": "ff14400"
+          },
+          "author": "dennisjackson",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-15T14:16:23Z",
+          "updatedAt": "2026-09-15T14:16:23Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
