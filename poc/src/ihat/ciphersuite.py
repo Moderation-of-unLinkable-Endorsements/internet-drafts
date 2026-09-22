@@ -263,10 +263,50 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         return P256Scalar(scalar)
 
     def P(self, element: Element[P256SHA256]) -> Element[P256SHA256]:
-        raise NotImplementedError("TODO")
+        buf = bytearray(self.SerializeElement(element))
+        buf[0] = buf[0]-0x02
+        while True:
+            buf = self._pbuf(buf)
+            buf[0]=buf[0]+0x02
+            try:
+                return self.DeserializeElement(buf)
+            except:
+                pass
+            buf = bytearray(buf)
+            buf[0] = buf[0]-0x02
 
     def Pinv(self, element: Element[P256SHA256]) -> Element[P256SHA256]:
-        raise NotImplementedError("TODO")
+        buf = bytearray(self.SerializeElement(element))
+        buf[0] = buf[0]-0x02
+        while True:
+            buf = self._pinvbuf(buf)
+            buf[0] = buf[0]+0x02
+            try:
+                return self.DeserializeElement(buf)
+            except:
+                pass
+            buf = bytearray(buf)
+            buf[0] = buf[0]-0x02
+
+    def _pbuf(self, buf: bytearray) ->bytearray:
+        left = buf[0:17]
+        right = buf[17:]
+
+        for i in range(0, 4):
+            left = bytearray(_xor(left, _sha256(right + f"left round {i}".encode())[0:17]))
+            left[0] = left[0] & 0x01
+            right = bytearray(_xor(right, _sha256(left + f"right round {i}".encode())[0:16]))
+        return bytearray(left+right)
+
+    def _pinvbuf(self, buf:bytearray)->bytearray:
+        left = buf[0:17]
+        right = buf[17:]
+        for i in reversed(range(0, 4)):
+            right = bytearray(_xor(right, _sha256(left + f"right round {i}".encode())[0:16]))
+            left = bytearray(_xor(left, _sha256(right + f"left round {i}".encode())[0:17]))
+            left[0] = left[0] & 0x01
+        return bytearray(left+right)
+        
 
     @staticmethod
     def _map_to_curve_simple_swu(u: int) -> tuple[int, int]:

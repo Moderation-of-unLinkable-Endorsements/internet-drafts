@@ -90,3 +90,29 @@ def test_scalar_arithmetic_reduces_modulo_order():
     assert sum_result == Scalar(1)
     assert difference_result == Scalar(ORDER - 1)
     assert product_result == Scalar(ORDER - 2)
+
+def test_p_not_identity():
+    group = P256Group(b"test")
+    for i in range(1, 100):
+        elt = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
+        elt2 = group.P(elt)
+        res = elt - elt2
+        assert not res.isIdentity()
+
+def test_p_invertable():
+    group = P256Group(b"test")
+    for i in range(1, 100):
+        elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
+        elt2 = group.P(elt1)
+        elt3 = group.Pinv(elt2)
+        res = elt1 - elt3
+        assert res.isIdentity()
+
+def test_p_not_involution():
+    group = P256Group(b"test")
+    for i in range(1, 100):
+        elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
+        elt2 = group.P(elt1)
+        elt3 = group.P(elt2)
+        res = elt1 - elt3
+        assert not res.isIdentity()
