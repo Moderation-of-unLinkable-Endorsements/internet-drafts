@@ -534,6 +534,189 @@ def Verify(
     return VerifyCompact(tag, relation, proof)
 ~~~
 
+## Issuance {#act-issuance}
+
+Issuance produces a signature on the message
+`B + c * H1 + k * H2 + r * H3 + ctx * H4`, where `c` is the balance chosen
+by the Moderator, `ctx` is the context scalar, and `k` and `r` are chosen
+by the Client and hidden from the Moderator:
+
+~~~
+  IssueRequest -> IssueResponse -> FinalizeIssue
+~~~
+
+`IssueRequest` and `FinalizeIssue` are run by the Client, and
+`IssueResponse` by the Moderator. The Python records are:
+
+~~~ python
+class ClientIssuanceState(NamedTuple):
+    k: Scalar
+    r: Scalar
+    K: Element
+
+
+class IssueRequestMessage(NamedTuple):
+    K: Element
+    pok: bytes
+
+
+class IssueResponseMessage(NamedTuple):
+    A: Element
+    e: Scalar
+    c: int
+    pok: bytes
+
+
+class Credential(NamedTuple):
+    k: Scalar
+    c: int
+    r: Scalar
+    A: Element
+    e: Scalar
+~~~
+
+### Signing Exponent {#act-signing-exponent}
+
+`IssueResponse` chooses the exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonce`
+(Section 4.3 of {{IHAT}}) from the signing key, the signed message, and
+fresh randomness. A random source that repeats therefore reproduces an
+earlier signature and never issues a second one with the same exponent
+({{act-security}}).
+
+~~~ python
+def SigningExponent(
+    skM: Scalar, label: bytes, X_A: Element
+) -> Scalar:
+    instance = U16Prefixed(label) + U16Prefixed(
+        G.SerializeElement(X_A)
+    )
+    e = G.DeriveNonce(
+        G.SerializeScalar(skM), b"e", instance, random(Nseed)
+    )
+    if (e + skM).isZero():
+        raise DeriveError
+    return e
+~~~
+
+`label` is `IssueResponse`, the tag label of the accompanying proof,
+and `X_A` is the message being signed. The abort
+when `e + skM` is zero has probability about `1/p`; a caller that
+retries draws fresh randomness.
+
+### Issuance Request {#act-issue-request}
+
+The Client commits to a fresh nullifier `k` and blinding factor `r`, and
+proves that it knows the opening:
+
+~~~
+Relation Commitment(H2, H3, K):
+  Witness: k, r
+  Equations:
+    K = k * H2 + r * H3
+~~~
+
+~~~ python
+def IssueRequest() -> (
+    tuple[ClientIssuanceState, IssueRequestMessage]
+):
+    rand = random(2 * Nseed)
+    k = G.DeriveScalar(Seed(rand, 0), b"k")
+    r = G.DeriveScalar(Seed(rand, 1), b"r")
+
+    K = k * H2 + r * H3
+
+    tag = Tag(b"IssueRequest", [])
+    pok = Prove(tag, CommitmentRelation(K), [k, r])
+
+    return ClientIssuanceState(k, r, K), IssueRequestMessage(K, pok)
+~~~
+
+The nullifier `k` is revealed when the Credential is spent, and the
+Moderator uses it to reject a second spend. A Client MUST NOT reuse it
+across Credentials, and MUST NOT finalize one `state` against two
+responses: the two Credentials would share `k`, and at most one of them
+can be spent ({{act-security}}).
+
+### Issuance Response {#act-issue-response}
+
+The Moderator checks the request, chooses the balance, and signs the
+message `X_A = B + c * H1 + ctx * H4 + K` as `A = X_A / (e + skM)`. It
+proves that `A` is such a signature under `pkM` without revealing `skM`,
+with the witness `x = e + skM` and `X_G = x * G`, which the Client
+computes as `e * G + pkM`:
+
+~~~
+Relation Signature(A, X_A, X_G):
+  Witness: x
+  Equations:
+    X_A = x * A
+    X_G = x * G
+~~~
+
+~~~ python
+def IssueResponse(
+    skM: Scalar,
+    ctx_cred: bytes,
+    c: int,
+    request: IssueRequestMessage,
+) -> IssueResponseMessage:
+    K, pok = request
+
+    if not 0 <= c < 2**L:
+        raise AmountError
+
+    tag = Tag(b"IssueRequest", [])
+    if not Verify(tag, CommitmentRelation(K), pok):
+        raise VerifyError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+
+    e = SigningExponent(skM, b"IssueResponse", X_A)
+    x = e + skM
+    A = G.ScalarInverse(x) * X_A
+    X_G = G.ScalarMultGen(x)
+
+    tag = Tag(b"IssueResponse", [])
+    pok = Prove(tag, SignatureRelation(A, X_A, X_G), [x])
+
+    return IssueResponseMessage(A, e, c, pok)
+~~~
+
+The check `c < 2^L` bounds every issued balance; the soundness of
+spending relies on it ({{act-security}}).
+
+### Issuance Finalization {#act-finalize-issuance}
+
+The Client checks the response and assembles the Credential.
+
+~~~ python
+def FinalizeIssue(
+    pkM: Element,
+    ctx_cred: bytes,
+    state: ClientIssuanceState,
+    response: IssueResponseMessage,
+) -> Credential:
+    k, r, K = state
+    A, e, c, pok = response
+
+    if not 0 <= c < 2**L:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+    X_G = G.ScalarMultGen(e) + pkM
+
+    tag = Tag(b"IssueResponse", [])
+    if not Verify(tag, SignatureRelation(A, X_A, X_G), pok):
+        raise VerifyError
+
+    return Credential(k, c, r, A, e)
+~~~
+
+A Credential is the tuple `(k, c, r, A, e)`. It is never sent. The Client also retains
+`ctx_cred`, which is not part of the Credential but is needed to spend it.
+
 # Ciphersuites {#ciphersuites}
 
 The Credential scheme is specified for the P-256 ciphersuite below. A
@@ -584,6 +767,8 @@ both in constant time.
 The following values MUST be derived with `G.DeriveNonce`, with the inputs
 stated where they are used; drawing them directly is not conformant:
 
+* the Moderator's signing exponent `e` in `IssueResponse` and
+  `IssueRefund`, through `SigningExponent` ({{act-signing-exponent}});
 * every nonce of a `ProveCompact` prover of the Credential scheme,
   through `ProverNonces` ({{act-prover-nonces}}).
 

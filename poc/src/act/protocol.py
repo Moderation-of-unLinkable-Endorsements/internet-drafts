@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import NamedTuple
 
+from ihat.ciphersuite import DeriveError
 from ihat.ciphersuite import P256Element as Element
 from ihat.ciphersuite import P256Scalar as Scalar
 from ihat.common import I2OSP
@@ -15,6 +17,9 @@ from .sigma import ProveCompact
 from .sigma import SerializeLinearRelation
 from .sigma import LinearRelation
 from .sigma import VerifyCompact
+from .statements import CommitmentRelation
+from .statements import SignatureRelation
+from ihat.protocol import VerifyError
 
 Nseed = common.Nseed
 Seed = common.Seed
@@ -99,6 +104,113 @@ def Verify(
     tag: bytes, relation: LinearRelation, proof: bytes
 ) -> bool:
     return VerifyCompact(tag, relation, proof)
+
+
+def SigningExponent(
+    skM: Scalar, label: bytes, X_A: Element
+) -> Scalar:
+    instance = U16Prefixed(label) + U16Prefixed(
+        G.SerializeElement(X_A)
+    )
+    e = G.DeriveNonce(
+        G.SerializeScalar(skM), b"e", instance, random(Nseed)
+    )
+    if (e + skM).isZero():
+        raise DeriveError
+    return e
+
+
+class ClientIssuanceState(NamedTuple):
+    k: Scalar
+    r: Scalar
+    K: Element
+
+
+class IssueRequestMessage(NamedTuple):
+    K: Element
+    pok: bytes
+
+
+class IssueResponseMessage(NamedTuple):
+    A: Element
+    e: Scalar
+    c: int
+    pok: bytes
+
+
+class Credential(NamedTuple):
+    k: Scalar
+    c: int
+    r: Scalar
+    A: Element
+    e: Scalar
+
+
+def IssueRequest() -> (
+    tuple[ClientIssuanceState, IssueRequestMessage]
+):
+    rand = random(2 * Nseed)
+    k = G.DeriveScalar(Seed(rand, 0), b"k")
+    r = G.DeriveScalar(Seed(rand, 1), b"r")
+
+    K = k * H2 + r * H3
+
+    tag = Tag(b"IssueRequest", [])
+    pok = Prove(tag, CommitmentRelation(K), [k, r])
+
+    return ClientIssuanceState(k, r, K), IssueRequestMessage(K, pok)
+
+
+def IssueResponse(
+    skM: Scalar,
+    ctx_cred: bytes,
+    c: int,
+    request: IssueRequestMessage,
+) -> IssueResponseMessage:
+    K, pok = request
+
+    if not 0 <= c < 2**L:
+        raise AmountError
+
+    tag = Tag(b"IssueRequest", [])
+    if not Verify(tag, CommitmentRelation(K), pok):
+        raise VerifyError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+
+    e = SigningExponent(skM, b"IssueResponse", X_A)
+    x = e + skM
+    A = G.ScalarInverse(x) * X_A
+    X_G = G.ScalarMultGen(x)
+
+    tag = Tag(b"IssueResponse", [])
+    pok = Prove(tag, SignatureRelation(A, X_A, X_G), [x])
+
+    return IssueResponseMessage(A, e, c, pok)
+
+
+def FinalizeIssue(
+    pkM: Element,
+    ctx_cred: bytes,
+    state: ClientIssuanceState,
+    response: IssueResponseMessage,
+) -> Credential:
+    k, r, K = state
+    A, e, c, pok = response
+
+    if not 0 <= c < 2**L:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+    X_G = G.ScalarMultGen(e) + pkM
+
+    tag = Tag(b"IssueResponse", [])
+    if not Verify(tag, SignatureRelation(A, X_A, X_G), pok):
+        raise VerifyError
+
+    return Credential(k, c, r, A, e)
 
 
 ctx_proto = CreateCredentialProtocolContext(b"P256-SHA256")
