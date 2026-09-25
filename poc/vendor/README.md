@@ -7,8 +7,10 @@ is `draft-irtf-cfrg-fiat-shamir-03`. The gitlink records the exact commit.
 
 `act/sigma.py` puts the submodule's `poc` directory on `sys.path` and calls
 its `prove_compact` and `verify_compact` directly, the way the ARC reference
-implementation does. No upstream file is copied or patched. Its own vector
-harness, `poc/test_vectors.py`, is run by our test suite.
+implementation does, over the IHAT group presented through upstream's group
+interface so that the arithmetic is native. No upstream file is copied or
+patched. Its own vector harness, `poc/test_vectors.py`, is run by our test
+suite.
 
 Updating the pin is a separate change: ACTv1 is specified against these
 revisions, and a revision that changes the NARG string or its derivation

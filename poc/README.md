@@ -20,12 +20,14 @@ python3 -m venv .venv
 .venv/bin/pylint --disable=all --enable=redefined-outer-name src tests
 ```
 
-The ACT implementation includes generators, contexts, and key derivation.
-The demo generates a Moderator key pair.
+The demo issues a Credential and runs the four spend shapes with their
+refunds, encoding every message on the way.
 
 The algorithms in `src/act/protocol.py` match the draft's Python snippets;
-tests check that they stay in sync. ACT shares IHAT's group and derivation
-code. Each group instance carries its own protocol context and provides
+tests check that they stay in sync. `src/act/statements.py` compiles the
+draft's `Relation` blocks, `src/act/sigma.py` runs them on the pinned CFRG
+code, and `src/act/wire.py` holds the message encodings. ACT shares IHAT's
+group and derivation code. Each group instance carries its own protocol context and provides
 `G.DeriveScalar`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`. Both schemes
 use the common `Seed` helper and 48-byte seeds.
 Group values carry an invariant ciphersuite type parameter, allowing static
