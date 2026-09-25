@@ -24,6 +24,18 @@ venue:
 
 author:
  -
+    fullname: Samuel Schlesinger
+    organization: Google LLC
+    email: sgschlesinger@gmail.com
+ -
+    fullname: Jonathan Katz
+    organization: Google LLC
+    email: jkcrypto@google.com
+ -
+    fullname: Armando Faz-Hernandez
+    organization: Cloudflare, Inc.
+    email: armfazh@cloudflare.com
+ -
     fullname: Deep Inder Mohan
     organization: Georgia Institute of Technology
     email: dmohan@gatech.edu
@@ -37,6 +49,7 @@ normative:
   OPRF: RFC9497
   RISTRETTO: RFC9496
   TLS13: RFC8446
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-02
   NISTCurves:
     title: "Digital Signature Standard (DSS)"
     target: https://doi.org/10.6028/NIST.FIPS.186-5
@@ -55,7 +68,6 @@ normative:
         org: Standards for Efficient Cryptography Group (SECG)
 
 informative:
-  SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
   CDS94:
     title: "Proofs of Partial Knowledge and Simplified Design of Witness Hiding Protocols"
     target: https://doi.org/10.1007/3-540-48658-5_19
@@ -245,6 +257,11 @@ unpredictable is derived from its output ({{derive-scalar}}).
 that is `x[k * Nseed:(k + 1) * Nseed]`, with `k` counted from zero.
 {{ciphersuites}} fixes the seed length `Nseed`.
 
+~~~python
+def Seed(value: bytes, index: int) -> bytes:
+    return value[index * Nseed : (index + 1) * Nseed]
+~~~
+
 Byte strings such as `b"Challenge"` contain the corresponding ASCII bytes and
 do not include a terminating NUL byte.
 
@@ -272,6 +289,9 @@ denote elements of the group and of its scalar field respectively. Group
 elements are added with `+` and subtracted with `-`; scalar multiplication of
 an `Element` `A` by a `Scalar` `r` is written `r * A`. Scalars are added,
 subtracted, and multiplied modulo `p`.
+
+The group also provides `G.DeriveScalar`, `G.DeriveKeyPair`, and
+`G.GenerateKeyPair`, defined in {{derive-scalar}} and {{keygen}}.
 
 The following member functions are used. Except where noted, they are as
 defined in {{Section 2.1 of OPRF}}.
@@ -317,7 +337,7 @@ DeserializeScalar(buf):
 
 This document does not use the `RandomScalar()` member of
 {{Section 2.1 of OPRF}}. Every scalar that has to be unpredictable is instead
-obtained from `DeriveScalar` ({{derive-scalar}}), which is deterministic in a
+obtained from `G.DeriveScalar` ({{derive-scalar}}), which is deterministic in a
 random seed. This makes each algorithm reproducible from the seed it is given,
 which is what allows the test vectors of {{test-vectors}} to pin the randomness
 of an otherwise randomized protocol.
@@ -412,29 +432,31 @@ issuance and redemption contexts of {{context-binding}}: those are inputs to
 the protocol, chosen by its participants, whereas `ctx_proto` is fixed by the
 ciphersuite.
 
-Every hash this document computes is domain-separated by `ctx_proto`, which it
-carries in its DST rather than in its input: `HashToGroup` and `HashToScalar`
-are so parameterized ({{ciphersuites}}), and so is `DeriveScalar`
-({{derive-scalar}}). Every algorithm below therefore depends on `ctx_proto`,
-including those in which it does not appear explicitly, and a value produced
-under one ciphersuite does not verify under another. Each algorithm treats
-`ctx_proto` as a global variable.
+Every hash this document computes is domain-separated by `ctx_proto`,
+which it carries in its DST rather than in its input: `HashToGroup` and
+`HashToScalar` are so parameterized ({{ciphersuites}}), and so is
+`G.DeriveScalar` ({{derive-scalar}}). Every algorithm below therefore
+depends on `ctx_proto`, including those in which it does not appear
+explicitly, and a value produced under one ciphersuite does not verify
+under another. The Python group instance `G` stores this context as
+`G.ctx_proto`. The group methods below use `self` for that instance, so
+the context is fixed when `G` is constructed.
 
 ## Deriving Scalars {#derive-scalar}
 
-The following function is used to derive a value in the scalar field of a group
-`G`. To generate a random scalar, one applies this function to a random seed an
-appropriate choice of `info` string:
+The group method `G.DeriveScalar` derives a value in the scalar field
+of `G`. To generate a random scalar, call it with a fresh random seed
+and an appropriate `info` string:
 
 ~~~python
-def DeriveScalar(seed: bytes, info: bytes) -> Scalar:
+def DeriveScalar(self, seed: bytes, info: bytes) -> Scalar:
     if len(seed) != Nseed:
         raise ValueError(f"seed must be exactly {Nseed} bytes")
     derive_input = seed + U16Prefixed(info)
     for counter in range(256):
-        s = G.HashToScalar(
+        s = self.HashToScalar(
             derive_input + I2OSP(counter, 1),
-            DST=b"DeriveScalar-" + ctx_proto,
+            DST=b"DeriveScalar-" + self.ctx_proto,
         )
         if not s.isZero():
             return s
@@ -470,9 +492,11 @@ of both `seed` and `info` is required, so the secrecy of `skA` rests on the
 secrecy of `seed`. On the other hand, the `info` string is usually public.
 
 ~~~python
-def DeriveKeyPair(seed: bytes, info: bytes) -> tuple[Scalar, Element]:
-    skA = DeriveScalar(seed, info)
-    pkA = G.ScalarMultGen(skA)
+def DeriveKeyPair(
+    self, seed: bytes, info: bytes
+) -> tuple[Scalar, Element]:
+    skA = self.DeriveScalar(seed, info)
+    pkA = self.ScalarMultGen(skA)
     return (skA, pkA)
 ~~~
 
@@ -485,9 +509,9 @@ string, and in the length of the seed.
 A fresh key pair is generated by deriving one from a random seed.
 
 ~~~python
-def GenerateKeyPair() -> tuple[Scalar, Element]:
+def GenerateKeyPair(self) -> tuple[Scalar, Element]:
     seed = random(Nseed)
-    return DeriveKeyPair(seed, b"GenerateKeyPair")
+    return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 ~~~
 
 The Anchor publishes `SerializeElement(pkA)` in its configuration; see
@@ -590,9 +614,9 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
     rand = random(3 * Nseed)
-    a = DeriveScalar(Seed(rand, 0), b"a")
-    t = DeriveScalar(Seed(rand, 1), b"t")
-    y = DeriveScalar(Seed(rand, 2), b"y")
+    a = G.DeriveScalar(Seed(rand, 0), b"a")
+    t = G.DeriveScalar(Seed(rand, 1), b"t")
+    y = G.DeriveScalar(Seed(rand, 2), b"y")
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -629,10 +653,10 @@ def Challenge(
     nf = rand[:Nn]
     seeds = rand[Nn:]
 
-    r1 = DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = DeriveScalar(Seed(seeds, 3), b"gamma2")
+    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
+    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
+    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
+    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -1128,8 +1152,8 @@ def CommitStep(
 ) -> bytes:
     C = (
         randomness * B
-        + DeriveScalar(left, b"left") * Q
-        + DeriveScalar(right, b"right") * G.P(Q)
+        + G.DeriveScalar(left, b"left") * Q
+        + G.DeriveScalar(right, b"right") * G.P(Q)
     )
     return G.SerializeElement(C)
 
@@ -1138,7 +1162,7 @@ def CommitStep(
 # binding direction
 
 def GenerateStep(bind_direction: str) -> tuple[Element, Scalar]:
-    secret = DeriveScalar(random(Nseed), b"TODO")
+    secret = G.DeriveScalar(random(Nseed), b"TODO")
     T = secret * B
     if bind_direction == "left":
         return (G.Pinv(T), secret)
@@ -1258,7 +1282,7 @@ def ProveIssuer(
     if len(rand) != (3 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    r = DeriveScalar(Seed(rand, 0), b"r")
+    r = G.DeriveScalar(Seed(rand, 0), b"r")
     A = B * r
 
     (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
@@ -1399,7 +1423,7 @@ def Redeem(
     nrand = (3 * q + 2) * Nseed
 
     rand = random(nrand)
-    delta = DeriveScalar(Seed(rand, 0), b"delta")
+    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -1608,7 +1632,7 @@ P:
 ## Randomness {#randomness}
 
 Every random value in this document is a seed of `Nseed` bytes, drawn with
-`random` and consumed by `DeriveScalar` ({{derive-scalar}}); no scalar is
+`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}); no scalar is
 sampled directly. Implementations MUST draw seeds with a cryptographically
 secure random number generator and MUST NOT reuse a seed across derivations.
 They SHOULD treat a seed as being as sensitive as the values derived from it,
@@ -1696,7 +1720,7 @@ Issuer hiding:
 
 : The commitment of {{pbvc}} would be *perfectly* hiding if its randomness were
   uniform, and is *statistically* hiding as specified here, because
-  `DeriveScalar` never returns zero ({{derive-scalar}}). The two cases of
+  `G.DeriveScalar` never returns zero ({{derive-scalar}}). The two cases of
   `CreateCommitmentKey` therefore have slightly different supports -- `E - G0`
   is never `-G0` and `G0 - E` is never `G0` -- so a commitment key that happened
   to equal `G0` or `-G0` would reveal which position it binds, and the same
@@ -1860,7 +1884,7 @@ specified here is registered by {{PROTOCOLS}}.
 
 # Test Vectors {#test-vectors}
 
-> **TODO.** Test vectors for `DeriveKeyPair`, `DeriveScalar`,
+> **TODO.** Test vectors for `G.DeriveKeyPair`, `G.DeriveScalar`,
 > `CreateContextBase`, `Message`, `ComputeChallenge`, the four issuance
 > algorithms, `Verify`, `G0`, `CommitNode`, `CompressValue`,
 > `ComputeProofChallenge`, `Redeem`, and `VerifyRedemption`, for each ciphersuite
