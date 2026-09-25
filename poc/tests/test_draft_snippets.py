@@ -61,6 +61,7 @@ def test_shared_algorithms_match_ihat_draft():
     for name in (
         "Seed",
         "DeriveScalar",
+        "DeriveNonce",
         "DeriveKeyPair",
         "GenerateKeyPair",
         "P",

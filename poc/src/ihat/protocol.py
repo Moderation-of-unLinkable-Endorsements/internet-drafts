@@ -295,16 +295,14 @@ def VecCommit(
     return VecCommit(V_prime, Qi[1:], rands[1:])
 
 
-def ComputeProofChallenge(
+def ProofStatement(
     anchor_set: Sequence[Element],
     X_hat: Element,
     endorsement: Endorsement,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
-    commitment_keys: Sequence[Element],
-    root: bytes,
-) -> Scalar:
+) -> bytes:
     (c, s_hat, y, t, nf) = endorsement
     n = len(anchor_set)
 
@@ -312,11 +310,7 @@ def ComputeProofChallenge(
     for i in range(n):
         anchor_set_enc += G.SerializeElement(anchor_set[i])
 
-    ck_enc = b""
-    for j in range(len(commitment_keys)):
-        ck_enc += G.SerializeElement(commitment_keys[j])
-
-    proof_transcript = (
+    return (
         I2OSP(n, 2)
         + anchor_set_enc
         + G.SerializeElement(X_hat)
@@ -328,6 +322,32 @@ def ComputeProofChallenge(
         + U16Prefixed(ctx_iss)
         + U16Prefixed(ctx_red)
         + U16Prefixed(challenge_digest)
+    )
+
+
+def ComputeProofChallenge(
+    anchor_set: Sequence[Element],
+    X_hat: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+    commitment_keys: Sequence[Element],
+    root: bytes,
+) -> Scalar:
+    ck_enc = b""
+    for j in range(len(commitment_keys)):
+        ck_enc += G.SerializeElement(commitment_keys[j])
+
+    proof_transcript = (
+        ProofStatement(
+            anchor_set,
+            X_hat,
+            endorsement,
+            ctx_iss,
+            ctx_red,
+            challenge_digest,
+        )
         + ck_enc
         + root
         + b"IssuerProof"
@@ -448,7 +468,17 @@ def ProveIssuer(
     if len(rand) != (2 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    r = G.DeriveScalar(Seed(rand, 0), b"r")
+    instance = ProofStatement(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+    )
+    r = G.DeriveNonce(
+        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+    )
     A = B * r
 
     (commitment_keys, trapdoors) = GenerateVecBind(

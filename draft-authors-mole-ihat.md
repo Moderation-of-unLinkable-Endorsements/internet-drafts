@@ -479,6 +479,41 @@ several scalars from one seed instead would cap their joint entropy at the
 length of that seed, which the unlinkability argument of
 {{security-considerations}} does not permit. See {{randomness}}.
 
+## Deriving Nonces {#derive-nonce}
+
+A nonce that must never repeat, such as that of a proof of knowledge, is
+derived rather than drawn. The group method `G.DeriveNonce` computes it
+from a secret the party holds, a public description of the operation, and
+fresh randomness, so that it repeats only if the whole operation repeats:
+
+~~~python
+def DeriveNonce(
+    self, secret: bytes, label: bytes, instance: bytes, aux: bytes
+) -> Scalar:
+    if len(aux) != Nseed:
+        raise ValueError(f"aux must be exactly {Nseed} bytes")
+    derive_nonce_input = (
+        U16Prefixed(label)
+        + I2OSP(len(secret), 4)
+        + secret
+        + I2OSP(len(instance), 4)
+        + instance
+        + U16Prefixed(aux)
+    )
+    seed = expand_message_xmd(
+        derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
+    )
+    return self.DeriveScalar(seed, label)
+~~~
+
+`expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
+hash function of the ciphersuite; its output is consumed by
+`G.DeriveScalar` as a seed, used once. Every `instance` in this document
+is an unambiguous encoding, with its variable-length parts
+length-prefixed. Implementations MUST wipe `secret`,
+`derive_nonce_input`, `seed`, and the returned value once it has been
+used.
+
 ## Key Generation {#keygen}
 
 An Anchor holds a key pair `(skA, pkA)`. It is derived from a seed, which is
@@ -1378,22 +1413,21 @@ permutation.
 
 ### Challenge Computation {#proof-challenge}
 
-The Fiat-Shamir challenge covers the whole statement -- the Anchor Set, the
+`ProofStatement` encodes the statement being proven: the Anchor Set, the
 rerandomized key, the signature being presented, the two contexts, and the
-Moderator's challenge digest -- together with the first move of the proof,
-which is the commitment keys and the root of the tree.
+Moderator's challenge digest. The Fiat-Shamir challenge covers it together
+with the first move of the proof, which is the commitment keys and the root
+of the tree.
 
 ~~~python
-def ComputeProofChallenge(
+def ProofStatement(
     anchor_set: Sequence[Element],
     X_hat: Element,
     endorsement: Endorsement,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
-    commitment_keys: Sequence[Element],
-    root: bytes,
-) -> Scalar:
+) -> bytes:
     (c, s_hat, y, t, nf) = endorsement
     n = len(anchor_set)
 
@@ -1401,11 +1435,7 @@ def ComputeProofChallenge(
     for i in range(n):
         anchor_set_enc += G.SerializeElement(anchor_set[i])
 
-    ck_enc = b""
-    for j in range(len(commitment_keys)):
-        ck_enc += G.SerializeElement(commitment_keys[j])
-
-    proof_transcript = (
+    return (
         I2OSP(n, 2)
         + anchor_set_enc
         + G.SerializeElement(X_hat)
@@ -1417,6 +1447,32 @@ def ComputeProofChallenge(
         + U16Prefixed(ctx_iss)
         + U16Prefixed(ctx_red)
         + U16Prefixed(challenge_digest)
+    )
+
+
+def ComputeProofChallenge(
+    anchor_set: Sequence[Element],
+    X_hat: Element,
+    endorsement: Endorsement,
+    ctx_iss: bytes,
+    ctx_red: bytes,
+    challenge_digest: bytes,
+    commitment_keys: Sequence[Element],
+    root: bytes,
+) -> Scalar:
+    ck_enc = b""
+    for j in range(len(commitment_keys)):
+        ck_enc += G.SerializeElement(commitment_keys[j])
+
+    proof_transcript = (
+        ProofStatement(
+            anchor_set,
+            X_hat,
+            endorsement,
+            ctx_iss,
+            ctx_red,
+            challenge_digest,
+        )
         + ck_enc
         + root
         + b"IssuerProof"
@@ -1455,7 +1511,17 @@ def ProveIssuer(
     if len(rand) != (2 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    r = G.DeriveScalar(Seed(rand, 0), b"r")
+    instance = ProofStatement(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+    )
+    r = G.DeriveNonce(
+        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+    )
     A = B * r
 
     (commitment_keys, trapdoors) = GenerateVecBind(
@@ -1495,8 +1561,12 @@ def ProveIssuer(
 ~~~
 
 `rand` holds one seed for the nonce `r`, then one for each of the `q`
-commitment keys, then one for each of the `q` first openings. The first
-move commits only the path from leaf `index` to the root: at each
+commitment keys, then one for each of the `q` first openings. The nonce
+is derived with `G.DeriveNonce` ({{derive-nonce}}) from `delta`, the proof
+statement, and its seed, so that proofs of distinct statements do not
+share it even if `rand` repeats.
+
+The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
 on the other, having generated that level's key so that the *other* side is
 the equivocal one. The third move then computes the branch commitment of
@@ -1816,9 +1886,11 @@ P:
 ## Randomness {#randomness}
 
 Every random value in this document is a seed of `Nseed` bytes, drawn with
-`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}); no scalar is
-sampled directly. Implementations MUST draw seeds with a cryptographically
-secure random number generator and MUST NOT reuse a seed across derivations.
+`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}) or, for the
+nonce `r` of `ProveIssuer`, by `G.DeriveNonce` ({{derive-nonce}}); no
+scalar is sampled directly. Implementations MUST draw seeds with a
+cryptographically secure random number generator and MUST NOT reuse a seed
+across derivations.
 They SHOULD treat a seed as being as sensitive as the values derived from it,
 and SHOULD handle both in constant time: the seed drawn in `Commit` determines
 the Anchor's session state, the seed drawn in `Challenge` determines the
@@ -1852,9 +1924,9 @@ Blindness:
 Derived blinding factors:
 : Blindness is unconditional only if the blinding factors are. `Challenge`
   derives them from seeds rather than sampling them, and `Redeem` derives
-  `delta` and the proof's nonces the same way, so the guarantee is
-  statistical rather than perfect: an Endorsement and a session are linkable
-  by an adversary that can find a seed consistent with both. Two properties of
+  `delta` the same way, so the guarantee is statistical rather than
+  perfect: an Endorsement and a session are linkable by an adversary that
+  can find a seed consistent with both. Two properties of
   {{derive-scalar}} keep the loss negligible. Each scalar gets its own seed, so
   a seed consistent with any given value exists with overwhelming probability
   and finding one therefore separates nothing; and each seed is `Ns + 16` bytes,
@@ -1864,6 +1936,21 @@ Derived blinding factors:
   than they contain, an exhaustive search over seeds would identify the one
   session consistent with a given Endorsement, and unlinkability would hold
   only against a bounded adversary. Implementations MUST NOT do either.
+
+Derived proof nonce:
+: A repeated Schnorr nonce in `ProveIssuer` reveals `delta`, which links the
+  redemption to the Anchor. The nonce is therefore derived with
+  `G.DeriveNonce` from `delta`, the proof statement, and its own seed
+  ({{prove-issuer}}): with a working random source it is distributed as a
+  drawn nonce, and with a failed one it is still a
+  pseudorandom function of `delta`, unknown to the verifier, at a point that
+  identifies the statement, so it does not repeat across distinct statements
+  ({{derive-nonce}}). The Anchor's signing nonce `a` in `Commit` cannot be
+  protected the same way: it is fixed before the Client's challenge is
+  known, so no public input distinguishes two sessions at that point, and
+  only fresh randomness, or persistent per-session state, prevents its
+  reuse. An Anchor that reuses `a` across two challenges reveals `y * skA`,
+  and hence `skA`, since `y` is public in the Endorsement.
 
 One-more unforgeability:
 : A Client that completes `k` issuance sessions under a given issuance context

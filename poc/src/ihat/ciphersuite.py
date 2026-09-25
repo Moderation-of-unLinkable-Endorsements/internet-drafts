@@ -234,6 +234,24 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
                 return s
         raise DeriveError
 
+    def DeriveNonce(
+        self, secret: bytes, label: bytes, instance: bytes, aux: bytes
+    ) -> P256Scalar:
+        if len(aux) != Nseed:
+            raise ValueError(f"aux must be exactly {Nseed} bytes")
+        derive_nonce_input = (
+            U16Prefixed(label)
+            + I2OSP(len(secret), 4)
+            + secret
+            + I2OSP(len(instance), 4)
+            + instance
+            + U16Prefixed(aux)
+        )
+        seed = expand_message_xmd(
+            derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
+        )
+        return self.DeriveScalar(seed, label)
+
     def DeriveKeyPair(self, seed: bytes, info: bytes) -> tuple[P256Scalar, P256Element]:
         skA = self.DeriveScalar(seed, info)
         pkA = self.ScalarMultGen(skA)

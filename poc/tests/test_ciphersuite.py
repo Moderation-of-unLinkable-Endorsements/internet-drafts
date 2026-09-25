@@ -126,3 +126,23 @@ def test_permute_bytes_is_a_permutation():
         out = PermuteBytes(buf)
         assert len(out) == 33 and out[0] in (0, 1)
         assert UnpermuteBytes(out) == buf
+
+
+def test_derive_nonce_binds_every_input():
+    from ihat import common
+
+    G = P256Group(b"test")
+    aux = bytes(common.Nseed)
+    nonce = G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    assert not nonce.isZero()
+    assert nonce == G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    for other in (
+        G.DeriveNonce(b"secret!", b"label", b"instance", aux),
+        G.DeriveNonce(b"secret", b"label!", b"instance", aux),
+        G.DeriveNonce(b"secret", b"label", b"instance!", aux),
+        G.DeriveNonce(b"secret", b"label", b"instance", b"\1" + aux[1:]),
+        P256Group(b"other").DeriveNonce(b"secret", b"label", b"instance", aux),
+    ):
+        assert other != nonce
+    with pytest.raises(ValueError):
+        G.DeriveNonce(b"secret", b"label", b"instance", aux[1:])
