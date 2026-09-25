@@ -1263,7 +1263,7 @@ requirements. The MoLE protocols use ACT as a Credential scheme.<a href="#sectio
       </h2>
 <p id="section-1-1">MoLE Credentials carry per-Client state that a Moderator tests and updates at
 each presentation without learning it, and without being able to link
-presentations to each other or to issuance. Anonymous Credit Tokens (ACT)
+presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
 provide a numeric balance as this state (<a href="#credential-scheme" class="auto internal xref">Section 4</a>).<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">The Moderator is both the issuer and the verifier. A Client obtains an initial
 Credential, spends credits, and finalizes the refund that replaces the spent
@@ -1281,8 +1281,9 @@ contexts. This document treats those contexts as opaque byte strings.<a href="#s
 "<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">The terms Client, Moderator, and Credential are used as defined in
-<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. The message-encoding conventions, Python notation, and helpers
+<p id="section-2-2">The capitalized terms Client, Moderator, and Credential are used as
+defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>; a lowercase credential is the generic cryptographic
+notion. The message-encoding conventions, Python notation, and helpers
 <code>I2OSP</code>, <code>U16Prefixed</code>, <code>random</code>, and <code>Seed</code> are those of
 Section 2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The algorithms use <code>bytes</code> for byte strings, <code>int</code>
 for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code> module.

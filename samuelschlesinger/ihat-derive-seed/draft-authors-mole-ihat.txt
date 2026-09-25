@@ -83,9 +83,10 @@ Table of Contents
    4.  The Endorsement Scheme
      4.1.  Configuration and Protocol Context
      4.2.  Deriving Scalars
-     4.3.  Deriving Nonces
-     4.4.  Key Generation
-     4.5.  Context Binding
+     4.3.  Expanding Seeds
+     4.4.  Deriving Nonces
+     4.5.  Key Generation
+     4.6.  Context Binding
    5.  Endorsement Issuance
      5.1.  Anchor Commitment
      5.2.  Client Challenge
@@ -101,9 +102,10 @@ Table of Contents
      6.2.  The Issuer-Hiding Proof
        6.2.1.  The Branch Proof
        6.2.2.  Partially Binding Commitments
-       6.2.3.  Challenge Computation
-       6.2.4.  Proving
-       6.2.5.  Verifying
+       6.2.3.  The Permutation
+       6.2.4.  Challenge Computation
+       6.2.5.  Proving
+       6.2.6.  Verifying
      6.3.  Redemption
      6.4.  Redemption Verification
      6.5.  Encodings
@@ -268,7 +270,7 @@ Table of Contents
    Scalars are added, subtracted, and multiplied modulo p.
 
    The group also provides G.DeriveScalar, G.DeriveKeyPair, and
-   G.GenerateKeyPair, defined in Section 4.2 and Section 4.4.
+   G.GenerateKeyPair, defined in Section 4.2 and Section 4.5.
 
    The following member functions are used.  Except where noted, they
    are as defined in Section 2.1 of [OPRF].
@@ -396,7 +398,7 @@ Table of Contents
 
    Throughout the remainder of this document, ctx_proto denotes the
    output of CreateProtocolContext for the ciphersuite in use.  It is
-   distinct from the issuance and redemption contexts of Section 4.5:
+   distinct from the issuance and redemption contexts of Section 4.6:
    those are inputs to the protocol, chosen by its participants, whereas
    ctx_proto is fixed by the ciphersuite.
 
@@ -437,21 +439,43 @@ Table of Contents
    choose to panic rather than handle this exception.  See Section 8 for
    details.
 
-   A seed MUST be Nseed bytes of random output, and MUST NOT be used for
+   A seed is Nseed bytes, either drawn with random or expanded from a
+   drawn seed with G.DeriveSeed (Section 4.3), and MUST NOT be used for
    more than one derivation.  An algorithm that needs several scalars
-   therefore draws Nseed bytes for each of them, and additionally
-   separates them by info.  Nseed is larger than Ns (Section 7) so that
-   the derived scalar is statistically close to uniform rather than
-   merely unpredictable; deriving several scalars from one seed instead
-   would cap their joint entropy at the length of that seed, which the
+   therefore obtains a seed for each of them, and additionally separates
+   them by info.  Nseed is larger than Ns (Section 7) so that the
+   derived scalar is statistically close to uniform rather than merely
+   unpredictable; deriving several scalars from one seed instead would
+   cap their joint entropy at the length of that seed, which the
    unlinkability argument of Section 8 does not permit.  See
    Section 7.2.
 
-      TODO Consider relaxing this.  Pseudorandom is probably sufficient,
-      in which case we can derive multiple scalars and other values with
-      the same short seed.
+   Issuance draws a fresh seed for every scalar, which is what keeps
+   blindness statistical (Section 8).  The redemption proof instead
+   expands one drawn seed into all of its randomness (Section 4.3), so
+   the hiding of the issuer is computational.
 
-4.3.  Deriving Nonces
+4.3.  Expanding Seeds
+
+   G.DeriveSeed expands a seed into another, distinguished by info:
+
+   def DeriveSeed(self, seed: bytes, info: bytes) -> bytes:
+       if len(seed) != Nseed:
+           raise ValueError(f"seed must be exactly {Nseed} bytes")
+       derive_seed_input = seed + U16Prefixed(info)
+       return expand_message_xmd(
+           derive_seed_input, b"DeriveSeed-" + self.ctx_proto, Nseed
+       )
+
+   An algorithm that needs many scalars from one drawn seed expands it
+   once per scalar, with a distinct info for each, and passes each
+   expansion to G.DeriveScalar.  The expansions are pseudorandom rather
+   than independent: they are indistinguishable from independent seeds
+   for an adversary that cannot distinguish expand_message_xmd
+   (Section 5.3.1 of [HASH2CURVE]) from a random function, which the
+   random-oracle model assumes.
+
+4.4.  Deriving Nonces
 
    A value whose repetition would be catastrophic, such as the nonce of
    a proof of knowledge, is not left to the random number generator
@@ -491,7 +515,7 @@ Table of Contents
    not repeat across distinct operations, and a repeated operation
    reproduces its earlier output rather than yielding a second one.
 
-4.4.  Key Generation
+4.5.  Key Generation
 
    An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
    which is what allows the test vectors in Appendix A to fix a key.
@@ -522,7 +546,7 @@ Table of Contents
    The Anchor publishes SerializeElement(pkA) in its configuration; see
    [PROTOCOLS].
 
-4.5.  Context Binding
+4.6.  Context Binding
 
    Each Endorsement is bound at issuance to two contexts, the issuance
    context and the redemption context, and a redemption succeeds only if
@@ -938,7 +962,7 @@ Table of Contents
 
    A Client redeems an Endorsement at a Moderator.
 
-   An Endorsement is single-use (Section 4.5), so redemption does not
+   An Endorsement is single-use (Section 4.6), so redemption does not
    have to hide the signature: the Client reveals it, and the Moderator
    deduplicates on the nullifier.  What redemption must hide is which
    Anchor issued it.  The signature of Section 5 verifies under one
@@ -1130,17 +1154,11 @@ Table of Contents
    commitments are arbitrary strings of bytes, and the outputs are
    compressed group elements.
 
-   We require a random permutation P on group elements.  We defer
-   discussing its instantiation to a later section.  Being a
-   permutation, P has an inverse, which we denote by Pinv.
-
-   If we need a 1-of-1 binding commitment, we use the identity function.
-   Thankfully we apply this commitment to group elements, so the output
-   is always the same size.
-
-   The parameters for our 1-of-2 binding commitments will be a point Q,
-   and openings will be a single scalar, the randomness used in the
-   commitment.
+   The commitment to a pair uses a permutation P on group elements, with
+   inverse Pinv (Section 6.2.3).  Its key is a point Q, and an opening
+   is a single scalar, the randomness used in the commitment.  The two
+   values are hashed to scalars and committed under the bases Q and
+   P(Q):
 
    def CommitStep(
        Q: Element,
@@ -1150,17 +1168,21 @@ Table of Contents
    ) -> bytes:
        C = (
            randomness * B
-           + G.DeriveScalar(left, b"left") * Q
-           + G.DeriveScalar(right, b"right") * G.P(Q)
+           + G.HashToScalar(left) * Q
+           + G.HashToScalar(right) * G.P(Q)
        )
        return G.SerializeElement(C)
 
-   # the return value is (Q, secret) where
-   # secret can be used to equivocate the non
-   # binding direction
+   The committer knows the discrete logarithm of exactly one of the two
+   bases, and that is the position it can later open to a different
+   value.  Generating a key that binds the left position means choosing
+   Q so that P(Q), the base of the right value, is the one with a known
+   logarithm, and vice versa:
 
-   def GenerateStep(bind_direction: str) -> tuple[Element, Scalar]:
-       secret = G.DeriveScalar(random(Nseed), b"TODO")
+   def GenerateStep(
+       bind_direction: str, seed: bytes
+   ) -> tuple[Element, Scalar]:
+       secret = G.DeriveScalar(seed, b"GenerateStep")
        T = secret * B
        if bind_direction == "left":
            return (G.Pinv(T), secret)
@@ -1169,14 +1191,22 @@ Table of Contents
        else:
            raise ValueError("bind_direction must be 'left' or 'right'")
 
+   The returned secret is the trapdoor.  Replacing the value at the
+   equivocal position by another is a shift of the randomness by the
+   difference of their hashes times the trapdoor, which leaves the
+   commitment unchanged:
+
    def EquivocateStep(
-       old: Scalar, new: Scalar, randomness: Scalar, secret: Scalar
+       oldb: bytes, newb: bytes, randomness: Scalar, secret: Scalar
    ) -> Scalar:
+       old = G.HashToScalar(oldb)
+       new = G.HashToScalar(newb)
        return randomness + (old - new) * secret
 
-   Let V[0], V[1], ... V[n-1] be a vector of bytestrings.  We will use a
-   logarithmic number of reductions to create a single commitment to the
-   entire vector.
+   A vector V[0], ..., V[n-1] of byte strings is committed by pairing
+   neighbours level by level.  Each level has its own key and its own
+   randomness; a vector of odd length carries its last element up
+   unchanged.
 
    def VecCommit(
        V: Sequence[bytes],
@@ -1195,12 +1225,173 @@ Table of Contents
 
        return VecCommit(V_prime, Qi[1:], rands[1:])
 
-   Creating parameters that bind in only one specified position of the
-   vector V is an exercise in bookkeeping.  Note that there is
-   significant savings in verification from caching the computation of
-   G.Generator()*rands[i] across the level.
+   Committing to position index of the vector, and to nothing else, is
+   then bookkeeping over the bits of index.  Bit j of index says which
+   side of its pair the binding value is on at level j, which fixes the
+   direction of that level's key:
 
-6.2.3.  Challenge Computation
+   def GenerateVecBind(
+       q: int, index: int, seed: bytes
+   ) -> tuple[list[Element], list[Scalar]]:
+       commitment_keys = []
+       trapdoors = []
+       for j in range(q):
+           direction = "right" if (index >> j) & 1 else "left"
+           key_seed = G.DeriveSeed(seed, b"key" + I2OSP(j, 1))
+           (Q, secret) = GenerateStep(direction, key_seed)
+           commitment_keys.append(Q)
+           trapdoors.append(secret)
+       return (commitment_keys, trapdoors)
+
+   The first move commits the value at index with every other leaf
+   empty, drawing the randomness of each level from the seed:
+
+   def CommitValAtPlace(
+       commitment_keys: Sequence[Element],
+       n: int,
+       index: int,
+       value: bytes,
+       seed: bytes,
+   ) -> tuple[bytes, list[Scalar]]:
+       V = [b"" for _ in range(n)]
+       V[index] = value
+       rands = []
+       for j in range(len(commitment_keys)):
+           info = b"opening" + I2OSP(j, 1)
+           rands.append(G.DeriveScalar(G.DeriveSeed(seed, info), info))
+       return (VecCommit(V, commitment_keys, rands), rands)
+
+   Once every other leaf is known, each level's randomness is shifted so
+   that the node above is unchanged while the sibling of the binding
+   path takes its new value.  The binding position itself MUST hold the
+   same value in both vectors.  An odd last element that sits on the
+   binding path has no sibling at its level and keeps its randomness.
+
+   def VecEquivocate(
+       commitment_keys: Sequence[Element],
+       trapdoors: Sequence[Scalar],
+       openings: Sequence[Scalar],
+       old: Sequence[bytes],
+       new: Sequence[bytes],
+       index: int,
+   ) -> list[Scalar]:
+       if len(old) != len(new):
+           raise ValueError("vectors must have the same length")
+       if old[index] != new[index]:
+           raise ValueError("the binding position cannot change")
+       if len(old) == 1:
+           return []
+
+       if index == len(old) - 1 and len(old) % 2 == 1:
+           opening = openings[0]
+       else:
+           partner = index - 1 if index % 2 == 1 else index + 1
+           opening = EquivocateStep(
+               old[partner], new[partner], openings[0], trapdoors[0]
+           )
+
+       old_prime = []
+       new_prime = []
+       for i in range(len(old) // 2):
+           Q = commitment_keys[0]
+           old_prime.append(
+               CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+           )
+           new_prime.append(
+               CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+           )
+       if len(old) % 2 == 1:
+           old_prime.append(old[-1])
+           new_prime.append(new[-1])
+
+       rest = VecEquivocate(
+           commitment_keys[1:],
+           trapdoors[1:],
+           openings[1:],
+           old_prime,
+           new_prime,
+           index // 2,
+       )
+       return [opening] + rest
+
+
+   def VecEquivocateFromZero(
+       commitment_keys: Sequence[Element],
+       trapdoors: Sequence[Scalar],
+       openings: Sequence[Scalar],
+       new: Sequence[bytes],
+       index: int,
+   ) -> list[Scalar]:
+       V = [b"" for _ in new]
+       V[index] = new[index]
+       return VecEquivocate(
+           commitment_keys, trapdoors, openings, V, new, index
+       )
+
+6.2.3.  The Permutation
+
+   P is a permutation on the elements of G, computed on their compressed
+   encodings by cycle walking: a permutation of the encoding space is
+   applied until the result decodes to an element, and Pinv walks the
+   same cycle backwards.  Because a permutation partitions its domain
+   into cycles, the first element encountered is well defined and the
+   two are inverse to each other.
+
+   def P(self, element: Element) -> Element:
+       buf = bytearray(self.SerializeElement(element))
+       buf[0] = buf[0] - 0x02
+       while True:
+           buf = PermuteBytes(buf)
+           try:
+               return self.DeserializeElement(
+                   bytes([buf[0] + 0x02]) + bytes(buf[1:])
+               )
+           except DeserializeError:
+               continue
+
+   def Pinv(self, element: Element) -> Element:
+       buf = bytearray(self.SerializeElement(element))
+       buf[0] = buf[0] - 0x02
+       while True:
+           buf = UnpermuteBytes(buf)
+           try:
+               return self.DeserializeElement(
+                   bytes([buf[0] + 0x02]) + bytes(buf[1:])
+               )
+           except DeserializeError:
+               continue
+
+   The permutation of the encoding space is a four-round Feistel network
+   over the 33 bytes of the encoding, with the sign byte reduced to its
+   low bit so that the domain is the encodings of the form 0x02 || x and
+   0x03 || x:
+
+   def PermuteBytes(buf: bytearray) -> bytearray:
+       left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+       for i in range(4):
+           label = f"left round {i}".encode()
+           left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+           left[0] = left[0] & 0x01
+           label = f"right round {i}".encode()
+           right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+       return left + right
+
+   def UnpermuteBytes(buf: bytearray) -> bytearray:
+       left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+       for i in reversed(range(4)):
+           label = f"right round {i}".encode()
+           right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+           label = f"left round {i}".encode()
+           left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+           left[0] = left[0] & 0x01
+       return left + right
+
+   P has no fixed point and is not an involution except with negligible
+   probability, and knowledge of the discrete logarithm of Q gives no
+   information about that of P(Q) when P is modelled as a random
+   permutation, which is what the binding argument of Section 8 assumes.
+
+6.2.4.  Challenge Computation
 
    ProofStatement encodes the statement being proven: the Anchor Set,
    the rerandomized key, the signature being presented, the two
@@ -1279,7 +1470,7 @@ Table of Contents
    aborting and retrying: a challenge of zero yields a proof that
    verifies, and no branch is privileged by it.
 
-6.2.4.  Proving
+6.2.5.  Proving
 
    def ProveIssuer(
        anchor_set: Sequence[Element],
@@ -1290,13 +1481,13 @@ Table of Contents
        ctx_iss: bytes,
        ctx_red: bytes,
        challenge_digest: bytes,
-       rand: bytes,
+       seed: bytes,
    ) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
        (Y, q) = Statements(anchor_set, X_hat)
        if not 0 <= index < len(anchor_set):
            raise ValueError("index is outside the Anchor Set")
-       if len(rand) != (3 * q + 1) * Nseed:
-           raise ValueError("invalid issuer proof randomness length")
+       if len(seed) != Nseed:
+           raise ValueError(f"seed must be exactly {Nseed} bytes")
 
        instance = ProofStatement(
            anchor_set,
@@ -1307,13 +1498,24 @@ Table of Contents
            challenge_digest,
        )
        r = G.DeriveNonce(
-           G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+           G.SerializeScalar(delta),
+           b"r",
+           instance,
+           G.DeriveSeed(seed, b"r"),
        )
        A = B * r
 
-       (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
-       # First move: commit along the binding path, sibling value zero.
-       (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
+       (commitment_keys, trapdoors) = GenerateVecBind(
+           q, index, G.DeriveSeed(seed, b"keys")
+       )
+       # First move: commit along the binding path; other leaves empty.
+       (root, first_openings) = CommitValAtPlace(
+           commitment_keys,
+           len(Y),
+           index,
+           G.SerializeElement(A),
+           G.DeriveSeed(seed, b"openings"),
+       )
 
        proof_challenge = ComputeProofChallenge(
            anchor_set,
@@ -1332,25 +1534,30 @@ Table of Contents
        for i in range(len(Y)):
            commitment = BranchCommitment(proof_challenge, response, Y[i])
            V.append(G.SerializeElement(commitment))
-       openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
+       openings = VecEquivocateFromZero(
+           commitment_keys, trapdoors, first_openings, V, index
+       )
 
        return (proof_challenge, response, commitment_keys, openings)
 
-   The Schnorr nonce r is derived with G.DeriveNonce (Section 4.3) from
-   the witness delta, the proof statement, and the first Nseed bytes of
-   rand, so that two proofs of distinct statements do not share it even
-   if rand repeats; a repeated nonce would reveal delta.
+   ProveIssuer expands its one seed (Section 4.3) into the auxiliary
+   input of the nonce r, the seed of the commitment keys, and the seed
+   of the first openings.  The nonce itself is derived with
+   G.DeriveNonce (Section 4.4) from the witness delta, the proof
+   statement, and that auxiliary input, so that two proofs of distinct
+   statements do not share it even if the seed repeats; a repeated nonce
+   would reveal delta.
 
    The first move commits only the path from leaf index to the root: at
-   each level the Client commits the value it holds on one side and zero
-   on the other, having generated that level's commitment key so that
+   each level the Client commits the value it holds on one side and an
+   empty value on the other, having generated that level's key so that
    the _other_ side is the equivocal one.  The third move then computes
    the branch commitment of every statement from the single response,
    equivocates each level to the value its sibling subtree now has, and
    rebuilds the tree with the equivocated randomness.  The root is
    unchanged by this, which is why the verifier can recompute it.
 
-6.2.5.  Verifying
+6.2.6.  Verifying
 
    def VerifyIssuer(
        anchor_set: Sequence[Element],
@@ -1448,10 +1655,7 @@ Table of Contents
        if not 0 <= index < n:
            raise ValueError("index is outside the Anchor Set")
 
-       (Y, q) = Statements(anchor_set, G.Identity())
-       nrand = (3 * q + 2) * Nseed
-
-       rand = random(nrand)
+       rand = random(2 * Nseed)
        delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
        X_hat = anchor_set[index] + delta * B
@@ -1467,7 +1671,7 @@ Table of Contents
            ctx_iss,
            ctx_red,
            challenge_digest,
-           rand[Nseed:nrand],
+           Seed(rand, 1),
        )
 
        return Redemption(
@@ -1646,16 +1850,18 @@ Table of Contents
 7.2.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
-   with random and consumed by G.DeriveScalar (Section 4.2) or, for the
-   nonce r of ProveIssuer, by G.DeriveNonce (Section 4.3); no scalar is
+   with random and consumed by G.DeriveScalar (Section 4.2), expanded by
+   G.DeriveSeed (Section 4.3), or, for the nonce r of ProveIssuer, used
+   as the auxiliary input of G.DeriveNonce (Section 4.4); no scalar is
    sampled directly.  Implementations MUST draw seeds with a
    cryptographically secure random number generator and MUST NOT reuse a
    seed across derivations.  They SHOULD treat a seed as being as
    sensitive as the values derived from it, and SHOULD handle both in
    constant time: the seed drawn in Commit determines the Anchor's
-   session state, and the seed drawn in Challenge determines the
-   Client's blinding factors, so recovering either undoes the property
-   that algorithm provides.
+   session state, the seed drawn in Challenge determines the Client's
+   blinding factors, and the second seed drawn in Redeem determines
+   every value of the issuer-hiding proof, so recovering any of them
+   undoes the property that algorithm provides.
 
 8.  Security Considerations
 
@@ -1700,22 +1906,26 @@ Table of Contents
       determined by fewer bits than they contain, an exhaustive search
       over seeds would identify the one session consistent with a given
       Endorsement, and unlinkability would hold only against a bounded
-      adversary.  Implementations MUST NOT do either.
+      adversary.  Implementations MUST NOT do either in issuance.  The
+      redemption proof does expand one seed (Section 4.3), and its
+      hiding is accordingly computational, as "Issuer hiding" below
+      states.
 
    Derived proof nonce:  A repeated Schnorr nonce in ProveIssuer reveals
       delta, which links the redemption to the Anchor.  The nonce is
       therefore derived with G.DeriveNonce from delta, the proof
-      statement, and fresh randomness (Section 6.2.4): with a working
-      random source it is distributed as a drawn nonce, and with a
-      failed one it is still a pseudorandom function of delta, unknown
-      to the verifier, at a point that identifies the statement, so it
-      does not repeat across distinct statements (Section 4.3).  The
-      Anchor's signing nonce a in Commit cannot be protected the same
-      way: it is fixed before the Client's challenge is known, so no
-      public input distinguishes two sessions at that point, and only
-      fresh randomness, or persistent per-session state, prevents its
-      reuse.  An Anchor that reuses a across two challenges reveals y *
-      skA, and hence skA, since y is public in the Endorsement.
+      statement, and an expansion of the proof's seed (Section 6.2.5):
+      with a working random source it is distributed as a drawn nonce,
+      and with a failed one it is still a pseudorandom function of
+      delta, unknown to the verifier, at a point that identifies the
+      statement, so it does not repeat across distinct statements
+      (Section 4.4).  The Anchor's signing nonce a in Commit cannot be
+      protected the same way: it is fixed before the Client's challenge
+      is known, so no public input distinguishes two sessions at that
+      point, and only fresh randomness, or persistent per-session state,
+      prevents its reuse.  An Anchor that reuses a across two challenges
+      reveals y * skA, and hence skA, since y is public in the
+      Endorsement.
 
    One-more unforgeability:  A Client that completes k issuance sessions
       under a given issuance context cannot produce k+1 distinct valid
@@ -1758,72 +1968,70 @@ Table of Contents
       independent of it, which is witness indistinguishability of the
       composition (Section 7 of [STACKSIG]).
 
-      The commitment of Section 6.2.2 would be _perfectly_ hiding if its
-      randomness were uniform, and is _statistically_ hiding as
-      specified here, because G.DeriveScalar never returns zero
-      (Section 4.2).  The two cases of CreateCommitmentKey therefore
-      have slightly different supports -- E - G0 is never -G0 and G0 - E
-      is never G0 -- so a commitment key that happened to equal G0 or
-      -G0 would reveal which position it binds, and the same exclusion
-      applies to each opening and to response.  Each of these 3 * q + 1
-      values excludes at most one point of a field of order p, so the
-      total statistical distance is at most (3 * q + 1) / p, below
-      2^-250 for both ciphersuites of Section 7.  Like blindness, issuer
-      hiding therefore holds against unbounded computation up to a
-      statistical loss, here from this exclusion as well as from the
-      seed length of the derived randomness above.  Note that it is the
-      _binding_ property of the commitment, and not its hiding, that is
-      computational, which is the direction [ARCH] requires.
+      The commitment of Section 6.2.2 hides which position it binds.  A
+      key Q is T or Pinv(T) for T = secret * B; T is uniform over the
+      nonidentity elements, and Pinv is a permutation, so Q has the same
+      distribution either way.  An opening is uniform whether it was
+      committed or shifted by EquivocateStep, since the shift is by a
+      fixed offset.  Two losses make this statistical rather than
+      perfect: G.DeriveScalar never returns zero (Section 4.2), which
+      excludes one point for each of the 2 * q + 1 scalars of a proof,
+      at most (2 * q + 1) / p in total; and the proof's randomness is
+      expanded from one seed (Section 4.3), so a distinguisher for
+      expand_message_xmd would distinguish the proof from one made with
+      independent seeds.  Issuer hiding therefore holds against an
+      adversary bounded by the security of the hash, unlike blindness,
+      which holds against unbounded computation.  Note that it is the
+      _binding_ property of the commitment, and not its hiding, that
+      rests on the discrete logarithm, which is the direction [ARCH]
+      requires.
 
    Partially binding commitments:  The soundness of the issuer-hiding
       proof rests on two things: the commitment of Section 6.2.2 binding
-      one position of each node, and the collision resistance of the
-      CompressValue of Section 6.2.2, without which a leaf or a node
-      could be opened to a colliding value and no discrete logarithm
-      would be extractable.  The binding property is computational and
-      reduces tightly to the discrete logarithm problem (Section 5.2 of
-      [STACKSIG]): a Client that can open one position of a node two
-      ways knows the discrete logarithm of that position's base, and a
-      Client that can do so at both positions knows that of G0, since
-      the two bases sum to G0 + G0.  G0 MUST therefore be the
-      HashToGroup output specified in Section 6.2.2 and MUST NOT be
-      chosen, negotiated, or supplied by any party: a Client that knew
-      its discrete logarithm could equivocate every position of every
-      node, open the binding leaf to whatever the challenge required,
-      and produce accepting redemptions holding no Endorsement at all.
-      The same reduction also motivates committing the two values under
-      two _separate_ Pedersen commitments.  With a single commitment
-      over both bases, the binding equation would involve both bases, so
-      the reduction above would not directly extract a discrete
-      logarithm.
+      one position of each node, and the collision resistance of
+      HashToScalar on the leaf and node encodings, without which a
+      position could be opened to a colliding value and no discrete
+      logarithm would be extractable.  Binding is computational.  A
+      Client that opens the value under base Q two ways knows the
+      discrete logarithm of Q, and one that opens the value under P(Q)
+      two ways knows that of P(Q); the key generation gives it one of
+      the two.  Opening both positions would require both logarithms,
+      and with P modelled as a random permutation (Section 6.2.3) a Q
+      with both known is as hard to find as a discrete logarithm
+      (appendix of [STACKSIG]).  P MUST therefore be the permutation
+      specified in Section 6.2.3 and MUST NOT be chosen or negotiated by
+      any party: a Client that could choose P could take P(Q) = 2 * Q,
+      equivocate every position of every node, open the binding leaf to
+      whatever the challenge required, and produce accepting redemptions
+      holding no Endorsement at all.
 
    Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
       Set_, so the set is the anonymity set, and a redemption against a
       single-key set would name the Anchor outright (Section 6.4); a
       Client MUST refuse such a set rather than rely on the Moderator to
-      avoid offering one (Section 6.3).  Padding the set to a power of
-      two (Section 6.2.2) does not enlarge it: a padded leaf repeats a
-      statement rather than adding an Anchor, and the anonymity set is
-      n, never N.  More generally a Moderator that offers different
-      Anchor Sets to different Clients partitions them, and one that
-      reorders the set between Clients does the same; the set and its
-      order MUST be the same for every Client offered a given ctx_iss.
-      See [ARCH] for how set size interacts with Anchor diversity.
+      avoid offering one (Section 6.3).  The tree of Section 6.2.2 is
+      not padded: an odd node is carried up a level, so the anonymity
+      set is exactly n.  More generally a Moderator that offers
+      different Anchor Sets to different Clients partitions them, and
+      one that reorders the set between Clients does the same; the set
+      and its order MUST be the same for every Client offered a given
+      ctx_iss.  See [ARCH] for how set size interacts with Anchor
+      diversity.
 
    Proof size and cost:  The proof is logarithmic in the size of the
       Anchor Set: two scalars, plus one element and two scalars for each
       of the q levels of the tree (Section 6.5).  Computation is not.
       Both the prover and the verifier evaluate every branch and every
-      node, which is N branch commitments and N - 1 node commitments, so
-      each performs a number of scalar multiplications linear in N.  A
+      node, which is n branch commitments and n - 1 node commitments, so
+      each performs a number of scalar multiplications linear in n.  A
       large Anchor Set is therefore cheap in bandwidth and not in CPU,
       which reverses the tradeoff of the linear disjunction [CDS94] for
       bandwidth but not for work; [FFKLLS26] notes the same for its own
       instantiations.  Two consequences for deployments: the linear
       disjunction is smaller for Anchor Sets of five keys or fewer, and
-      because the tree is padded to a power of two, an Anchor Set of 2^q
-      + 1 keys costs a whole extra level while adding one Anchor to the
-      anonymity set.
+      since the depth is q = ceil(log2 n), an Anchor Set of 2^q + 1 keys
+      costs a whole extra level while adding one Anchor to the anonymity
+      set.
 
    Constant-time proving:  ProveIssuer treats one leaf, and one side of
       each node on the path to it, differently from the others, and
@@ -1855,7 +2063,7 @@ Table of Contents
       use, and single use is the property that matters here.
 
    Challenge binding:  challenge_digest enters the proof transcript
-      (Section 6.2.3), so a proof produced for one challenge does not
+      (Section 6.2.4), so a proof produced for one challenge does not
       verify under any other.  Whether that amounts to replay protection
       depends on the challenge being fresh, which this document does not
       control: [PROTOCOLS] fixes what the Moderator's challenge
@@ -1900,7 +2108,7 @@ Table of Contents
       context directly and the redemption context through the fact that
       the Endorsement verifies under it, so each partitions Clients into
       the set that shares its value.  Whatever [ARCH] eventually
-      specifies them to be (Section 4.5), both values must therefore be
+      specifies them to be (Section 4.6), both values must therefore be
       *coarse*. Every Client holding an Endorsement issued under a given
       issuance context MUST derive the byte-identical ctx_iss, and every
       Client redeeming under a given redemption context MUST derive the
@@ -2010,8 +2218,8 @@ Table of Contents
               Protocols", CRYPTO 1994, 1994,
               <https://doi.org/10.1007/3-540-48658-5_19>.
 
-   [FFKLLS26] Flamini, A., Friedrichs, F., Katz, J., Ladd, W., Lehmann,
-              A., and C. Sefranek, "Issuer-Hiding BBS-Based Anonymous
+   [FFKLLS26] Flamini, A., Friedrichs, K., Katz, J., Ladd, W., Lehmann,
+              A., and M. Sefranek, "Issuer-Hiding BBS-Based Anonymous
               Credentials without Policy Keys", 2026,
               <https://eprint.iacr.org/2026/870>.
 
@@ -2027,8 +2235,8 @@ Table of Contents
 Appendix A.  Test Vectors
 
       *TODO.* Test vectors for G.DeriveKeyPair, G.DeriveScalar,
-      CreateContextBase, Message, ComputeChallenge, the four issuance
-      algorithms, Verify, G0, CommitNode, CompressValue,
+      G.DeriveSeed, P, CreateContextBase, Message, ComputeChallenge, the
+      four issuance algorithms, Verify, CommitStep, GenerateVecBind,
       ComputeProofChallenge, Redeem, and VerifyRedemption, for each
       ciphersuite in Section 7.  Issuance and redemption are randomized,
       but every algorithm is a deterministic function of the bytes it
@@ -2036,8 +2244,8 @@ Appendix A.  Test Vectors
       key seed, the rand of Commit, the rand of Challenge, and the rand
       of Redeem.  A redemption vector also has to fix the Anchor Set,
       its order, the Client's index in it, and a challenge_digest, and
-      SHOULD include one Anchor Set whose size is not a power of two, so
-      that the padding of Section 6.2.2 is covered.
+      SHOULD include one Anchor Set whose size is odd, so that the
+      carried element of Section 6.2.2 is covered.
 
 Acknowledgments
 

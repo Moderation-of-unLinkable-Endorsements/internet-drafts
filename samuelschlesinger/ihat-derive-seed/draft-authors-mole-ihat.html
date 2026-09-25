@@ -1199,13 +1199,16 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
                 <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-deriving-scalars" class="internal xref">Deriving Scalars</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
-                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-deriving-nonces" class="internal xref">Deriving Nonces</a></p>
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-expanding-seeds" class="internal xref">Expanding Seeds</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
-                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-deriving-nonces" class="internal xref">Deriving Nonces</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
-                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-context-binding" class="internal xref">Context Binding</a></p>
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-context-binding" class="internal xref">Context Binding</a></p>
 </li>
             </ul>
 </li>
@@ -1259,13 +1262,16 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
                     <p id="section-toc.1-1.6.2.2.2.2.1"><a href="#section-6.2.2" class="auto internal xref">6.2.2</a>.  <a href="#name-partially-binding-commitmen" class="internal xref">Partially Binding Commitments</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.3">
-                    <p id="section-toc.1-1.6.2.2.2.3.1"><a href="#section-6.2.3" class="auto internal xref">6.2.3</a>.  <a href="#name-challenge-computation" class="internal xref">Challenge Computation</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.3.1"><a href="#section-6.2.3" class="auto internal xref">6.2.3</a>.  <a href="#name-the-permutation" class="internal xref">The Permutation</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.4">
-                    <p id="section-toc.1-1.6.2.2.2.4.1"><a href="#section-6.2.4" class="auto internal xref">6.2.4</a>.  <a href="#name-proving" class="internal xref">Proving</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.4.1"><a href="#section-6.2.4" class="auto internal xref">6.2.4</a>.  <a href="#name-challenge-computation" class="internal xref">Challenge Computation</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.5">
-                    <p id="section-toc.1-1.6.2.2.2.5.1"><a href="#section-6.2.5" class="auto internal xref">6.2.5</a>.  <a href="#name-verifying" class="internal xref">Verifying</a></p>
+                    <p id="section-toc.1-1.6.2.2.2.5.1"><a href="#section-6.2.5" class="auto internal xref">6.2.5</a>.  <a href="#name-proving" class="internal xref">Proving</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2.2.6">
+                    <p id="section-toc.1-1.6.2.2.2.6.1"><a href="#section-6.2.6" class="auto internal xref">6.2.6</a>.  <a href="#name-verifying" class="internal xref">Verifying</a></p>
 </li>
                 </ul>
 </li>
@@ -1490,7 +1496,7 @@ elements are added with <code>+</code> and subtracted with <code>-</code>; scala
 an <code>Element</code> <code>A</code> by a <code>Scalar</code> <code>r</code> is written <code>r * A</code>. Scalars are added,
 subtracted, and multiplied modulo <code>p</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
 <p id="section-3.1-2">The group also provides <code>G.DeriveScalar</code>, <code>G.DeriveKeyPair</code>, and
-<code>G.GenerateKeyPair</code>, defined in <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> and <a href="#keygen" class="auto internal xref">Section 4.4</a>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
+<code>G.GenerateKeyPair</code>, defined in <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> and <a href="#keygen" class="auto internal xref">Section 4.5</a>.<a href="#section-3.1-2" class="pilcrow">¶</a></p>
 <p id="section-3.1-3">The following member functions are used. Except where noted, they are as
 defined in <span><a href="https://rfc-editor.org/rfc/rfc9497#section-2.1" class="relref">Section 2.1</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>.<a href="#section-3.1-3" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3.1-4">
@@ -1674,7 +1680,7 @@ def CreateProtocolContext(identifier: bytes) -&gt; bytes:
 </div>
 <p id="section-4.1-4">Throughout the remainder of this document, <code>ctx_proto</code> denotes the output of
 <code>CreateProtocolContext</code> for the ciphersuite in use. It is distinct from the
-issuance and redemption contexts of <a href="#context-binding" class="auto internal xref">Section 4.5</a>: those are inputs to
+issuance and redemption contexts of <a href="#context-binding" class="auto internal xref">Section 4.6</a>: those are inputs to
 the protocol, chosen by its participants, whereas <code>ctx_proto</code> is fixed by the
 ciphersuite.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <p id="section-4.1-5">Every hash this document computes is domain-separated by <code>ctx_proto</code>,
@@ -1718,34 +1724,57 @@ approximately <code>1/p</code>, and <code>DeriveError</code> is raised only if 2
 iterations yield zero. This probability is negligible and can safely be
 ignored. That is, implementations might choose to panic rather than handle this
 exception. See <a href="#security-considerations" class="auto internal xref">Section 8</a> for details.<a href="#section-4.2-3" class="pilcrow">¶</a></p>
-<p id="section-4.2-4">A seed <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of <code>random</code> output, and <span class="bcp14">MUST NOT</span> be used for more
-than one derivation. An algorithm that needs several scalars therefore draws
-<code>Nseed</code> bytes for each of them, and additionally separates them by <code>info</code>.
+<p id="section-4.2-4">A seed is <code>Nseed</code> bytes, either drawn with <code>random</code> or expanded from a
+drawn seed with <code>G.DeriveSeed</code> (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), and <span class="bcp14">MUST NOT</span> be used for
+more than one derivation. An algorithm that needs several scalars therefore
+obtains a seed for each of them, and additionally separates them by <code>info</code>.
 <code>Nseed</code> is larger than <code>Ns</code> (<a href="#ciphersuites" class="auto internal xref">Section 7</a>) so that the derived scalar is
 statistically close to uniform rather than merely unpredictable; deriving
 several scalars from one seed instead would cap their joint entropy at the
 length of that seed, which the unlinkability argument of
 <a href="#security-considerations" class="auto internal xref">Section 8</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 7.2</a>.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4.2-5.1">
-            <p id="section-4.2-5.1.1">TODO Consider relaxing this. Pseudorandom is probably sufficient, in which
-case we can derive multiple scalars and other values with the same short
-seed.<a href="#section-4.2-5.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
+<p id="section-4.2-5">Issuance draws a fresh seed for every scalar, which is what keeps blindness
+statistical (<a href="#security-considerations" class="auto internal xref">Section 8</a>). The redemption proof instead
+expands one drawn seed into all of its randomness (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), so the
+hiding of the issuer is computational.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="derive-seed">
+<section id="section-4.3">
+        <h3 id="name-expanding-seeds">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-expanding-seeds" class="section-name selfRef">Expanding Seeds</a>
+        </h3>
+<p id="section-4.3-1"><code>G.DeriveSeed</code> expands a seed into another, distinguished by <code>info</code>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.3-2">
+<pre>
+def DeriveSeed(self, seed: bytes, info: bytes) -&gt; bytes:
+    if len(seed) != Nseed:
+        raise ValueError(f"seed must be exactly {Nseed} bytes")
+    derive_seed_input = seed + U16Prefixed(info)
+    return expand_message_xmd(
+        derive_seed_input, b"DeriveSeed-" + self.ctx_proto, Nseed
+    )
+</pre><a href="#section-4.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-3">An algorithm that needs many scalars from one drawn seed expands it once per
+scalar, with a distinct <code>info</code> for each, and passes each expansion to
+<code>G.DeriveScalar</code>. The expansions are pseudorandom rather than independent:
+they are indistinguishable from independent seeds for an adversary that
+cannot distinguish <code>expand_message_xmd</code> (<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>)
+from a random function, which the random-oracle model assumes.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-nonce">
-<section id="section-4.3">
+<section id="section-4.4">
         <h3 id="name-deriving-nonces">
-<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-deriving-nonces" class="section-name selfRef">Deriving Nonces</a>
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-deriving-nonces" class="section-name selfRef">Deriving Nonces</a>
         </h3>
-<p id="section-4.3-1">A value whose repetition would be catastrophic, such as the nonce of a
+<p id="section-4.4-1">A value whose repetition would be catastrophic, such as the nonce of a
 proof of knowledge, is not left to the random number generator alone. The
 group method <code>G.DeriveNonce</code> derives it from a secret the party already
 holds, a public description of the operation, and fresh randomness, so
-that the value repeats only if the whole operation repeats:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-4.3-2">
+that the value repeats only if the whole operation repeats:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.4-2">
 <pre>
 def DeriveNonce(
     self, secret: bytes, label: bytes, instance: bytes, aux: bytes
@@ -1764,33 +1793,33 @@ def DeriveNonce(
         derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
     )
     return self.DeriveScalar(seed, label)
-</pre><a href="#section-4.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-4.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.3-3"><code>expand_message_xmd</code> is that of <span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>, over the
+<p id="section-4.4-3"><code>expand_message_xmd</code> is that of <span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>, over the
 hash function of the ciphersuite; its output is consumed by
 <code>G.DeriveScalar</code> as a seed, used once. Every <code>instance</code> in this document
 is an unambiguous encoding, with its variable-length parts
 length-prefixed. Implementations <span class="bcp14">MUST</span> wipe <code>secret</code>,
 <code>derive_nonce_input</code>, <code>seed</code>, and the returned value once it has been
-used.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
-<p id="section-4.3-4">With a working random source the derived value is distributed as a drawn
+used.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
+<p id="section-4.4-4">With a working random source the derived value is distributed as a drawn
 one is. With a failed one it remains a pseudorandom function of the secret
 at a point that identifies the operation, so it does not repeat across
 distinct operations, and a repeated operation reproduces its earlier
-output rather than yielding a second one.<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+output rather than yielding a second one.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
-<section id="section-4.4">
+<section id="section-4.5">
         <h3 id="name-key-generation">
-<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
         </h3>
-<p id="section-4.4-1">An Anchor holds a key pair <code>(skA, pkA)</code>. It is derived from a seed, which is
+<p id="section-4.5-1">An Anchor holds a key pair <code>(skA, pkA)</code>. It is derived from a seed, which is
 what allows the test vectors in <a href="#test-vectors" class="auto internal xref">Appendix A</a> to fix a key. The procedure is
 the key generation of <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span>. Note that, by design, knowledge
 of both <code>seed</code> and <code>info</code> is required, so the secrecy of <code>skA</code> rests on the
-secrecy of <code>seed</code>. On the other hand, the <code>info</code> string is usually public.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-4.4-2">
+secrecy of <code>seed</code>. On the other hand, the <code>info</code> string is usually public.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.5-2">
 <pre>
 def DeriveKeyPair(
     self, seed: bytes, info: bytes
@@ -1798,73 +1827,73 @@ def DeriveKeyPair(
     skA = self.DeriveScalar(seed, info)
     pkA = self.ScalarMultGen(skA)
     return (skA, pkA)
-</pre><a href="#section-4.4-2" class="pilcrow">¶</a>
+</pre><a href="#section-4.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.4-3">The derivation is the one <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> performs inline: hash
+<p id="section-4.5-3">The derivation is the one <span><a href="https://rfc-editor.org/rfc/rfc9497#section-3.2" class="relref">Section 3.2</a> of [<a href="#OPRF" class="cite xref">OPRF</a>]</span> performs inline: hash
 <code>seed + U16Prefixed(info)</code> together with a counter, rejecting zero
 (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). It differs only in its domain separation tag, which comes
 from the protocol context of this document rather than from an OPRF context
-string, and in the length of the seed.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
-<p id="section-4.4-4">A fresh key pair is generated by deriving one from a random seed.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-4.4-5">
+string, and in the length of the seed.<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.5-4">A fresh key pair is generated by deriving one from a random seed.<a href="#section-4.5-4" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.5-5">
 <pre>
 def GenerateKeyPair(self) -&gt; tuple[Scalar, Element]:
     seed = random(Nseed)
     return self.DeriveKeyPair(seed, b"GenerateKeyPair")
-</pre><a href="#section-4.4-5" class="pilcrow">¶</a>
+</pre><a href="#section-4.5-5" class="pilcrow">¶</a>
 </div>
-<p id="section-4.4-6">The Anchor publishes <code>SerializeElement(pkA)</code> in its configuration; see
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4.4-6" class="pilcrow">¶</a></p>
+<p id="section-4.5-6">The Anchor publishes <code>SerializeElement(pkA)</code> in its configuration; see
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4.5-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="context-binding">
-<section id="section-4.5">
+<section id="section-4.6">
         <h3 id="name-context-binding">
-<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-context-binding" class="section-name selfRef">Context Binding</a>
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-context-binding" class="section-name selfRef">Context Binding</a>
         </h3>
-<p id="section-4.5-1">Each Endorsement is bound at issuance to two contexts, the issuance context and
+<p id="section-4.6-1">Each Endorsement is bound at issuance to two contexts, the issuance context and
 the redemption context, and a redemption succeeds only if the Client and the
 Moderator agree on both values. Both are opaque byte strings. <code>ctx_iss</code> is at
 most <code>2^16 - 1</code> bytes. Because the encoded message is itself passed to
 <code>U16Prefixed</code>, <code>ctx_red</code> is at most <code>2^16 - 1 - Nn - 4</code> bytes. These bounds are
 enforced by <code>U16Prefixed</code>. The two contexts are bound by deliberately different
-means, reflecting who is trusted to choose each.<a href="#section-4.5-1" class="pilcrow">¶</a></p>
-<p id="section-4.5-2"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies how MoLE obtains these contexts from configuration.
+means, reflecting who is trusted to choose each.<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<p id="section-4.6-2"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies how MoLE obtains these contexts from configuration.
 The examples below illustrate their cryptographic roles and do not define
-alternative context encodings.<a href="#section-4.5-2" class="pilcrow">¶</a></p>
-<p id="section-4.5-3">The issuance context, written <code>ctx_iss</code>, restricts when, and potentially where,
+alternative context encodings.<a href="#section-4.6-2" class="pilcrow">¶</a></p>
+<p id="section-4.6-3">The issuance context, written <code>ctx_iss</code>, restricts when, and potentially where,
 an Endorsement may be redeemed; it might for example name the epoch the
 Endorsement was issued in. Both parties hold it. It is bound by deriving the
-second commitment base from it:<a href="#section-4.5-3" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-4.5-4">
+second commitment base from it:<a href="#section-4.6-3" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6-4">
 <pre>
 def CreateContextBase(ctx_iss: bytes) -&gt; Element:
     context_base_input = U16Prefixed(ctx_iss) + b"ContextBase"
     return G.HashToGroup(context_base_input)
-</pre><a href="#section-4.5-4" class="pilcrow">¶</a>
+</pre><a href="#section-4.6-4" class="pilcrow">¶</a>
 </div>
-<p id="section-4.5-5">The Anchor forms its commitment under this base, and the base is recomputed at
+<p id="section-4.6-5">The Anchor forms its commitment under this base, and the base is recomputed at
 verification time. The Client and the Anchor <span class="bcp14">MUST</span> agree on the issuance context.
 Disagreement causes issuance to fail: a Client that uses any other value fails
 the commitment-opening check in <code>Finalize</code>. The binding is therefore enforced by
 the construction rather than by an explicit check, and a Client cannot bind an
-Endorsement to an issuance context of its own choosing.<a href="#section-4.5-5" class="pilcrow">¶</a></p>
-<p id="section-4.5-6">The redemption context, written <code>ctx_red</code>, restricts where an Endorsement
+Endorsement to an issuance context of its own choosing.<a href="#section-4.6-5" class="pilcrow">¶</a></p>
+<p id="section-4.6-6">The redemption context, written <code>ctx_red</code>, restricts where an Endorsement
 may be redeemed: a redemption succeeds only under the value the Endorsement was
 issued under. It might for example identify the Moderator the Client intends to
 redeem at, in which case the Endorsement is redeemable at that Moderator and at
 no other. It is chosen by the Client and is hidden from the Anchor. It is bound
 by placing it, together with a fresh Client-chosen nullifier <code>nf</code> of <code>Nn = 32</code>
-bytes, in the signed message:<a href="#section-4.5-6" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-4.5-7">
+bytes, in the signed message:<a href="#section-4.6-6" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6-7">
 <pre>
 def Message(nf: bytes, ctx_red: bytes) -&gt; bytes:
     if len(nf) != Nn:
         raise ValueError(f"nullifier must be exactly {Nn} bytes")
     return U16Prefixed(nf) + U16Prefixed(ctx_red)
-</pre><a href="#section-4.5-7" class="pilcrow">¶</a>
+</pre><a href="#section-4.6-7" class="pilcrow">¶</a>
 </div>
-<p id="section-4.5-8">A redemption under a different redemption context recomputes a different
+<p id="section-4.6-8">A redemption under a different redemption context recomputes a different
 message, for which the Client holds no valid signature. Two consequences
 follow. A Client has to fix <code>ctx_red</code> before it runs <code>Challenge</code>, that is,
 before the Endorsement exists; and an Endorsement cannot afterwards be re-bound
@@ -1872,15 +1901,15 @@ to another value, so a Client that needs to redeem under several redemption
 contexts needs a separate Endorsement, and so a separate issuance, for each.
 Anchors bound how many Endorsements they grant a given Client in order to keep
 Endorsements scarce (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>), so that budget is consumed per redemption
-context rather than per Client.<a href="#section-4.5-8" class="pilcrow">¶</a></p>
-<p id="section-4.5-9">The nullifier <code>nf</code> <span class="bcp14">MUST</span> be a fresh string of <code>Nn</code> uniformly random bytes,
+context rather than per Client.<a href="#section-4.6-8" class="pilcrow">¶</a></p>
+<p id="section-4.6-9">The nullifier <code>nf</code> <span class="bcp14">MUST</span> be a fresh string of <code>Nn</code> uniformly random bytes,
 generated by the Client, and <span class="bcp14">MUST NOT</span> be reused across Endorsements. It is
 revealed during redemption, so the Moderator ensures each Endorsement is
-redeemed at most once.<a href="#section-4.5-9" class="pilcrow">¶</a></p>
-<p id="section-4.5-10">The values the two contexts take determine the anonymity set a Client redeems
+redeemed at most once.<a href="#section-4.6-9" class="pilcrow">¶</a></p>
+<p id="section-4.6-10">The values the two contexts take determine the anonymity set a Client redeems
 in, and a deployment can destroy the unlinkability the construction provides
 without breaking any of its cryptographic properties; see
-<a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-4.5-10" class="pilcrow">¶</a></p>
+<a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-4.6-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2276,7 +2305,7 @@ invalid Endorsement.<a href="#section-5.7-2" class="pilcrow">¶</a></p>
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-endorsement-redemption" class="section-name selfRef">Endorsement Redemption</a>
       </h2>
 <p id="section-6-1">A Client redeems an Endorsement at a Moderator.<a href="#section-6-1" class="pilcrow">¶</a></p>
-<p id="section-6-2">An Endorsement is single-use (<a href="#context-binding" class="auto internal xref">Section 4.5</a>), so redemption does not have
+<p id="section-6-2">An Endorsement is single-use (<a href="#context-binding" class="auto internal xref">Section 4.6</a>), so redemption does not have
 to hide the signature: the Client reveals it, and the Moderator deduplicates on
 the nullifier. What redemption must hide is which Anchor issued it. The
 signature of <a href="#issuance" class="auto internal xref">Section 5</a> verifies under one Anchor's public key, so presenting
@@ -2470,14 +2499,11 @@ key.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-2">This document uses the commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-3">We require a random permutation <code>P</code> on group elements. We defer discussing its
-instantiation to a later section. Being a permutation, <code>P</code> has an inverse,
-which we denote by <code>Pinv</code>.<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-4">If we need a 1-of-1 binding commitment, we use the identity function. Thankfully
-we apply this commitment to group elements, so the output is always the same size.<a href="#section-6.2.2-4" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-5">The parameters for our 1-of-2 binding commitments will be a point <code>Q</code>, and openings
-will be a single scalar, the randomness used in the commitment.<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-6.2.2-6">
+<p id="section-6.2.2-3">The commitment to a pair uses a permutation <code>P</code> on group elements, with
+inverse <code>Pinv</code> (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>). Its key is a point <code>Q</code>, and an opening is a
+single scalar, the randomness used in the commitment. The two values are
+hashed to scalars and committed under the bases <code>Q</code> and <code>P(Q)</code>:<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.2-4">
 <pre>
 def CommitStep(
     Q: Element,
@@ -2487,17 +2513,22 @@ def CommitStep(
 ) -&gt; bytes:
     C = (
         randomness * B
-        + G.DeriveScalar(left, b"left") * Q
-        + G.DeriveScalar(right, b"right") * G.P(Q)
+        + G.HashToScalar(left) * Q
+        + G.HashToScalar(right) * G.P(Q)
     )
     return G.SerializeElement(C)
-
-# the return value is (Q, secret) where
-# secret can be used to equivocate the non
-# binding direction
-
-def GenerateStep(bind_direction: str) -&gt; tuple[Element, Scalar]:
-    secret = G.DeriveScalar(random(Nseed), b"TODO")
+</pre><a href="#section-6.2.2-4" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.2-5">The committer knows the discrete logarithm of exactly one of the two bases,
+and that is the position it can later open to a different value. Generating
+a key that binds the <code>left</code> position means choosing <code>Q</code> so that <code>P(Q)</code>, the
+base of the right value, is the one with a known logarithm, and vice versa:<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.2-6">
+<pre>
+def GenerateStep(
+    bind_direction: str, seed: bytes
+) -&gt; tuple[Element, Scalar]:
+    secret = G.DeriveScalar(seed, b"GenerateStep")
     T = secret * B
     if bind_direction == "left":
         return (G.Pinv(T), secret)
@@ -2505,16 +2536,25 @@ def GenerateStep(bind_direction: str) -&gt; tuple[Element, Scalar]:
         return (T, secret)
     else:
         raise ValueError("bind_direction must be 'left' or 'right'")
-
-def EquivocateStep(
-    old: Scalar, new: Scalar, randomness: Scalar, secret: Scalar
-) -&gt; Scalar:
-    return randomness + (old - new) * secret
 </pre><a href="#section-6.2.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-7">Let <code>V[0]</code>, <code>V[1]</code>, ... <code>V[n-1]</code> be a vector of bytestrings. We will use a logarithmic number of reductions
-to create a single commitment to the entire vector.<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-7">The returned <code>secret</code> is the trapdoor. Replacing the value at the equivocal
+position by another is a shift of the randomness by the difference of their
+hashes times the trapdoor, which leaves the commitment unchanged:<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-8">
+<pre>
+def EquivocateStep(
+    oldb: bytes, newb: bytes, randomness: Scalar, secret: Scalar
+) -&gt; Scalar:
+    old = G.HashToScalar(oldb)
+    new = G.HashToScalar(newb)
+    return randomness + (old - new) * secret
+</pre><a href="#section-6.2.2-8" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.2-9">A vector <code>V[0], ..., V[n-1]</code> of byte strings is committed by pairing
+neighbours level by level. Each level has its own key and its own
+randomness; a vector of odd length carries its last element up unchanged.<a href="#section-6.2.2-9" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.2-10">
 <pre>
 def VecCommit(
     V: Sequence[bytes],
@@ -2532,24 +2572,201 @@ def VecCommit(
         V_prime.append(V[-1])
 
     return VecCommit(V_prime, Qi[1:], rands[1:])
-</pre><a href="#section-6.2.2-8" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.2-10" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-9">Creating parameters that bind in only one specified position of the vector V is
-an exercise in bookkeeping. Note that there is significant savings in verification
-from caching the computation of <code>G.Generator()*rands[i]</code> across the level.<a href="#section-6.2.2-9" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-11">Committing to position <code>index</code> of the vector, and to nothing else, is then
+bookkeeping over the bits of <code>index</code>. Bit <code>j</code> of <code>index</code> says which side of
+its pair the binding value is on at level <code>j</code>, which fixes the direction of
+that level's key:<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.2-12">
+<pre>
+def GenerateVecBind(
+    q: int, index: int, seed: bytes
+) -&gt; tuple[list[Element], list[Scalar]]:
+    commitment_keys = []
+    trapdoors = []
+    for j in range(q):
+        direction = "right" if (index &gt;&gt; j) &amp; 1 else "left"
+        key_seed = G.DeriveSeed(seed, b"key" + I2OSP(j, 1))
+        (Q, secret) = GenerateStep(direction, key_seed)
+        commitment_keys.append(Q)
+        trapdoors.append(secret)
+    return (commitment_keys, trapdoors)
+</pre><a href="#section-6.2.2-12" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.2-13">The first move commits the value at <code>index</code> with every other leaf empty,
+drawing the randomness of each level from the seed:<a href="#section-6.2.2-13" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.2-14">
+<pre>
+def CommitValAtPlace(
+    commitment_keys: Sequence[Element],
+    n: int,
+    index: int,
+    value: bytes,
+    seed: bytes,
+) -&gt; tuple[bytes, list[Scalar]]:
+    V = [b"" for _ in range(n)]
+    V[index] = value
+    rands = []
+    for j in range(len(commitment_keys)):
+        info = b"opening" + I2OSP(j, 1)
+        rands.append(G.DeriveScalar(G.DeriveSeed(seed, info), info))
+    return (VecCommit(V, commitment_keys, rands), rands)
+</pre><a href="#section-6.2.2-14" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.2-15">Once every other leaf is known, each level's randomness is shifted so that
+the node above is unchanged while the sibling of the binding path takes its
+new value. The binding position itself <span class="bcp14">MUST</span> hold the same value in both
+vectors. An odd last element that sits on the binding path has no sibling
+at its level and keeps its randomness.<a href="#section-6.2.2-15" class="pilcrow">¶</a></p>
+<div class="breakable lang-python sourcecode" id="section-6.2.2-16">
+<pre>
+def VecEquivocate(
+    commitment_keys: Sequence[Element],
+    trapdoors: Sequence[Scalar],
+    openings: Sequence[Scalar],
+    old: Sequence[bytes],
+    new: Sequence[bytes],
+    index: int,
+) -&gt; list[Scalar]:
+    if len(old) != len(new):
+        raise ValueError("vectors must have the same length")
+    if old[index] != new[index]:
+        raise ValueError("the binding position cannot change")
+    if len(old) == 1:
+        return []
+
+    if index == len(old) - 1 and len(old) % 2 == 1:
+        opening = openings[0]
+    else:
+        partner = index - 1 if index % 2 == 1 else index + 1
+        opening = EquivocateStep(
+            old[partner], new[partner], openings[0], trapdoors[0]
+        )
+
+    old_prime = []
+    new_prime = []
+    for i in range(len(old) // 2):
+        Q = commitment_keys[0]
+        old_prime.append(
+            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+        )
+        new_prime.append(
+            CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+        )
+    if len(old) % 2 == 1:
+        old_prime.append(old[-1])
+        new_prime.append(new[-1])
+
+    rest = VecEquivocate(
+        commitment_keys[1:],
+        trapdoors[1:],
+        openings[1:],
+        old_prime,
+        new_prime,
+        index // 2,
+    )
+    return [opening] + rest
+
+
+def VecEquivocateFromZero(
+    commitment_keys: Sequence[Element],
+    trapdoors: Sequence[Scalar],
+    openings: Sequence[Scalar],
+    new: Sequence[bytes],
+    index: int,
+) -&gt; list[Scalar]:
+    V = [b"" for _ in new]
+    V[index] = new[index]
+    return VecEquivocate(
+        commitment_keys, trapdoors, openings, V, new, index
+    )
+</pre><a href="#section-6.2.2-16" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="permutation">
+<section id="section-6.2.3">
+          <h4 id="name-the-permutation">
+<a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-the-permutation" class="section-name selfRef">The Permutation</a>
+          </h4>
+<p id="section-6.2.3-1"><code>P</code> is a permutation on the elements of <code>G</code>, computed on their compressed
+encodings by cycle walking: a permutation of the encoding space is applied
+until the result decodes to an element, and <code>Pinv</code> walks the same cycle
+backwards. Because a permutation partitions its domain into cycles, the
+first element encountered is well defined and the two are inverse to each
+other.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.3-2">
+<pre>
+def P(self, element: Element) -&gt; Element:
+    buf = bytearray(self.SerializeElement(element))
+    buf[0] = buf[0] - 0x02
+    while True:
+        buf = PermuteBytes(buf)
+        try:
+            return self.DeserializeElement(
+                bytes([buf[0] + 0x02]) + bytes(buf[1:])
+            )
+        except DeserializeError:
+            continue
+
+def Pinv(self, element: Element) -&gt; Element:
+    buf = bytearray(self.SerializeElement(element))
+    buf[0] = buf[0] - 0x02
+    while True:
+        buf = UnpermuteBytes(buf)
+        try:
+            return self.DeserializeElement(
+                bytes([buf[0] + 0x02]) + bytes(buf[1:])
+            )
+        except DeserializeError:
+            continue
+</pre><a href="#section-6.2.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.3-3">The permutation of the encoding space is a four-round Feistel network over
+the 33 bytes of the encoding, with the sign byte reduced to its low bit so
+that the domain is the encodings of the form <code>0x02 || x</code> and <code>0x03 || x</code>:<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-6.2.3-4">
+<pre>
+def PermuteBytes(buf: bytearray) -&gt; bytearray:
+    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+    for i in range(4):
+        label = f"left round {i}".encode()
+        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        left[0] = left[0] &amp; 0x01
+        label = f"right round {i}".encode()
+        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+    return left + right
+
+def UnpermuteBytes(buf: bytearray) -&gt; bytearray:
+    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+    for i in reversed(range(4)):
+        label = f"right round {i}".encode()
+        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+        label = f"left round {i}".encode()
+        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        left[0] = left[0] &amp; 0x01
+    return left + right
+</pre><a href="#section-6.2.3-4" class="pilcrow">¶</a>
+</div>
+<p id="section-6.2.3-5"><code>P</code> has no fixed point and is not an involution except with negligible
+probability, and knowledge of the discrete logarithm of <code>Q</code> gives no
+information about that of <code>P(Q)</code> when <code>P</code> is modelled as a random
+permutation, which is what the binding argument of
+<a href="#security-considerations" class="auto internal xref">Section 8</a> assumes.<a href="#section-6.2.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-challenge">
-<section id="section-6.2.3">
+<section id="section-6.2.4">
           <h4 id="name-challenge-computation">
-<a href="#section-6.2.3" class="section-number selfRef">6.2.3. </a><a href="#name-challenge-computation" class="section-name selfRef">Challenge Computation</a>
+<a href="#section-6.2.4" class="section-number selfRef">6.2.4. </a><a href="#name-challenge-computation" class="section-name selfRef">Challenge Computation</a>
           </h4>
-<p id="section-6.2.3-1"><code>ProofStatement</code> encodes the statement being proven: the Anchor Set, the
+<p id="section-6.2.4-1"><code>ProofStatement</code> encodes the statement being proven: the Anchor Set, the
 rerandomized key, the signature being presented, the two contexts, and the
 Moderator's challenge digest. The Fiat-Shamir challenge covers it together
 with the first move of the proof, which is the commitment keys and the root
-of the tree.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
-<div class="breakable lang-python sourcecode" id="section-6.2.3-2">
+of the tree.<a href="#section-6.2.4-1" class="pilcrow">¶</a></p>
+<div class="breakable lang-python sourcecode" id="section-6.2.4-2">
 <pre>
 def ProofStatement(
     anchor_set: Sequence[Element],
@@ -2610,24 +2827,24 @@ def ComputeProofChallenge(
     )
 
     return G.HashToScalar(proof_transcript)
-</pre><a href="#section-6.2.3-2" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.3-3">The length of the Anchor Set <code>n</code> is prefixed and <code>Element</code> encodings are
+<p id="section-6.2.4-3">The length of the Anchor Set <code>n</code> is prefixed and <code>Element</code> encodings are
 fixed-length, so <code>anchor_set_enc</code> and <code>ck_enc</code> are unambiguous without length
 prefixes of their own; <code>q</code>, and with it the number of commitment keys, is
 determined by <code>n</code>. The label <code>"IssuerProof"</code> separates this transcript from the
-issuance transcript of <a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
-<p id="section-6.2.3-4">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
+issuance transcript of <a href="#challenge" class="auto internal xref">Section 5.2</a>, which is hashed with the same function.<a href="#section-6.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.4-4">Unlike <code>ComputeChallenge</code>, this function accepts zero rather than aborting and
 retrying: a challenge of zero yields a proof that verifies, and no branch is
-privileged by it.<a href="#section-6.2.3-4" class="pilcrow">¶</a></p>
+privileged by it.<a href="#section-6.2.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="prove-issuer">
-<section id="section-6.2.4">
+<section id="section-6.2.5">
           <h4 id="name-proving">
-<a href="#section-6.2.4" class="section-number selfRef">6.2.4. </a><a href="#name-proving" class="section-name selfRef">Proving</a>
+<a href="#section-6.2.5" class="section-number selfRef">6.2.5. </a><a href="#name-proving" class="section-name selfRef">Proving</a>
           </h4>
-<div class="breakable lang-python sourcecode" id="section-6.2.4-1">
+<div class="breakable lang-python sourcecode" id="section-6.2.5-1">
 <pre>
 def ProveIssuer(
     anchor_set: Sequence[Element],
@@ -2638,13 +2855,13 @@ def ProveIssuer(
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
-    rand: bytes,
+    seed: bytes,
 ) -&gt; tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
     (Y, q) = Statements(anchor_set, X_hat)
     if not 0 &lt;= index &lt; len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
-    if len(rand) != (3 * q + 1) * Nseed:
-        raise ValueError("invalid issuer proof randomness length")
+    if len(seed) != Nseed:
+        raise ValueError(f"seed must be exactly {Nseed} bytes")
 
     instance = ProofStatement(
         anchor_set,
@@ -2655,13 +2872,24 @@ def ProveIssuer(
         challenge_digest,
     )
     r = G.DeriveNonce(
-        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+        G.SerializeScalar(delta),
+        b"r",
+        instance,
+        G.DeriveSeed(seed, b"r"),
     )
     A = B * r
 
-    (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
-    # First move: commit along the binding path, sibling value zero.
-    (root, first_open) = CommitValAtPlace(q, index, G.SerializeElement(A))
+    (commitment_keys, trapdoors) = GenerateVecBind(
+        q, index, G.DeriveSeed(seed, b"keys")
+    )
+    # First move: commit along the binding path; other leaves empty.
+    (root, first_openings) = CommitValAtPlace(
+        commitment_keys,
+        len(Y),
+        index,
+        G.SerializeElement(A),
+        G.DeriveSeed(seed, b"openings"),
+    )
 
     proof_challenge = ComputeProofChallenge(
         anchor_set,
@@ -2680,30 +2908,35 @@ def ProveIssuer(
     for i in range(len(Y)):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         V.append(G.SerializeElement(commitment))
-    openings = VecEquivocate(trapdoor, V, index, G.SerializeElement(A))
+    openings = VecEquivocateFromZero(
+        commitment_keys, trapdoors, first_openings, V, index
+    )
 
     return (proof_challenge, response, commitment_keys, openings)
-</pre><a href="#section-6.2.4-1" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.5-1" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.4-2">The Schnorr nonce <code>r</code> is derived with <code>G.DeriveNonce</code> (<a href="#derive-nonce" class="auto internal xref">Section 4.3</a>)
-from the witness <code>delta</code>, the proof statement, and the first <code>Nseed</code> bytes
-of <code>rand</code>, so that two proofs of distinct statements do not share it even
-if <code>rand</code> repeats; a repeated nonce would reveal <code>delta</code>.<a href="#section-6.2.4-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.4-3">The first move commits only the path from leaf <code>index</code> to the root: at each
-level the Client commits the value it holds on one side and zero on the other,
-having generated that level's commitment key so that the <em>other</em> side is the
-equivocal one. The third move then computes the branch commitment of every
-statement from the single response, equivocates each level to the value its
-sibling subtree now has, and rebuilds the tree with the equivocated randomness.
-The root is unchanged by this, which is why the verifier can recompute it.<a href="#section-6.2.4-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.5-2"><code>ProveIssuer</code> expands its one <code>seed</code> (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>) into the auxiliary
+input of the nonce <code>r</code>, the seed of the commitment keys, and the seed of
+the first openings. The nonce itself is derived with <code>G.DeriveNonce</code>
+(<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>) from the witness <code>delta</code>, the proof statement, and that
+auxiliary input, so that two proofs of distinct statements do not share it
+even if the seed repeats; a repeated nonce would reveal <code>delta</code>.<a href="#section-6.2.5-2" class="pilcrow">¶</a></p>
+<p id="section-6.2.5-3">The first move commits only the path from leaf <code>index</code> to the root: at each
+level the Client commits the value it holds on one side and an empty value
+on the other, having generated that level's key so that the <em>other</em> side is
+the equivocal one. The third move then computes the branch commitment of
+every statement from the single response, equivocates each level to the
+value its sibling subtree now has, and rebuilds the tree with the
+equivocated randomness. The root is unchanged by this, which is why the
+verifier can recompute it.<a href="#section-6.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="verify-issuer">
-<section id="section-6.2.5">
+<section id="section-6.2.6">
           <h4 id="name-verifying">
-<a href="#section-6.2.5" class="section-number selfRef">6.2.5. </a><a href="#name-verifying" class="section-name selfRef">Verifying</a>
+<a href="#section-6.2.6" class="section-number selfRef">6.2.6. </a><a href="#name-verifying" class="section-name selfRef">Verifying</a>
           </h4>
-<div class="lang-python sourcecode" id="section-6.2.5-1">
+<div class="lang-python sourcecode" id="section-6.2.6-1">
 <pre>
 def VerifyIssuer(
     anchor_set: Sequence[Element],
@@ -2744,39 +2977,39 @@ def VerifyIssuer(
         commitment_keys,
         root,
     )
-</pre><a href="#section-6.2.5-1" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.6-1" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.5-2">The verifier computes a commitment for every branch from the single response,
+<p id="section-6.2.6-2">The verifier computes a commitment for every branch from the single response,
 rebuilds the whole tree from those commitments and the openings it was given,
 and checks that the root it arrives at is the one the challenge was computed
-over. Neither the branch commitments nor the interior nodes are transmitted.<a href="#section-6.2.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.5-3"><code>VerifyIssuer</code> returns <code>false</code> rather than raising an error, so that it is a
+over. Neither the branch commitments nor the interior nodes are transmitted.<a href="#section-6.2.6-2" class="pilcrow">¶</a></p>
+<p id="section-6.2.6-3"><code>VerifyIssuer</code> returns <code>false</code> rather than raising an error, so that it is a
 total predicate on its inputs, as <code>Verify</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>) is. Two of its three
 rejections are defensive restatements of its input types: the lengths of
 <code>commitment_keys</code> and <code>openings</code> are fixed by the Anchor Set, and a redemption
 whose vectors have any other length is rejected before this algorithm is
 reached, when it is deserialized (<a href="#redemption-wire" class="auto internal xref">Section 6.5</a>). The third, <code>n &lt; 2</code>, is
 not a property of the redemption at all but of the Moderator's own Anchor Set;
-reaching it means the Moderator is misconfigured (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>).<a href="#section-6.2.5-3" class="pilcrow">¶</a></p>
-<p id="section-6.2.5-4">A proof produced by <code>ProveIssuer</code> is accepted by <code>VerifyIssuer</code>. On branch
-<code>index</code>,<a href="#section-6.2.5-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-6.2.5-5">
+reaching it means the Moderator is misconfigured (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>).<a href="#section-6.2.6-3" class="pilcrow">¶</a></p>
+<p id="section-6.2.6-4">A proof produced by <code>ProveIssuer</code> is accepted by <code>VerifyIssuer</code>. On branch
+<code>index</code>,<a href="#section-6.2.6-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.2.6-5">
 <pre>
   proof_challenge * Y[index] + response * B
     = proof_challenge * delta * B
       + (r - proof_challenge * delta) * B
     = r * B
-</pre><a href="#section-6.2.5-5" class="pilcrow">¶</a>
+</pre><a href="#section-6.2.6-5" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.5-6">This is the commitment the Client committed at the binding leaf, and every
+<p id="section-6.2.6-6">This is the commitment the Client committed at the binding leaf, and every
 other leaf holds by definition the commitment the verifier recomputes. Each
 level then reproduces the node the Client committed: the binding side is
-unchanged, and the equivocal side was shifted to match.<a href="#section-6.2.5-6" class="pilcrow">¶</a></p>
-<p id="section-6.2.5-7">Conversely, the binding leaf is fixed before <code>proof_challenge</code> exists and
+unchanged, and the equivocal side was shifted to match.<a href="#section-6.2.6-6" class="pilcrow">¶</a></p>
+<p id="section-6.2.6-7">Conversely, the binding leaf is fixed before <code>proof_challenge</code> exists and
 cannot be moved afterwards, so a Client that could produce an accepting proof
 for two different challenges would yield <code>delta</code> for that leaf's statement. The
 soundness of the proof rests on that, and on nothing about the other branches;
-see <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-6.2.5-7" class="pilcrow">¶</a></p>
+see <a href="#security-considerations" class="auto internal xref">Section 8</a>.<a href="#section-6.2.6-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2805,10 +3038,7 @@ def Redeem(
     if not 0 &lt;= index &lt; n:
         raise ValueError("index is outside the Anchor Set")
 
-    (Y, q) = Statements(anchor_set, G.Identity())
-    nrand = (3 * q + 2) * Nseed
-
-    rand = random(nrand)
+    rand = random(2 * Nseed)
     delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
@@ -2824,7 +3054,7 @@ def Redeem(
         ctx_iss,
         ctx_red,
         challenge_digest,
-        rand[Nseed:nrand],
+        Seed(rand, 1),
     )
 
     return Redemption(
@@ -3055,16 +3285,18 @@ inverse.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></p>
 <a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
         </h3>
 <p id="section-7.2-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
-<code>random</code> and consumed by <code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>) or, for the
-nonce <code>r</code> of <code>ProveIssuer</code>, by <code>G.DeriveNonce</code> (<a href="#derive-nonce" class="auto internal xref">Section 4.3</a>); no
+<code>random</code> and consumed by <code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), expanded by
+<code>G.DeriveSeed</code> (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), or, for the nonce <code>r</code> of <code>ProveIssuer</code>,
+used as the auxiliary input of <code>G.DeriveNonce</code> (<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>); no
 scalar is sampled directly. Implementations <span class="bcp14">MUST</span> draw seeds with a
 cryptographically secure random number generator and <span class="bcp14">MUST NOT</span> reuse a seed
 across derivations.
 They <span class="bcp14">SHOULD</span> treat a seed as being as sensitive as the values derived from it,
 and <span class="bcp14">SHOULD</span> handle both in constant time: the seed drawn in <code>Commit</code> determines
-the Anchor's session state, and the seed drawn in <code>Challenge</code> determines the
-Client's blinding factors, so recovering either undoes the property that
-algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+the Anchor's session state, the seed drawn in <code>Challenge</code> determines the
+Client's blinding factors, and the second seed drawn in <code>Redeem</code> determines
+every value of the issuer-hiding proof, so recovering any of them undoes the
+property that algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -3117,19 +3349,21 @@ scalars from one seed, or from a seed of <code>Ns</code> bytes, would break this
 blinding factors of a session would then be jointly determined by fewer bits
 than they contain, an exhaustive search over seeds would identify the one
 session consistent with a given Endorsement, and unlinkability would hold
-only against a bounded adversary. Implementations <span class="bcp14">MUST NOT</span> do either.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
+only against a bounded adversary. Implementations <span class="bcp14">MUST NOT</span> do either in
+issuance. The redemption proof does expand one seed (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), and
+its hiding is accordingly computational, as "Issuer hiding" below states.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.5">Derived proof nonce:</dt>
         <dd style="margin-left: 1.5em" id="section-8-3.6">
           <p id="section-8-3.6.1">A repeated Schnorr nonce in <code>ProveIssuer</code> reveals <code>delta</code>, which links the
 redemption to the Anchor. The nonce is therefore derived with
-<code>G.DeriveNonce</code> from <code>delta</code>, the proof statement, and fresh randomness
-(<a href="#prove-issuer" class="auto internal xref">Section 6.2.4</a>): with a working random source it is distributed as a
-drawn nonce, and with a failed one it is still a pseudorandom function
+<code>G.DeriveNonce</code> from <code>delta</code>, the proof statement, and an expansion of the
+proof's seed (<a href="#prove-issuer" class="auto internal xref">Section 6.2.5</a>): with a working random source it is
+distributed as a drawn nonce, and with a failed one it is still a pseudorandom function
 of <code>delta</code>, unknown to
 the verifier, at a point that identifies the statement, so it does not
-repeat across distinct statements (<a href="#derive-nonce" class="auto internal xref">Section 4.3</a>). The Anchor's signing
+repeat across distinct statements (<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>). The Anchor's signing
 nonce <code>a</code> in <code>Commit</code> cannot be protected the same way: it is fixed before
 the Client's challenge is known, so no public input distinguishes two
 sessions at that point, and only fresh randomness, or persistent
@@ -3184,42 +3418,41 @@ indistinguishability of the composition (Section 7 of <span>[<a href="#STACKSIG"
         <dd class="break"></dd>
 <dt id="section-8-3.13"></dt>
         <dd style="margin-left: 1.5em" id="section-8-3.14">
-          <p id="section-8-3.14.1">The commitment of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> would be <em>perfectly</em> hiding if its randomness were
-uniform, and is <em>statistically</em> hiding as specified here, because
-<code>G.DeriveScalar</code> never returns zero (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). The two cases of
-<code>CreateCommitmentKey</code> therefore have slightly different supports -- <code>E - G0</code>
-is never <code>-G0</code> and <code>G0 - E</code> is never <code>G0</code> -- so a commitment key that happened
-to equal <code>G0</code> or <code>-G0</code> would reveal which position it binds, and the same
-exclusion applies to each opening and to <code>response</code>. Each of these <code>3 * q + 1</code>
-values excludes at most one point of a field of order <code>p</code>, so the total
-statistical distance is at most <code>(3 * q + 1) / p</code>, below <code>2^-250</code> for both
-ciphersuites of <a href="#ciphersuites" class="auto internal xref">Section 7</a>. Like blindness, issuer hiding therefore
-holds against unbounded computation up to a statistical loss, here from this
-exclusion as well as from the seed length of the derived randomness above.
-Note that it is the <em>binding</em> property of the commitment, and not its hiding,
-that is computational, which is the direction <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> requires.<a href="#section-8-3.14.1" class="pilcrow">¶</a></p>
+          <p id="section-8-3.14.1">The commitment of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> hides which position it binds. A key <code>Q</code> is
+<code>T</code> or <code>Pinv(T)</code> for <code>T = secret * B</code>; <code>T</code> is uniform over the nonidentity
+elements, and <code>Pinv</code> is a permutation, so <code>Q</code> has the same distribution
+either way. An opening is uniform whether it was committed or shifted by
+<code>EquivocateStep</code>, since the shift is by a fixed offset. Two losses make
+this statistical rather than perfect: <code>G.DeriveScalar</code> never returns zero
+(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which excludes one point for each of the <code>2 * q + 1</code>
+scalars of a proof, at most <code>(2 * q + 1) / p</code> in total; and the proof's
+randomness is expanded from one seed (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), so a distinguisher
+for <code>expand_message_xmd</code> would distinguish the proof from one made with
+independent seeds. Issuer hiding therefore holds against an adversary
+bounded by the security of the hash, unlike blindness, which holds against
+unbounded computation. Note that it is the <em>binding</em> property of the
+commitment, and not its hiding, that rests on the discrete logarithm,
+which is the direction <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> requires.<a href="#section-8-3.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.15">Partially binding commitments:</dt>
         <dd style="margin-left: 1.5em" id="section-8-3.16">
-          <p id="section-8-3.16.1">The soundness of the issuer-hiding proof rests on two things: the commitment
-of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> binding one position of each node, and the collision resistance of
-the <code>CompressValue</code> of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a>, without which a leaf or a node could be
-opened to a colliding value and no discrete logarithm would be extractable.
-The binding property is computational and
-reduces tightly to the discrete logarithm problem
-(Section 5.2 of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>): a Client that can open one position of a node
-two ways knows the discrete logarithm of that position's base, and a Client
-that can do so at both positions knows that of <code>G0</code>, since the two bases sum
-to <code>G0 + G0</code>. <code>G0</code> <span class="bcp14">MUST</span> therefore be the <code>HashToGroup</code> output specified in
-<a href="#pbvc" class="auto internal xref">Section 6.2.2</a> and <span class="bcp14">MUST NOT</span> be chosen, negotiated, or supplied by any party: a
-Client that knew its discrete logarithm could equivocate every position of
-every node, open the binding leaf to whatever the challenge required, and
-produce accepting redemptions holding no Endorsement at all. The same
-reduction also motivates committing the two values under two <em>separate</em>
-Pedersen commitments. With a single commitment over both bases, the binding
-equation would involve both bases, so the reduction above would not directly
-extract a discrete logarithm.<a href="#section-8-3.16.1" class="pilcrow">¶</a></p>
+          <p id="section-8-3.16.1">The soundness of the issuer-hiding proof rests on two things: the
+commitment of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> binding one position of each node, and the
+collision resistance of <code>HashToScalar</code> on the leaf and node encodings,
+without which a position could be opened to a colliding value and no
+discrete logarithm would be extractable. Binding is computational. A
+Client that opens the value under base <code>Q</code> two ways knows the discrete
+logarithm of <code>Q</code>, and one that opens the value under <code>P(Q)</code> two ways knows
+that of <code>P(Q)</code>; the key generation gives it one of the two. Opening both
+positions would require both logarithms, and with <code>P</code> modelled as a random
+permutation (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>) a <code>Q</code> with both known is as hard to find as a
+discrete logarithm (appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>). <code>P</code> <span class="bcp14">MUST</span> therefore be the
+permutation specified in <a href="#permutation" class="auto internal xref">Section 6.2.3</a> and <span class="bcp14">MUST NOT</span> be chosen or
+negotiated by any party: a Client that could choose <code>P</code> could take
+<code>P(Q) = 2 * Q</code>, equivocate every position of every node, open the binding
+leaf to whatever the challenge required, and produce accepting redemptions
+holding no Endorsement at all.<a href="#section-8-3.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.17">Anchor Set size:</dt>
@@ -3228,9 +3461,8 @@ extract a discrete logarithm.<a href="#section-8-3.16.1" class="pilcrow">¶</a><
 anonymity set, and a redemption against a single-key set would name the
 Anchor outright (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>); a Client <span class="bcp14">MUST</span> refuse such a set
 rather than rely on the Moderator to avoid offering one (<a href="#redeem" class="auto internal xref">Section 6.3</a>).
-Padding the set to a power of two (<a href="#pbvc" class="auto internal xref">Section 6.2.2</a>) does not enlarge it: a padded
-leaf repeats a statement rather than adding an Anchor, and the anonymity set
-is <code>n</code>, never <code>N</code>. More generally a Moderator that offers different Anchor
+The tree of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is not padded: an odd node is carried up a level, so
+the anonymity set is exactly <code>n</code>. More generally a Moderator that offers different Anchor
 Sets to different Clients partitions them, and one that reorders the set
 between Clients does the same; the set and its order <span class="bcp14">MUST</span> be the same for
 every Client offered a given <code>ctx_iss</code>. See <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> for how set size
@@ -3242,15 +3474,15 @@ interacts with Anchor diversity.<a href="#section-8-3.18.1" class="pilcrow">¶</
           <p id="section-8-3.20.1">The proof is logarithmic in the size of the Anchor Set: two scalars, plus one
 element and two scalars for each of the <code>q</code> levels of the tree
 (<a href="#redemption-wire" class="auto internal xref">Section 6.5</a>). Computation is not. Both the prover and the verifier
-evaluate every branch and every node, which is <code>N</code> branch commitments and
-<code>N - 1</code> node commitments, so each performs a number of scalar multiplications
-linear in <code>N</code>. A large Anchor Set is therefore cheap in bandwidth and not in
-CPU, which reverses the tradeoff of the linear disjunction <span>[<a href="#CDS94" class="cite xref">CDS94</a>]</span> for
-bandwidth but not for work; <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span> notes the same for its own
-instantiations. Two consequences for deployments: the linear disjunction is
-smaller for Anchor Sets of five keys or fewer, and because the tree is padded
-to a power of two, an Anchor Set of <code>2^q + 1</code> keys costs a whole extra level
-while adding one Anchor to the anonymity set.<a href="#section-8-3.20.1" class="pilcrow">¶</a></p>
+evaluate every branch and every node, which is <code>n</code> branch commitments and
+<code>n - 1</code> node commitments, so each performs a number of scalar
+multiplications linear in <code>n</code>. A large Anchor Set is therefore cheap in
+bandwidth and not in CPU, which reverses the tradeoff of the linear
+disjunction <span>[<a href="#CDS94" class="cite xref">CDS94</a>]</span> for bandwidth but not for work; <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span> notes
+the same for its own instantiations. Two consequences for deployments: the
+linear disjunction is smaller for Anchor Sets of five keys or fewer, and
+since the depth is <code>q = ceil(log2 n)</code>, an Anchor Set of <code>2^q + 1</code> keys
+costs a whole extra level while adding one Anchor to the anonymity set.<a href="#section-8-3.20.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.21">Constant-time proving:</dt>
@@ -3286,7 +3518,7 @@ single use, and single use is the property that matters here.<a href="#section-8
         <dd class="break"></dd>
 <dt id="section-8-3.25">Challenge binding:</dt>
         <dd style="margin-left: 1.5em" id="section-8-3.26">
-          <p id="section-8-3.26.1"><code>challenge_digest</code> enters the proof transcript (<a href="#proof-challenge" class="auto internal xref">Section 6.2.3</a>), so a
+          <p id="section-8-3.26.1"><code>challenge_digest</code> enters the proof transcript (<a href="#proof-challenge" class="auto internal xref">Section 6.2.4</a>), so a
 proof produced for one challenge does not verify under any other. Whether that
 amounts to replay protection depends on the challenge being fresh, which this
 document does not control: <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> fixes what the Moderator's challenge
@@ -3337,7 +3569,7 @@ operate over is set by the contexts. Both contexts are visible at redemption,
 the issuance context directly and the redemption context through the fact
 that the Endorsement verifies under it, so each partitions Clients into the
 set that shares its value. Whatever <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> eventually specifies them to be
-(<a href="#context-binding" class="auto internal xref">Section 4.5</a>), both values must therefore be <strong>coarse</strong>. Every Client
+(<a href="#context-binding" class="auto internal xref">Section 4.6</a>), both values must therefore be <strong>coarse</strong>. Every Client
 holding an Endorsement issued under a given issuance context <span class="bcp14">MUST</span> derive the
 byte-identical <code>ctx_iss</code>, and every Client redeeming under a given
 redemption context <span class="bcp14">MUST</span> derive the byte-identical <code>ctx_red</code>. A deployment
@@ -3455,7 +3687,7 @@ specified here is registered by <span>[<a href="#PROTOCOLS" class="cite xref">PR
 <dd class="break"></dd>
 <dt id="FFKLLS26">[FFKLLS26]</dt>
         <dd>
-<span class="refAuthor">Flamini, A.</span>, <span class="refAuthor">Friedrichs, F.</span>, <span class="refAuthor">Katz, J.</span>, <span class="refAuthor">Ladd, W.</span>, <span class="refAuthor">Lehmann, A.</span>, and <span class="refAuthor">C. Sefranek</span>, <span class="refTitle">"Issuer-Hiding BBS-Based Anonymous Credentials without Policy Keys"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/870">https://eprint.iacr.org/2026/870</a>&gt;</span>. </dd>
+<span class="refAuthor">Flamini, A.</span>, <span class="refAuthor">Friedrichs, K.</span>, <span class="refAuthor">Katz, J.</span>, <span class="refAuthor">Ladd, W.</span>, <span class="refAuthor">Lehmann, A.</span>, and <span class="refAuthor">M. Sefranek</span>, <span class="refTitle">"Issuer-Hiding BBS-Based Anonymous Credentials without Policy Keys"</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/870">https://eprint.iacr.org/2026/870</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="STACKSIG">[STACKSIG]</dt>
         <dd>
@@ -3478,16 +3710,17 @@ specified here is registered by <span>[<a href="#PROTOCOLS" class="cite xref">PR
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="appendix-A-1.1">
           <p id="appendix-A-1.1.1"><strong>TODO.</strong> Test vectors for <code>G.DeriveKeyPair</code>, <code>G.DeriveScalar</code>,
-<code>CreateContextBase</code>, <code>Message</code>, <code>ComputeChallenge</code>, the four issuance
-algorithms, <code>Verify</code>, <code>G0</code>, <code>CommitNode</code>, <code>CompressValue</code>,
-<code>ComputeProofChallenge</code>, <code>Redeem</code>, and <code>VerifyRedemption</code>, for each ciphersuite
-in <a href="#ciphersuites" class="auto internal xref">Section 7</a>. Issuance and redemption are randomized, but every
-algorithm is a deterministic function of the bytes it draws from <code>random</code>, so a
-vector fixes one value per algorithm: the key seed, the <code>rand</code> of <code>Commit</code>, the
-<code>rand</code> of <code>Challenge</code>, and the <code>rand</code> of <code>Redeem</code>. A redemption vector also has
-to fix the Anchor Set, its order, the Client's <code>index</code> in it, and a
-<code>challenge_digest</code>, and <span class="bcp14">SHOULD</span> include one Anchor Set whose size is not a power
-of two, so that the padding of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is covered.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
+<code>G.DeriveSeed</code>, <code>P</code>, <code>CreateContextBase</code>, <code>Message</code>, <code>ComputeChallenge</code>,
+the four issuance algorithms, <code>Verify</code>, <code>CommitStep</code>, <code>GenerateVecBind</code>,
+<code>ComputeProofChallenge</code>, <code>Redeem</code>, and <code>VerifyRedemption</code>, for each
+ciphersuite in <a href="#ciphersuites" class="auto internal xref">Section 7</a>. Issuance and redemption are randomized,
+but every algorithm is a deterministic function of the bytes it draws from
+<code>random</code>, so a vector fixes one value per algorithm: the key seed, the
+<code>rand</code> of <code>Commit</code>, the <code>rand</code> of <code>Challenge</code>, and the <code>rand</code> of <code>Redeem</code>.
+A redemption vector also has to fix the Anchor Set, its order, the
+Client's <code>index</code> in it, and a <code>challenge_digest</code>, and <span class="bcp14">SHOULD</span> include one
+Anchor Set whose size is odd, so that the carried element of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is
+covered.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
