@@ -138,7 +138,7 @@ requirements. The MoLE protocols use ACT as a Credential scheme.
 
 MoLE Credentials carry per-Client state that a Moderator tests and updates at
 each presentation without learning it, and without being able to link
-presentations to each other or to issuance. Anonymous Credit Tokens (ACT)
+presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
 provide a numeric balance as this state ({{credential-scheme}}).
 
 The Moderator is both the issuer and the verifier. A Client obtains an initial
@@ -151,8 +151,9 @@ contexts. This document treats those contexts as opaque byte strings.
 
 {::boilerplate bcp14-tagged}
 
-The terms Client, Moderator, and Credential are used as defined in
-{{ARCH}}. The message-encoding conventions, Python notation, and helpers
+The capitalized terms Client, Moderator, and Credential are used as
+defined in {{ARCH}}; a lowercase credential is the generic cryptographic
+notion. The message-encoding conventions, Python notation, and helpers
 `I2OSP`, `U16Prefixed`, `random`, and `Seed` are those of
 Section 2 of {{IHAT}}. The algorithms use `bytes` for byte strings, `int`
 for integers, and `Sequence` and `NamedTuple` from Python's `typing` module.
