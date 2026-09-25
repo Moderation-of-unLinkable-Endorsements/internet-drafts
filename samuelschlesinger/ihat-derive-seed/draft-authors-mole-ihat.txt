@@ -1985,14 +1985,13 @@ Table of Contents
       Set_, so the set is the anonymity set, and a redemption against a
       single-key set would name the Anchor outright (Section 6.4); a
       Client MUST refuse such a set rather than rely on the Moderator to
-      avoid offering one (Section 6.3).  The tree of Section 6.2.2 is
-      not padded: an odd node is carried up a level, so the anonymity
-      set is exactly n.  More generally a Moderator that offers
-      different Anchor Sets to different Clients partitions them, and
-      one that reorders the set between Clients does the same; the set
-      and its order MUST be the same for every Client offered a given
-      ctx_iss.  See [ARCH] for how set size interacts with Anchor
-      diversity.
+      avoid offering one (Section 6.3).  The anonymity set is exactly n,
+      the size of the Anchor Set (Section 6.2.2).  More generally a
+      Moderator that offers different Anchor Sets to different Clients
+      partitions them, and one that reorders the set between Clients
+      does the same; the set and its order MUST be the same for every
+      Client offered a given ctx_iss.  See [ARCH] for how set size
+      interacts with Anchor diversity.
 
    Proof size and cost:  The proof is logarithmic in the size of the
       Anchor Set: two scalars, plus one element and two scalars for each
@@ -2220,8 +2219,7 @@ Appendix A.  Test Vectors
       key seed, the rand of Commit, the rand of Challenge, and the rand
       of Redeem.  A redemption vector also has to fix the Anchor Set,
       its order, the Client's index in it, and a challenge_digest, and
-      SHOULD include one Anchor Set whose size is odd, so that the
-      carried element of Section 6.2.2 is covered.
+      SHOULD include one Anchor Set whose size is odd.
 
 Acknowledgments
 

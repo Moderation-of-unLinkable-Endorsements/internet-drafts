@@ -3441,9 +3441,8 @@ holding no Endorsement at all.<a href="#section-8-3.16.1" class="pilcrow">¶</a>
 anonymity set, and a redemption against a single-key set would name the
 Anchor outright (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>); a Client <span class="bcp14">MUST</span> refuse such a set
 rather than rely on the Moderator to avoid offering one (<a href="#redeem" class="auto internal xref">Section 6.3</a>).
-The tree of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is not padded: an odd node is carried up a level, so
-the anonymity set is exactly <code>n</code>. More generally a Moderator that offers
-different Anchor
+The anonymity set is exactly <code>n</code>, the size of the Anchor Set (<a href="#pbvc" class="auto internal xref">Section 6.2.2</a>).
+More generally a Moderator that offers different Anchor
 Sets to different Clients partitions them, and one that reorders the set
 between Clients does the same; the set and its order <span class="bcp14">MUST</span> be the same for
 every Client offered a given <code>ctx_iss</code>. See <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> for how set size
@@ -3700,8 +3699,7 @@ but every algorithm is a deterministic function of the bytes it draws from
 <code>rand</code> of <code>Commit</code>, the <code>rand</code> of <code>Challenge</code>, and the <code>rand</code> of <code>Redeem</code>.
 A redemption vector also has to fix the Anchor Set, its order, the
 Client's <code>index</code> in it, and a <code>challenge_digest</code>, and <span class="bcp14">SHOULD</span> include one
-Anchor Set whose size is odd, so that the carried element of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is
-covered.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
+Anchor Set whose size is odd.<a href="#appendix-A-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
