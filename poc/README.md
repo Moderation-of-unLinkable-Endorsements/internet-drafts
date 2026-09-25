@@ -14,6 +14,7 @@ Then, from this directory:
 python3 -m venv .venv
 .venv/bin/pip install -e '.[test]'
 .venv/bin/python -m act.demo
+.venv/bin/python -m act.vectors
 .venv/bin/pytest
 .venv/bin/mypy
 .venv/bin/pyflakes src tests
@@ -21,7 +22,8 @@ python3 -m venv .venv
 ```
 
 The demo issues a Credential and runs the four spend shapes with their
-refunds, encoding every message on the way.
+refunds, encoding every message on the way. `act.vectors` prints the
+draft's Test Vectors section; a test regenerates it and compares.
 
 The algorithms in `src/act/protocol.py` match the draft's Python snippets;
 tests check that they stay in sync. `src/act/statements.py` compiles the
