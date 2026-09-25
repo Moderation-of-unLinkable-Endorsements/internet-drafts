@@ -3,8 +3,6 @@
 from __future__ import annotations
 
 from typing import NamedTuple, Sequence
-from Cryptodome.Protocol.KDF import HKDF
-from Cryptodome.Hash import SHA256
 
 from .ciphersuite import P256Element as Element
 from .ciphersuite import P256Group, P256Scalar as Scalar
@@ -18,8 +16,6 @@ ctx_proto = CreateProtocolContext(b"P256-SHA256")
 G = P256Group(ctx_proto)
 B = G.Generator()
 
-def to_bin(n: int, q: int) -> list[int]:
-    return [int(b) for b in format(n, f'0{q}b')]
 
 class VerifyError(Exception):
     """A received value failed a verification check."""
@@ -27,10 +23,6 @@ class VerifyError(Exception):
 
 class SessionError(Exception):
     """A session is not in the expected state."""
-
-class DeriveError(Exception):
-    """We failed to derive a scalar"""
-
 
 class AnchorState(NamedTuple):
     a: Scalar
@@ -76,35 +68,6 @@ class Redemption(NamedTuple):
     response: Scalar
     commitment_keys: Sequence[Element]
     openings: Sequence[Scalar]
-
-def DeriveSeed(oldseed: bytes, info: bytes)->bytes:
-    ret = HKDF(oldseed, Nseed, info, SHA256)
-    return bytes(ret) # type: ignore
-
-def DeriveScalar(seed: bytes, info: bytes) -> Scalar:
-    if len(seed) != Nseed:
-        raise ValueError(f"seed must be exactly {Nseed} bytes")
-    derive_input = seed + U16Prefixed(info)
-    for counter in range(256):
-        s = G.HashToScalar(
-            derive_input + I2OSP(counter, 1),
-            DST=b"DeriveScalar-" + ctx_proto,
-        )
-        if not s.isZero():
-            return s
-    raise DeriveError
-
-
-def DeriveKeyPair(seed: bytes, info: bytes) -> tuple[Scalar, Element]:
-    skA = DeriveScalar(seed, info)
-    pkA = G.ScalarMultGen(skA)
-    return (skA, pkA)
-
-
-def GenerateKeyPair() -> tuple[Scalar, Element]:
-    seed = random(Nseed)
-    return DeriveKeyPair(seed, b"GenerateKeyPair")
-
 
 def CreateContextBase(ctx_iss: bytes) -> Element:
     context_base_input = U16Prefixed(ctx_iss) + b"ContextBase"
@@ -293,8 +256,10 @@ def CommitStep(
     return G.SerializeElement(C)
 
 
-def GenerateStep(bind_direction: str, seed: bytes) -> tuple[Element, Scalar]:
-    secret = DeriveScalar(seed, b"GenerateStep")
+def GenerateStep(
+    bind_direction: str, seed: bytes
+) -> tuple[Element, Scalar]:
+    secret = G.DeriveScalar(seed, b"GenerateStep")
     T = secret * B
     if bind_direction == "left":
         return (G.Pinv(T), secret)
@@ -371,69 +336,101 @@ def ComputeProofChallenge(
     return G.HashToScalar(proof_transcript)
 
 
-def GenerateVecBind(q, index, rand):
-    bits = to_bin(index, q)
-    params = []
-    traps = []
-    bits.reverse()
-    for b in bits:
-        rand = DeriveSeed(rand, b"GenerateVecBind")
-        seed = DeriveSeed(rand, b"generate step")
-        if b == 0:
-            p, t = GenerateStep("left", seed)
-            params.append(p)
-            traps.append(t)
-        else:
-            p, t = GenerateStep("right", seed)
-            params.append(p)
-            traps.append(t)
-    return params, traps
+def GenerateVecBind(
+    q: int, index: int, rand: bytes
+) -> tuple[list[Element], list[Scalar]]:
+    if len(rand) != q * Nseed:
+        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    commitment_keys = []
+    trapdoors = []
+    for j in range(q):
+        direction = "right" if (index >> j) & 1 else "left"
+        (Q, secret) = GenerateStep(direction, Seed(rand, j))
+        commitment_keys.append(Q)
+        trapdoors.append(secret)
+    return (commitment_keys, trapdoors)
 
 
-def CommitValAtPlace(commitment_keys, length, index, value, seed):
-    V = [b"" for x in range(length)]
+def CommitValAtPlace(
+    commitment_keys: Sequence[Element],
+    n: int,
+    index: int,
+    value: bytes,
+    rand: bytes,
+) -> tuple[bytes, list[Scalar]]:
+    q = len(commitment_keys)
+    if len(rand) != q * Nseed:
+        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    V = [b"" for _ in range(n)]
     V[index] = value
-    rands = []
-    for k in commitment_keys:
-        seed = DeriveSeed(seed, b"CommitValAtPlace")
-        rands.append(DeriveScalar(seed, b"derived rand"))
-    return VecCommit(V, commitment_keys, rands), rands
+    rands = [
+        G.DeriveScalar(Seed(rand, j), b"opening") for j in range(q)
+    ]
+    return (VecCommit(V, commitment_keys, rands), rands)
 
 
-def VecEquivocate(commitment_keys, trapdoor, openings,  oldvalues, newvalues, index):
-    newopen = 0
-    partner = index
-    if len(oldvalues) != len(newvalues):
-        raise ValueError("lengths should match")
-    if oldvalues[index] != newvalues[index]:
-        raise ValueError("we have to match at index")
-    if len(oldvalues) == 1:
+def VecEquivocate(
+    commitment_keys: Sequence[Element],
+    trapdoors: Sequence[Scalar],
+    openings: Sequence[Scalar],
+    old: Sequence[bytes],
+    new: Sequence[bytes],
+    index: int,
+) -> list[Scalar]:
+    if len(old) != len(new):
+        raise ValueError("vectors must have the same length")
+    if old[index] != new[index]:
+        raise ValueError("the binding position cannot change")
+    if len(old) == 1:
         return []
-    if len(oldvalues) - 1 == index and len(oldvalues) %2 == 1:
-        newopen = openings[0]
-    else:
-        if index % 2 == 1:
-            partner = index - 1
-        else:
-            partner = index +1
-        newopen = EquivocateStep(oldvalues[partner], newvalues[partner], openings[0], trapdoor[0])
-    oldprime = []
-    newprime = []
-    for i in range(len(oldvalues) // 2):
-        newprime.append(CommitStep(commitment_keys[0], newvalues[2 * i], newvalues[2 * i + 1], newopen))
-        oldprime.append(CommitStep(commitment_keys[0], oldvalues[2 *i], oldvalues[2 * i +1], openings[0]))
-    if len(oldvalues) % 2 == 1:
-        newprime.append(newvalues[-1])
-        oldprime.append(oldvalues[-1])
-    rest = VecEquivocate(commitment_keys[1:], trapdoor[1:], openings[1:], oldprime, newprime, index//2)
-    rest.insert(0, newopen)
-    return rest
 
-def VecEquivocateFromZero(keys, trapdoor, first_open, new, index):
-    V = [b"" for x in new]
-    V[index]=new[index]
-    return VecEquivocate(keys, trapdoor, first_open, V, new, index)
-        
+    if index == len(old) - 1 and len(old) % 2 == 1:
+        opening = openings[0]
+    else:
+        partner = index - 1 if index % 2 == 1 else index + 1
+        opening = EquivocateStep(
+            old[partner], new[partner], openings[0], trapdoors[0]
+        )
+
+    old_prime = []
+    new_prime = []
+    for i in range(len(old) // 2):
+        Q = commitment_keys[0]
+        old_prime.append(
+            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+        )
+        new_prime.append(
+            CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+        )
+    if len(old) % 2 == 1:
+        old_prime.append(old[-1])
+        new_prime.append(new[-1])
+
+    rest = VecEquivocate(
+        commitment_keys[1:],
+        trapdoors[1:],
+        openings[1:],
+        old_prime,
+        new_prime,
+        index // 2,
+    )
+    return [opening] + rest
+
+
+def VecEquivocateFromZero(
+    commitment_keys: Sequence[Element],
+    trapdoors: Sequence[Scalar],
+    openings: Sequence[Scalar],
+    new: Sequence[bytes],
+    index: int,
+) -> list[Scalar]:
+    V = [b"" for _ in new]
+    V[index] = new[index]
+    return VecEquivocate(
+        commitment_keys, trapdoors, openings, V, new, index
+    )
+
+
 def ProveIssuer(
     anchor_set: Sequence[Element],
     index: int,
@@ -448,17 +445,23 @@ def ProveIssuer(
     (Y, q) = Statements(anchor_set, X_hat)
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
-    if len(rand) != (3 * q + 1) * Nseed:
+    if len(rand) != (2 * q + 1) * Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
-    rand = DeriveSeed(rand, b"ProveIssuer")
-    r = DeriveScalar(Seed(rand, 0), b"r")
+    r = G.DeriveScalar(Seed(rand, 0), b"r")
     A = B * r
 
-    (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand)
-    rand = DeriveSeed(rand, b"CommitAtPlace")
-    # First move: commit along the binding path, sibling value zero.
-    (root, first_open) = CommitValAtPlace(commitment_keys, len(Y), index, G.SerializeElement(A), rand)
+    (commitment_keys, trapdoors) = GenerateVecBind(
+        q, index, rand[Nseed : (q + 1) * Nseed]
+    )
+    # First move: commit along the binding path; other leaves empty.
+    (root, first_openings) = CommitValAtPlace(
+        commitment_keys,
+        len(Y),
+        index,
+        G.SerializeElement(A),
+        rand[(q + 1) * Nseed :],
+    )
 
     proof_challenge = ComputeProofChallenge(
         anchor_set,
@@ -477,7 +480,9 @@ def ProveIssuer(
     for i in range(len(Y)):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         V.append(G.SerializeElement(commitment))
-    openings = VecEquivocateFromZero(commitment_keys, trapdoor, first_open, V, index)
+    openings = VecEquivocateFromZero(
+        commitment_keys, trapdoors, first_openings, V, index
+    )
 
     return (proof_challenge, response, commitment_keys, openings)
 
@@ -540,9 +545,7 @@ def Redeem(
         raise ValueError("index is outside the Anchor Set")
 
     (Y, q) = Statements(anchor_set, G.Identity())
-    nrand = (3 * q + 2) * Nseed
-
-    rand = random(nrand)
+    rand = random((2 * q + 2) * Nseed)
     delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
@@ -558,7 +561,7 @@ def Redeem(
         ctx_iss,
         ctx_red,
         challenge_digest,
-        rand[Nseed:nrand],
+        rand[Nseed:],
     )
 
     return Redemption(

@@ -96,6 +96,28 @@ def _xor(left: bytes, right: bytes) -> bytes:
     return bytes(a ^ b for a, b in zip(left, right, strict=True))
 
 
+def PermuteBytes(buf: bytearray) -> bytearray:
+    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+    for i in range(4):
+        label = f"left round {i}".encode()
+        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        left[0] = left[0] & 0x01
+        label = f"right round {i}".encode()
+        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+    return left + right
+
+
+def UnpermuteBytes(buf: bytearray) -> bytearray:
+    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+    for i in reversed(range(4)):
+        label = f"right round {i}".encode()
+        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+        label = f"left round {i}".encode()
+        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        left[0] = left[0] & 0x01
+    return left + right
+
+
 def expand_message_xmd(msg: bytes, dst: bytes, length: int) -> bytes:
     """RFC 9380 expand_message_xmd instantiated with SHA-256."""
 
@@ -262,51 +284,29 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
             raise DeserializeError("P-256 scalar is out of range")
         return P256Scalar(scalar)
 
-    def P(self, element: Element[P256SHA256]) -> Element[P256SHA256]:
+    def P(self, element: P256Element) -> P256Element:
         buf = bytearray(self.SerializeElement(element))
-        buf[0] = buf[0]-0x02
+        buf[0] = buf[0] - 0x02
         while True:
-            buf = self._pbuf(buf)
-            buf[0]=buf[0]+0x02
+            buf = PermuteBytes(buf)
             try:
-                return self.DeserializeElement(buf)
-            except:
-                pass
-            buf = bytearray(buf)
-            buf[0] = buf[0]-0x02
+                return self.DeserializeElement(
+                    bytes([buf[0] + 0x02]) + bytes(buf[1:])
+                )
+            except DeserializeError:
+                continue
 
-    def Pinv(self, element: Element[P256SHA256]) -> Element[P256SHA256]:
+    def Pinv(self, element: P256Element) -> P256Element:
         buf = bytearray(self.SerializeElement(element))
-        buf[0] = buf[0]-0x02
+        buf[0] = buf[0] - 0x02
         while True:
-            buf = self._pinvbuf(buf)
-            buf[0] = buf[0]+0x02
+            buf = UnpermuteBytes(buf)
             try:
-                return self.DeserializeElement(buf)
-            except:
-                pass
-            buf = bytearray(buf)
-            buf[0] = buf[0]-0x02
-
-    def _pbuf(self, buf: bytearray) ->bytearray:
-        left = buf[0:17]
-        right = buf[17:]
-
-        for i in range(0, 4):
-            left = bytearray(_xor(left, _sha256(right + f"left round {i}".encode())[0:17]))
-            left[0] = left[0] & 0x01
-            right = bytearray(_xor(right, _sha256(left + f"right round {i}".encode())[0:16]))
-        return bytearray(left+right)
-
-    def _pinvbuf(self, buf:bytearray)->bytearray:
-        left = buf[0:17]
-        right = buf[17:]
-        for i in reversed(range(0, 4)):
-            right = bytearray(_xor(right, _sha256(left + f"right round {i}".encode())[0:16]))
-            left = bytearray(_xor(left, _sha256(right + f"left round {i}".encode())[0:17]))
-            left[0] = left[0] & 0x01
-        return bytearray(left+right)
-        
+                return self.DeserializeElement(
+                    bytes([buf[0] + 0x02]) + bytes(buf[1:])
+                )
+            except DeserializeError:
+                continue
 
     @staticmethod
     def _map_to_curve_simple_swu(u: int) -> tuple[int, int]:

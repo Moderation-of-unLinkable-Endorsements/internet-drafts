@@ -116,3 +116,13 @@ def test_p_not_involution():
         elt3 = group.P(elt2)
         res = elt1 - elt3
         assert not res.isIdentity()
+
+
+def test_permute_bytes_is_a_permutation():
+    from ihat.ciphersuite import PermuteBytes, UnpermuteBytes
+
+    for i in range(32):
+        buf = bytearray([i & 1]) + bytearray(range(i, i + 32))
+        out = PermuteBytes(buf)
+        assert len(out) == 33 and out[0] in (0, 1)
+        assert UnpermuteBytes(out) == buf
