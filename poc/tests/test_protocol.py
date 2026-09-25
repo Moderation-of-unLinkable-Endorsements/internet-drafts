@@ -11,8 +11,13 @@ from ihat.protocol import (
     Response,
     Verify,
     VerifyError,
+    GenerateVecBind,
+    CommitValAtPlace,
+    VecEquivocateFromZero,
+    VecCommit,
 )
 
+from ihat.common import random
 
 def _issue(ctx_iss=b"epoch-1", ctx_red=b"moderator-1"):
     skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
@@ -78,26 +83,26 @@ def test_commit_step_runs_without_raising(monkeypatch):
 
 @pytest.mark.parametrize("bind_direction", ["left", "right"])
 def test_generate_step_runs_without_raising(monkeypatch, bind_direction):
-    monkeypatch.setattr(protocol.G, "Pinv", lambda point: point)
-    protocol.GenerateStep(bind_direction)
+    seed = random(protocol.Nseed)
+    protocol.GenerateStep(bind_direction, seed)
 
 
 def test_generate_step_rejects_invalid_direction():
     with pytest.raises(ValueError, match="bind_direction must be 'left' or 'right'"):
-        protocol.GenerateStep("invalid")
+        seed = random(protocol.Nseed)
+        protocol.GenerateStep("invalid", seed)
 
 
 def test_equivocate_step_runs_without_raising():
     protocol.EquivocateStep(
-        protocol.Scalar(1),
-        protocol.Scalar(2),
+        b"1",
+        b"2",
         protocol.Scalar(3),
         protocol.Scalar(4),
     )
 
 
 def test_vec_commit_runs_without_raising(monkeypatch):
-    monkeypatch.setattr(protocol.G, "P", lambda point: point)
     protocol.VecCommit(
         [bytes(protocol.Nseed), bytes([1]) * protocol.Nseed],
         [protocol.G.Generator()],
@@ -123,23 +128,6 @@ def test_prove_issuer_runs_without_raising(monkeypatch):
     _, pkA, endorsement = _issue()
     delta = protocol.Scalar(3)
     X_hat = pkA + delta * protocol.G.Generator()
-    root = protocol.G.SerializeElement(protocol.G.Generator())
-
-    monkeypatch.setattr(
-        protocol,
-        "GenerateVecBind",
-        lambda q, index, rand: ([protocol.G.Generator()], object()),
-    )
-    monkeypatch.setattr(
-        protocol,
-        "CommitValAtPlace",
-        lambda q, index, value: (root, protocol.Scalar(1)),
-    )
-    monkeypatch.setattr(
-        protocol,
-        "VecEquivocate",
-        lambda trapdoor, V, index, original: [protocol.Scalar(1)],
-    )
 
     ProveIssuer(
         [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))],
@@ -157,13 +145,6 @@ def test_prove_issuer_runs_without_raising(monkeypatch):
 def test_verify_issuer_runs_without_raising(monkeypatch):
     _, pkA, endorsement = _issue()
     anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))]
-    root = protocol.G.SerializeElement(protocol.G.Generator())
-
-    monkeypatch.setattr(
-        protocol,
-        "VecCommit",
-        lambda T, commitment_keys, openings: root,
-    )
 
     protocol.VerifyIssuer(
         anchor_set,
@@ -283,3 +264,41 @@ def test_redeem_rejects_bad_index():
             b"moderator-1",
             b"challenge-digest",
         )
+
+def test_vector_commitment_comprehensive():
+    for i in range(2, 16):
+        q = 0
+        while 2**q < i:
+            q += 1
+        for j in range(0, i):
+            seed1 = random(48)
+            keys, trapdoor = GenerateVecBind(q, j, seed1)
+            seed2 = random(48)
+            comm, opening = CommitValAtPlace(keys, i, j, b"Bob", seed2)
+            V = [random(32) for i in range(0, i)]
+            V[j] = b"Bob"
+            newopen = VecEquivocateFromZero(keys, trapdoor, opening, V, j)
+            comm2 = VecCommit(V, keys, newopen)
+            assert comm == comm2
+
+def test_verify_end_to_end():
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))]
+    redemption = protocol.Redeem(
+        anchor_set,
+        0,
+        endorsement,
+        b"epoch-1",
+        b"moderator-1",
+        b"challenge-digest",
+    )
+
+    protocol.VerifyRedemption(
+        anchor_set,
+        redemption,
+        b"epoch-1",
+        b"moderator-1",
+        b"challenge-digest",
+    )
+
+
