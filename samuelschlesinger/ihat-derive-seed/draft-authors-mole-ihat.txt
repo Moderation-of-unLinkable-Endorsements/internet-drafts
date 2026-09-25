@@ -84,8 +84,9 @@ Table of Contents
      4.1.  Configuration and Protocol Context
      4.2.  Deriving Scalars
      4.3.  Expanding Seeds
-     4.4.  Key Generation
-     4.5.  Context Binding
+     4.4.  Deriving Nonces
+     4.5.  Key Generation
+     4.6.  Context Binding
    5.  Endorsement Issuance
      5.1.  Anchor Commitment
      5.2.  Client Challenge
@@ -269,7 +270,7 @@ Table of Contents
    Scalars are added, subtracted, and multiplied modulo p.
 
    The group also provides G.DeriveScalar, G.DeriveKeyPair, and
-   G.GenerateKeyPair, defined in Section 4.2 and Section 4.4.
+   G.GenerateKeyPair, defined in Section 4.2 and Section 4.5.
 
    The following member functions are used.  Except where noted, they
    are as defined in Section 2.1 of [OPRF].
@@ -397,7 +398,7 @@ Table of Contents
 
    Throughout the remainder of this document, ctx_proto denotes the
    output of CreateProtocolContext for the ciphersuite in use.  It is
-   distinct from the issuance and redemption contexts of Section 4.5:
+   distinct from the issuance and redemption contexts of Section 4.6:
    those are inputs to the protocol, chosen by its participants, whereas
    ctx_proto is fixed by the ciphersuite.
 
@@ -470,7 +471,40 @@ Table of Contents
    once per scalar, with a distinct info for each.  The expansions are
    pseudorandom rather than independent (Section 8).
 
-4.4.  Key Generation
+4.4.  Deriving Nonces
+
+   A nonce that must never repeat, such as that of a proof of knowledge,
+   is derived rather than drawn.  The group method G.DeriveNonce
+   computes it from a secret the party holds, a public description of
+   the operation, and fresh randomness, so that it repeats only if the
+   whole operation repeats:
+
+   def DeriveNonce(
+       self, secret: bytes, label: bytes, instance: bytes, aux: bytes
+   ) -> Scalar:
+       if len(aux) != Nseed:
+           raise ValueError(f"aux must be exactly {Nseed} bytes")
+       derive_nonce_input = (
+           U16Prefixed(label)
+           + I2OSP(len(secret), 4)
+           + secret
+           + I2OSP(len(instance), 4)
+           + instance
+           + U16Prefixed(aux)
+       )
+       seed = expand_message_xmd(
+           derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
+       )
+       return self.DeriveScalar(seed, label)
+
+   expand_message_xmd is that of Section 5.3.1 of [HASH2CURVE], over the
+   hash function of the ciphersuite; its output is consumed by
+   G.DeriveScalar as a seed, used once.  Every instance in this document
+   is an unambiguous encoding, with its variable-length parts length-
+   prefixed.  Implementations MUST wipe secret, derive_nonce_input,
+   seed, and the returned value once it has been used.
+
+4.5.  Key Generation
 
    An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
    which is what allows the test vectors in Appendix A to fix a key.
@@ -501,7 +535,7 @@ Table of Contents
    The Anchor publishes SerializeElement(pkA) in its configuration; see
    [PROTOCOLS].
 
-4.5.  Context Binding
+4.6.  Context Binding
 
    Each Endorsement is bound at issuance to two contexts, the issuance
    context and the redemption context, and a redemption succeeds only if
@@ -917,7 +951,7 @@ Table of Contents
 
    A Client redeems an Endorsement at a Moderator.
 
-   An Endorsement is single-use (Section 4.5), so redemption does not
+   An Endorsement is single-use (Section 4.6), so redemption does not
    have to hide the signature: the Client reveals it, and the Moderator
    deduplicates on the nullifier.  What redemption must hide is which
    Anchor issued it.  The signature of Section 5 verifies under one
@@ -1338,22 +1372,20 @@ Table of Contents
 
 6.2.4.  Challenge Computation
 
-   The Fiat-Shamir challenge covers the whole statement -- the Anchor
-   Set, the rerandomized key, the signature being presented, the two
-   contexts, and the Moderator's challenge digest -- together with the
-   first move of the proof, which is the commitment keys and the root of
-   the tree.
+   ProofStatement encodes the statement being proven: the Anchor Set,
+   the rerandomized key, the signature being presented, the two
+   contexts, and the Moderator's challenge digest.  The Fiat-Shamir
+   challenge covers it together with the first move of the proof, which
+   is the commitment keys and the root of the tree.
 
-   def ComputeProofChallenge(
+   def ProofStatement(
        anchor_set: Sequence[Element],
        X_hat: Element,
        endorsement: Endorsement,
        ctx_iss: bytes,
        ctx_red: bytes,
        challenge_digest: bytes,
-       commitment_keys: Sequence[Element],
-       root: bytes,
-   ) -> Scalar:
+   ) -> bytes:
        (c, s_hat, y, t, nf) = endorsement
        n = len(anchor_set)
 
@@ -1361,11 +1393,7 @@ Table of Contents
        for i in range(n):
            anchor_set_enc += G.SerializeElement(anchor_set[i])
 
-       ck_enc = b""
-       for j in range(len(commitment_keys)):
-           ck_enc += G.SerializeElement(commitment_keys[j])
-
-       proof_transcript = (
+       return (
            I2OSP(n, 2)
            + anchor_set_enc
            + G.SerializeElement(X_hat)
@@ -1377,6 +1405,32 @@ Table of Contents
            + U16Prefixed(ctx_iss)
            + U16Prefixed(ctx_red)
            + U16Prefixed(challenge_digest)
+       )
+
+
+   def ComputeProofChallenge(
+       anchor_set: Sequence[Element],
+       X_hat: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+       commitment_keys: Sequence[Element],
+       root: bytes,
+   ) -> Scalar:
+       ck_enc = b""
+       for j in range(len(commitment_keys)):
+           ck_enc += G.SerializeElement(commitment_keys[j])
+
+       proof_transcript = (
+           ProofStatement(
+               anchor_set,
+               X_hat,
+               endorsement,
+               ctx_iss,
+               ctx_red,
+               challenge_digest,
+           )
            + ck_enc
            + root
            + b"IssuerProof"
@@ -1414,7 +1468,20 @@ Table of Contents
        if len(seed) != Nseed:
            raise ValueError(f"seed must be exactly {Nseed} bytes")
 
-       r = G.DeriveScalar(G.DeriveSeed(seed, b"r"), b"r")
+       instance = ProofStatement(
+           anchor_set,
+           X_hat,
+           endorsement,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+       )
+       r = G.DeriveNonce(
+           G.SerializeScalar(delta),
+           b"r",
+           instance,
+           G.DeriveSeed(seed, b"r"),
+       )
        A = B * r
 
        (commitment_keys, trapdoors) = GenerateVecBind(
@@ -1452,13 +1519,17 @@ Table of Contents
 
        return (proof_challenge, response, commitment_keys, openings)
 
-   ProveIssuer expands its one seed (Section 4.3) into the nonce r, the
-   seed of the commitment keys, and the seed of the first openings.  The
-   first move commits only the path from leaf index to the root: at each
-   level the Client commits the value it holds on one side and an empty
-   value on the other, having generated that level's key so that the
-   _other_ side is the equivocal one.  The third move then computes the
-   branch commitment of every statement from the single response,
+   ProveIssuer expands its one seed (Section 4.3) into the auxiliary
+   input of the nonce r, the seed of the commitment keys, and the seed
+   of the first openings.  The nonce is derived with G.DeriveNonce
+   (Section 4.4) from delta and the proof statement, so that proofs of
+   distinct statements do not share it even if the seed repeats.
+
+   The first move commits only the path from leaf index to the root: at
+   each level the Client commits the value it holds on one side and an
+   empty value on the other, having generated that level's key so that
+   the _other_ side is the equivocal one.  The third move then computes
+   the branch commitment of every statement from the single response,
    equivocates each level to the value its sibling subtree now has, and
    rebuilds the tree with the equivocated randomness.  The root is
    unchanged by this, which is why the verifier can recompute it.
@@ -1756,17 +1827,18 @@ Table of Contents
 7.2.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
-   with random and consumed by G.DeriveScalar (Section 4.2) or expanded
-   by G.DeriveSeed (Section 4.3); no scalar is sampled directly.
-   Implementations MUST draw seeds with a cryptographically secure
-   random number generator and MUST NOT reuse a seed across derivations.
-   They SHOULD treat a seed as being as sensitive as the values derived
-   from it, and SHOULD handle both in constant time: the seed drawn in
-   Commit determines the Anchor's session state, the seed drawn in
-   Challenge determines the Client's blinding factors, and the second
-   seed drawn in Redeem determines every value of the issuer-hiding
-   proof, so recovering any of them undoes the property that algorithm
-   provides.
+   with random and consumed by G.DeriveScalar (Section 4.2), expanded by
+   G.DeriveSeed (Section 4.3), or, for the nonce r of ProveIssuer, used
+   as the auxiliary input of G.DeriveNonce (Section 4.4); no scalar is
+   sampled directly.  Implementations MUST draw seeds with a
+   cryptographically secure random number generator and MUST NOT reuse a
+   seed across derivations.  They SHOULD treat a seed as being as
+   sensitive as the values derived from it, and SHOULD handle both in
+   constant time: the seed drawn in Commit determines the Anchor's
+   session state, the seed drawn in Challenge determines the Client's
+   blinding factors, and the second seed drawn in Redeem determines
+   every value of the issuer-hiding proof, so recovering any of them
+   undoes the property that algorithm provides.
 
 8.  Security Considerations
 
@@ -1796,24 +1868,40 @@ Table of Contents
 
    Derived blinding factors:  Blindness is unconditional only if the
       blinding factors are.  Challenge derives them from seeds rather
-      than sampling them, and Redeem derives delta and the proof's
-      nonces the same way, so the guarantee is statistical rather than
-      perfect: an Endorsement and a session are linkable by an adversary
-      that can find a seed consistent with both.  Two properties of
-      Section 4.2 keep the loss negligible.  Each scalar gets its own
-      seed, so a seed consistent with any given value exists with
-      overwhelming probability and finding one therefore separates
-      nothing; and each seed is Ns + 16 bytes, so each derived scalar is
-      within about 2^-128 of uniform.  Deriving several scalars from one
-      seed, or from a seed of Ns bytes, would break this: the blinding
-      factors of a session would then be jointly determined by fewer
-      bits than they contain, an exhaustive search over seeds would
-      identify the one session consistent with a given Endorsement, and
-      unlinkability would hold only against a bounded adversary.
-      Implementations MUST NOT do either for these blinding factors.
-      The other randomness of the redemption proof is expanded from one
-      seed (Section 4.3), and its hiding is accordingly computational,
-      as "Issuer hiding" below states.
+      than sampling them, and Redeem derives delta the same way, so the
+      guarantee is statistical rather than perfect: an Endorsement and a
+      session are linkable by an adversary that can find a seed
+      consistent with both.  Two properties of Section 4.2 keep the loss
+      negligible.  Each scalar gets its own seed, so a seed consistent
+      with any given value exists with overwhelming probability and
+      finding one therefore separates nothing; and each seed is Ns + 16
+      bytes, so each derived scalar is within about 2^-128 of uniform.
+      Deriving several scalars from one seed, or from a seed of Ns
+      bytes, would break this: the blinding factors of a session would
+      then be jointly determined by fewer bits than they contain, an
+      exhaustive search over seeds would identify the one session
+      consistent with a given Endorsement, and unlinkability would hold
+      only against a bounded adversary.  Implementations MUST NOT do
+      either for these blinding factors.  The other randomness of the
+      redemption proof is expanded from one seed (Section 4.3), and its
+      hiding is accordingly computational, as "Issuer hiding" below
+      states.
+
+   Derived proof nonce:  A repeated Schnorr nonce in ProveIssuer reveals
+      delta, which links the redemption to the Anchor.  The nonce is
+      therefore derived with G.DeriveNonce from delta, the proof
+      statement, and an expansion of the proof's seed (Section 6.2.5):
+      with a working random source it is distributed as a drawn nonce,
+      and with a failed one it is still a pseudorandom function of
+      delta, unknown to the verifier, at a point that identifies the
+      statement, so it does not repeat across distinct statements
+      (Section 4.4).  The Anchor's signing nonce a in Commit cannot be
+      protected the same way: it is fixed before the Client's challenge
+      is known, so no public input distinguishes two sessions at that
+      point, and only fresh randomness, or persistent per-session state,
+      prevents its reuse.  An Anchor that reuses a across two challenges
+      reveals y * skA, and hence skA, since y is public in the
+      Endorsement.
 
    One-more unforgeability:  A Client that completes k issuance sessions
       under a given issuance context cannot produce k+1 distinct valid
@@ -1996,7 +2084,7 @@ Table of Contents
       context directly and the redemption context through the fact that
       the Endorsement verifies under it, so each partitions Clients into
       the set that shares its value.  Whatever [ARCH] eventually
-      specifies them to be (Section 4.5), both values must therefore be
+      specifies them to be (Section 4.6), both values must therefore be
       *coarse*. Every Client holding an Endorsement issued under a given
       issuance context MUST derive the byte-identical ctx_iss, and every
       Client redeeming under a given redemption context MUST derive the
