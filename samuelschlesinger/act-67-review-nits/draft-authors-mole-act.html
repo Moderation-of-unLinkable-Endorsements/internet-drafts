@@ -1,0 +1,1864 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Anonymous Credit Tokens (ACT)</title>
+<meta content="Samuel Schlesinger" name="author">
+<meta content="Jonathan Katz" name="author">
+<meta content="Armando Faz-Hernandez" name="author">
+<meta content="Deep Inder Mohan" name="author">
+<meta content="
+       This document specifies Anonymous Credit Tokens (ACT), a keyed-verification
+anonymous credential scheme with a hidden credit balance. A Client spends a
+public amount and receives a fresh Credential for the remaining balance and
+a return amount chosen by the issuer. The issuer verifies each spend without
+learning the balance or linking it to issuance or to other spends. 
+       ACT uses a pairing-free BBS-style signature and proofs over linear relations.
+This document defines its cryptographic operations, encodings, and security
+requirements. The MoLE protocols use ACT as a Credential scheme. 
+    " name="description">
+<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="moderation" name="keyword">
+<meta content="credential" name="keyword">
+<meta content="credits" name="keyword">
+<meta content="unlinkability" name="keyword">
+<meta content="privacy" name="keyword">
+<meta content="draft-authors-mole-act-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.1
+    Python 3.14.7
+    ConfigArgParse 1.7.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.10
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.4
+-->
+<link href="draft-authors-mole-act.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">ACT</td>
+<td class="right">September 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Schlesinger, et al.</td>
+<td class="center">Expires 29 March 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-authors-mole-act-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-09-25" class="published">25 September 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-03-29">29 March 2027</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">S. Schlesinger</div>
+<div class="org">Google LLC</div>
+</div>
+<div class="author">
+      <div class="author-name">J. Katz</div>
+<div class="org">Google LLC</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Faz-Hernandez</div>
+<div class="org">Cloudflare, Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">D. I. Mohan</div>
+<div class="org">Georgia Institute of Technology</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Anonymous Credit Tokens (ACT)</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies Anonymous Credit Tokens (ACT), a keyed-verification
+anonymous credential scheme with a hidden credit balance. A Client spends a
+public amount and receives a fresh Credential for the remaining balance and
+a return amount chosen by the issuer. The issuer verifies each spend without
+learning the balance or linking it to issuance or to other spends.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">ACT uses a pairing-free BBS-style signature and proofs over linear relations.
+This document defines its cryptographic operations, encodings, and security
+requirements. The MoLE protocols use ACT as a Credential scheme.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-act/">https://datatracker.ietf.org/doc/draft-authors-mole-act/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 29 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-preliminaries" class="internal xref">Preliminaries</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-prime-order-group" class="internal xref">Prime-Order Group</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-errors" class="internal xref">Errors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-deriving-scalars" class="internal xref">Deriving Scalars</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-the-credential-scheme" class="internal xref">The Credential Scheme</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
+                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-generators" class="internal xref">Generators</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
+                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-key-generation-2" class="internal xref">Key Generation</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-credential-context" class="internal xref">Credential Context</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-amounts" class="internal xref">Amounts</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-actp-256-sha-256" class="internal xref">ACT(P-256, SHA-256)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-test-vectors" class="internal xref">Test Vectors</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">MoLE Credentials carry per-Client state that a Moderator tests and updates at
+each presentation without learning it, and without being able to link
+presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
+provide a numeric balance as this state (<a href="#credential-scheme" class="auto internal xref">Section 4</a>).<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The Moderator is both the issuer and the verifier. A Client obtains an initial
+Credential, spends credits, and finalizes the refund that replaces the spent
+Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> maps these operations to the MoLE credential APIs,
+specifies when issuance is authorized, and supplies the credential and spend
+contexts. This document treats those contexts as opaque byte strings.<a href="#section-1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The capitalized terms Client, Moderator, and Credential are used as
+defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>; a lowercase credential is the generic cryptographic
+notion. The message-encoding conventions, Python notation, and helpers
+<code>I2OSP</code>, <code>U16Prefixed</code>, <code>random</code>, and <code>Seed</code> are those of
+Section 2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. The algorithms use <code>bytes</code> for byte strings, <code>int</code>
+for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code> module.
+Record fields appear in the same order as their tuple representation.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The group <code>G</code>, protocol context <code>ctx_proto</code>, seed length <code>Nseed</code>,
+generators, and balance width <code>L</code> are globals fixed by the ACT
+configuration (<a href="#act-config" class="auto internal xref">Section 4.1</a>). Shared group methods from <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> use
+the ACT group instance <code>G</code>, which stores <code>ctx_proto</code> and applies ACT
+domain separation. The shared <code>Seed</code> helper uses the same <code>Nseed = 48</code>
+for both schemes. Public byte-string inputs retain the length bounds
+specified by the operation that uses them.<a href="#section-2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="preliminaries">
+<section id="section-3">
+      <h2 id="name-preliminaries">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
+      </h2>
+<p id="section-3-1">The construction has two dependencies:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-2">
+        <dt id="section-3-2.1">Group:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.2">
+          <p id="section-3-2.2.1">A prime-order group implementing the interface in <a href="#group" class="auto internal xref">Section 3.1</a>. <a href="#ciphersuites" class="auto internal xref">Section 5</a>
+gives concrete instances.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.3">Hash:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.4">
+          <p id="section-3-2.4.1">A cryptographic hash function whose output length is <code>Nh</code> bytes.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<div id="group">
+<section id="section-3.1">
+        <h3 id="name-prime-order-group">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prime-order-group" class="section-name selfRef">Prime-Order Group</a>
+        </h3>
+<p id="section-3.1-1">ACT uses the prime-order group interface and the <code>Element</code> and <code>Scalar</code>
+types of Section 3.1 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, instantiated as in <a href="#ciphersuites" class="auto internal xref">Section 5</a>.
+The Python interface provides <code>G.scalar(x)</code> for an integer <code>x</code> in
+<code>[0, G.Order())</code>, <code>s.isZero()</code> for a scalar, and <code>A.isIdentity()</code> for an
+element. Arithmetic combines values of the same type: integer constants
+are converted with <code>G.scalar</code> before scalar arithmetic. The negative of
+an element <code>A</code> is <code>G.Identity() - A</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="errors">
+<section id="section-3.2">
+        <h3 id="name-errors">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-errors" class="section-name selfRef">Errors</a>
+        </h3>
+<p id="section-3.2-1"><code>DeserializeError</code>, <code>VerifyError</code>, <code>DeriveError</code>, and <code>ValueError</code> have the
+meanings given in Section 3.2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. ACT additionally uses
+<code>AmountError</code> when a balance or amount is outside the range admitted by
+<a href="#act-amounts" class="auto internal xref">Section 4.3</a>:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-3.2-2">
+<pre>
+class AmountError(ValueError):
+    """A credit amount is outside its permitted range."""
+</pre><a href="#section-3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-3">An implementation that raises an error <span class="bcp14">MUST</span> abort the affected protocol run.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="derive-scalar">
+<section id="section-3.3">
+        <h3 id="name-deriving-scalars">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
+        </h3>
+<p id="section-3.3-1">Use <code>G.DeriveScalar(seed: bytes, info: bytes) -&gt; Scalar</code> from Section
+4.2 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, using the ACT group instance initialized with
+<code>ctx_proto</code>. It rejects seeds of the wrong length with <code>ValueError</code>,
+rejects zero outputs, and raises <code>DeriveError</code> if all 256 counter values
+yield zero. ACT applies the following seed requirements to this shared
+algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2">A seed <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of <code>random</code> output, and <span class="bcp14">MUST NOT</span> be used for more
+than one derivation. An algorithm that needs several scalars therefore draws
+<code>Nseed</code> bytes for each of them, and additionally separates them by <code>info</code>.
+<code>Nseed</code> is larger than <code>Ns</code> (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) so that the derived scalar is
+statistically close to uniform rather than merely unpredictable; deriving
+several scalars from one seed instead would cap their joint entropy at the
+length of that seed, which the unlinkability argument of
+<a href="#act-security" class="auto internal xref">Section 6</a> does not permit. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="keygen">
+<section id="section-3.4">
+        <h3 id="name-key-generation">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
+        </h3>
+<p id="section-3.4-1">Use <code>G.DeriveKeyPair(seed, info)</code> and <code>G.GenerateKeyPair()</code> from Section
+4.3 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
+return <code>tuple[Scalar, Element]</code>; ACT names the returned keys <code>(skM,
+pkM)</code> because the Moderator is the issuer. The Moderator publishes
+<code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="credential-scheme">
+<section id="section-4">
+      <h2 id="name-the-credential-scheme">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-the-credential-scheme" class="section-name selfRef">The Credential Scheme</a>
+      </h2>
+<p id="section-4-1">A MoLE Credential is an Anonymous Credit Token (ACT). It is a
+keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span> over a privately
+verifiable, pairing-free BBS-style signature <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, whose
+hidden state is a <em>balance</em>: a nonnegative integer number of credits. A
+Moderator issues a Credential with an initial balance, and the Client
+later <em>spends</em> from it. A spend reveals a public amount <code>s</code> and proves,
+in zero knowledge, that the Credential holds at least <code>s</code> credits and
+has not been spent before. In the same exchange the Moderator issues a
+<em>refund</em>: a fresh Credential whose balance is the remainder plus a
+Moderator-chosen return amount <code>t</code>. A spend may also declare a public
+<em>top-up allowance</em> <code>a</code>, in which case the refund may return up to <code>s +
+a</code>, raising the balance; without one, <code>t</code> is at most <code>s</code>. The Moderator
+never learns the balance, and cannot link a spend to the issuance or
+refund that produced the Credential it consumed, nor two spends to each
+other.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The allowance <code>a</code> bounds the additional credit the Moderator may grant;
+<code>t</code> is the amount it actually returns. The new balance is <code>c - s + t</code>,
+so its increase over <code>c</code> is at most <code>a</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">This is the credential type <code>0x0001</code> of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. In the vocabulary of
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>, a spend is a <em>Presentation</em> whose <em>Predicate</em> is "the balance is at
+least <code>s</code>", and the refund is the <em>Update</em>.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The scheme is a two-party protocol between a Client and a Moderator. The
+Moderator holds a key pair <code>(skM, pkM)</code> and is both the issuer and the
+verifier: Credentials are not publicly verifiable, and only their issuer can
+check a spend. Each of the two flows, issuance and spending, is a single
+request/response exchange followed by a Client-local finalization.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<span id="name-credential-issuance-and-spe"></span><div id="fig-act">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-4-5.1">
+<pre>
+   Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
+ ------------------------------------------------------------------
+   state, request = IssueRequest()
+
+                              request
+                              --------&gt;
+
+                 response = IssueResponse(skM, ctx_cred, c, request)
+
+                              response
+                              &lt;--------
+
+   credential = FinalizeIssuance(pkM, ctx_cred, state, response)
+
+                   ...
+
+   state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
+
+                                proof
+                              --------&gt;
+
+                   VerifySpend(skM, ctx_cred, ctx_spend, proof)
+                   refund = IssueRefund(skM, ctx_cred, proof, t)
+
+                               refund
+                              &lt;--------
+
+   credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-credential-issuance-and-spe" class="selfRef">Credential issuance and spending overview</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-6">The Moderator chooses the initial balance <code>c</code> and the return amount <code>t</code>
+according to its policy; both are outside the scope of this document, as is
+the nullifier store the Moderator keeps to reject a second spend of the same
+Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies both, together with the carriage of the
+four messages.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<div id="act-config">
+<section id="section-4.1">
+        <h3 id="name-configuration">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+        </h3>
+<p id="section-4.1-1">A ciphersuite (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) is identified by an ASCII byte string
+<code>identifier</code>, and both parties <span class="bcp14">MUST</span> agree on it before
+running the protocol. The Credential scheme is specified for the P-256
+ciphersuite of <a href="#ciphersuites" class="auto internal xref">Section 5</a>, whose Sigma-protocol instantiation <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>
+defines; its protocol context is<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.1-2">
+<pre>
+def CreateCredentialProtocolContext(identifier: bytes) -&gt; bytes:
+    return b"ACTv1-" + identifier
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-3">Throughout this section and wherever the algorithms of this section are
+invoked, <code>ctx_proto</code> denotes this value, and <code>HashToGroup</code>, <code>HashToScalar</code>,
+<code>G.DeriveScalar</code>, and the key generation of <a href="#keygen" class="auto internal xref">Section 3.4</a> are parameterized by it.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">The scheme has one further parameter, the <em>balance width</em> <code>L</code>. Balances and
+amounts are integers in <code>[0, 2^L)</code>. <code>L</code> <span class="bcp14">MUST</span> satisfy <code>1 &lt;= L &lt;=
+MAX_BIT_LENGTH</code>, where <code>MAX_BIT_LENGTH</code> is fixed by the ciphersuite. The size
+of a spend proof and the cost of producing and verifying it grow linearly in
+<code>L</code>, so a deployment <span class="bcp14">SHOULD</span> choose the smallest <code>L</code> that accommodates its
+largest balance. The Moderator publishes <code>L</code> together with its public key
+(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>); a Client <span class="bcp14">MUST</span> use the published value.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5"><code>L</code> is fixed for the lifetime of a key and credential context. The invariant
+that every balance the Moderator has signed lies below <code>2^L</code>, on which
+<a href="#act-security" class="auto internal xref">Section 6</a> relies, is argued by induction over issuances and refunds
+under one value of <code>L</code>, and does not survive a change of <code>L</code> under a key and
+context that still have outstanding Credentials. A Moderator that changes <code>L</code>
+          <span class="bcp14">MUST</span> do so together with the credential context or the key. Deployments are
+<span class="bcp14">RECOMMENDED</span> to fold <code>L</code> into the credential context, for instance by
+appending <code>I2OSP(L, 1)</code> to it, so that a change of <code>L</code> is a change of context
+by construction.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<div id="act-generators">
+<section id="section-4.1.1">
+          <h4 id="name-generators">
+<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-generators" class="section-name selfRef">Generators</a>
+          </h4>
+<p id="section-4.1.1-1">The scheme uses the group generator <code>B = G.Generator()</code> and four further
+elements <code>H1</code>, <code>H2</code>, <code>H3</code>, <code>H4</code>, fixed by the ciphersuite:<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.1.1-2">
+<pre>
+def CreateGenerators() -&gt; tuple[Element, Element, Element, Element]:
+    return (
+        G.HashToGroup(b"GenH1"),
+        G.HashToGroup(b"GenH2"),
+        G.HashToGroup(b"GenH3"),
+        G.HashToGroup(b"GenH4"),
+    )
+</pre><a href="#section-4.1.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1.1-3"><code>H1</code> commits to the balance, <code>H2</code> to the nullifier, <code>H3</code> is the blinding
+base, and <code>H4</code> binds the credential context (<a href="#act-context" class="auto internal xref">Section 4.2</a>). The discrete
+logarithm of any of these elements with respect to any other, or to <code>B</code>, <span class="bcp14">MUST NOT</span> be known to any party; deriving them by hashing fixed labels ensures this.
+The five elements are pairwise distinct except with negligible probability;
+an implementation <span class="bcp14">MAY</span> verify this once when instantiating a ciphersuite.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-keygen">
+<section id="section-4.1.2">
+          <h4 id="name-key-generation-2">
+<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-key-generation-2" class="section-name selfRef">Key Generation</a>
+          </h4>
+<p id="section-4.1.2-1">A Moderator holds a key pair <code>(skM, pkM)</code>, generated with <code>G.GenerateKeyPair</code>
+of <a href="#keygen" class="auto internal xref">Section 3.4</a> under the protocol context of this section, or derived from a
+seed with <code>G.DeriveKeyPair</code>. The Moderator publishes <code>SerializeElement(pkM)</code> in
+its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>). The signing key <code>skM</code> is also the
+verification key: <code>VerifySpend</code> requires it.<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-context">
+<section id="section-4.2">
+        <h3 id="name-credential-context">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-credential-context" class="section-name selfRef">Credential Context</a>
+        </h3>
+<p id="section-4.2-1">Every Credential is bound at issuance to a <em>credential context</em> <code>ctx_cred</code>,
+an opaque byte string of at most <code>2^16 - 1</code> bytes chosen by the Moderator and
+agreed with the Client out of band; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> says how. It
+restricts <em>when</em>, or under which policy, a Credential may be spent, so that a
+Moderator can for instance expire all Credentials of an epoch at once without
+rotating its key.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">The context is bound as a signed attribute. It is mapped to a scalar and
+carried under <code>H4</code>:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.2-3">
+<pre>
+def CreateContextScalar(ctx_cred: bytes) -&gt; Scalar:
+    return G.HashToScalar(
+        U16Prefixed(ctx_cred) + b"CredentialContext"
+    )
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-4">The context is never carried on the wire. It is an input to every algorithm
+of this section that computes or checks a signature, supplied by the party
+running it, so that a spend verifies only under the context the Credential
+was issued under: a Moderator states the context it accepts and learns whether
+the Credential was issued under it, rather than being told by the Client. A
+Client keeps its own copy of the context for as long as it holds the
+Credential.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">The credential context partitions Clients into the set that shares its
+value, and <span class="bcp14">MUST</span> be coarse; see <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-amounts">
+<section id="section-4.3">
+        <h3 id="name-amounts">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-amounts" class="section-name selfRef">Amounts</a>
+        </h3>
+<p id="section-4.3-1">Balances and amounts are nonnegative integers below <code>2^L</code>. On the wire they
+are <code>uint64</code> values; in the algebra they enter as scalars.
+<code>G.scalar(x)</code> denotes the <code>Scalar</code> whose integer value is <code>x</code>, and <code>Bits(x)</code> its
+binary decomposition, least significant bit first, into <code>L</code> scalars each equal
+to <code>0</code> or <code>1</code>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.3-2">
+<pre>
+def Bits(x: int) -&gt; list[Scalar]:
+    return [G.scalar((x &gt;&gt; j) &amp; 1) for j in range(L)]
+</pre><a href="#section-4.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-3">An implementation <span class="bcp14">MUST</span> compute <code>Bits</code> in constant time with respect to <code>x</code>,
+which is the Client's hidden balance.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">A party that receives an amount <span class="bcp14">MUST</span> check that it is below <code>2^L</code> before
+using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. The spend range proof
+bounds a difference of amounts. The bounds on each amount are needed to
+interpret this difference over the integers (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="ciphersuites">
+<section id="section-5">
+      <h2 id="name-ciphersuites">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
+      </h2>
+<p id="section-5-1">The Credential scheme is specified for the P-256 ciphersuite below. A
+ciphersuite fixes the group, hash functions, encodings, and domain separation
+tags. Both parties agree on the ciphersuite as specified in <a href="#act-config" class="auto internal xref">Section 4.1</a>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2"><code>ctx_proto</code> is as computed in <a href="#act-config" class="auto internal xref">Section 4.1</a>. The seed length is
+<code>Nseed = Ns + 16 = 48</code> bytes. The 16 bytes in excess of <code>Ns</code> make a derived
+scalar statistically close to uniform (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>), on the same grounds
+that <span>[<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span> oversamples by 128 bits when mapping bytes to a field
+element.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">For the Credential scheme, the P-256 ciphersuite sets <code>MAX_BIT_LENGTH = 64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<div id="actp-256-sha-256">
+<section id="section-5.1">
+        <h3 id="name-actp-256-sha-256">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-actp-256-sha-256" class="section-name selfRef">ACT(P-256, SHA-256)</a>
+        </h3>
+<p id="section-5.1-1">This ciphersuite uses P-256 (secp256r1) for the group and
+SHA-256 for the hash function, with <code>Nh = 32</code>. The value of the ciphersuite
+identifier is <code>b"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
+algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. ACT uses
+<code>Ne = 33</code>, <code>Ns = 32</code>, and <code>Nseed = 48</code>. Instantiate every hash with the
+ACT <code>ctx_proto</code> of <a href="#act-config" class="auto internal xref">Section 4.1</a>, including the explicit DST passed by
+<code>G.DeriveScalar</code>; the group-element permutation used by IHAT is not needed.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="randomness">
+<section id="section-5.2">
+        <h3 id="name-randomness">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
+        </h3>
+<p id="section-5.2-1">Every random value in this document is a seed of <code>Nseed</code> bytes, drawn with
+<code>random</code> and consumed by <code>G.DeriveScalar</code> (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>); no scalar is
+sampled directly. Implementations <span class="bcp14">MUST</span> draw seeds with a cryptographically
+secure random number generator and <span class="bcp14">MUST NOT</span> reuse a seed across derivations.
+They <span class="bcp14">SHOULD</span> treat a seed as being as sensitive as the values derived from it,
+and <span class="bcp14">SHOULD</span> handle both in constant time.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-security">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-6-1">The Credential scheme is a keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>
+over the pairing-free BBS-style signature of <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> as analysed by <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>,
+with the balance, the nullifier, the blinding factor, and the context scalar
+as the signed attributes. Because the Moderator is both issuer and verifier
+and there is no pairing, the scheme is an algebraic MAC in the sense of
+<span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>, of the shape introduced as <code>MAC_BB</code> by <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-6-2">
+        <dt id="section-6-2.1">Credit conservation assumptions:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.2">
+          <p id="section-6-2.2.1">The credit-conservation argument uses the following assumptions.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-2.2.2.1">
+              <p id="section-6-2.2.2.1.1">The q-SDH assumption in <code>G</code>, for the unforgeability of the signature
+<span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>.<a href="#section-6-2.2.2.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-2.2.2.2">
+              <p id="section-6-2.2.2.2.1">The discrete-logarithm-relation assumption among <code>B</code>, <code>H1</code>, <code>H2</code>, <code>H3</code>,
+and <code>H4</code>: no party can produce a nontrivial linear relation among them.
+The generators are derived by hash-to-curve in the random oracle model
+(<a href="#act-generators" class="auto internal xref">Section 4.1.1</a>). Commitment binding and the range and spend proofs
+rely on this assumption.<a href="#section-6-2.2.2.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-2.2.2.3">
+              <p id="section-6-2.2.2.3.1">The random oracle model for <code>HashToGroup</code>, <code>HashToScalar</code>, and the
+Fiat-Shamir transform of <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>, together with special
+soundness of the credential Sigma protocols.<a href="#section-6-2.2.2.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-2.2.2.4">
+              <p id="section-6-2.2.2.4.1">Extraction for issuance and spend proofs across adaptive sessions,
+including the keyed-verification oracle. An ACT reduction covering
+verification queries and secret-derived signing exponents and proof
+nonces remains open; the results of <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span> and <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span> do not
+cover this composition.<a href="#section-6-2.2.2.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-2.3">Verification key secrecy:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.4">
+          <p id="section-6-2.4.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
+Moderator that issued it. A Moderator that shares <code>skM</code> with another party
+lets that party issue Credentials in its name.<a href="#section-6-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-2.5">Context granularity:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.6">
+          <p id="section-6-2.6.1">The credential context is visible at every spend through the fact that the
+proof verifies under it, and so partitions Clients into the set sharing its
+value. It <span class="bcp14">MUST</span> be
+coarse: every Client issued under a given context <span class="bcp14">MUST</span> derive the
+byte-identical <code>ctx_cred</code>. The spend context does not partition Clients,
+since it binds a single presentation to a single challenge.<a href="#section-6-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-2.7">Balance width:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.8">
+          <p id="section-6-2.8.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
+the lifetime of a key and context (<a href="#act-config" class="auto internal xref">Section 4.1</a>). A Moderator that used
+different values of <code>L</code> for different Clients would partition them by the
+length of their spend proofs, and one that changed <code>L</code> under a key and
+context with outstanding Credentials would invalidate the balance
+invariant of the conservation argument.<a href="#section-6-2.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-2.9">System requirements:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.10">
+          <p id="section-6-2.10.1">Deployments must provide an atomic and durable nullifier store
+(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>), consistent configuration across Clients (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>),
+and coarse credential contexts. Privacy relies on the randomness
+requirements of <a href="#randomness" class="auto internal xref">Section 5.2</a>. Clients must use each Credential and
+each issuance or spend state only once, including across backups and
+restores.<a href="#section-6-2.10.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="iana">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-7-1">This document has no IANA actions. The ACT credential type is registered by
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ARCH">[ARCH]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIAT-SHAMIR">[FIAT-SHAMIR]</dt>
+        <dd>
+<span class="refAuthor">Orrù, M.</span>, <span class="refTitle">"Fiat-Shamir Transformation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-fiat-shamir-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HASH2CURVE">[HASH2CURVE]</dt>
+        <dd>
+<span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="IHAT">[IHAT]</dt>
+        <dd>
+<span class="refTitle">"Issuer-Hiding Anonymous Tokens (IHAT)"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PROTOCOLS">[PROTOCOLS]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SIGMA">[SIGMA]</dt>
+      <dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Interactive Sigma Proofs"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-02</span>, <time datetime="2026-03-02" class="refDate">2 March 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-02</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="BBDT16">[BBDT16]</dt>
+        <dd>
+<span class="refAuthor">Barki, A.</span>, <span class="refAuthor">Brunet, S.</span>, <span class="refAuthor">Desmoulins, N.</span>, and <span class="refAuthor">J. Traore</span>, <span class="refTitle">"Improved Algebraic MACs and Practical Keyed-Verification Anonymous Credentials"</span>, <span class="seriesInfo">SAC 2016</span>, <time datetime="2016" class="refDate">2016</time>, <span>&lt;<a href="https://crypto.orange-labs.fr/acg/publication/infoPublication.php?id=225">https://crypto.orange-labs.fr/acg/publication/infoPublication.php?id=225</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BBS">[BBS]</dt>
+        <dd>
+<span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Boyen, X.</span>, and <span class="refAuthor">H. Shacham</span>, <span class="refTitle">"Short Group Signatures"</span>, <span class="seriesInfo">CRYPTO 2004</span>, <time datetime="2004" class="refDate">2004</time>, <span>&lt;<a href="https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf">https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="KVAC">[KVAC]</dt>
+        <dd>
+<span class="refAuthor">Chase, M.</span>, <span class="refAuthor">Meiklejohn, S.</span>, and <span class="refAuthor">G. Zaverucha</span>, <span class="refTitle">"Algebraic MACs and Keyed-Verification Anonymous Credentials"</span>, <span class="seriesInfo">CCS 2014</span>, <time datetime="2014" class="refDate">2014</time>, <span>&lt;<a href="https://eprint.iacr.org/2013/516">https://eprint.iacr.org/2013/516</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TZ23">[TZ23]</dt>
+      <dd>
+<span class="refAuthor">Tessaro, S.</span> and <span class="refAuthor">C. Zhu</span>, <span class="refTitle">"Revisiting BBS Signatures"</span>, <span class="seriesInfo">EUROCRYPT 2023</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://eprint.iacr.org/2023/275">https://eprint.iacr.org/2023/275</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="act-test-vectors">
+<section id="appendix-A">
+      <h2 id="name-test-vectors">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-test-vectors" class="section-name selfRef">Test Vectors</a>
+      </h2>
+<p id="appendix-A-1">TODO: ACT test vectors.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Samuel Schlesinger</span></div>
+<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:sgschlesinger@gmail.com" class="email">sgschlesinger@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Jonathan Katz</span></div>
+<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:jkcrypto@google.com" class="email">jkcrypto@google.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Armando Faz-Hernandez</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare, Inc.</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:armfazh@cloudflare.com" class="email">armfazh@cloudflare.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Deep Inder Mohan</span></div>
+<div dir="auto" class="left"><span class="org">Georgia Institute of Technology</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:dmohan@gatech.edu" class="email">dmohan@gatech.edu</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
