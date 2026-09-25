@@ -1,6 +1,14 @@
 # Reference implementation
 
-Python reference implementations of IHAT and ACT. From this directory:
+Python reference implementations of IHAT and ACT. ACT's proofs run on the
+CFRG reference implementation of the Sigma Protocols and Fiat-Shamir drafts,
+which is a Git submodule. Initialize it from the repository root:
+
+```sh
+git submodule update --init poc/vendor/sigma-protocols
+```
+
+Then, from this directory:
 
 ```sh
 python3 -m venv .venv
@@ -25,3 +33,6 @@ checkers to reject scalars and elements from a different ciphersuite.
 
 This is a specification demo, not production cryptography. The Python code
 is not constant-time and does not securely erase secrets.
+
+See [vendor/README.md](vendor/README.md) for the pinned upstream revision.
+Upstream code is imported unchanged and is not part of our lint targets.

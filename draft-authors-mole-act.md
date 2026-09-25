@@ -46,11 +46,19 @@ normative:
   IHAT:
     title: Issuer-Hiding Anonymous Tokens (IHAT)
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
+    date: 2026
+    seriesinfo:
+      Internet-Draft: draft-authors-mole-ihat
+    author:
+      -
+        ins: S. Schlesinger
+      -
+        ins: D. I. Mohan
   ARCH: I-D.draft-jms-mole-architecture
   PROTOCOLS: I-D.draft-jms-mole-protocols
   HASH2CURVE: RFC9380
-  SIGMA: I-D.irtf-cfrg-sigma-protocols-02
-  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-02
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-03
+  FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-03
 
 informative:
   BBS:
@@ -169,7 +177,7 @@ specified by the operation that uses them.
 
 # Preliminaries {#preliminaries}
 
-The construction has two dependencies:
+The construction has three dependencies:
 
 Group:
 : A prime-order group implementing the interface in {{group}}. {{ciphersuites}}
@@ -177,6 +185,10 @@ Group:
 
 Hash:
 : A cryptographic hash function whose output length is `Nh` bytes.
+
+Sigma protocol:
+: The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
+  {{act-proofs}}.
 
 ## Prime-Order Group {#group}
 
@@ -273,7 +285,7 @@ request/response exchange followed by a Client-local finalization.
                               response
                               <--------
 
-   credential = FinalizeIssuance(pkM, ctx_cred, state, response)
+   credential = FinalizeIssue(pkM, ctx_cred, state, response)
 
                    ...
 
@@ -303,8 +315,7 @@ four messages.
 A ciphersuite ({{ciphersuites}}) is identified by an ASCII byte string
 `identifier`, and both parties MUST agree on it before
 running the protocol. The Credential scheme is specified for the P-256
-ciphersuite of {{ciphersuites}}, whose Sigma-protocol instantiation {{SIGMA}}
-defines; its protocol context is
+ciphersuite of {{ciphersuites}}; its protocol context is
 
 ~~~ python
 def CreateCredentialProtocolContext(identifier: bytes) -> bytes:
@@ -388,7 +399,9 @@ running it, so that a spend verifies only under the context the Credential
 was issued under: a Moderator states the context it accepts and learns whether
 the Credential was issued under it, rather than being told by the Client. A
 Client keeps its own copy of the context for as long as it holds the
-Credential.
+Credential. A Credential presented under a context other than the one it
+was issued under fails verification; the mismatch is not otherwise
+signalled.
 
 The credential context partitions Clients into the set that shares its
 value, and MUST be coarse; see {{act-security}}.
@@ -414,6 +427,113 @@ using it, and MUST raise an `AmountError` otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers ({{act-security}}).
 
+## Zero-Knowledge Proofs {#act-proofs}
+
+Each proof of this document is a compact NARG string
+({{Section 5.5 of SIGMA}}) for a linear relation declared where it is
+used, in the notation of {{Section 3.4 of SIGMA}}, with `G` the generator
+`B` of {{ciphersuites}}. The batchable form would add one element per
+equation, which for the spend relation is most of the message, and the
+Moderator verifies each spend atomically with recording its nullifier,
+which precludes batch verification.
+
+The ciphersuite is `sigma-proofs_Shake128_P256` of
+{{Section 8 of SIGMA}}. Its group is the group of {{ciphersuites}}
+with the same element and scalar encodings, so statement elements are
+encoded identically in both documents.
+
+### Tags {#act-tags}
+
+Every proof is bound to a *tag* ({{Section 5.1 of SIGMA}}) built by `Tag`
+from a label naming the operation and a possibly empty list of *bindings*:
+public byte strings that the proof must be bound to but that do not appear
+in the relation.
+
+~~~ python
+def Tag(label: bytes, bindings: Sequence[bytes]) -> bytes:
+    tag = ctx_proto + b"-" + label + b"-CMPT-with-" + SIGMA_SUITE
+    for binding in bindings:
+        tag += U16Prefixed(binding)
+    return tag
+~~~
+
+`SIGMA_SUITE` is the ciphersuite identifier `"sigma-proofs_Shake128_P256"`.
+The labels are a fixed set, and each binding is length-prefixed, so
+distinct inputs yield distinct tags ({{Section 5.1 of FIAT-SHAMIR}}).
+Bindings are arbitrary byte strings, not the US-ASCII text that section
+recommends; the length prefixes keep the tag unambiguous.
+
+### Prover Nonces {#act-prover-nonces}
+
+`ProveCompact` draws one nonce per witness scalar from its `rng`, in
+scalar-index order. The `rng` MUST return, on its `i`-th call, the value
+that `ProverNonces.random_scalar` computes below. Each nonce is derived
+with `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the witness, the
+session, the relation, and fresh randomness; a repeated or failed random
+source therefore neither repeats a nonce across distinct proofs nor
+produces a zero nonce.
+
+~~~ python
+class ProverNonces:
+    def __init__(
+        self,
+        witness: Sequence[Scalar],
+        session_id: bytes,
+        instance: bytes,
+    ) -> None:
+        self.secret = b"".join(G.SerializeScalar(w) for w in witness)
+        self.instance = (
+            session_id + I2OSP(len(instance), 4) + instance
+        )
+        self.rand = random(len(witness) * Nseed)
+        self.count = 0
+
+    def random_scalar(self) -> int:
+        i = self.count
+        self.count = i + 1
+        nonce = G.DeriveNonce(
+            self.secret,
+            b"nonce",
+            self.instance + I2OSP(i, 4),
+            Seed(self.rand, i),
+        )
+        return int(nonce)
+~~~
+
+`witness` is the prover's whole witness in scalar-index order;
+`session_id` is the 32-byte `DeriveSessionID(tag)` of
+{{Section 5.1 of FIAT-SHAMIR}}; and `instance` is the
+`SerializeLinearRelation` of the relation ({{Section 3.6 of SIGMA}}).
+
+This rule binds only the prover; a verifier following {{SIGMA}} accepts
+these proofs unchanged. A proof repeated with the same inputs and the same
+`rand` is byte-identical, so a retried operation reproduces its proof.
+
+### Proving and Verifying {#act-prove}
+
+A relation is proven and verified as follows, where `relation` is the
+declared relation compiled as in {{Section 3.4 of SIGMA}}, and
+`DeriveSessionID`, `SerializeLinearRelation`, `ProveCompact`, and
+`VerifyCompact` are those of {{FIAT-SHAMIR}} and {{SIGMA}}.
+
+~~~ python
+def Prove(
+    tag: bytes, relation: LinearRelation, witness: Sequence[Scalar]
+) -> bytes:
+    nonces = ProverNonces(
+        witness,
+        DeriveSessionID(tag),
+        SerializeLinearRelation(relation),
+    )
+    return ProveCompact(tag, relation, witness, nonces)
+
+
+def Verify(
+    tag: bytes, relation: LinearRelation, proof: bytes
+) -> bool:
+    return VerifyCompact(tag, relation, proof)
+~~~
+
 # Ciphersuites {#ciphersuites}
 
 The Credential scheme is specified for the P-256 ciphersuite below. A
@@ -426,7 +546,18 @@ scalar statistically close to uniform ({{derive-scalar}}), on the same grounds
 that {{HASH2CURVE}} oversamples by 128 bits when mapping bytes to a field
 element.
 
-For the Credential scheme, the P-256 ciphersuite sets `MAX_BIT_LENGTH = 64`.
+For the Credential scheme, the P-256 ciphersuite sets `MAX_BIT_LENGTH = 64`,
+which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
+far below the group order ({{act-security}}).
+
+ACTv1 is specified against the `-03` revisions of {{SIGMA}} and
+{{FIAT-SHAMIR}}. A later revision that changes the NARG string or its
+derivation MUST be adopted under a new ciphersuite identifier, and so a new
+`ctx_proto`, so that `ACTv1-P256-SHA256` never denotes two transcript
+formats.
+
+> **TODO.** Revisit once {{SIGMA}} and {{FIAT-SHAMIR}} are stable, and
+> move the pin to `-04` when it is published.
 
 ## ACT(P-256, SHA-256)
 
@@ -442,12 +573,23 @@ ACT `ctx_proto` of {{act-config}}, including the explicit DST passed by
 
 ## Randomness {#randomness}
 
-Every random value in this document is a seed of `Nseed` bytes, drawn with
-`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}); no scalar is
-sampled directly. Implementations MUST draw seeds with a cryptographically
-secure random number generator and MUST NOT reuse a seed across derivations.
-They SHOULD treat a seed as being as sensitive as the values derived from it,
-and SHOULD handle both in constant time.
+Every random value in this document is a seed of `Nseed` bytes consumed by
+`G.DeriveScalar` ({{derive-scalar}}) or, for the values listed below, by
+`G.DeriveNonce` (Section 4.3 of {{IHAT}}); no scalar is sampled directly.
+Implementations MUST draw with a cryptographically secure random number
+generator and MUST NOT reuse a seed across derivations. They SHOULD treat a
+seed as being as sensitive as the values derived from it, and SHOULD handle
+both in constant time.
+
+The following values MUST be derived with `G.DeriveNonce`, with the inputs
+stated where they are used; drawing them directly is not conformant:
+
+* every nonce of a `ProveCompact` prover of the Credential scheme,
+  through `ProverNonces` ({{act-prover-nonces}}).
+
+A repetition among the Client's drawn values harms only that Client; a
+repetition of a signing exponent or of a prover nonce is a key-compromise
+event ({{act-security}}), which is why those are derived.
 
 # Security Considerations {#act-security}
 
@@ -470,12 +612,28 @@ Credit conservation assumptions:
     rely on this assumption.
   * The random oracle model for `HashToGroup`, `HashToScalar`, and the
     Fiat-Shamir transform of {{FIAT-SHAMIR}}, together with special
-    soundness of the credential Sigma protocols.
+    soundness of the credential Sigma protocols ({{act-proofs}}).
   * Extraction for issuance and spend proofs across adaptive sessions,
     including the keyed-verification oracle. An ACT reduction covering
     verification queries and secret-derived signing exponents and proof
     nonces remains open; the results of {{TZ23}} and {{BBDT16}} do not
     cover this composition.
+
+Derived prover nonces:
+: `ProveCompact` is zero-knowledge when its nonces are indistinguishable
+  from uniform to a party without the witness
+  ({{Section 8.4.2 of FIAT-SHAMIR}}). `ProverNonces` derives each nonce
+  from its own `Nseed` bytes of fresh randomness through `G.DeriveNonce`,
+  so each nonce is within about `2^-128` of uniform
+  and never zero ({{derive-scalar}}); excluding zero costs at most `n/p`
+  for `n` nonces. Deriving several nonces from one seed would break this.
+  If the random source fails, each nonce remains a pseudorandom function
+  of the witness at a distinct point, which is the condition
+  {{Section 8.4.2 of FIAT-SHAMIR}} allows, so nonces still do not repeat
+  across distinct statements. This relies on the witness carrying entropy
+  the verifier lacks, which the blinding scalars drawn under earlier,
+  working randomness provide; only the drawn values of {{randomness}}
+  lose their guarantees.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the
