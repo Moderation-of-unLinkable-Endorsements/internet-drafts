@@ -1757,11 +1757,8 @@ def DeriveSeed(self, seed: bytes, info: bytes) -&gt; bytes:
 </pre><a href="#section-4.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-4.3-3">An algorithm that needs many scalars from one drawn seed expands it once per
-scalar, with a distinct <code>info</code> for each, and passes each expansion to
-<code>G.DeriveScalar</code>. The expansions are pseudorandom rather than independent:
-they are indistinguishable from independent seeds for an adversary that
-cannot distinguish <code>expand_message_xmd</code> (<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>)
-from a random function, which the random-oracle model assumes.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+scalar, with a distinct <code>info</code> for each. The expansions are pseudorandom
+rather than independent (<a href="#security-considerations" class="auto internal xref">Section 8</a>).<a href="#section-4.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-nonce">
@@ -1801,11 +1798,6 @@ is an unambiguous encoding, with its variable-length parts
 length-prefixed. Implementations <span class="bcp14">MUST</span> wipe <code>secret</code>,
 <code>derive_nonce_input</code>, <code>seed</code>, and the returned value once it has been
 used.<a href="#section-4.4-3" class="pilcrow">¶</a></p>
-<p id="section-4.4-4">With a working random source the derived value is distributed as a drawn
-one is. With a failed one it remains a pseudorandom function of the secret
-at a point that identifies the operation, so it does not repeat across
-distinct operations, and a repeated operation reproduces its earlier
-output rather than yielding a second one.<a href="#section-4.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
@@ -2518,10 +2510,9 @@ def CommitStep(
     return G.SerializeElement(C)
 </pre><a href="#section-6.2.2-4" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-5">The committer knows the discrete logarithm of exactly one of the two bases,
-and that is the position it can later open to a different value. Generating
-a key that binds the <code>left</code> position means choosing <code>Q</code> so that <code>P(Q)</code>, the
-base of the right value, is the one with a known logarithm, and vice versa:<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-5">The committer knows the discrete logarithm of one base, and that is the
+position it can later open to another value. A key that binds the <code>left</code>
+position is one whose <code>P(Q)</code> has the known logarithm, and vice versa:<a href="#section-6.2.2-5" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-6">
 <pre>
 def GenerateStep(
@@ -2537,9 +2528,9 @@ def GenerateStep(
         raise ValueError("bind_direction must be 'left' or 'right'")
 </pre><a href="#section-6.2.2-6" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-7">The returned <code>secret</code> is the trapdoor. Replacing the value at the equivocal
-position by another is a shift of the randomness by the difference of their
-hashes times the trapdoor, which leaves the commitment unchanged:<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-7">The <code>secret</code> is the trapdoor: replacing the equivocal value shifts the
+randomness by the difference of the hashes times the trapdoor, and the
+commitment is unchanged:<a href="#section-6.2.2-7" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-8">
 <pre>
 def EquivocateStep(
@@ -2573,10 +2564,8 @@ def VecCommit(
     return VecCommit(V_prime, Qi[1:], rands[1:])
 </pre><a href="#section-6.2.2-10" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-11">Committing to position <code>index</code> of the vector, and to nothing else, is then
-bookkeeping over the bits of <code>index</code>. Bit <code>j</code> of <code>index</code> says which side of
-its pair the binding value is on at level <code>j</code>, which fixes the direction of
-that level's key:<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-11">Bit <code>j</code> of <code>index</code> is the side of its pair that the binding value is on
+at level <code>j</code>, which fixes the direction of that level's key:<a href="#section-6.2.2-11" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-12">
 <pre>
 def GenerateVecBind(
@@ -2593,8 +2582,7 @@ def GenerateVecBind(
     return (commitment_keys, trapdoors)
 </pre><a href="#section-6.2.2-12" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-13">The first move commits the value at <code>index</code> with every other leaf empty,
-drawing the randomness of each level from the seed:<a href="#section-6.2.2-13" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-13">The first move commits the value at <code>index</code> with every other leaf empty:<a href="#section-6.2.2-13" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-14">
 <pre>
 def CommitValAtPlace(
@@ -2613,11 +2601,10 @@ def CommitValAtPlace(
     return (VecCommit(V, commitment_keys, rands), rands)
 </pre><a href="#section-6.2.2-14" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.2-15">Once every other leaf is known, each level's randomness is shifted so that
-the node above is unchanged while the sibling of the binding path takes its
-new value. The binding position itself <span class="bcp14">MUST</span> hold the same value in both
-vectors. An odd last element that sits on the binding path has no sibling
-at its level and keeps its randomness.<a href="#section-6.2.2-15" class="pilcrow">¶</a></p>
+<p id="section-6.2.2-15">Once the other leaves are known, each level's randomness is shifted so that
+the sibling of the binding path takes its new value and the node above is
+unchanged. An odd last element on the binding path has no sibling and keeps
+its randomness.<a href="#section-6.2.2-15" class="pilcrow">¶</a></p>
 <div class="breakable lang-python sourcecode" id="section-6.2.2-16">
 <pre>
 def VecEquivocate(
@@ -2692,9 +2679,8 @@ def VecEquivocateFromZero(
 <p id="section-6.2.3-1"><code>P</code> is a permutation on the elements of <code>G</code>, computed on their compressed
 encodings by cycle walking: a permutation of the encoding space is applied
 until the result decodes to an element, and <code>Pinv</code> walks the same cycle
-backwards. Because a permutation partitions its domain into cycles, the
-first element encountered is well defined and the two are inverse to each
-other.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
+backwards. Since a permutation partitions its domain into cycles, the two
+are inverse to each other.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.3-2">
 <pre>
 def P(self, element: Element) -&gt; Element:
@@ -2724,8 +2710,7 @@ def Pinv(self, element: Element) -&gt; Element:
 </div>
 <p id="section-6.2.3-3">The permutation of the encoding space is a four-round Feistel network over
 33-byte strings whose first byte is <code>0x02</code> or <code>0x03</code>, carried as its low
-bit; the valid encodings are a subset of that space, which is why the walk
-above is needed:<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
+bit:<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.3-4">
 <pre>
 def PermuteBytes(buf: bytearray) -&gt; bytearray:
@@ -2749,11 +2734,8 @@ def UnpermuteBytes(buf: bytearray) -&gt; bytearray:
     return left + right
 </pre><a href="#section-6.2.3-4" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.3-5"><code>P</code> has no fixed point and is not an involution except with negligible
-probability, and knowledge of the discrete logarithm of <code>Q</code> gives no
-information about that of <code>P(Q)</code> when <code>P</code> is modelled as a random
-permutation, which is what the binding argument of
-<a href="#security-considerations" class="auto internal xref">Section 8</a> assumes.<a href="#section-6.2.3-5" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-5">The binding argument of <a href="#security-considerations" class="auto internal xref">Section 8</a> models <code>P</code> as a random
+permutation.<a href="#section-6.2.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-challenge">
@@ -2917,10 +2899,9 @@ def ProveIssuer(
 </div>
 <p id="section-6.2.5-2"><code>ProveIssuer</code> expands its one <code>seed</code> (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>) into the auxiliary
 input of the nonce <code>r</code>, the seed of the commitment keys, and the seed of
-the first openings. The nonce itself is derived with <code>G.DeriveNonce</code>
-(<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>) from the witness <code>delta</code>, the proof statement, and that
-auxiliary input, so that two proofs of distinct statements do not share it
-even if the seed repeats; a repeated nonce would reveal <code>delta</code>.<a href="#section-6.2.5-2" class="pilcrow">¶</a></p>
+the first openings. The nonce is derived with <code>G.DeriveNonce</code>
+(<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>) from <code>delta</code> and the proof statement, so that proofs of
+distinct statements do not share it even if the seed repeats.<a href="#section-6.2.5-2" class="pilcrow">¶</a></p>
 <p id="section-6.2.5-3">The first move commits only the path from leaf <code>index</code> to the root: at each
 level the Client commits the value it holds on one side and an empty value
 on the other, having generated that level's key so that the <em>other</em> side is
@@ -3337,8 +3318,8 @@ an attacker with a quantum computer that records transcripts today.<a href="#sec
           <p id="section-8-3.4.1">Blindness is unconditional only if the blinding factors are. <code>Challenge</code>
 derives them from seeds rather than sampling them, and <code>Redeem</code> derives
 <code>delta</code> the same way, so the guarantee is statistical rather than
-perfect: an Endorsement and a session are linkable
-by an adversary that can find a seed consistent with both. Two properties of
+perfect: an Endorsement and a session are linkable by an adversary that
+can find a seed consistent with both. Two properties of
 <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> keep the loss negligible. Each scalar gets its own seed, so
 a seed consistent with any given value exists with overwhelming probability
 and finding one therefore separates nothing; and each seed is <code>Ns + 16</code> bytes,

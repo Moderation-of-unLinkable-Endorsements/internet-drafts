@@ -468,12 +468,8 @@ Table of Contents
        )
 
    An algorithm that needs many scalars from one drawn seed expands it
-   once per scalar, with a distinct info for each, and passes each
-   expansion to G.DeriveScalar.  The expansions are pseudorandom rather
-   than independent: they are indistinguishable from independent seeds
-   for an adversary that cannot distinguish expand_message_xmd
-   (Section 5.3.1 of [HASH2CURVE]) from a random function, which the
-   random-oracle model assumes.
+   once per scalar, with a distinct info for each.  The expansions are
+   pseudorandom rather than independent (Section 8).
 
 4.4.  Deriving Nonces
 
@@ -507,12 +503,6 @@ Table of Contents
    is an unambiguous encoding, with its variable-length parts length-
    prefixed.  Implementations MUST wipe secret, derive_nonce_input,
    seed, and the returned value once it has been used.
-
-   With a working random source the derived value is distributed as a
-   drawn one is.  With a failed one it remains a pseudorandom function
-   of the secret at a point that identifies the operation, so it does
-   not repeat across distinct operations, and a repeated operation
-   reproduces its earlier output rather than yielding a second one.
 
 4.5.  Key Generation
 
@@ -1172,11 +1162,10 @@ Table of Contents
        )
        return G.SerializeElement(C)
 
-   The committer knows the discrete logarithm of exactly one of the two
-   bases, and that is the position it can later open to a different
-   value.  Generating a key that binds the left position means choosing
-   Q so that P(Q), the base of the right value, is the one with a known
-   logarithm, and vice versa:
+   The committer knows the discrete logarithm of one base, and that is
+   the position it can later open to another value.  A key that binds
+   the left position is one whose P(Q) has the known logarithm, and vice
+   versa:
 
    def GenerateStep(
        bind_direction: str, seed: bytes
@@ -1190,10 +1179,9 @@ Table of Contents
        else:
            raise ValueError("bind_direction must be 'left' or 'right'")
 
-   The returned secret is the trapdoor.  Replacing the value at the
-   equivocal position by another is a shift of the randomness by the
-   difference of their hashes times the trapdoor, which leaves the
-   commitment unchanged:
+   The secret is the trapdoor: replacing the equivocal value shifts the
+   randomness by the difference of the hashes times the trapdoor, and
+   the commitment is unchanged:
 
    def EquivocateStep(
        oldb: bytes, newb: bytes, randomness: Scalar, secret: Scalar
@@ -1224,10 +1212,8 @@ Table of Contents
 
        return VecCommit(V_prime, Qi[1:], rands[1:])
 
-   Committing to position index of the vector, and to nothing else, is
-   then bookkeeping over the bits of index.  Bit j of index says which
-   side of its pair the binding value is on at level j, which fixes the
-   direction of that level's key:
+   Bit j of index is the side of its pair that the binding value is on
+   at level j, which fixes the direction of that level's key:
 
    def GenerateVecBind(
        q: int, index: int, seed: bytes
@@ -1243,7 +1229,7 @@ Table of Contents
        return (commitment_keys, trapdoors)
 
    The first move commits the value at index with every other leaf
-   empty, drawing the randomness of each level from the seed:
+   empty:
 
    def CommitValAtPlace(
        commitment_keys: Sequence[Element],
@@ -1260,11 +1246,10 @@ Table of Contents
            rands.append(G.DeriveScalar(G.DeriveSeed(seed, info), info))
        return (VecCommit(V, commitment_keys, rands), rands)
 
-   Once every other leaf is known, each level's randomness is shifted so
-   that the node above is unchanged while the sibling of the binding
-   path takes its new value.  The binding position itself MUST hold the
-   same value in both vectors.  An odd last element that sits on the
-   binding path has no sibling at its level and keeps its randomness.
+   Once the other leaves are known, each level's randomness is shifted
+   so that the sibling of the binding path takes its new value and the
+   node above is unchanged.  An odd last element on the binding path has
+   no sibling and keeps its randomness.
 
    def VecEquivocate(
        commitment_keys: Sequence[Element],
@@ -1332,9 +1317,8 @@ Table of Contents
    P is a permutation on the elements of G, computed on their compressed
    encodings by cycle walking: a permutation of the encoding space is
    applied until the result decodes to an element, and Pinv walks the
-   same cycle backwards.  Because a permutation partitions its domain
-   into cycles, the first element encountered is well defined and the
-   two are inverse to each other.
+   same cycle backwards.  Since a permutation partitions its domain into
+   cycles, the two are inverse to each other.
 
    def P(self, element: Element) -> Element:
        buf = bytearray(self.SerializeElement(element))
@@ -1362,8 +1346,7 @@ Table of Contents
 
    The permutation of the encoding space is a four-round Feistel network
    over 33-byte strings whose first byte is 0x02 or 0x03, carried as its
-   low bit; the valid encodings are a subset of that space, which is why
-   the walk above is needed:
+   low bit:
 
    def PermuteBytes(buf: bytearray) -> bytearray:
        left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
@@ -1385,10 +1368,7 @@ Table of Contents
            left[0] = left[0] & 0x01
        return left + right
 
-   P has no fixed point and is not an involution except with negligible
-   probability, and knowledge of the discrete logarithm of Q gives no
-   information about that of P(Q) when P is modelled as a random
-   permutation, which is what the binding argument of Section 8 assumes.
+   The binding argument of Section 8 models P as a random permutation.
 
 6.2.4.  Challenge Computation
 
@@ -1541,11 +1521,9 @@ Table of Contents
 
    ProveIssuer expands its one seed (Section 4.3) into the auxiliary
    input of the nonce r, the seed of the commitment keys, and the seed
-   of the first openings.  The nonce itself is derived with
-   G.DeriveNonce (Section 4.4) from the witness delta, the proof
-   statement, and that auxiliary input, so that two proofs of distinct
-   statements do not share it even if the seed repeats; a repeated nonce
-   would reveal delta.
+   of the first openings.  The nonce is derived with G.DeriveNonce
+   (Section 4.4) from delta and the proof statement, so that proofs of
+   distinct statements do not share it even if the seed repeats.
 
    The first move commits only the path from leaf index to the root: at
    each level the Client commits the value it holds on one side and an
