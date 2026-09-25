@@ -2,10 +2,14 @@
 
 
 
-Network Working Group                                        D. I. Mohan
-Internet-Draft                           Georgia Institute of Technology
-Intended status: Informational                         24 September 2026
-Expires: 28 March 2027
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                   J. Katz
+Intended status: Informational                                Google LLC
+Expires: 29 March 2027                                  A. Faz-Hernandez
+                                                        Cloudflare, Inc.
+                                                             D. I. Mohan
+                                         Georgia Institute of Technology
+                                                       25 September 2026
 
 
                  Issuer-Hiding Anonymous Tokens (IHAT)
@@ -52,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 28 March 2027.
+   This Internet-Draft will expire on 29 March 2027.
 
 Copyright Notice
 
@@ -112,7 +116,7 @@ Table of Contents
      10.2.  Informative References
    Appendix A.  Test Vectors
    Acknowledgments
-   Author's Address
+   Authors' Addresses
 
 1.  Introduction
 
@@ -233,6 +237,9 @@ Table of Contents
    seeds, that is x[k * Nseed:(k + 1) * Nseed], with k counted from
    zero.  Section 7 fixes the seed length Nseed.
 
+   def Seed(value: bytes, index: int) -> bytes:
+       return value[index * Nseed : (index + 1) * Nseed]
+
    Byte strings such as b"Challenge" contain the corresponding ASCII
    bytes and do not include a terminating NUL byte.
 
@@ -258,6 +265,9 @@ Table of Contents
    respectively.  Group elements are added with + and subtracted with -;
    scalar multiplication of an Element A by a Scalar r is written r * A.
    Scalars are added, subtracted, and multiplied modulo p.
+
+   The group also provides G.DeriveScalar, G.DeriveKeyPair, and
+   G.GenerateKeyPair, defined in Section 4.2 and Section 4.3.
 
    The following member functions are used.  Except where noted, they
    are as defined in Section 2.1 of [OPRF].
@@ -297,10 +307,10 @@ Table of Contents
 
    This document does not use the RandomScalar() member of Section 2.1
    of [OPRF].  Every scalar that has to be unpredictable is instead
-   obtained from DeriveScalar (Section 4.2), which is deterministic in a
-   random seed.  This makes each algorithm reproducible from the seed it
-   is given, which is what allows the test vectors of Appendix A to pin
-   the randomness of an otherwise randomized protocol.
+   obtained from G.DeriveScalar (Section 4.2), which is deterministic in
+   a random seed.  This makes each algorithm reproducible from the seed
+   it is given, which is what allows the test vectors of Appendix A to
+   pin the randomness of an otherwise randomized protocol.
 
 3.2.  Errors
 
@@ -391,26 +401,28 @@ Table of Contents
 
    Every hash this document computes is domain-separated by ctx_proto,
    which it carries in its DST rather than in its input: HashToGroup and
-   HashToScalar are so parameterized (Section 7), and so is DeriveScalar
-   (Section 4.2).  Every algorithm below therefore depends on ctx_proto,
-   including those in which it does not appear explicitly, and a value
-   produced under one ciphersuite does not verify under another.  Each
-   algorithm treats ctx_proto as a global variable.
+   HashToScalar are so parameterized (Section 7), and so is
+   G.DeriveScalar (Section 4.2).  Every algorithm below therefore
+   depends on ctx_proto, including those in which it does not appear
+   explicitly, and a value produced under one ciphersuite does not
+   verify under another.  The Python group instance G stores this
+   context as G.ctx_proto.  The group methods below use self for that
+   instance, so the context is fixed when G is constructed.
 
 4.2.  Deriving Scalars
 
-   The following function is used to derive a value in the scalar field
-   of a group G.  To generate a random scalar, one applies this function
-   to a random seed an appropriate choice of info string:
+   The group method G.DeriveScalar derives a value in the scalar field
+   of G.  To generate a random scalar, call it with a fresh random seed
+   and an appropriate info string:
 
-   def DeriveScalar(seed: bytes, info: bytes) -> Scalar:
+   def DeriveScalar(self, seed: bytes, info: bytes) -> Scalar:
        if len(seed) != Nseed:
            raise ValueError(f"seed must be exactly {Nseed} bytes")
        derive_input = seed + U16Prefixed(info)
        for counter in range(256):
-           s = G.HashToScalar(
+           s = self.HashToScalar(
                derive_input + I2OSP(counter, 1),
-               DST=b"DeriveScalar-" + ctx_proto,
+               DST=b"DeriveScalar-" + self.ctx_proto,
            )
            if not s.isZero():
                return s
@@ -447,9 +459,11 @@ Table of Contents
    secrecy of skA rests on the secrecy of seed.  On the other hand, the
    info string is usually public.
 
-   def DeriveKeyPair(seed: bytes, info: bytes) -> tuple[Scalar, Element]:
-       skA = DeriveScalar(seed, info)
-       pkA = G.ScalarMultGen(skA)
+   def DeriveKeyPair(
+       self, seed: bytes, info: bytes
+   ) -> tuple[Scalar, Element]:
+       skA = self.DeriveScalar(seed, info)
+       pkA = self.ScalarMultGen(skA)
        return (skA, pkA)
 
    The derivation is the one Section 3.2 of [OPRF] performs inline: hash
@@ -460,9 +474,9 @@ Table of Contents
 
    A fresh key pair is generated by deriving one from a random seed.
 
-   def GenerateKeyPair() -> tuple[Scalar, Element]:
+   def GenerateKeyPair(self) -> tuple[Scalar, Element]:
        seed = random(Nseed)
-       return DeriveKeyPair(seed, b"GenerateKeyPair")
+       return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 
    The Anchor publishes SerializeElement(pkA) in its configuration; see
    [PROTOCOLS].
@@ -563,9 +577,9 @@ Table of Contents
        Z = CreateContextBase(ctx_iss)
 
        rand = random(3 * Nseed)
-       a = DeriveScalar(Seed(rand, 0), b"a")
-       t = DeriveScalar(Seed(rand, 1), b"t")
-       y = DeriveScalar(Seed(rand, 2), b"y")
+       a = G.DeriveScalar(Seed(rand, 0), b"a")
+       t = G.DeriveScalar(Seed(rand, 1), b"t")
+       y = G.DeriveScalar(Seed(rand, 2), b"y")
 
        A = G.ScalarMultGen(a)
        C = G.ScalarMultGen(t) + y * Z
@@ -600,10 +614,10 @@ Table of Contents
        nf = rand[:Nn]
        seeds = rand[Nn:]
 
-       r1 = DeriveScalar(Seed(seeds, 0), b"r1")
-       r2 = DeriveScalar(Seed(seeds, 1), b"r2")
-       gamma1 = DeriveScalar(Seed(seeds, 2), b"gamma1")
-       gamma2 = DeriveScalar(Seed(seeds, 3), b"gamma2")
+       r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
+       r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
+       gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
+       gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
 
        m = Message(nf, ctx_red)
        gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -1095,8 +1109,8 @@ Table of Contents
    ) -> bytes:
        C = (
            randomness * B
-           + DeriveScalar(left, b"left") * Q
-           + DeriveScalar(right, b"right") * G.P(Q)
+           + G.DeriveScalar(left, b"left") * Q
+           + G.DeriveScalar(right, b"right") * G.P(Q)
        )
        return G.SerializeElement(C)
 
@@ -1105,7 +1119,7 @@ Table of Contents
    # binding direction
 
    def GenerateStep(bind_direction: str) -> tuple[Element, Scalar]:
-       secret = DeriveScalar(random(Nseed), b"TODO")
+       secret = G.DeriveScalar(random(Nseed), b"TODO")
        T = secret * B
        if bind_direction == "left":
            return (G.Pinv(T), secret)
@@ -1223,7 +1237,7 @@ Table of Contents
        if len(rand) != (3 * q + 1) * Nseed:
            raise ValueError("invalid issuer proof randomness length")
 
-       r = DeriveScalar(Seed(rand, 0), b"r")
+       r = G.DeriveScalar(Seed(rand, 0), b"r")
        A = B * r
 
        (commitment_keys, trapdoor) = GenerateVecBind(q, index, rand[Nseed:])
@@ -1362,7 +1376,7 @@ Table of Contents
        nrand = (3 * q + 2) * Nseed
 
        rand = random(nrand)
-       delta = DeriveScalar(Seed(rand, 0), b"delta")
+       delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
        X_hat = anchor_set[index] + delta * B
        s_hat = s + (c * y) * delta
@@ -1556,8 +1570,8 @@ Table of Contents
 7.2.  Randomness
 
    Every random value in this document is a seed of Nseed bytes, drawn
-   with random and consumed by DeriveScalar (Section 4.2); no scalar is
-   sampled directly.  Implementations MUST draw seeds with a
+   with random and consumed by G.DeriveScalar (Section 4.2); no scalar
+   is sampled directly.  Implementations MUST draw seeds with a
    cryptographically secure random number generator and MUST NOT reuse a
    seed across derivations.  They SHOULD treat a seed as being as
    sensitive as the values derived from it, and SHOULD handle both in
@@ -1653,7 +1667,7 @@ Table of Contents
 
       The commitment of Section 6.2.2 would be _perfectly_ hiding if its
       randomness were uniform, and is _statistically_ hiding as
-      specified here, because DeriveScalar never returns zero
+      specified here, because G.DeriveScalar never returns zero
       (Section 4.2).  The two cases of CreateCommitmentKey therefore
       have slightly different supports -- E - G0 is never -G0 and G0 - E
       is never G0 -- so a commitment key that happened to equal G0 or
@@ -1887,6 +1901,11 @@ Table of Contents
               Elliptic Curve Cryptography", 2009,
               <https://www.secg.org/sec1-v2.pdf>.
 
+   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-02>.
+
    [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
               Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
               <https://www.rfc-editor.org/rfc/rfc8446>.
@@ -1903,12 +1922,6 @@ Table of Contents
               Credentials without Policy Keys", 2026,
               <https://eprint.iacr.org/2026/870>.
 
-   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
-              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
-              protocols-03, 16 August 2026,
-              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
-              sigma-protocols-03>.
-
    [STACKSIG] Goel, A., Green, M., Hall-Andersen, M., and G. Kaptchuk,
               "Stacking Sigmas: A Framework to Compose Sigma-Protocols
               for Disjunctions", EUROCRYPT 2022, 2022,
@@ -1920,7 +1933,7 @@ Table of Contents
 
 Appendix A.  Test Vectors
 
-      *TODO.* Test vectors for DeriveKeyPair, DeriveScalar,
+      *TODO.* Test vectors for G.DeriveKeyPair, G.DeriveScalar,
       CreateContextBase, Message, ComputeChallenge, the four issuance
       algorithms, Verify, G0, CommitNode, CompressValue,
       ComputeProofChallenge, Redeem, and VerifyRedemption, for each
@@ -1937,7 +1950,22 @@ Acknowledgments
 
    TODO acknowledge.
 
-Author's Address
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google LLC
+   Email: sgschlesinger@gmail.com
+
+
+   Jonathan Katz
+   Google LLC
+   Email: jkcrypto@google.com
+
+
+   Armando Faz-Hernandez
+   Cloudflare, Inc.
+   Email: armfazh@cloudflare.com
+
 
    Deep Inder Mohan
    Georgia Institute of Technology
