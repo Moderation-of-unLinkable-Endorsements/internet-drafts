@@ -1769,11 +1769,10 @@ from a random function, which the random-oracle model assumes.<a href="#section-
         <h3 id="name-deriving-nonces">
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-deriving-nonces" class="section-name selfRef">Deriving Nonces</a>
         </h3>
-<p id="section-4.4-1">A value whose repetition would be catastrophic, such as the nonce of a
-proof of knowledge, is not left to the random number generator alone. The
-group method <code>G.DeriveNonce</code> derives it from a secret the party already
-holds, a public description of the operation, and fresh randomness, so
-that the value repeats only if the whole operation repeats:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-1">A nonce that must never repeat, such as that of a proof of knowledge, is
+derived rather than drawn. The group method <code>G.DeriveNonce</code> computes it
+from a secret the party holds, a public description of the operation, and
+fresh randomness, so that it repeats only if the whole operation repeats:<a href="#section-4.4-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-4.4-2">
 <pre>
 def DeriveNonce(
@@ -2724,8 +2723,9 @@ def Pinv(self, element: Element) -&gt; Element:
 </pre><a href="#section-6.2.3-2" class="pilcrow">¶</a>
 </div>
 <p id="section-6.2.3-3">The permutation of the encoding space is a four-round Feistel network over
-the 33 bytes of the encoding, with the sign byte reduced to its low bit so
-that the domain is the encodings of the form <code>0x02 || x</code> and <code>0x03 || x</code>:<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
+33-byte strings whose first byte is <code>0x02</code> or <code>0x03</code>, carried as its low
+bit; the valid encodings are a subset of that space, which is why the walk
+above is needed:<a href="#section-6.2.3-3" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.3-4">
 <pre>
 def PermuteBytes(buf: bytearray) -&gt; bytearray:
@@ -3335,11 +3335,9 @@ an attacker with a quantum computer that records transcripts today.<a href="#sec
 <dt id="section-8-3.3">Derived blinding factors:</dt>
         <dd style="margin-left: 1.5em" id="section-8-3.4">
           <p id="section-8-3.4.1">Blindness is unconditional only if the blinding factors are. <code>Challenge</code>
-derives them from seeds rather than sampling them, <code>Redeem</code> derives
-<code>delta</code> the same way, and <code>ProveIssuer</code> derives its nonce through
-<code>G.DeriveNonce</code>, which ends in the same <code>G.DeriveScalar</code>; so the
-guarantee is statistical rather than perfect: an Endorsement and a
-session are linkable
+derives them from seeds rather than sampling them, and <code>Redeem</code> derives
+<code>delta</code> the same way, so the guarantee is statistical rather than
+perfect: an Endorsement and a session are linkable
 by an adversary that can find a seed consistent with both. Two properties of
 <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> keep the loss negligible. Each scalar gets its own seed, so
 a seed consistent with any given value exists with overwhelming probability
@@ -3349,9 +3347,10 @@ scalars from one seed, or from a seed of <code>Ns</code> bytes, would break this
 blinding factors of a session would then be jointly determined by fewer bits
 than they contain, an exhaustive search over seeds would identify the one
 session consistent with a given Endorsement, and unlinkability would hold
-only against a bounded adversary. Implementations <span class="bcp14">MUST NOT</span> do either in
-issuance. The redemption proof does expand one seed (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), and
-its hiding is accordingly computational, as "Issuer hiding" below states.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
+only against a bounded adversary. Implementations <span class="bcp14">MUST NOT</span> do either for
+these blinding factors. The other randomness of the redemption proof is
+expanded from one seed (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), and its hiding is accordingly
+computational, as "Issuer hiding" below states.<a href="#section-8-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.5">Derived proof nonce:</dt>
@@ -3360,16 +3359,15 @@ its hiding is accordingly computational, as "Issuer hiding" below states.<a href
 redemption to the Anchor. The nonce is therefore derived with
 <code>G.DeriveNonce</code> from <code>delta</code>, the proof statement, and an expansion of the
 proof's seed (<a href="#prove-issuer" class="auto internal xref">Section 6.2.5</a>): with a working random source it is
-distributed as a drawn nonce, and with a failed one it is still a pseudorandom function
-of <code>delta</code>, unknown to
-the verifier, at a point that identifies the statement, so it does not
-repeat across distinct statements (<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>). The Anchor's signing
-nonce <code>a</code> in <code>Commit</code> cannot be protected the same way: it is fixed before
-the Client's challenge is known, so no public input distinguishes two
-sessions at that point, and only fresh randomness, or persistent
-per-session state, prevents its reuse. An
-Anchor that reuses <code>a</code> across two challenges reveals <code>y * skA</code>, and hence
-<code>skA</code>, since <code>y</code> is public in the Endorsement.<a href="#section-8-3.6.1" class="pilcrow">¶</a></p>
+distributed as a drawn nonce, and with a failed one it is still a
+pseudorandom function of <code>delta</code>, unknown to the verifier, at a point that
+identifies the statement, so it does not repeat across distinct statements
+(<a href="#derive-nonce" class="auto internal xref">Section 4.4</a>). The Anchor's signing nonce <code>a</code> in <code>Commit</code> cannot be
+protected the same way: it is fixed before the Client's challenge is
+known, so no public input distinguishes two sessions at that point, and
+only fresh randomness, or persistent per-session state, prevents its
+reuse. An Anchor that reuses <code>a</code> across two challenges reveals <code>y * skA</code>,
+and hence <code>skA</code>, since <code>y</code> is public in the Endorsement.<a href="#section-8-3.6.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-3.7">One-more unforgeability:</dt>
@@ -3424,8 +3422,9 @@ elements, and <code>Pinv</code> is a permutation, so <code>Q</code> has the same
 either way. An opening is uniform whether it was committed or shifted by
 <code>EquivocateStep</code>, since the shift is by a fixed offset. Two losses make
 this statistical rather than perfect: <code>G.DeriveScalar</code> never returns zero
-(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which excludes one point for each of the <code>2 * q + 1</code>
-scalars of a proof, at most <code>(2 * q + 1) / p</code> in total; and the proof's
+(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), which excludes at most one value for each of the
+<code>2 * q + 1</code> scalars of a proof, a statistical distance of at most
+<code>(2 * q + 1) / p</code>; and the proof's
 randomness is expanded from one seed (<a href="#derive-seed" class="auto internal xref">Section 4.3</a>), so a distinguisher
 for <code>expand_message_xmd</code> would distinguish the proof from one made with
 independent seeds. Issuer hiding therefore holds against an adversary
@@ -3445,9 +3444,10 @@ discrete logarithm would be extractable. Binding is computational. A
 Client that opens the value under base <code>Q</code> two ways knows the discrete
 logarithm of <code>Q</code>, and one that opens the value under <code>P(Q)</code> two ways knows
 that of <code>P(Q)</code>; the key generation gives it one of the two. Opening both
-positions would require both logarithms, and with <code>P</code> modelled as a random
-permutation (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>) a <code>Q</code> with both known is as hard to find as a
-discrete logarithm (appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>). <code>P</code> <span class="bcp14">MUST</span> therefore be the
+positions would require both logarithms. That a <code>Q</code> with both known is as
+hard to find as a discrete logarithm when <code>P</code> is modelled as a random
+permutation (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>) is the assumption under which the pair
+commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> binds. <code>P</code> <span class="bcp14">MUST</span> therefore be the
 permutation specified in <a href="#permutation" class="auto internal xref">Section 6.2.3</a> and <span class="bcp14">MUST NOT</span> be chosen or
 negotiated by any party: a Client that could choose <code>P</code> could take
 <code>P(Q) = 2 * Q</code>, equivocate every position of every node, open the binding
@@ -3462,7 +3462,8 @@ anonymity set, and a redemption against a single-key set would name the
 Anchor outright (<a href="#verify-redemption" class="auto internal xref">Section 6.4</a>); a Client <span class="bcp14">MUST</span> refuse such a set
 rather than rely on the Moderator to avoid offering one (<a href="#redeem" class="auto internal xref">Section 6.3</a>).
 The tree of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a> is not padded: an odd node is carried up a level, so
-the anonymity set is exactly <code>n</code>. More generally a Moderator that offers different Anchor
+the anonymity set is exactly <code>n</code>. More generally a Moderator that offers
+different Anchor
 Sets to different Clients partitions them, and one that reorders the set
 between Clients does the same; the set and its order <span class="bcp14">MUST</span> be the same for
 every Client offered a given <code>ctx_iss</code>. See <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> for how set size

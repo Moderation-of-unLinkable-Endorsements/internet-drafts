@@ -477,12 +477,11 @@ Table of Contents
 
 4.4.  Deriving Nonces
 
-   A value whose repetition would be catastrophic, such as the nonce of
-   a proof of knowledge, is not left to the random number generator
-   alone.  The group method G.DeriveNonce derives it from a secret the
-   party already holds, a public description of the operation, and fresh
-   randomness, so that the value repeats only if the whole operation
-   repeats:
+   A nonce that must never repeat, such as that of a proof of knowledge,
+   is derived rather than drawn.  The group method G.DeriveNonce
+   computes it from a secret the party holds, a public description of
+   the operation, and fresh randomness, so that it repeats only if the
+   whole operation repeats:
 
    def DeriveNonce(
        self, secret: bytes, label: bytes, instance: bytes, aux: bytes
@@ -1362,9 +1361,9 @@ Table of Contents
                continue
 
    The permutation of the encoding space is a four-round Feistel network
-   over the 33 bytes of the encoding, with the sign byte reduced to its
-   low bit so that the domain is the encodings of the form 0x02 || x and
-   0x03 || x:
+   over 33-byte strings whose first byte is 0x02 or 0x03, carried as its
+   low bit; the valid encodings are a subset of that space, which is why
+   the walk above is needed:
 
    def PermuteBytes(buf: bytearray) -> bytearray:
        left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
@@ -1891,23 +1890,22 @@ Table of Contents
 
    Derived blinding factors:  Blindness is unconditional only if the
       blinding factors are.  Challenge derives them from seeds rather
-      than sampling them, Redeem derives delta the same way, and
-      ProveIssuer derives its nonce through G.DeriveNonce, which ends in
-      the same G.DeriveScalar; so the guarantee is statistical rather
-      than perfect: an Endorsement and a session are linkable by an
-      adversary that can find a seed consistent with both.  Two
-      properties of Section 4.2 keep the loss negligible.  Each scalar
-      gets its own seed, so a seed consistent with any given value
-      exists with overwhelming probability and finding one therefore
-      separates nothing; and each seed is Ns + 16 bytes, so each derived
-      scalar is within about 2^-128 of uniform.  Deriving several
-      scalars from one seed, or from a seed of Ns bytes, would break
-      this: the blinding factors of a session would then be jointly
-      determined by fewer bits than they contain, an exhaustive search
-      over seeds would identify the one session consistent with a given
-      Endorsement, and unlinkability would hold only against a bounded
-      adversary.  Implementations MUST NOT do either in issuance.  The
-      redemption proof does expand one seed (Section 4.3), and its
+      than sampling them, and Redeem derives delta the same way, so the
+      guarantee is statistical rather than perfect: an Endorsement and a
+      session are linkable by an adversary that can find a seed
+      consistent with both.  Two properties of Section 4.2 keep the loss
+      negligible.  Each scalar gets its own seed, so a seed consistent
+      with any given value exists with overwhelming probability and
+      finding one therefore separates nothing; and each seed is Ns + 16
+      bytes, so each derived scalar is within about 2^-128 of uniform.
+      Deriving several scalars from one seed, or from a seed of Ns
+      bytes, would break this: the blinding factors of a session would
+      then be jointly determined by fewer bits than they contain, an
+      exhaustive search over seeds would identify the one session
+      consistent with a given Endorsement, and unlinkability would hold
+      only against a bounded adversary.  Implementations MUST NOT do
+      either for these blinding factors.  The other randomness of the
+      redemption proof is expanded from one seed (Section 4.3), and its
       hiding is accordingly computational, as "Issuer hiding" below
       states.
 
@@ -1975,16 +1973,16 @@ Table of Contents
       committed or shifted by EquivocateStep, since the shift is by a
       fixed offset.  Two losses make this statistical rather than
       perfect: G.DeriveScalar never returns zero (Section 4.2), which
-      excludes one point for each of the 2 * q + 1 scalars of a proof,
-      at most (2 * q + 1) / p in total; and the proof's randomness is
-      expanded from one seed (Section 4.3), so a distinguisher for
-      expand_message_xmd would distinguish the proof from one made with
-      independent seeds.  Issuer hiding therefore holds against an
-      adversary bounded by the security of the hash, unlike blindness,
-      which holds against unbounded computation.  Note that it is the
-      _binding_ property of the commitment, and not its hiding, that
-      rests on the discrete logarithm, which is the direction [ARCH]
-      requires.
+      excludes at most one value for each of the 2 * q + 1 scalars of a
+      proof, a statistical distance of at most (2 * q + 1) / p; and the
+      proof's randomness is expanded from one seed (Section 4.3), so a
+      distinguisher for expand_message_xmd would distinguish the proof
+      from one made with independent seeds.  Issuer hiding therefore
+      holds against an adversary bounded by the security of the hash,
+      unlike blindness, which holds against unbounded computation.  Note
+      that it is the _binding_ property of the commitment, and not its
+      hiding, that rests on the discrete logarithm, which is the
+      direction [ARCH] requires.
 
    Partially binding commitments:  The soundness of the issuer-hiding
       proof rests on two things: the commitment of Section 6.2.2 binding
@@ -1995,15 +1993,16 @@ Table of Contents
       Client that opens the value under base Q two ways knows the
       discrete logarithm of Q, and one that opens the value under P(Q)
       two ways knows that of P(Q); the key generation gives it one of
-      the two.  Opening both positions would require both logarithms,
-      and with P modelled as a random permutation (Section 6.2.3) a Q
-      with both known is as hard to find as a discrete logarithm
-      (appendix of [STACKSIG]).  P MUST therefore be the permutation
-      specified in Section 6.2.3 and MUST NOT be chosen or negotiated by
-      any party: a Client that could choose P could take P(Q) = 2 * Q,
-      equivocate every position of every node, open the binding leaf to
-      whatever the challenge required, and produce accepting redemptions
-      holding no Endorsement at all.
+      the two.  Opening both positions would require both logarithms.
+      That a Q with both known is as hard to find as a discrete
+      logarithm when P is modelled as a random permutation
+      (Section 6.2.3) is the assumption under which the pair commitment
+      of the appendix of [STACKSIG] binds.  P MUST therefore be the
+      permutation specified in Section 6.2.3 and MUST NOT be chosen or
+      negotiated by any party: a Client that could choose P could take
+      P(Q) = 2 * Q, equivocate every position of every node, open the
+      binding leaf to whatever the challenge required, and produce
+      accepting redemptions holding no Endorsement at all.
 
    Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
       Set_, so the set is the anonymity set, and a redemption against a
