@@ -1,0 +1,581 @@
+
+
+
+
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                   J. Katz
+Intended status: Informational                                Google LLC
+Expires: 29 March 2027                                  A. Faz-Hernandez
+                                                        Cloudflare, Inc.
+                                                             D. I. Mohan
+                                         Georgia Institute of Technology
+                                                       25 September 2026
+
+
+                     Anonymous Credit Tokens (ACT)
+                     draft-authors-mole-act-latest
+
+Abstract
+
+   This document specifies Anonymous Credit Tokens (ACT), a keyed-
+   verification anonymous credential scheme with a hidden credit
+   balance.  A Client spends a public amount and receives a fresh
+   Credential for the remaining balance and a return amount chosen by
+   the issuer.  The issuer verifies each spend without learning the
+   balance or linking it to issuance or to other spends.
+
+   ACT uses a pairing-free BBS-style signature and proofs over linear
+   relations.  This document defines its cryptographic operations,
+   encodings, and security requirements.  The MoLE protocols use ACT as
+   a Credential scheme.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-act.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-authors-mole-act/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 29 March 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Preliminaries
+     3.1.  Prime-Order Group
+     3.2.  Errors
+     3.3.  Deriving Scalars
+     3.4.  Key Generation
+   4.  The Credential Scheme
+     4.1.  Configuration
+       4.1.1.  Generators
+       4.1.2.  Key Generation
+     4.2.  Credential Context
+     4.3.  Amounts
+   5.  Ciphersuites
+     5.1.  ACT(P-256, SHA-256)
+     5.2.  Randomness
+   6.  Security Considerations
+   7.  IANA Considerations
+   8.  References
+     8.1.  Normative References
+     8.2.  Informative References
+   Appendix A.  Test Vectors
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   MoLE Credentials carry per-Client state that a Moderator tests and
+   updates at each presentation without learning it, and without being
+   able to link presentations to each other or to issuance.  Anonymous
+   Credit Tokens (ACT) provide a numeric balance as this state
+   (Section 4).
+
+   The Moderator is both the issuer and the verifier.  A Client obtains
+   an initial Credential, spends credits, and finalizes the refund that
+   replaces the spent Credential.  [PROTOCOLS] maps these operations to
+   the MoLE credential APIs, specifies when issuance is authorized, and
+   supplies the credential and spend contexts.  This document treats
+   those contexts as opaque byte strings.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   The terms Client, Moderator, and Credential are used as defined in
+   [ARCH].  The message-encoding conventions, Python notation, and
+   helpers I2OSP, U16Prefixed, random, and Seed are those of Section 2
+   of [IHAT].  The algorithms use bytes for byte strings, int for
+   integers, and Sequence and NamedTuple from Python's typing module.
+   Record fields appear in the same order as their tuple representation.
+
+   The group G, protocol context ctx_proto, seed length Nseed,
+   generators, and balance width L are globals fixed by the ACT
+   configuration (Section 4.1).  Shared group methods from [IHAT] use
+   the ACT group instance G, which stores ctx_proto and applies ACT
+   domain separation.  The shared Seed helper uses the same Nseed = 48
+   for both schemes.  Public byte-string inputs retain the length bounds
+   specified by the operation that uses them.
+
+3.  Preliminaries
+
+   The construction has two dependencies:
+
+   Group:  A prime-order group implementing the interface in
+      Section 3.1.  Section 5 gives concrete instances.
+
+   Hash:  A cryptographic hash function whose output length is Nh bytes.
+
+3.1.  Prime-Order Group
+
+   ACT uses the prime-order group interface and the Element and Scalar
+   types of Section 3.1 of [IHAT], instantiated as in Section 5.  The
+   Python interface provides G.scalar(x) for an integer x in [0,
+   G.Order()), s.isZero() for a scalar, and A.isIdentity() for an
+   element.  Arithmetic combines values of the same type: integer
+   constants are converted with G.scalar before scalar arithmetic.  The
+   negative of an element A is G.Identity() - A.
+
+3.2.  Errors
+
+   DeserializeError, VerifyError, DeriveError, and ValueError have the
+   meanings given in Section 3.2 of [IHAT].  ACT additionally uses
+   AmountError when a balance or amount is outside the range admitted by
+   Section 4.3:
+
+   class AmountError(ValueError):
+       """A credit amount is outside its permitted range."""
+
+   An implementation that raises an error MUST abort the affected
+   protocol run.
+
+3.3.  Deriving Scalars
+
+   Use G.DeriveScalar(seed: bytes, info: bytes) -> Scalar from
+   Section 4.2 of [IHAT], using the ACT group instance initialized with
+   ctx_proto.  It rejects seeds of the wrong length with ValueError,
+   rejects zero outputs, and raises DeriveError if all 256 counter
+   values yield zero.  ACT applies the following seed requirements to
+   this shared algorithm.
+
+   A seed MUST be Nseed bytes of random output, and MUST NOT be used for
+   more than one derivation.  An algorithm that needs several scalars
+   therefore draws Nseed bytes for each of them, and additionally
+   separates them by info.  Nseed is larger than Ns (Section 5) so that
+   the derived scalar is statistically close to uniform rather than
+   merely unpredictable; deriving several scalars from one seed instead
+   would cap their joint entropy at the length of that seed, which the
+   unlinkability argument of Section 6 does not permit.  See
+   Section 5.2.
+
+3.4.  Key Generation
+
+   Use G.DeriveKeyPair(seed, info) and G.GenerateKeyPair() from
+   Section 4.3 of [IHAT], with the ACT group instance of Section 4.1.
+   Both return tuple[Scalar, Element]; ACT names the returned keys (skM,
+   pkM) because the Moderator is the issuer.  The Moderator publishes
+   G.SerializeElement(pkM) in its configuration ([PROTOCOLS]).
+
+4.  The Credential Scheme
+
+   A MoLE Credential is an Anonymous Credit Token (ACT).  It is a keyed-
+   verification anonymous credential [KVAC] over a privately verifiable,
+   pairing-free BBS-style signature [BBS] [TZ23], whose hidden state is
+   a _balance_: a nonnegative integer number of credits.  A Moderator
+   issues a Credential with an initial balance, and the Client later
+   _spends_ from it.  A spend reveals a public amount s and proves, in
+   zero knowledge, that the Credential holds at least s credits and has
+   not been spent before.  In the same exchange the Moderator issues a
+   _refund_: a fresh Credential whose balance is the remainder plus a
+   Moderator-chosen return amount t.  A spend may also declare a public
+   _top-up allowance_ a, in which case the refund may return up to s +
+   a, raising the balance; without one, t is at most s.  The Moderator
+   never learns the balance, and cannot link a spend to the issuance or
+   refund that produced the Credential it consumed, nor two spends to
+   each other.
+
+   The allowance a bounds the additional credit the Moderator may grant;
+   t is the amount it actually returns.  The new balance is c - s + t,
+   so its increase over c is at most a.
+
+   This is the credential type 0x0001 of [PROTOCOLS].  In the vocabulary
+   of [ARCH], a spend is a _Presentation_ whose _Predicate_ is "the
+   balance is at least s", and the refund is the _Update_.
+
+   The scheme is a two-party protocol between a Client and a Moderator.
+   The Moderator holds a key pair (skM, pkM) and is both the issuer and
+   the verifier: Credentials are not publicly verifiable, and only their
+   issuer can check a spend.  Each of the two flows, issuance and
+   spending, is a single request/response exchange followed by a Client-
+   local finalization.
+
+      Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
+    ------------------------------------------------------------------
+      state, request = IssueRequest()
+
+                                 request
+                                 -------->
+
+                    response = IssueResponse(skM, ctx_cred, c, request)
+
+                                 response
+                                 <--------
+
+      credential = FinalizeIssuance(pkM, ctx_cred, state, response)
+
+                      ...
+
+      state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
+
+                                   proof
+                                 -------->
+
+                      VerifySpend(skM, ctx_cred, ctx_spend, proof)
+                      refund = IssueRefund(skM, ctx_cred, proof, t)
+
+                                  refund
+                                 <--------
+
+      credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
+
+            Figure 1: Credential issuance and spending overview
+
+   The Moderator chooses the initial balance c and the return amount t
+   according to its policy; both are outside the scope of this document,
+   as is the nullifier store the Moderator keeps to reject a second
+   spend of the same Credential.  [PROTOCOLS] specifies both, together
+   with the carriage of the four messages.
+
+4.1.  Configuration
+
+   A ciphersuite (Section 5) is identified by an ASCII byte string
+   identifier, and both parties MUST agree on it before running the
+   protocol.  The Credential scheme is specified for the P-256
+   ciphersuite of Section 5, whose Sigma-protocol instantiation [SIGMA]
+   defines; its protocol context is
+
+   def CreateCredentialProtocolContext(identifier: bytes) -> bytes:
+       return b"ACTv1-" + identifier
+
+   Throughout this section and wherever the algorithms of this section
+   are invoked, ctx_proto denotes this value, and HashToGroup,
+   HashToScalar, G.DeriveScalar, and the key generation of Section 3.4
+   are parameterized by it.
+
+   The scheme has one further parameter, the _balance width_ L.
+   Balances and amounts are integers in [0, 2^L).  L MUST satisfy 1 <= L
+   <= MAX_BIT_LENGTH, where MAX_BIT_LENGTH is fixed by the ciphersuite.
+   The size of a spend proof and the cost of producing and verifying it
+   grow linearly in L, so a deployment SHOULD choose the smallest L that
+   accommodates its largest balance.  The Moderator publishes L together
+   with its public key ([PROTOCOLS]); a Client MUST use the published
+   value.
+
+   L is fixed for the lifetime of a key and credential context.  The
+   invariant that every balance the Moderator has signed lies below 2^L,
+   on which Section 6 relies, is argued by induction over issuances and
+   refunds under one value of L, and does not survive a change of L
+   under a key and context that still have outstanding Credentials.  A
+   Moderator that changes L MUST do so together with the credential
+   context or the key.  Deployments are RECOMMENDED to fold L into the
+   credential context, for instance by appending I2OSP(L, 1) to it, so
+   that a change of L is a change of context by construction.
+
+4.1.1.  Generators
+
+   The scheme uses the group generator B = G.Generator() and four
+   further elements H1, H2, H3, H4, fixed by the ciphersuite:
+
+   def CreateGenerators() -> tuple[Element, Element, Element, Element]:
+       return (
+           G.HashToGroup(b"GenH1"),
+           G.HashToGroup(b"GenH2"),
+           G.HashToGroup(b"GenH3"),
+           G.HashToGroup(b"GenH4"),
+       )
+
+   H1 commits to the balance, H2 to the nullifier, H3 is the blinding
+   base, and H4 binds the credential context (Section 4.2).  The
+   discrete logarithm of any of these elements with respect to any
+   other, or to B, MUST NOT be known to any party; deriving them by
+   hashing fixed labels ensures this.  The five elements are pairwise
+   distinct except with negligible probability; an implementation MAY
+   verify this once when instantiating a ciphersuite.
+
+4.1.2.  Key Generation
+
+   A Moderator holds a key pair (skM, pkM), generated with
+   G.GenerateKeyPair of Section 3.4 under the protocol context of this
+   section, or derived from a seed with G.DeriveKeyPair.  The Moderator
+   publishes SerializeElement(pkM) in its configuration ([PROTOCOLS]).
+   The signing key skM is also the verification key: VerifySpend
+   requires it.
+
+4.2.  Credential Context
+
+   Every Credential is bound at issuance to a _credential context_
+   ctx_cred, an opaque byte string of at most 2^16 - 1 bytes chosen by
+   the Moderator and agreed with the Client out of band; [PROTOCOLS]
+   says how.  It restricts _when_, or under which policy, a Credential
+   may be spent, so that a Moderator can for instance expire all
+   Credentials of an epoch at once without rotating its key.
+
+   The context is bound as a signed attribute.  It is mapped to a scalar
+   and carried under H4:
+
+   def CreateContextScalar(ctx_cred: bytes) -> Scalar:
+       return G.HashToScalar(
+           U16Prefixed(ctx_cred) + b"CredentialContext"
+       )
+
+   The context is never carried on the wire.  It is an input to every
+   algorithm of this section that computes or checks a signature,
+   supplied by the party running it, so that a spend verifies only under
+   the context the Credential was issued under: a Moderator states the
+   context it accepts and learns whether the Credential was issued under
+   it, rather than being told by the Client.  A Client keeps its own
+   copy of the context for as long as it holds the Credential.
+
+   The credential context partitions Clients into the set that shares
+   its value, and MUST be coarse; see Section 6.
+
+4.3.  Amounts
+
+   Balances and amounts are nonnegative integers below 2^L.  On the wire
+   they are uint64 values; in the algebra they enter as scalars.
+   G.scalar(x) denotes the Scalar whose integer value is x, and Bits(x)
+   its binary decomposition, least significant bit first, into L scalars
+   each equal to 0 or 1:
+
+   def Bits(x: int) -> list[Scalar]:
+       return [G.scalar((x >> j) & 1) for j in range(L)]
+
+   An implementation MUST compute Bits in constant time with respect to
+   x, which is the Client's hidden balance.
+
+   A party that receives an amount MUST check that it is below 2^L
+   before using it, and MUST raise an AmountError otherwise.  The spend
+   range proof bounds a difference of amounts.  The bounds on each
+   amount are needed to interpret this difference over the integers
+   (Section 6).
+
+5.  Ciphersuites
+
+   The Credential scheme is specified for the P-256 ciphersuite below.
+   A ciphersuite fixes the group, hash functions, encodings, and domain
+   separation tags.  Both parties agree on the ciphersuite as specified
+   in Section 4.1.
+
+   ctx_proto is as computed in Section 4.1.  The seed length is Nseed =
+   Ns + 16 = 48 bytes.  The 16 bytes in excess of Ns make a derived
+   scalar statistically close to uniform (Section 3.3), on the same
+   grounds that [HASH2CURVE] oversamples by 128 bits when mapping bytes
+   to a field element.
+
+   For the Credential scheme, the P-256 ciphersuite sets MAX_BIT_LENGTH
+   = 64.
+
+5.1.  ACT(P-256, SHA-256)
+
+   This ciphersuite uses P-256 (secp256r1) for the group and SHA-256 for
+   the hash function, with Nh = 32.  The value of the ciphersuite
+   identifier is b"P256-SHA256".
+
+   Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
+   algorithms, and canonical encodings of Section 7.1 of [IHAT].  ACT
+   uses Ne = 33, Ns = 32, and Nseed = 48.  Instantiate every hash with
+   the ACT ctx_proto of Section 4.1, including the explicit DST passed
+   by G.DeriveScalar; the group-element permutation used by IHAT is not
+   needed.
+
+5.2.  Randomness
+
+   Every random value in this document is a seed of Nseed bytes, drawn
+   with random and consumed by G.DeriveScalar (Section 3.3); no scalar
+   is sampled directly.  Implementations MUST draw seeds with a
+   cryptographically secure random number generator and MUST NOT reuse a
+   seed across derivations.  They SHOULD treat a seed as being as
+   sensitive as the values derived from it, and SHOULD handle both in
+   constant time.
+
+6.  Security Considerations
+
+   The Credential scheme is a keyed-verification anonymous credential
+   [KVAC] over the pairing-free BBS-style signature of [BBS] as analysed
+   by [TZ23], with the balance, the nullifier, the blinding factor, and
+   the context scalar as the signed attributes.  Because the Moderator
+   is both issuer and verifier and there is no pairing, the scheme is an
+   algebraic MAC in the sense of [KVAC], of the shape introduced as
+   MAC_BB by [BBDT16].
+
+   Credit conservation assumptions:  The credit-conservation argument
+      uses the following assumptions.
+
+      *  The q-SDH assumption in G, for the unforgeability of the
+         signature [TZ23].
+
+      *  The discrete-logarithm-relation assumption among B, H1, H2, H3,
+         and H4: no party can produce a nontrivial linear relation among
+         them.  The generators are derived by hash-to-curve in the
+         random oracle model (Section 4.1.1).  Commitment binding and
+         the range and spend proofs rely on this assumption.
+
+      *  The random oracle model for HashToGroup, HashToScalar, and the
+         Fiat-Shamir transform of [FIAT-SHAMIR], together with special
+         soundness of the credential Sigma protocols.
+
+      *  Extraction for issuance and spend proofs across adaptive
+         sessions, including the keyed-verification oracle.  An ACT
+         reduction covering verification queries and secret-derived
+         signing exponents and proof nonces remains open; the results of
+         [TZ23] and [BBDT16] do not cover this composition.
+
+   Verification key secrecy:  VerifySpend requires skM, so a Credential
+      can be verified only by the Moderator that issued it.  A Moderator
+      that shares skM with another party lets that party issue
+      Credentials in its name.
+
+   Context granularity:  The credential context is visible at every
+      spend through the fact that the proof verifies under it, and so
+      partitions Clients into the set sharing its value.  It MUST be
+      coarse: every Client issued under a given context MUST derive the
+      byte-identical ctx_cred.  The spend context does not partition
+      Clients, since it binds a single presentation to a single
+      challenge.
+
+   Balance width:  L is public and identical for all Clients of a
+      Moderator, and fixed for the lifetime of a key and context
+      (Section 4.1).  A Moderator that used different values of L for
+      different Clients would partition them by the length of their
+      spend proofs, and one that changed L under a key and context with
+      outstanding Credentials would invalidate the balance invariant of
+      the conservation argument.
+
+   System requirements:  Deployments must provide an atomic and durable
+      nullifier store ([PROTOCOLS]), consistent configuration across
+      Clients ([ARCH]), and coarse credential contexts.  Privacy relies
+      on the randomness requirements of Section 5.2.  Clients must use
+      each Credential and each issuance or spend state only once,
+      including across backups and restores.
+
+7.  IANA Considerations
+
+   This document has no IANA actions.  The ACT credential type is
+   registered by [PROTOCOLS].
+
+8.  References
+
+8.1.  Normative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [FIAT-SHAMIR]
+              Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
+              Internet-Draft, draft-irtf-cfrg-fiat-shamir-02, 2 March
+              2026, <https://datatracker.ietf.org/doc/html/draft-irtf-
+              cfrg-fiat-shamir-02>.
+
+   [HASH2CURVE]
+              Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
+              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
+              DOI 10.17487/RFC9380, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9380>.
+
+   [IHAT]     "Issuer-Hiding Anonymous Tokens (IHAT)", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ihat.html>.
+
+   [PROTOCOLS]
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
+              Protocols", Work in Progress, Internet-Draft, draft-jms-
+              mole-protocols-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              protocols-00>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Interactive Sigma Proofs", Work in
+              Progress, Internet-Draft, draft-irtf-cfrg-sigma-protocols-
+              02, 2 March 2026, <https://datatracker.ietf.org/doc/html/
+              draft-irtf-cfrg-sigma-protocols-02>.
+
+8.2.  Informative References
+
+   [BBDT16]   Barki, A., Brunet, S., Desmoulins, N., and J. Traore,
+              "Improved Algebraic MACs and Practical Keyed-Verification
+              Anonymous Credentials", SAC 2016, 2016,
+              <https://crypto.orange-labs.fr/acg/publication/
+              infoPublication.php?id=225>.
+
+   [BBS]      Boneh, D., Boyen, X., and H. Shacham, "Short Group
+              Signatures", CRYPTO 2004, 2004,
+              <https://crypto.stanford.edu/~dabo/pubs/papers/
+              groupsigs.pdf>.
+
+   [KVAC]     Chase, M., Meiklejohn, S., and G. Zaverucha, "Algebraic
+              MACs and Keyed-Verification Anonymous Credentials",
+              CCS 2014, 2014, <https://eprint.iacr.org/2013/516>.
+
+   [TZ23]     Tessaro, S. and C. Zhu, "Revisiting BBS Signatures",
+              EUROCRYPT 2023, 2023, <https://eprint.iacr.org/2023/275>.
+
+Appendix A.  Test Vectors
+
+   TODO: ACT test vectors.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google LLC
+   Email: sgschlesinger@gmail.com
+
+
+   Jonathan Katz
+   Google LLC
+   Email: jkcrypto@google.com
+
+
+   Armando Faz-Hernandez
+   Cloudflare, Inc.
+   Email: armfazh@cloudflare.com
+
+
+   Deep Inder Mohan
+   Georgia Institute of Technology
+   Email: dmohan@gatech.edu
