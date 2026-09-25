@@ -113,3 +113,70 @@ def DecodeCredential(data: bytes) -> act.Credential:
     )
     reader.finish()
     return result
+
+
+def SpendWitnessCount(s: int, a: int) -> int:
+    return 7 + (3 * act.L if s > 0 else 1) + (3 * act.L if a > 0 else 0)
+
+
+def EncodeSpend(message: act.SpendMessage) -> bytes:
+    s, a = message.s, message.a
+    amounts = _amount(s) + _amount(a)
+    if (
+        len(message.Com1) != (act.L if s > 0 else 0)
+        or (message.Com_c is None) != (s > 0)
+        or len(message.Com2) != (act.L if a > 0 else 0)
+    ):
+        raise DeserializeError(
+            "ACT spend shape does not match its amounts"
+        )
+    commitments = list(message.Com1)
+    if message.Com_c is not None:
+        commitments.append(message.Com_c)
+    commitments.extend(message.Com2)
+    points = [message.A_prime, message.B_bar, message.K_n, *commitments]
+    return (
+        act.G.SerializeScalar(message.k)
+        + amounts
+        + b"".join(act.G.SerializeElement(point) for point in points)
+        + _proof(message.pok, SpendWitnessCount(s, a))
+    )
+
+
+def DecodeSpend(data: bytes) -> act.SpendMessage:
+    reader = Reader(data)
+    k, s, a = reader.scalar(), reader.amount(), reader.amount()
+    A_prime, B_bar, K_n = (
+        reader.element(),
+        reader.element(),
+        reader.element(),
+    )
+    Com1 = [reader.element() for _ in range(act.L)] if s > 0 else []
+    Com_c = reader.element() if s == 0 else None
+    Com2 = [reader.element() for _ in range(act.L)] if a > 0 else []
+    pok = reader.proof(SpendWitnessCount(s, a))
+    reader.finish()
+    return act.SpendMessage(
+        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
+    )
+
+
+def EncodeRefund(message: act.RefundMessage) -> bytes:
+    return (
+        act.G.SerializeElement(message.A)
+        + act.G.SerializeScalar(message.e)
+        + _amount(message.t)
+        + _proof(message.pok, 1)
+    )
+
+
+def DecodeRefund(data: bytes) -> act.RefundMessage:
+    reader = Reader(data)
+    result = act.RefundMessage(
+        reader.element(),
+        reader.scalar(),
+        reader.amount(),
+        reader.proof(1),
+    )
+    reader.finish()
+    return result

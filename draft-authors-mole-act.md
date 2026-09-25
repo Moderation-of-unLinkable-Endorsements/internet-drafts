@@ -577,7 +577,8 @@ class Credential(NamedTuple):
 
 ### Signing Exponent {#act-signing-exponent}
 
-`IssueResponse` chooses the exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonce`
+`IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
+exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonce`
 (Section 4.3 of {{IHAT}}) from the signing key, the signed message, and
 fresh randomness. A random source that repeats therefore reproduces an
 earlier signature and never issues a second one with the same exponent
@@ -598,8 +599,8 @@ def SigningExponent(
     return e
 ~~~
 
-`label` is `IssueResponse`, the tag label of the accompanying proof,
-and `X_A` is the message being signed. The abort
+`label` is `IssueResponse` or `Refund`, the tag label of the
+accompanying proof, and `X_A` is the message being signed. The abort
 when `e + skM` is zero has probability about `1/p`; a caller that
 retries draws fresh randomness.
 
@@ -716,6 +717,366 @@ def FinalizeIssue(
 
 A Credential is the tuple `(k, c, r, A, e)`. It is never sent. The Client also retains
 `ctx_cred`, which is not part of the Credential but is needed to spend it.
+
+## Spending {#act-spending}
+
+Spending consumes a Credential with balance `c` and produces one with
+balance `c - s + t`. The amount `s` and the top-up allowance `a` are
+chosen by the Client to match the Moderator's challenge ({{PROTOCOLS}});
+the return amount `t`, with `0 <= t <= s + a`, is chosen by the
+Moderator. With `s = a = 0` a spend changes nothing but the nullifier and
+refreshes the Credential. Spending consists of four algorithms:
+
+~~~
+  ProveSpend -> VerifySpend -> IssueRefund -> FinalizeRefund
+~~~
+
+`ProveSpend` and `FinalizeRefund` are run by the Client; `VerifySpend`
+and `IssueRefund` by the Moderator, in that order and only if `VerifySpend`
+succeeds.
+
+A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
+of at most `2^16 - 1` bytes supplied by the verifier and known to the
+Client, and the only binding of the spend proof's tag. {{PROTOCOLS}}
+sets it to the `challenge_digest` of the challenge that triggered the
+presentation. The top-up allowance is bound by the relation: a proof
+produced for one value of `a` does not verify under another, so a
+Moderator authorizes a top-up by verifying the proof with the value it
+accepts, and a Moderator that offers none MUST reject a spend with
+`a != 0`.
+
+The Python records for spending are:
+
+~~~ python
+class ClientSpendState(NamedTuple):
+    kstar: Scalar
+    r_star: Scalar
+    v1: int
+    K_n: Element
+
+
+class SpendMessage(NamedTuple):
+    k: Scalar
+    s: int
+    a: int
+    A_prime: Element
+    B_bar: Element
+    K_n: Element
+    Com1: Sequence[Element]
+    Com_c: Element | None
+    Com2: Sequence[Element]
+    pok: bytes
+
+
+class RefundMessage(NamedTuple):
+    A: Element
+    e: Scalar
+    t: int
+    pok: bytes
+~~~
+
+An absent commitment list is empty, and an absent `Com_c` is `None`.
+
+### The Spend Relation {#act-spend-relation}
+
+A spend shows two things about the hidden balance `c`: the *remainder*
+`v1 = c - s` is nonnegative, so the Credential covers the spend, and the
+*topped-up balance* `v2 = c + a` is below `2^L`, so the refund may return
+up to `s + a` without a balance leaving `[0, 2^L)`. Each is a range
+proof over the bits of the value, needed only when its amount is nonzero:
+for `s = 0` the remainder is the balance itself, which is below `2^L` by
+issuance, and for `a = 0` so is the topped-up balance. The relation
+therefore has four shapes, selected by whether `s` and `a` are zero; a
+group marked with a condition below is present exactly when it holds.
+
+~~~
+Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n, s, a,
+               Com1[0], ..., Com1[L-1],              (s > 0)
+               Com_c,                                (s = 0)
+               Com2[0], ..., Com2[L-1]):             (a > 0)
+  Witness: e, r2, r3, c, r, kstar, rn,
+           b1[0], ..., b1[L-1], s1[0], ..., s1[L-1],
+           u1[0], ..., u1[L-1],                      (s > 0)
+           rc,                                       (s = 0)
+           b2[0], ..., b2[L-1], s2[0], ..., s2[L-1],
+           u2[0], ..., u2[L-1]                       (a > 0)
+  Equations:
+    A_bar = -e * A_prime + r2 * B_bar
+    H1_prime = r3 * B_bar - c * H1 - r * H3
+    K_n = kstar * H2 + rn * H3
+    for j in 0, ..., L-1:                            (s > 0)
+      Com1[j] = b1[j] * H1 + s1[j] * H3
+      Com1[j] = b1[j] * Com1[j] + u1[j] * H3
+    s * H1 + sum_j 2^j * Com1[j]
+      = c * H1 + sum_j 2^j * s1[j] * H3              (s > 0)
+    Com_c = c * H1 + rc * H3                         (s = 0)
+    for j in 0, ..., L-1:                            (a > 0)
+      Com2[j] = b2[j] * H1 + s2[j] * H3
+      Com2[j] = b2[j] * Com2[j] + u2[j] * H3
+    -a * H1 + sum_j 2^j * Com2[j]
+      = c * H1 + sum_j 2^j * s2[j] * H3              (a > 0)
+~~~
+
+The first equation states that `A_prime` is a rerandomization of a
+signature under `skM`, since the verifier computes `A_bar = skM * A_prime`.
+The second opens the signed message to the hidden balance `c` and blinding
+factor `r`, relative to the public `H1_prime`, which fixes the nullifier
+`k` and the context. The third opens `K_n` to the next nullifier and so
+shows that `K_n` has no `H1` component; one would raise the balance the
+refund signs.
+
+Each pair of bit equations is the `Bit` relation of
+{{Section 3.4 of SIGMA}}, with `u[j] = (1 - b[j]) * s[j]` for an honest
+prover. The two sum equations tie the
+committed bits to the balance: the left-hand side of the first opens under
+`H1` to `s + v1`, so `c = s + v1` with `0 <= v1 < 2^L`; the second gives
+`c + a = v2 < 2^L`. When `s = 0`, `Com_c` opens to `c` directly. The
+equations share the witness `c`. The witness is supplied in the order
+listed.
+
+### Spend Proof Generation {#act-prove-spend}
+
+The Client rerandomizes its signature, commits to the next nullifier and
+to the remainder and, when there is a top-up, to the topped-up balance,
+and proves the spend relation.
+
+~~~ python
+def ProveSpend(
+    credential: Credential,
+    ctx_cred: bytes,
+    s: int,
+    a: int,
+    ctx_spend: bytes,
+) -> tuple[ClientSpendState, SpendMessage]:
+    k, c, r, A, e = credential
+
+    if not (0 <= s < 2**L and 0 <= a < 2**L):
+        raise AmountError
+    if s > c or c + a >= 2**L:
+        raise AmountError
+    v1 = c - s
+    v2 = c + a
+
+    ctx = CreateContextScalar(ctx_cred)
+
+    # One seed per scalar: four fixed ones, then L for the bits of
+    # the remainder or one for its commitment, then L for the bits
+    # of the topped-up balance.
+    n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
+    rand = random(n * Nseed)
+    seed = [Seed(rand, i) for i in range(n)]
+    r1 = G.DeriveScalar(seed[0], b"r1")
+    r2 = G.DeriveScalar(seed[1], b"r2")
+    kstar = G.DeriveScalar(seed[2], b"kstar")
+    rn = G.DeriveScalar(seed[3], b"rn")
+    next_seed = 4
+
+    # Rerandomize the signature.
+    B_msg = B + G.scalar(c) * H1 + k * H2 + r * H3 + ctx * H4
+    A_prime = (r1 * r2) * A
+    B_bar = r1 * B_msg
+    r3 = G.ScalarInverse(r1)
+    A_bar = r2 * B_bar - e * A_prime
+
+    # Commit to the next Credential's nullifier.
+    K_n = kstar * H2 + rn * H3
+
+    Com1: list[Element] = []
+    Com_c: Element | None = None
+    Com2: list[Element] = []
+    witness = [e, r2, r3, G.scalar(c), r, kstar, rn]
+
+    # Commit to the remainder: bitwise when it must be shown to be
+    # nonnegative, in one commitment when it is the balance itself.
+    if s > 0:
+        b1 = Bits(v1)
+        s1 = []
+        r_star = rn
+        for j in range(L):
+            info = b"s1" + I2OSP(j, 1)
+            s1.append(G.DeriveScalar(seed[next_seed + j], info))
+            Com1.append(b1[j] * H1 + s1[j] * H3)
+            r_star = r_star + G.scalar(2**j) * s1[j]
+        u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(L)]
+        witness += b1 + s1 + u1
+        next_seed = next_seed + L
+    else:
+        rc = G.DeriveScalar(seed[next_seed], b"rc")
+        Com_c = G.scalar(c) * H1 + rc * H3
+        r_star = rn + rc
+        witness += [rc]
+        next_seed = next_seed + 1
+
+    # Commit to the topped-up balance when there is a top-up.
+    if a > 0:
+        b2 = Bits(v2)
+        s2 = []
+        for j in range(L):
+            info = b"s2" + I2OSP(j, 1)
+            s2.append(G.DeriveScalar(seed[next_seed + j], info))
+            Com2.append(b2[j] * H1 + s2[j] * H3)
+        u2 = [(G.scalar(1) - b2[j]) * s2[j] for j in range(L)]
+        witness += b2 + s2 + u2
+
+    H1_prime = B + k * H2 + ctx * H4
+    relation = SpendRelation(
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+    )
+    pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
+
+    state = ClientSpendState(kstar, r_star, v1, K_n)
+    proof = SpendMessage(
+        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
+    )
+
+    return state, proof
+~~~
+
+`A_bar` is not sent: the Moderator computes it as `skM * A_prime`. The
+values `kstar` and `r_star` are the nullifier and blinding factor of the
+Credential the refund will produce; they open the commitment
+`K_prime = K_n + V1`, with `V1` the balance commitment of
+`BalanceCommitment` below, to `v1 * H1 + kstar * H2 + r_star * H3`; the
+Moderator signs this in `IssueRefund`.
+
+`ProveSpend` consumes the Credential: an implementation MUST NOT allow a
+second call on the same Credential value. The Client MUST treat the
+Credential as spent, and MUST have stored `state` durably, no later than
+the moment `proof` becomes observable outside the Client; the refund is
+unusable without the state, and a second proof from the same Credential
+reveals the same nullifier ({{act-security}}).
+
+### Spend Verification {#act-verify-spend}
+
+The Moderator checks the spend proof under its own key and contexts.
+
+~~~ python
+def VerifySpend(
+    skM: Scalar,
+    ctx_cred: bytes,
+    ctx_spend: bytes,
+    proof: SpendMessage,
+) -> None:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if not (0 <= s < 2**L and 0 <= a < 2**L):
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    A_bar = skM * A_prime
+    H1_prime = B + k * H2 + ctx * H4
+
+    relation = SpendRelation(
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+    )
+    if not Verify(Tag(b"Spend", [ctx_spend]), relation, pok):
+        raise VerifyError
+~~~
+
+The shape of `proof` is fixed by `s` and `a`: `Com1` is
+present exactly when `s > 0`, `Com_c` exactly when `s = 0`, and `Com2`
+exactly when `a > 0`; a message of any other shape is rejected at
+deserialization. The amount checks of {{act-amounts}} precede
+verification ({{act-security}}).
+
+`VerifySpend` does not check whether `k` has been seen before, nor whether
+the Moderator is willing to grant the top-up `a`. The Moderator MUST do
+both, and MUST record `k` atomically with verification and with the
+issuance of the refund ({{PROTOCOLS}}).
+
+### Refund Issuance {#act-refund}
+
+After a successful `VerifySpend`, the Moderator signs the remainder plus
+its chosen return amount, proving the `Signature` relation under the
+`Refund` tag.
+
+~~~ python
+def BalanceCommitment(proof: SpendMessage) -> Element:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if s > 0:
+        V1 = G.Identity()
+        for j in range(L):
+            V1 = V1 + G.scalar(2**j) * Com1[j]
+    else:
+        if Com_c is None:
+            raise VerifyError
+        V1 = Com_c
+
+    return K_n + V1
+
+
+def IssueRefund(
+    skM: Scalar, ctx_cred: bytes, proof: SpendMessage, t: int
+) -> RefundMessage:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if not 0 <= t < 2**L or t > s + a:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    K_prime = BalanceCommitment(proof)
+    X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
+
+    e = SigningExponent(skM, b"Refund", X_A)
+    x = e + skM
+    A = G.ScalarInverse(x) * X_A
+    X_G = G.ScalarMultGen(x)
+
+    tag = Tag(b"Refund", [])
+    pok = Prove(tag, SignatureRelation(A, X_A, X_G), [x])
+
+    return RefundMessage(A, e, t, pok)
+~~~
+
+The comparison `t <= s + a` is between integers; `s + a` may exceed `2^L`
+and an implementation MUST compute it without overflow. This bound keeps
+the new balance below `2^L` without a range proof over the refund
+({{act-security}}). The Moderator places the new balance anywhere in
+`[c - s, c + a]` without learning where in that interval it falls.
+
+### Refund Finalization {#act-finalize-refund}
+
+The Client checks the refund and assembles its new Credential.
+
+~~~ python
+def FinalizeRefund(
+    pkM: Element,
+    ctx_cred: bytes,
+    state: ClientSpendState,
+    proof: SpendMessage,
+    refund: RefundMessage,
+) -> Credential:
+    kstar, r_star, v1, K_n_state = state
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, _ = proof
+    A, e, t, pok = refund
+
+    if K_n != K_n_state:
+        raise VerifyError
+    if not 0 <= t < 2**L or t > s + a or v1 + t >= 2**L:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    K_prime = BalanceCommitment(proof)
+
+    X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
+    X_G = G.ScalarMultGen(e) + pkM
+
+    tag = Tag(b"Refund", [])
+    if not Verify(tag, SignatureRelation(A, X_A, X_G), pok):
+        raise VerifyError
+
+    return Credential(kstar, v1 + t, r_star, A, e)
+~~~
+
+The state records `K_n` so that a refund is finalized only against the
+spend it was issued for. `FinalizeRefund` consumes `state`: a Client MUST
+NOT finalize one spend state against two refunds, since the two
+Credentials would share the nullifier `kstar`. The Client MUST NOT spend
+the consumed Credential again, whether or not the refund arrives. A
+Client that has sent a spend proof and not received a valid refund keeps
+`state` and MAY ask the Moderator for the refund again; {{PROTOCOLS}}
+describes this.
 
 # Ciphersuites {#ciphersuites}
 

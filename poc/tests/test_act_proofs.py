@@ -6,7 +6,7 @@ from act import sigma
 
 def compiled(statement):
     relation = statement.compile()
-    assert relation.elements[0] == sigma.group.generator()
+    assert relation.elements[0] == act.B
     return len(relation.elements), [
         (equation.image, equation.terms) for equation in relation.equations
     ]

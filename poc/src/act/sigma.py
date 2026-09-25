@@ -16,6 +16,7 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NamedTuple
 
+from ihat.ciphersuite import DeserializeError
 from ihat.ciphersuite import P256Element as Element
 from ihat.ciphersuite import P256Group
 from ihat.ciphersuite import P256Scalar as Scalar
@@ -32,8 +33,6 @@ if str(UPSTREAM) not in sys.path:
 import fiat_shamir  # noqa: E402
 import groups  # noqa: E402
 import sigma_protocols  # noqa: E402
-
-group = groups.P256Group()
 
 LinearRelation = sigma_protocols.LinearRelation
 DeriveSessionID = fiat_shamir.derive_session_id
@@ -57,6 +56,59 @@ def VerifyCompact(tag: bytes, relation: Any, proof: bytes) -> bool:
         return bool(sigma_protocols.verify_compact(tag, relation, proof))
     except (sigma_protocols.SigmaError, groups.DeserializeError, ValueError):
         return False
+
+
+class Group(groups.PrimeOrderGroup):
+    """Upstream's group interface over the IHAT group.
+
+    Upstream defines its protocol over an abstract prime-order group and
+    ships a pure-Python P-256. This class presents IHAT's P-256, whose
+    arithmetic is native, through the same interface, so the proofs run
+    on the same elements the rest of ACT uses. Upstream represents the
+    identity as ``None``; the encodings coincide (compressed SEC1).
+    """
+
+    name = "P256"
+    Ne = 33
+    Ns = 32
+
+    def __init__(self, G: P256Group) -> None:
+        self.G = G
+        self.order = G.Order()
+
+    def generator(self) -> Element:
+        return self.G.Generator()
+
+    def identity(self) -> None:
+        return None
+
+    def add(self, P: Element | None, Q: Element | None) -> Element | None:
+        if P is None:
+            return Q
+        if Q is None:
+            return P
+        R = P + Q
+        return None if R.isIdentity() else R
+
+    def neg(self, P: Element | None) -> Element | None:
+        return None if P is None else self.G.Identity() - P
+
+    def mul(self, k: int, P: Element | None) -> Element | None:
+        if P is None or k % self.order == 0:
+            return None
+        R = self.G.scalar(k % self.order) * P
+        return None if R.isIdentity() else R
+
+    def serialize_element(self, P: Element | None) -> bytes:
+        if P is None:
+            raise ValueError("Group.serialize is undefined for the identity")
+        return self.G.SerializeElement(P)
+
+    def deserialize_element(self, buf: bytes) -> Element:
+        try:
+            return self.G.DeserializeElement(buf)
+        except DeserializeError as error:
+            raise groups.DeserializeError(str(error)) from error
 
 
 class Term(NamedTuple):
@@ -83,8 +135,8 @@ class Statement:
     """
 
     def __init__(self, G: P256Group) -> None:
-        self.G = G
-        self.points: list[Any] = [group.generator()]
+        self.group = Group(G)
+        self.points: list[Any] = [self.group.generator()]
         self.element_index: dict[str, int] = {"G": 0}
         self.public: dict[str, int] = {}
         self.scalar_index: dict[str, int] = {}
@@ -94,14 +146,12 @@ class Statement:
         for name, value in named.items():
             self._declare(name)
             self.element_index[name] = len(self.points)
-            self.points.append(
-                group.deserialize_element(self.G.SerializeElement(value))
-            )
+            self.points.append(value)
 
     def scalars(self, **named: int | Scalar) -> None:
         for name, value in named.items():
             self._declare(name)
-            self.public[name] = int(value) % group.order
+            self.public[name] = int(value) % self.group.order
 
     def witness(self, *names: str) -> None:
         for name in names:
@@ -116,17 +166,17 @@ class Statement:
         negated when it is written on the left ({{relation-notation}}).
         """
         lhs, rhs = _Parser(self, text).equation()
-        image = [(t.element, (sign * t.coeff) % group.order)
+        image = [(t.element, (sign * t.coeff) % self.group.order)
                  for sign, side in ((1, lhs), (-1, rhs))
                  for t in side if t.scalar is None]
-        terms = [(t.scalar, t.element, (-sign * t.coeff) % group.order)
+        terms = [(t.scalar, t.element, (-sign * t.coeff) % self.group.order)
                  for sign, side in ((1, lhs), (-1, rhs))
                  for t in side if t.scalar is not None]
         self.equations.append(sigma_protocols.Equation(image, terms))
 
     def compile(self) -> Any:
         return sigma_protocols.LinearRelation(
-            group, self.points, self.equations
+            self.group, self.points, self.equations
         )
 
     def _declare(self, name: str) -> None:
