@@ -105,7 +105,7 @@ Table of Contents
    MoLE Credentials carry per-Client state that a Moderator tests and
    updates at each presentation without learning it, and without being
    able to link presentations to each other or to issuance.  Anonymous
-   Credit Tokens (ACT) provide a numeric balance as this state
+   Credit Tokens (ACTs) provide a numeric balance as this state
    (Section 4).
 
    The Moderator is both the issuer and the verifier.  A Client obtains
@@ -123,12 +123,14 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-   The terms Client, Moderator, and Credential are used as defined in
-   [ARCH].  The message-encoding conventions, Python notation, and
-   helpers I2OSP, U16Prefixed, random, and Seed are those of Section 2
-   of [IHAT].  The algorithms use bytes for byte strings, int for
-   integers, and Sequence and NamedTuple from Python's typing module.
-   Record fields appear in the same order as their tuple representation.
+   The capitalized terms Client, Moderator, and Credential are used as
+   defined in [ARCH]; a lowercase credential is the generic
+   cryptographic notion.  The message-encoding conventions, Python
+   notation, and helpers I2OSP, U16Prefixed, random, and Seed are those
+   of Section 2 of [IHAT].  The algorithms use bytes for byte strings,
+   int for integers, and Sequence and NamedTuple from Python's typing
+   module.  Record fields appear in the same order as their tuple
+   representation.
 
    The group G, protocol context ctx_proto, seed length Nseed,
    generators, and balance width L are globals fixed by the ACT
