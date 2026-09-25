@@ -93,8 +93,8 @@ informative:
         ins: A. Flamini
         name: Andrea Flamini
       -
-        ins: F. Friedrichs
-        name: Felix Friedrichs
+        ins: K. Friedrichs
+        name: Karla Friedrichs
       -
         ins: J. Katz
         name: Jonathan Katz
@@ -105,8 +105,8 @@ informative:
         ins: A. Lehmann
         name: Anja Lehmann
       -
-        ins: C. Sefranek
-        name: Cavit Sefranek
+        ins: M. Sefranek
+        name: Marek Sefranek
   STACKSIG:
     title: "Stacking Sigmas: A Framework to Compose Sigma-Protocols for Disjunctions"
     target: https://eprint.iacr.org/2021/422
