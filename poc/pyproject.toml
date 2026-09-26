@@ -26,6 +26,11 @@ testpaths = ["tests"]
 [tool.mypy]
 files = ["src", "tests"]
 
+[[tool.mypy.overrides]]
+# The pinned CFRG reference code is imported by path and is untyped.
+module = ["fiat_shamir", "groups", "sigma_protocols", "test_vectors"]
+ignore_missing_imports = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
