@@ -138,7 +138,7 @@ def test_prove_issuer_runs_without_raising(monkeypatch):
         b"epoch-1",
         b"moderator-1",
         b"challenge-digest",
-        bytes(4 * protocol.Nseed),
+        bytes(3 * protocol.Nseed),
     )
 
 
@@ -246,9 +246,9 @@ def test_prove_issuer_rejects_bad_index_and_randomness_length():
     )
 
     with pytest.raises(ValueError, match="index"):
-        ProveIssuer(*args[:1], 2, *args[2:], bytes(4 * protocol.Nseed))
+        ProveIssuer(*args[:1], 2, *args[2:], bytes(3 * protocol.Nseed))
     with pytest.raises(ValueError, match="randomness"):
-        ProveIssuer(*args, bytes(4 * protocol.Nseed - 1))
+        ProveIssuer(*args, bytes(3 * protocol.Nseed - 1))
 
 
 def test_redeem_rejects_bad_index():
@@ -271,10 +271,10 @@ def test_vector_commitment_comprehensive():
         while 2**q < i:
             q += 1
         for j in range(0, i):
-            seed1 = random(48)
-            keys, trapdoor = GenerateVecBind(q, j, seed1)
-            seed2 = random(48)
-            comm, opening = CommitValAtPlace(keys, i, j, b"Bob", seed2)
+            keys, trapdoor = GenerateVecBind(q, j, random(q * 48))
+            comm, opening = CommitValAtPlace(
+                keys, i, j, b"Bob", random(q * 48)
+            )
             V = [random(32) for i in range(0, i)]
             V[j] = b"Bob"
             newopen = VecEquivocateFromZero(keys, trapdoor, opening, V, j)

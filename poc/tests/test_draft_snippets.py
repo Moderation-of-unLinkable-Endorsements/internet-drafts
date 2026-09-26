@@ -11,12 +11,16 @@ def definitions(source, *, concrete_group=False):
     tree = ast.parse(source)
     if concrete_group:
         # The draft's Scalar and Element are P256Scalar and P256Element
-        # in this ciphersuite. Normalize return annotations only, leaving
+        # in this ciphersuite. Normalize the annotations only, leaving
         # the method bodies and their argument names unchanged.
         aliases = {"P256Scalar": "Scalar", "P256Element": "Element"}
         for node in ast.walk(tree):
-            if isinstance(node, ast.FunctionDef) and node.returns:
-                for annotation in ast.walk(node.returns):
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            annotations = [a.annotation for a in node.args.args]
+            annotations.append(node.returns)
+            for root in annotations:
+                for annotation in ast.walk(root) if root else ():
                     if isinstance(annotation, ast.Name):
                         annotation.id = aliases.get(
                             annotation.id, annotation.id
@@ -57,7 +61,29 @@ def test_shared_algorithms_match_ihat_draft():
     for name in (
         "Seed",
         "DeriveScalar",
+        "DeriveNonce",
         "DeriveKeyPair",
         "GenerateKeyPair",
+        "P",
+        "Pinv",
+        "PermuteBytes",
+        "UnpermuteBytes",
     ):
         assert actual[name] == expected[name], name
+    protocol = definitions(
+        (ROOT / "poc/src/ihat/protocol.py").read_text()
+    )
+    for name in (
+        "CommitStep",
+        "GenerateStep",
+        "EquivocateStep",
+        "VecCommit",
+        "GenerateVecBind",
+        "CommitValAtPlace",
+        "VecEquivocate",
+        "VecEquivocateFromZero",
+        "ProveIssuer",
+        "VerifyIssuer",
+        "Redeem",
+    ):
+        assert protocol[name] == expected[name], name
