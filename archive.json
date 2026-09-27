@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-24T03:49:52.137844+00:00",
+  "timestamp": "2026-09-27T04:24:54.682193+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -738,7 +738,7 @@
       "labels": [],
       "body": "IHAT is functionality that Rollatini and other schemes instantiate. We might want to make the drafts reflect this.",
       "createdAt": "2026-09-20T19:27:52Z",
-      "updatedAt": "2026-09-23T22:05:15Z",
+      "updatedAt": "2026-09-24T22:29:50Z",
       "closedAt": null,
       "comments": [
         {
@@ -747,6 +747,13 @@
           "body": "I'm on board with this idea, but I'm not sure we have consensus yet: https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/43#issuecomment-5322101086",
           "createdAt": "2026-09-23T22:05:14Z",
           "updatedAt": "2026-09-23T22:05:14Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think even if we don't use IHAT and ACT as the names of the kind of thing, I still think calling what we have ihat instead of Rollatini is a negative given how generic a name IHAT is.\n\n@martinthomson am I reading your point in the above right?",
+          "createdAt": "2026-09-24T22:29:50Z",
+          "updatedAt": "2026-09-24T22:29:50Z"
         }
       ]
     }
@@ -7757,7 +7764,7 @@
       ],
       "body": "this puts ACT in its own draft and lines it up with the IHAT Python interfaces. shared definitions now point to IHAT, and the model and key helpers live in `poc/` too.\n\nstacked on #70. the later branches fill in the proofs and the rest of the demo.\n\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.\n",
       "createdAt": "2026-09-09T16:02:01Z",
-      "updatedAt": "2026-09-23T20:04:33Z",
+      "updatedAt": "2026-09-24T15:06:25Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "samuelschlesinger/act-draft-split",
       "baseRefOid": "d756dfc87a56a5e9813a9ac62f291310c40c6c22",
@@ -7770,7 +7777,15 @@
       "mergeCommit": {
         "oid": "a898ddb0ad0dd63aa67707ec8d540a1c080d5c4d"
       },
-      "comments": [],
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Looks like I had the wrong target here.",
+          "createdAt": "2026-09-24T15:06:25Z",
+          "updatedAt": "2026-09-24T15:06:25Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABNpy4UA",
@@ -9339,20 +9354,394 @@
       "id": "PR_kwDOSX6krs8AAAABE13HLQ",
       "title": "Implement vector commitment and test",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/74",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "The only remaining bit is to enable the comprehensive end to end tests.",
       "createdAt": "2026-09-23T23:52:53Z",
-      "updatedAt": "2026-09-24T00:05:11Z",
+      "updatedAt": "2026-09-25T22:25:47Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "96f857913ff1546024f686f9941378c8ad557e90",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/finish-ihat-code-and-hashes",
+      "headRefOid": "afd7259144412e4456110ab46512be8f36342715",
+      "closedAt": "2026-09-25T22:25:47Z",
+      "mergedAt": "2026-09-25T22:25:47Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "c098e9662434f7c4e8e4c87f971eb04ee0db209a"
+      },
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have combined into one commit and included a single test that covers the whole thing with two issuers.",
+          "createdAt": "2026-09-25T18:34:16Z",
+          "updatedAt": "2026-09-25T18:34:16Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "After these spec alignment bits let's merge this.",
+          "createdAt": "2026-09-25T19:45:15Z",
+          "updatedAt": "2026-09-25T19:45:15Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The spec alingment will get done Monday: i sadly don't have time right now to take it on.",
+          "createdAt": "2026-09-25T21:02:34Z",
+          "updatedAt": "2026-09-25T21:02:34Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Do you mind if I just merge this and do it myself?",
+          "createdAt": "2026-09-25T21:55:29Z",
+          "updatedAt": "2026-09-25T21:55:29Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "> Do you mind if I just merge this and do it myself?\r\n\r\nGo ahead!",
+          "createdAt": "2026-09-25T22:18:33Z",
+          "updatedAt": "2026-09-25T22:18:33Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTaZPg",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:40:44Z",
+          "updatedAt": "2026-09-25T19:40:44Z",
+          "comments": [
+            {
+              "originalPosition": 192,
+              "body": "I thought the draft says we MUST NOT do this, though in the TODO it says we might allow it? I think this should come with draft changes if so.",
+              "createdAt": "2026-09-25T19:40:44Z",
+              "updatedAt": "2026-09-25T19:40:44Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTa_8A",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:41:59Z",
+          "updatedAt": "2026-09-25T19:42:00Z",
+          "comments": [
+            {
+              "originalPosition": 76,
+              "body": "Makes sense (the leaves are 33-byte encodings, not seeds), but the draft snippet still says G.DeriveScalar(left, b\"left\"), and ProveIssuer in the draft no longer matches either (VecEquivocateFromZero, the new signatures). Can you update the snippets alongside? AGENTS.md asks for both in one change, and the snippet test only covers the four shared functions so it won't catch this.",
+              "createdAt": "2026-09-25T19:41:59Z",
+              "updatedAt": "2026-09-25T19:41:59Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTbnnA",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:43:13Z",
+          "updatedAt": "2026-09-25T19:43:13Z",
+          "comments": [
+            {
+              "originalPosition": 192,
+              "body": "The draft changes will come later: I wanted to do the code first because otherwise we end up with editing passes to adapt, but if people want the spec editing also, we can.",
+              "createdAt": "2026-09-25T19:43:13Z",
+              "updatedAt": "2026-09-25T19:43:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTbyfw",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:43:33Z",
+          "updatedAt": "2026-09-25T19:43:33Z",
+          "comments": [
+            {
+              "originalPosition": 76,
+              "body": "Happy to update the draft as well to do this.",
+              "createdAt": "2026-09-25T19:43:33Z",
+              "updatedAt": "2026-09-25T19:43:34Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTcMyQ",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:44:22Z",
+          "updatedAt": "2026-09-25T19:44:23Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "Can we add draft text for this and Pinv as well?",
+              "createdAt": "2026-09-25T19:44:23Z",
+              "updatedAt": "2026-09-25T19:44:23Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTdG8w",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:46:14Z",
+          "updatedAt": "2026-09-25T19:46:14Z",
+          "comments": [
+            {
+              "originalPosition": 15,
+              "body": "I think we have it in there, but it's unclear and needs some changing. Will do along with the other draft changes.",
+              "createdAt": "2026-09-25T19:46:14Z",
+              "updatedAt": "2026-09-25T19:46:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPUqpJg",
+          "commit": {
+            "abbreviatedOid": "afd7259"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-25T22:24:48Z",
+          "updatedAt": "2026-09-25T22:24:48Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 75,
+      "id": "PR_kwDOSX6krs8AAAABFC8Jew",
+      "title": "Introduce the standalone ACT model and Python helpers",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/75",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Re-lands #67 against `main`. #67 was approved by @dennisjackson and @cjpatton but targeted `samuelschlesinger/act-draft-split` (the IHAT split, since merged as #70), so its squash landed on that side branch instead of `main`.\n\nThis branch is that squash commit (`a898ddb`) rebased onto `main` after #70. Its tree is byte-identical to the approved tree, so the diff here is exactly what was reviewed in #67. No content changes.\n\nThe unresolved nits from #67 (`Credential` capitalization, \"(ACTs)\", and moving `py.typed` up a level) are deliberately left for a follow-up so this stays identical to what was approved.",
+      "createdAt": "2026-09-25T03:13:34Z",
+      "updatedAt": "2026-09-25T05:40:31Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "4857fb3f3d2a42145a29cf328aeb7497534b9433",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
-      "headRefName": "wbl/finish-ihat-code-and-hashes",
-      "headRefOid": "979a634a56bcdd5809ed5408169dd16cb7edf705",
+      "headRefName": "samuelschlesinger/act-02-model",
+      "headRefOid": "65a761aea4a57b46c792d10a4adb4262717cffcb",
+      "closedAt": "2026-09-25T05:40:31Z",
+      "mergedAt": "2026-09-25T05:40:31Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "96f857913ff1546024f686f9941378c8ad557e90"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Sorry, screwed this up by targeting the wrong branch originally. Whenever I can get an approval I'll land this then I can push the next PR.",
+          "createdAt": "2026-09-25T03:15:49Z",
+          "updatedAt": "2026-09-25T03:15:49Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPLlGWA",
+          "commit": {
+            "abbreviatedOid": "65a761a"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-25T05:27:11Z",
+          "updatedAt": "2026-09-25T05:27:11Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 76,
+      "id": "PR_kwDOSX6krs8AAAABFD4m4g",
+      "title": "Address the outstanding review threads from #67",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/76",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Some follow up fixes from #67.",
+      "createdAt": "2026-09-25T05:49:20Z",
+      "updatedAt": "2026-09-25T19:32:54Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "96f857913ff1546024f686f9941378c8ad557e90",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-67-review-nits",
+      "headRefOid": "a5a78331541d13b09608d21bef9e3f3bcbcf443e",
+      "closedAt": "2026-09-25T19:32:54Z",
+      "mergedAt": "2026-09-25T19:32:54Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "0cda001e9d93e3a9e52e69bb24a1c1adb5cac976"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPRw9eQ",
+          "commit": {
+            "abbreviatedOid": "a5a7833"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-25T16:44:01Z",
+          "updatedAt": "2026-09-25T16:45:06Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "UGH! See perennial issue #15, this is not a great solution. (Imagine talking about it). Happy to defer until we have a chance to brainstorm.",
+              "createdAt": "2026-09-25T16:44:02Z",
+              "updatedAt": "2026-09-25T16:45:06Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPTWh8Q",
+          "commit": {
+            "abbreviatedOid": "a5a7833"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-25T19:32:50Z",
+          "updatedAt": "2026-09-25T19:32:50Z",
+          "comments": [
+            {
+              "originalPosition": 17,
+              "body": "Let's come back to this.",
+              "createdAt": "2026-09-25T19:32:50Z",
+              "updatedAt": "2026-09-25T19:32:50Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 77,
+      "id": "PR_kwDOSX6krs8AAAABFK3pRg",
+      "title": "ihat: Specify the vector commitment and derive the proof nonce from the witness",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/77",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Two commits, best reviewed in order.\n\n**1. Specify the vector commitment and the permutation.** The spec alignment promised after #74. The partially binding vector commitment and the cycle-walking Feistel permutation `P` are now in the draft, and `ProveIssuer` and `Redeem` match the code. The security considerations are rewritten for the current commitment (the old text argued about `G0` and `CompressValue`, which no longer exist).\n\nOne design reversal, flagged for @wbl: #74 chained every value of the redemption proof from a single seed through HKDF, which would have made issuer hiding computational and contradicted the draft's rule that each scalar gets its own seed. This commit keeps the draft's rule instead: `ProveIssuer` takes `(2q + 1) * Nseed` bytes, one seed per value, so issuer hiding stays statistical and holds against unbounded computation as blindness does. The cost is under a kilobyte of randomness per redemption. The rest of the code changes are what the spec needed: group methods instead of the duplicated free functions, typed procedures, `except DeserializeError`. The snippet test now covers every redemption procedure.\n\n**2. Derive the issuer proof's nonce from the witness.** Adds `G.DeriveNonce`, which derives a scalar from a secret, a public statement, and fresh randomness, so a repeated random source cannot repeat the Schnorr nonce across distinct statements (which would reveal `delta` and the Anchor). ACT uses the same method for its prover nonces and signing exponents.",
+      "createdAt": "2026-09-25T19:32:28Z",
+      "updatedAt": "2026-09-26T00:07:06Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "c098e9662434f7c4e8e4c87f971eb04ee0db209a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/ihat-derive-seed",
+      "headRefOid": "abd9dbf1a9f2582a1ee9a48b518dce905384d262",
+      "closedAt": "2026-09-26T00:07:06Z",
+      "mergedAt": "2026-09-26T00:07:06Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "9fe1ee2b041dca8b45a8b2a6374b8569a7ad160c"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Let's merge #74 first and then I'll rebase this onto that.",
+          "createdAt": "2026-09-25T19:44:46Z",
+          "updatedAt": "2026-09-25T19:44:46Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Course. I am making some edits myself too now, then I'll merge this weekend and hopefully have an ACT cut out.",
+          "createdAt": "2026-09-25T23:53:46Z",
+          "updatedAt": "2026-09-25T23:53:46Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPVA6pw",
+          "commit": {
+            "abbreviatedOid": "9429599"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Thanks for doing all this. I'll do an editorial pass sometime soon.",
+          "createdAt": "2026-09-25T23:51:14Z",
+          "updatedAt": "2026-09-25T23:51:14Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 78,
+      "id": "PR_kwDOSX6krs8AAAABFNRLQQ",
+      "title": "ACTs",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/78",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Adds ACTs and a reference implementation in python.",
+      "createdAt": "2026-09-26T02:23:57Z",
+      "updatedAt": "2026-09-26T02:23:57Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "9fe1ee2b041dca8b45a8b2a6374b8569a7ad160c",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-sigma",
+      "headRefOid": "831964bcd7bbac8637f6fdcd389953ca963001ca",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
