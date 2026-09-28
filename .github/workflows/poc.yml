@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
       - "poc/**"
+      - ".gitmodules"
       - "draft-authors-mole-act.md"
       - "draft-authors-mole-ihat.md"
       - ".github/workflows/poc.yml"
   push:
     paths:
       - "poc/**"
+      - ".gitmodules"
       - "draft-authors-mole-act.md"
       - "draft-authors-mole-ihat.md"
       - ".github/workflows/poc.yml"
@@ -26,6 +28,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: true
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
