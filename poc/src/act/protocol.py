@@ -217,7 +217,9 @@ class ClientSpendState(NamedTuple):
     kstar: Scalar
     r_star: Scalar
     v1: int
-    K_n: Element
+    s: int
+    a: int
+    K_prime: Element
 
 
 class SpendMessage(NamedTuple):
@@ -323,7 +325,11 @@ def ProveSpend(
     )
     pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
 
-    state = ClientSpendState(kstar, r_star, v1, K_n)
+    # The commitment the refund will sign, opened by the new
+    # Credential's secrets; the Moderator recomputes it from `proof`.
+    K_prime = G.scalar(v1) * H1 + kstar * H2 + r_star * H3
+
+    state = ClientSpendState(kstar, r_star, v1, s, a, K_prime)
     proof = SpendMessage(
         k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
     )
@@ -395,21 +401,15 @@ def FinalizeRefund(
     pkM: Element,
     ctx_cred: bytes,
     state: ClientSpendState,
-    proof: SpendMessage,
     refund: RefundMessage,
 ) -> Credential:
-    kstar, r_star, v1, K_n_state = state
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, _ = proof
+    kstar, r_star, v1, s, a, K_prime = state
     A, e, t, pok = refund
 
-    if K_n != K_n_state:
-        raise VerifyError
     if not 0 <= t < 2**L or t > s + a or v1 + t >= 2**L:
         raise AmountError
 
     ctx = CreateContextScalar(ctx_cred)
-    K_prime = BalanceCommitment(proof)
-
     X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
     X_G = G.ScalarMultGen(e) + pkM
 

@@ -40,9 +40,7 @@ def main() -> None:
         refund = act.IssueRefund(skM, ctx_cred, proof, t)
         seen.add(nullifier)
         refund = wire.DecodeRefund(wire.EncodeRefund(refund))
-        credential = act.FinalizeRefund(
-            pkM, ctx_cred, spend_state, proof, refund
-        )
+        credential = act.FinalizeRefund(pkM, ctx_cred, spend_state, refund)
         del spend_state
         print(f"{name}: {len(encoded)} bytes, balance {credential.c}")
 
