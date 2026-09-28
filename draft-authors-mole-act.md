@@ -493,9 +493,10 @@ recommends; the length prefixes keep the tag unambiguous.
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. The nonces are derived
 together with `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the witness,
-the session, the relation, and fresh randomness, so that a failed random
-source never causes a nonce to be reused under a different challenge, and
-no nonce is zero.
+the session, the relation, and fresh randomness, so that a random source that
+fails independently of the witness does not cause a nonce to be reused under
+a different challenge, except with negligible probability, and no nonce is
+zero.
 
 ~~~ python
 class ProverNonces:
@@ -1263,9 +1264,10 @@ stated where they are used; drawing them directly is not conformant:
 
 The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, `s1`, and `s2` are
 derived with `G.DeriveScalars` from randomness alone. A repetition among
-them harms only that Client; a repetition of a signing exponent or of a
-prover nonce is a key-compromise event ({{act-security}}), and those are
-therefore derived from a secret as well.
+them harms only that Client; a repeated signing exponent, or a prover nonce
+repeated under a different challenge, can compromise `skM` or reveal a
+witness scalar ({{act-security}}), and those are therefore derived from a
+secret as well.
 
 # Security Considerations {#act-security}
 
@@ -1416,11 +1418,12 @@ Derived prover nonces:
   statistically zero-knowledge. If the random source fails, whether by
   repeating all or part of `rand`, returning a constant, or returning values
   related to earlier ones, the nonces are still pseudorandom functions of the
-  witness, and each changes whenever any part of `rand` or the relation
-  does, so no nonce is reused under a different challenge. `ProveCompact`
-  then remains zero-knowledge against a party without the witness
-  ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars in the
-  witness carry entropy that party lacks.
+  witness, and, unless the random source depends on the witness, each
+  changes, except with negligible probability, whenever any part of `rand`
+  or the relation does, so no nonce is reused under a different challenge.
+  `ProveCompact` then remains zero-knowledge against a party without the
+  witness ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars
+  in the witness carry entropy that party lacks.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the

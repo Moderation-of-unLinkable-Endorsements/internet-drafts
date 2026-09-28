@@ -545,19 +545,21 @@ def DeriveNonces(
     return self.SeedsToScalars(key, rand)
 ~~~
 
-When `rand` is uniformly random, the nonces are distributed as derived
-scalars ({{derive-scalar}}), whatever the key. The key is a pseudorandom
-function of `secret` at a point that identifies the operation, and with it the
-Feistel network is a pseudorandom permutation of `rand`. Every nonce therefore
-changes, unpredictably to a party that does not know `secret`, whenever any
-part of `rand`, `secret`, or `instance` changes. A random source that repeats
-part of `rand`, returns a constant, or returns values related to earlier ones
-never causes a nonce to be reused under a different challenge; one that
-repeats all of `rand` for the same operation reproduces the same nonces, and
-so the same proof. Every `instance` in this document is an unambiguous
-encoding, with its variable-length parts length-prefixed. Implementations
-MUST wipe `secret`, `derive_nonce_input`, `key`, the intermediate values of
-`G.SeedsToScalars`, and the returned values once they have been used.
+When `rand` is uniformly random, the nonces are distributed as derived scalars
+({{derive-scalar}}), whatever the key. The key is a pseudorandom function of
+`secret` at a point that identifies the operation, and with it the Feistel
+network is a pseudorandom permutation of `rand`. For a random source that does
+not depend on `secret`, every nonce therefore changes, except with negligible
+probability and unpredictably to a party that does not know `secret`, whenever
+any part of `rand`, `secret`, or `instance` changes. Such a source that
+repeats part of `rand`, returns a constant, or returns values related to
+earlier ones does not cause a nonce to be reused under a different challenge;
+one that repeats all of `rand` for the same operation reproduces the same
+nonces, and so the same proof. Every `instance` in this document is an
+unambiguous encoding, with its variable-length parts length-prefixed.
+Implementations MUST wipe `secret`, `derive_nonce_input`, `key`, the
+intermediate values of `G.SeedsToScalars`, and the returned values once they
+have been used.
 
 ## Key Generation {#keygen}
 
@@ -1727,8 +1729,9 @@ def ProveIssuer(
 keys, and the `q` openings of its first move with one call to
 `G.DeriveNonces` ({{derive-nonce}}), keyed by `delta`, `index`, and the
 proof statement; `rand` holds `Nseed` bytes for each of these `2 * q + 1`
-scalars. Every value of the first move therefore changes whenever `delta`,
-`index`, the statement, or any part of `rand` does.
+scalars. Unless the random source depends on `delta`, every value of the
+first move therefore changes, except with negligible probability, whenever
+`delta`, `index`, the statement, or any part of `rand` does.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
@@ -2102,15 +2105,16 @@ Derived blinding factors:
 Derived first move:
 : In `ProveIssuer`, the nonce `r` reused under a different challenge reveals
   `delta`, which names the Anchor, and a commitment key reused with its first
-  opening under a different challenge reveals the key's trapdoor and with it
-  a bit of `index`. `ProveIssuer` therefore derives the nonce, the trapdoors,
+  opening under a different challenge can reveal the key's trapdoor and with
+  it a bit of `index`. `ProveIssuer` therefore derives the nonce, the trapdoors,
   and the first openings together with `G.DeriveNonces` from `delta`,
   `index`, the proof statement, and all of its randomness ({{prove-issuer}}).
   With a working random source they are distributed as derived scalars
   ("Derived blinding factors" above). With a failed one they are
   pseudorandom functions of `delta` and `index`, unpredictable to a verifier
-  that does not know `delta`, and each of them changes whenever `delta`,
-  `index`, the statement, or any part of the randomness does
+  that does not know `delta`, and, unless the random source depends on
+  `delta`, each of them changes, except with negligible probability, whenever
+  `delta`, `index`, the statement, or any part of the randomness does
   ({{derive-nonce}}); a random source that repeats all of its output for the
   same redemption reproduces the proof. The Anchor's signing nonce `a` in
   `Commit` cannot be protected the same way: it is fixed before the Client's
