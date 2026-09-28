@@ -1130,8 +1130,8 @@ response, which every branch reuses, together with a commitment whose opening
 forces one branch to have been answered honestly. {{FFKLLS26}} applies the same
 two compositions, for the same purpose, to a pairing-based credential.
 
-Both compositions are used with the same rerandomization ({{rerandomization}}),
-and switching between them changes neither issuance nor {{verify}}.
+The proof takes the rerandomized key of {{rerandomization}} as its statement
+and leaves issuance and {{verify}} unchanged.
 
 The construction below first defines the branch proof, then builds a partially
 binding tree commitment over its branches. It finally specifies the
@@ -2244,10 +2244,10 @@ Constant-time proving:
 
 Single-use sessions:
 : **Implementations MUST ensure that the session state produced by `Commit` is
-  never used more than once.** This requirement is load-bearing, not defensive.
-  If an Anchor answers two distinct challenges `c1 != c2` on one `Commit` state,
-  then from the two responses `s1 = a + c1*y*skA` and `s2 = a + c2*y*skA`, with
-  `y` revealed in both, anyone recovers the signing key as
+  never used more than once.** If an Anchor answers two distinct challenges
+  `c1 != c2` on one `Commit` state, then from the two responses
+  `s1 = a + c1*y*skA` and `s2 = a + c2*y*skA`, with `y` revealed in both,
+  anyone recovers the signing key as
   `skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. The requirement extends to
   process restarts, to replicas sharing a signing key, and to any retry or
   replay of a `ChallengeMessage`: an Anchor MUST treat a session as closed the
