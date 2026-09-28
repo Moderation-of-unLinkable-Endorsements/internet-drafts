@@ -339,3 +339,108 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
         ) == endorsement.nf
 
+
+
+def test_depth():
+    for n in range(1, 130):
+        assert protocol.Depth(n) == (n - 1).bit_length()
+
+
+def _tampered_redemptions(anchor_set, index, redemption):
+    G = protocol.G
+    one = protocol.Scalar(1)
+    shown = redemption.shown
+    keys = list(redemption.commitment_keys)
+    openings = list(redemption.openings)
+    others = [a for i, a in enumerate(anchor_set) if i != index]
+    ok = (b"epoch-1", b"moderator-1", b"digest")
+    yield "reordered anchor set", anchor_set[::-1], redemption, ok
+    yield "anchor removed", others + [G.Generator()], redemption, ok
+    yield "other ctx_iss", anchor_set, redemption, (b"epoch-2",) + ok[1:]
+    yield "other ctx_red", anchor_set, redemption, (ok[0], b"moderator-2", ok[2])
+    yield "other challenge_digest", anchor_set, redemption, ok[:2] + (b"x",)
+    for name, changed in [
+        ("X_hat", redemption._replace(X_hat=redemption.X_hat + G.Generator())),
+        ("c", redemption._replace(shown=shown._replace(c=shown.c + one))),
+        ("s_hat", redemption._replace(shown=shown._replace(s=shown.s + one))),
+        ("y", redemption._replace(shown=shown._replace(y=shown.y + one))),
+        ("t", redemption._replace(shown=shown._replace(t=shown.t + one))),
+        ("nf", redemption._replace(shown=shown._replace(nf=bytes(32)))),
+        ("proof_challenge", redemption._replace(
+            proof_challenge=redemption.proof_challenge + one)),
+        ("response", redemption._replace(response=redemption.response + one)),
+    ]:
+        yield name, anchor_set, changed, ok
+    for j in range(len(keys)):
+        swapped = keys[:j] + [keys[j] + G.Generator()] + keys[j + 1 :]
+        yield f"key {j}", anchor_set, redemption._replace(
+            commitment_keys=swapped), ok
+        shifted = openings[:j] + [openings[j] + one] + openings[j + 1 :]
+        yield f"opening {j}", anchor_set, redemption._replace(
+            openings=shifted), ok
+    if len(keys) > 1:
+        yield "keys reversed", anchor_set, redemption._replace(
+            commitment_keys=keys[::-1]), ok
+    yield "key dropped", anchor_set, redemption._replace(
+        commitment_keys=keys[1:]), ok
+
+
+@pytest.mark.parametrize("size, index", [(2, 0), (3, 2), (5, 1), (5, 4), (8, 3)])
+def test_redemption_rejects_tampering(size, index):
+    _, pkA, endorsement = _issue()
+    anchor_set = [
+        protocol.G.ScalarMultGen(protocol.Scalar(1000 + i)) for i in range(size)
+    ]
+    anchor_set[index] = pkA
+    redemption = protocol.Redeem(
+        anchor_set, index, endorsement, b"epoch-1", b"moderator-1", b"digest"
+    )
+    for name, anchors, tampered, (ctx_iss, ctx_red, digest) in (
+        _tampered_redemptions(anchor_set, index, redemption)
+    ):
+        try:
+            protocol.VerifyRedemption(anchors, tampered, ctx_iss, ctx_red, digest)
+        except VerifyError:
+            continue
+        pytest.fail(f"accepted a tampered redemption: {name}")
+
+
+def test_verify_rejects_identity_commitment():
+    # A Client that knows the discrete logarithm x of the key it presents
+    # reaches A = identity with s = c * y * x.
+    G = protocol.G
+    x = G.DeriveScalar(bytes(48), b"x")
+    c, y, t = protocol.Scalar(5), protocol.Scalar(7), protocol.Scalar(9)
+    shown = Endorsement(c, c * y * x, y, t, bytes(32))
+    assert not Verify(x * protocol.B, shown, b"epoch-1", b"moderator-1")
+
+    anchor_set = [G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
+    redemption = protocol.Redemption(
+        x * protocol.B, shown, protocol.Scalar(1), protocol.Scalar(1),
+        [anchor_set[0]], [protocol.Scalar(1)],
+    )
+    with pytest.raises(VerifyError):
+        protocol.VerifyRedemption(
+            anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
+        )
+
+
+def test_verify_issuer_rejects_identity_branch_commitment():
+    # With X_hat = pkA, Y[0] is the identity, and a zero response makes the
+    # branch commitment of that branch the identity too.
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))]
+    args = (anchor_set, pkA, endorsement, b"epoch-1", b"moderator-1", b"d")
+    assert Verify(pkA, endorsement, b"epoch-1", b"moderator-1")
+    assert not protocol.VerifyIssuer(
+        *args, protocol.Scalar(1), protocol.Scalar(0),
+        [pkA], [protocol.Scalar(1)],
+    )
+    redemption = protocol.Redemption(
+        pkA, endorsement, protocol.Scalar(1), protocol.Scalar(0),
+        [pkA], [protocol.Scalar(1)],
+    )
+    with pytest.raises(VerifyError):
+        protocol.VerifyRedemption(
+            anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
+        )

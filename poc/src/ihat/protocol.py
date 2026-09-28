@@ -215,6 +215,8 @@ def Verify(
 
     C = G.ScalarMultGen(t) + y * Z
     A = G.ScalarMultGen(s) - (c * y) * pkA
+    if A.isIdentity() or C.isIdentity():
+        return False
     commitment = Commitment(A, C)
 
     return c == ComputeChallenge(ctx_iss, commitment, m)
@@ -231,15 +233,8 @@ def BranchCommitment(
 def Statements(
     anchor_set: Sequence[Element],
     X_hat: Element,
-) -> tuple[list[Element], int]:
-    n = len(anchor_set)
-    q = 0
-    while 2**q < n:
-        q += 1
-
-    Y = [X_hat - pkA for pkA in anchor_set]
-
-    return (Y, q)
+) -> list[Element]:
+    return [X_hat - pkA for pkA in anchor_set]
 
 
 def CommitStep(
@@ -289,6 +284,13 @@ def VecCommit(
         V_prime.append(V[-1])
 
     return VecCommit(V_prime, Qi[1:], rands[1:])
+
+
+def Depth(n: int) -> int:
+    q = 0
+    while 2**q < n:
+        q += 1
+    return q
 
 
 def ProofStatement(
@@ -458,7 +460,8 @@ def ProveIssuer(
     challenge_digest: bytes,
     rand: bytes,
 ) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(len(anchor_set))
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
     if len(rand) != (2 * q + 1) * Nseed:
@@ -529,7 +532,8 @@ def VerifyIssuer(
     if n < 2:
         return False
 
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(n)
     if len(commitment_keys) != q:
         return False
     if len(openings) != q:
@@ -538,6 +542,8 @@ def VerifyIssuer(
     T = []
     for i in range(n):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
+        if commitment.isIdentity():
+            return False
         T.append(G.SerializeElement(commitment))
 
     root = VecCommit(T, commitment_keys, openings)
@@ -570,7 +576,7 @@ def Redeem(
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
-    (Y, q) = Statements(anchor_set, G.Identity())
+    q = Depth(n)
     rand = random((2 * q + 2) * Nseed)
     delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 

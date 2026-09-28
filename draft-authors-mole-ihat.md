@@ -47,7 +47,6 @@ normative:
   HASH2CURVE: RFC9380
   I2OSP: RFC8017
   OPRF: RFC9497
-  RISTRETTO: RFC9496
   TLS13: RFC8446
   SIGMA: I-D.irtf-cfrg-sigma-protocols-02
   NISTCurves:
@@ -84,6 +83,17 @@ informative:
       -
         ins: B. Schoenmakers
         name: Berry Schoenmakers
+  DS15:
+    title: "Indifferentiability of 8-Round Feistel Networks"
+    target: https://eprint.iacr.org/2015/1069
+    date: 2015
+    author:
+      -
+        ins: Y. Dai
+        name: Yuanxi Dai
+      -
+        ins: J. Steinberger
+        name: John Steinberger
   FFKLLS26:
     title: "Issuer-Hiding BBS-Based Anonymous Credentials without Policy Keys"
     target: https://eprint.iacr.org/2026/870
@@ -200,7 +210,7 @@ This document is a work in progress. This revision specifies:
   proof over a Moderator's Anchor Set, whose size is logarithmic in that of the
   Anchor Set, and the algorithms `Redeem` and `VerifyRedemption`
   ({{redemption}});
-* one ciphersuites over P-256.
+* one ciphersuite, over P-256.
 
 The following are **not yet specified** and are marked as such in the text:
 
@@ -320,7 +330,9 @@ ScalarInverse(s):
 : Outputs the multiplicative inverse of the nonzero `Scalar` `s` modulo `p`.
 
 SerializeElement(A):
-: Maps an `Element` `A` to a canonical byte string of fixed length `Ne`.
+: Maps an `Element` `A` other than the identity element to a canonical byte
+  string of fixed length `Ne`. Raises a `ValueError` if `A` is the identity
+  element, which has no such encoding.
 
 DeserializeElement(buf):
 : Attempts to map a byte string `buf` to an `Element`. Raises a
@@ -851,16 +863,23 @@ def Verify(
 
     C = G.ScalarMultGen(t) + y * Z
     A = G.ScalarMultGen(s) - (c * y) * pkA
+    if A.isIdentity() or C.isIdentity():
+        return False
     commitment = Commitment(A, C)
 
     return c == ComputeChallenge(ctx_iss, commitment, m)
 ~~~
 
-`Verify` is stated here for completeness and for use in test vectors. A
-Moderator does not call it directly: a redemption does not reveal which Anchor
-issued the Endorsement, so the check is instead carried out under an
-issuer-hiding proof ({{redemption}}). The Client MUST NOT reveal the Anchor's
-public key to the Moderator.
+A Moderator never runs `Verify` under an Anchor's public key: a redemption does
+not reveal which Anchor issued the Endorsement, so the Moderator runs it under a
+rerandomized key and checks an issuer-hiding proof alongside ({{redemption}}).
+The Client MUST NOT reveal the Anchor's public key to the Moderator.
+
+`Verify` rejects a reconstructed `A` or `C` equal to the identity element, which
+`SerializeElement` cannot encode. Under an Anchor's key this happens with
+negligible probability, but the rerandomized key is the Client's choice, and a
+Client that knows its discrete logarithm `x` reaches the identity by setting
+`s = c * y * x`.
 
 An honestly produced Endorsement always verifies. Writing `gamma` for
 `gamma1 * ScalarInverse(gamma2)`, and `A_anchor` and `C_anchor` for the two
@@ -893,6 +912,9 @@ Endorsement they produce.
 A recipient MUST deserialize every received `Element` and `Scalar`, and MUST
 abort the session with a `DeserializeError` if deserialization fails. In
 particular, deserializing an `Element` rejects the group identity element.
+Deserialization of a structure also fails if its input is truncated, if bytes
+remain after it, or if a vector's length is not a multiple of the size of its
+elements.
 
 ### Issuance Messages {#issuance-messages}
 
@@ -1121,15 +1143,8 @@ def BranchCommitment(
 def Statements(
     anchor_set: Sequence[Element],
     X_hat: Element,
-) -> tuple[list[Element], int]:
-    n = len(anchor_set)
-    q = 0
-    while 2**q < n:
-        q += 1
-
-    Y = [X_hat - pkA for pkA in anchor_set]
-
-    return (Y, q)
+) -> list[Element]:
+    return [X_hat - pkA for pkA in anchor_set]
 ~~~
 
 Two properties of this branch proof are what allow the composition below, and
@@ -1238,6 +1253,17 @@ def VecCommit(
         V_prime.append(V[-1])
 
     return VecCommit(V_prime, Qi[1:], rands[1:])
+~~~
+
+A vector of `n` values has `Depth(n)` levels, each with one key and one
+opening:
+
+~~~python
+def Depth(n: int) -> int:
+    q = 0
+    while 2**q < n:
+        q += 1
+    return q
 ~~~
 
 Bit `j` of `index` is the side of its pair that the binding value is on
@@ -1390,9 +1416,9 @@ def Pinv(self, element: Element) -> Element:
             continue
 ~~~
 
-The permutation of the encoding space is a four-round Feistel network over
+The permutation of the encoding space is an eight-round Feistel network over
 33-byte strings whose first byte is `0x02` or `0x03`, carried as its low
-bit:
+bit. Each iteration of the loop below computes two rounds, one per half:
 
 ~~~python
 def PermuteBytes(buf: bytearray) -> bytearray:
@@ -1417,7 +1443,11 @@ def UnpermuteBytes(buf: bytearray) -> bytearray:
 ~~~
 
 The binding argument of {{security-considerations}} models `P` as a random
-permutation.
+permutation. Eight is the number of rounds for which a balanced Feistel network
+with independent random round functions is known to be indifferentiable from a
+random permutation {{DS15}}. The round functions here are SHA-256 separated by
+their labels, and the halves are of 129 and 128 bits, a one-bit imbalance
+that {{DS15}} does not treat.
 
 #### Walking a Permutation Edge {#permutation-pair}
 
@@ -1623,7 +1653,8 @@ def ProveIssuer(
     challenge_digest: bytes,
     rand: bytes,
 ) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(len(anchor_set))
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
     if len(rand) != (2 * q + 1) * Nseed:
@@ -1712,7 +1743,8 @@ def VerifyIssuer(
     if n < 2:
         return False
 
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(n)
     if len(commitment_keys) != q:
         return False
     if len(openings) != q:
@@ -1721,6 +1753,8 @@ def VerifyIssuer(
     T = []
     for i in range(n):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
+        if commitment.isIdentity():
+            return False
         T.append(G.SerializeElement(commitment))
 
     root = VecCommit(T, commitment_keys, openings)
@@ -1743,13 +1777,20 @@ and checks that the root it arrives at is the one the challenge was computed
 over. Neither the branch commitments nor the interior nodes are transmitted.
 
 `VerifyIssuer` returns `false` rather than raising an error, so that it is a
-total predicate on its inputs, as `Verify` ({{verify}}) is. Two of its three
+total predicate on its inputs, as `Verify` ({{verify}}) is. Two of its
 rejections are defensive restatements of its input types: the lengths of
 `commitment_keys` and `openings` are fixed by the Anchor Set, and a redemption
 whose vectors have any other length is rejected before this algorithm is
-reached, when it is deserialized ({{redemption-wire}}). The third, `n < 2`, is
+reached, when it is deserialized ({{redemption-wire}}). Another, `n < 2`, is
 not a property of the redemption at all but of the Moderator's own Anchor Set;
 reaching it means the Moderator is misconfigured ({{verify-redemption}}).
+
+The last rejects a branch commitment equal to the identity element, which
+`SerializeElement` cannot encode. A Client reaches it on its own branch by
+answering `response = -proof_challenge * delta`. An interior node is the
+identity only for a Client that knows a discrete logarithm relation among `B`,
+`Q`, and `P(Q)` for the key `Q` of its level, which the binding property of
+{{pbvc}} rules out, so `VecCommit` does not check for it.
 
 A proof produced by `ProveIssuer` is accepted by `VerifyIssuer`. On branch
 `index`,
@@ -1793,7 +1834,7 @@ def Redeem(
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
-    (Y, q) = Statements(anchor_set, G.Identity())
+    q = Depth(n)
     rand = random((2 * q + 2) * Nseed)
     delta = G.DeriveScalar(Seed(rand, 0), b"delta")
 
@@ -1919,6 +1960,11 @@ struct {
 under `rerandomized_key`, which is the point of {{rerandomization}}; it is not
 the Endorsement the Client stored, and the Client MUST NOT send that one.
 
+A Moderator deserializes a `Redemption` against its Anchor Set of `n` keys, as
+in {{wire}}. It MUST raise a `DeserializeError` unless `commitment_keys` is
+`Depth(n) * Ne` bytes long and `openings` is `Depth(n) * Ns` bytes long
+({{pbvc}}).
+
 # Ciphersuites {#ciphersuites}
 
 A ciphersuite fixes the group, the hash functions, and the associated encodings
@@ -1927,7 +1973,7 @@ ciphersuite in use ({{config}}).
 
 For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
 length is `Nn = 32` bytes and the seed length is `Nseed = Ns + 16` bytes, that
-is 48 bytes, for both ciphersuites below. The 16 bytes in excess of `Ns` are
+is 48 bytes, for the ciphersuite below. The 16 bytes in excess of `Ns` are
 what makes a derived scalar statistically close to uniform ({{derive-scalar}}),
 on the same grounds that {{HASH2CURVE}} oversamples by 16 bytes when it maps a
 byte string to a field element.
@@ -2016,13 +2062,14 @@ hardness of the ROS problem, which is broken in polynomial time, nor on the
 mROS problem, which admits sub-exponential attacks.
 
 Blindness:
-: The Anchor's view of a session is the blinded challenge `c` alone. Because
-  `gamma2` is uniform and nonzero, `c` is uniformly distributed and independent
-  of the message and of the resulting signature. The scheme is perfectly blind
-  {{TESSZHU}}, so an Anchor cannot link an Endorsement to the session that
-  produced it, even with unbounded computation. This is what makes endorsement
-  grants and redemptions unlinkable as required by {{ARCH}}, including against
-  an attacker with a quantum computer that records transcripts today.
+: All the Anchor receives in a session is the blinded challenge `c * gamma2`.
+  Because `gamma2` is uniform and nonzero, the blinded challenge is uniformly
+  distributed and independent of the message and of the resulting signature.
+  The scheme is perfectly blind {{TESSZHU}}, so an Anchor cannot link an
+  Endorsement to the session that produced it, even with unbounded
+  computation. This is what makes endorsement grants and redemptions
+  unlinkable as required by {{ARCH}}, including against an attacker with a
+  quantum computer that records transcripts today.
 
 Derived blinding factors:
 : Blindness is unconditional only if the blinding factors are. `Challenge`
@@ -2098,8 +2145,8 @@ Issuer hiding:
   {{STACKSIG}}); those results assume uniform randomness. Here it is
   statistical rather than perfect: `G.DeriveScalar` never returns zero
   ({{derive-scalar}}), which excludes at most one value for each of the
-  `2 * q + 1` scalars of a proof, a statistical distance of at most
-  `(2 * q + 1) / p`, and each scalar has its own seed ("Derived blinding
+  `2 * q + 2` scalars a redemption derives, a statistical distance of at most
+  `(2 * q + 2) / p`, and each scalar has its own seed ("Derived blinding
   factors" above). Like blindness, issuer hiding therefore holds against
   unbounded computation, including a quantum computer that records
   transcripts today. Note that it is the *binding* property of the
@@ -2139,7 +2186,7 @@ Anchor Set size:
 
 Proof size and cost:
 : The proof is logarithmic in the size of the Anchor Set: two scalars, plus one
-  element and two scalars for each of the `q` levels of the tree
+  element and one scalar for each of the `q` levels of the tree
   ({{redemption-wire}}). Computation is not. Both the prover and the verifier
   evaluate every branch and every node, which is `n` branch commitments and
   `n - 1` node commitments, so each performs a number of scalar
@@ -2147,9 +2194,10 @@ Proof size and cost:
   bandwidth and not in CPU, which reverses the tradeoff of the linear
   disjunction {{CDS94}} for bandwidth but not for work; {{FFKLLS26}} notes
   the same for its own instantiations. Two consequences for deployments: the
-  linear disjunction is smaller for Anchor Sets of five keys or fewer, and
-  since the depth is `q = ceil(log2 n)`, an Anchor Set of `2^q + 1` keys
-  costs a whole extra level while adding one Anchor to the anonymity set.
+  linear disjunction is smaller for Anchor Sets of three keys or fewer, and
+  since the depth `q = Depth(n)` is `ceil(log2 n)`, an Anchor Set of
+  `2^q + 1` keys costs a whole extra level while adding one Anchor to the
+  anonymity set.
 
 Constant-time proving:
 : `ProveIssuer` treats one leaf, and one side of each node on the path to it,

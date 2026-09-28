@@ -28,7 +28,8 @@ draft's Test Vectors section; a test regenerates it and compares.
 The algorithms in `src/act/protocol.py` match the draft's Python snippets;
 tests check that they stay in sync. `src/act/statements.py` compiles the
 draft's `Relation` blocks, `src/act/sigma.py` runs them on the pinned CFRG
-code, and `src/act/wire.py` holds the message encodings. ACT shares IHAT's
+code, and `src/act/wire.py` holds the message encodings, as
+`src/ihat/wire.py` does for IHAT. ACT shares IHAT's
 group and derivation code. Each group instance carries its own protocol context and provides
 `G.DeriveScalar`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`. Both schemes
 use the common `Seed` helper and 48-byte seeds.

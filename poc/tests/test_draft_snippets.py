@@ -7,7 +7,9 @@ import re
 ROOT = Path(__file__).resolve().parents[2]
 
 
-def definitions(source, *, concrete_group=False):
+def definitions(
+    source, *, concrete_group=False, kinds=(ast.FunctionDef, ast.ClassDef)
+):
     tree = ast.parse(source)
     if concrete_group:
         # The draft's Scalar and Element are P256Scalar and P256Element
@@ -28,7 +30,7 @@ def definitions(source, *, concrete_group=False):
     return {
         node.name: ast.dump(node, include_attributes=False)
         for node in ast.walk(tree)
-        if isinstance(node, (ast.FunctionDef, ast.ClassDef))
+        if isinstance(node, kinds)
     }
 
 
@@ -45,7 +47,7 @@ def test_act_snippets_match_implementation():
     assert actual.keys() == expected.keys()
 
 
-def test_shared_algorithms_match_ihat_draft():
+def test_ihat_snippets_match_implementation():
     draft = (ROOT / "draft-authors-mole-ihat.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
@@ -58,35 +60,13 @@ def test_shared_algorithms_match_ihat_draft():
     actual.update(
         definitions((ROOT / "poc/src/ihat/common.py").read_text())
     )
-    for name in (
-        "Seed",
-        "DeriveScalar",
-        "DeriveNonce",
-        "DeriveKeyPair",
-        "GenerateKeyPair",
-        "P",
-        "Pinv",
-        "PermutationPair",
-        "SelectBytes",
-        "IsValidPermutationEncoding",
-        "PermuteBytes",
-        "UnpermuteBytes",
-    ):
-        assert actual[name] == expected[name], name
+    # The record types of protocol.py are implicit in the draft.
     protocol = definitions(
-        (ROOT / "poc/src/ihat/protocol.py").read_text()
+        (ROOT / "poc/src/ihat/protocol.py").read_text(),
+        kinds=(ast.FunctionDef,),
     )
-    for name in (
-        "CommitStep",
-        "GenerateStep",
-        "EquivocateStep",
-        "VecCommit",
-        "GenerateVecBind",
-        "CommitValAtPlace",
-        "VecEquivocate",
-        "VecEquivocateFromZero",
-        "ProveIssuer",
-        "VerifyIssuer",
-        "Redeem",
-    ):
-        assert protocol[name] == expected[name], name
+    actual.update(protocol)
+    assert expected
+    for name, definition in expected.items():
+        assert actual[name] == definition, name
+    assert protocol.keys() <= expected.keys()
