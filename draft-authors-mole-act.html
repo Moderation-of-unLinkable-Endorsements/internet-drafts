@@ -1347,6 +1347,17 @@ Credential, spends credits, and finalizes the refund that replaces the spent
 Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> maps these operations to the MoLE credential APIs,
 specifies when issuance is authorized, and supplies the credential and spend
 contexts. This document treats those contexts as opaque byte strings.<a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1-3.1">
+          <p id="section-1-3.1.1"><strong>TODO.</strong> The ACT profile of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> is not yet written. This
+document expects it to define how <code>ctx_cred</code> is agreed
+(<a href="#act-context" class="auto internal xref">Section 4.2</a>), how <code>L</code> is published with the key (<a href="#act-config" class="auto internal xref">Section 4.1</a>),
+the lifetime of the nullifier store and the policy bounding <code>t</code>
+(<a href="#act-security" class="auto internal xref">Section 6</a>), and how a Client obtains a refund again after a
+lost response (<a href="#act-finalize-refund" class="auto internal xref">Section 4.6.5</a>). Until then, those references
+name requirements on that profile rather than text it contains.<a href="#section-1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1389,7 +1400,8 @@ gives concrete instances.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
         <dd class="break"></dd>
 <dt id="section-3-2.3">Hash:</dt>
         <dd style="margin-left: 1.5em" id="section-3-2.4">
-          <p id="section-3-2.4.1">A cryptographic hash function whose output length is <code>Nh</code> bytes.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+          <p id="section-3-2.4.1">A cryptographic hash function, used by the <code>HashToGroup</code>, <code>HashToScalar</code>,
+and derivation algorithms that the group of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span> provides.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-2.5">Sigma protocol:</dt>
@@ -1458,7 +1470,7 @@ length of that seed, which the unlinkability argument of
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
         </h3>
 <p id="section-3.4-1">Use <code>G.DeriveKeyPair(seed, info)</code> and <code>G.GenerateKeyPair()</code> from Section
-4.3 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
+4.4 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
 return <code>tuple[Scalar, Element]</code>; ACT names the returned keys <code>(skM,
 pkM)</code> because the Moderator is the issuer. The Moderator publishes
 <code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
@@ -1528,7 +1540,7 @@ request/response exchange followed by a Client-local finalization.<a href="#sect
                                refund
                               &lt;--------
 
-   credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
+   credential = FinalizeRefund(pkM, ctx_cred, state, refund)
 </pre>
 </div>
 <figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
@@ -1669,6 +1681,11 @@ which is the Client's hidden balance.<a href="#section-4.3-3" class="pilcrow">¶
 using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">The comparisons <code>s &lt;= c</code> and <code>c + a &lt; 2^L</code> in <code>ProveSpend</code>, <code>t &lt;= s + a</code>
+in <code>IssueRefund</code>, and <code>t &lt;= s + a</code> and <code>v1 + t &lt; 2^L</code> in <code>FinalizeRefund</code>
+are between integers. Each sum can reach <code>2^(L+1) - 2</code>, which does not fit
+in a <code>uint64</code> when <code>L = 64</code>, and an implementation <span class="bcp14">MUST</span> compute them
+without overflow.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-proofs">
@@ -1757,8 +1774,12 @@ class ProverNonces:
 <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03#section-5.1" class="relref">Section 5.1</a> of [<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>; and <code>instance</code> is the
 <code>SerializeLinearRelation</code> of the relation (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.6" class="relref">Section 3.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>).<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.4.2-4">This rule binds only the prover; a verifier following <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> accepts
-these proofs unchanged. A proof repeated with the same inputs and the same
-<code>rand</code> is byte-identical, so a retried operation reproduces its proof.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
+these proofs unchanged. The derivation is deterministic in the witness,
+the tag, the relation, and <code>rand</code>: replaying the bytes of <code>random</code>
+reproduces a proof byte for byte, which the test vectors of
+<a href="#act-test-vectors" class="auto internal xref">Appendix A</a> rely on, and a random source that repeats reproduces
+a proof rather than reusing a nonce under a different challenge. A retried
+operation draws fresh <code>rand</code> and produces a different proof.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-prove">
@@ -2036,7 +2057,9 @@ class ClientSpendState(NamedTuple):
     kstar: Scalar
     r_star: Scalar
     v1: int
-    K_n: Element
+    s: int
+    a: int
+    K_prime: Element
 
 
 class SpendMessage(NamedTuple):
@@ -2216,7 +2239,11 @@ def ProveSpend(
     )
     pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
 
-    state = ClientSpendState(kstar, r_star, v1, K_n)
+    # The commitment the refund will sign, opened by the new
+    # Credential's secrets; the Moderator recomputes it from `proof`.
+    K_prime = G.scalar(v1) * H1 + kstar * H2 + r_star * H3
+
+    state = ClientSpendState(kstar, r_star, v1, s, a, K_prime)
     proof = SpendMessage(
         k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
     )
@@ -2226,16 +2253,17 @@ def ProveSpend(
 </div>
 <p id="section-4.6.2-3"><code>A_bar</code> is not sent: the Moderator computes it as <code>skM * A_prime</code>. The
 values <code>kstar</code> and <code>r_star</code> are the nullifier and blinding factor of the
-Credential the refund will produce; they open the commitment
-<code>K_prime = K_n + V1</code>, with <code>V1</code> the balance commitment of
-<code>BalanceCommitment</code> below, to <code>v1 * H1 + kstar * H2 + r_star * H3</code>; the
-Moderator signs this in <code>IssueRefund</code>.<a href="#section-4.6.2-3" class="pilcrow">¶</a></p>
+Credential the refund will produce. They open <code>K_prime</code>, which equals
+<code>K_n + V1</code> with <code>V1</code> the balance commitment of <code>BalanceCommitment</code>
+below; the Moderator recomputes it from <code>proof</code> and signs it in
+<code>IssueRefund</code>, and the Client keeps it in <code>state</code> to check the refund.<a href="#section-4.6.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.6.2-4"><code>ProveSpend</code> consumes the Credential: an implementation <span class="bcp14">MUST NOT</span> allow a
 second call on the same Credential value. The Client <span class="bcp14">MUST</span> treat the
 Credential as spent, and <span class="bcp14">MUST</span> have stored <code>state</code> durably, no later than
 the moment <code>proof</code> becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
-reveals the same nullifier (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
+reveals the same nullifier (<a href="#act-security" class="auto internal xref">Section 6</a>). <code>state</code> holds everything
+<code>FinalizeRefund</code> needs, so the Client need not retain <code>proof</code>.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-verify-spend">
@@ -2327,10 +2355,9 @@ def IssueRefund(
     return RefundMessage(A, e, t, pok)
 </pre><a href="#section-4.6.4-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.6.4-3">The comparison <code>t &lt;= s + a</code> is between integers; <code>s + a</code> may exceed <code>2^L</code>
-and an implementation <span class="bcp14">MUST</span> compute it without overflow. This bound keeps
-the new balance below <code>2^L</code> without a range proof over the refund
-(<a href="#act-security" class="auto internal xref">Section 6</a>). The Moderator places the new balance anywhere in
+<p id="section-4.6.4-3">The comparison <code>t &lt;= s + a</code> is between integers (<a href="#act-amounts" class="auto internal xref">Section 4.3</a>). This
+bound keeps the new balance below <code>2^L</code> without a range proof over the
+refund (<a href="#act-security" class="auto internal xref">Section 6</a>). The Moderator places the new balance anywhere in
 <code>[c - s, c + a]</code> without learning where in that interval it falls.<a href="#section-4.6.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2346,21 +2373,15 @@ def FinalizeRefund(
     pkM: Element,
     ctx_cred: bytes,
     state: ClientSpendState,
-    proof: SpendMessage,
     refund: RefundMessage,
 ) -&gt; Credential:
-    kstar, r_star, v1, K_n_state = state
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, _ = proof
+    kstar, r_star, v1, s, a, K_prime = state
     A, e, t, pok = refund
 
-    if K_n != K_n_state:
-        raise VerifyError
     if not 0 &lt;= t &lt; 2**L or t &gt; s + a or v1 + t &gt;= 2**L:
         raise AmountError
 
     ctx = CreateContextScalar(ctx_cred)
-    K_prime = BalanceCommitment(proof)
-
     X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
     X_G = G.ScalarMultGen(e) + pkM
 
@@ -2371,13 +2392,19 @@ def FinalizeRefund(
     return Credential(kstar, v1 + t, r_star, A, e)
 </pre><a href="#section-4.6.5-2" class="pilcrow">¶</a>
 </div>
-<p id="section-4.6.5-3">The state records <code>K_n</code> so that a refund is finalized only against the
-spend it was issued for. <code>FinalizeRefund</code> consumes <code>state</code>: a Client <span class="bcp14">MUST NOT</span> finalize one spend state against two refunds, since the two
-Credentials would share the nullifier <code>kstar</code>. The Client <span class="bcp14">MUST NOT</span> spend
-the consumed Credential again, whether or not the refund arrives. A
-Client that has sent a spend proof and not received a valid refund keeps
-<code>state</code> and <span class="bcp14">MAY</span> ask the Moderator for the refund again; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
-describes this.<a href="#section-4.6.5-3" class="pilcrow">¶</a></p>
+<p id="section-4.6.5-3">A refund issued for a different spend signs a different <code>K_prime</code> and
+fails verification. <code>FinalizeRefund</code> consumes <code>state</code>: a Client <span class="bcp14">MUST NOT</span>
+finalize one spend state against two refunds, since the two Credentials
+would share the nullifier <code>kstar</code>. The Client <span class="bcp14">MUST NOT</span> spend the consumed
+Credential again, whether or not the refund arrives. A Client that has
+sent a spend proof and not received a valid refund keeps <code>state</code> and <span class="bcp14">MAY</span>
+ask the Moderator for the refund again; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> describes how, and
+the Moderator recognizes the request by the recorded nullifier <code>k</code>. The
+Moderator can answer with the refund it issued, which requires storing
+it with the nullifier, or run <code>IssueRefund</code> again. The latter produces a
+second signature under a different exponent; this is harmless, because
+every refund of one spend carries the nullifier <code>kstar</code>, so at most one
+of them can ever be spent (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.6.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2519,7 +2546,7 @@ move the pin to <code>-04</code> when it is published.<a href="#section-5-5.1.1"
 <a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-actp-256-sha-256" class="section-name selfRef">ACT(P-256, SHA-256)</a>
         </h3>
 <p id="section-5.1-1">This ciphersuite uses P-256 (secp256r1) for the group and
-SHA-256 for the hash function, with <code>Nh = 32</code>. The value of the ciphersuite
+SHA-256 for the hash function. The value of the ciphersuite
 identifier is <code>b"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
 algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>. ACT uses
@@ -2660,30 +2687,43 @@ keeps every balance below <code>2^L</code> without a range proof over the refund
         <dd style="margin-left: 1.5em" id="section-6-4.8">
           <p id="section-6-4.8.1">A repeated nonce in the <code>IssueResponse</code> or <code>Refund</code> proof reveals <code>skM</code>,
 and a repeated signing exponent <code>e</code> under one context lets a Client
-combine two Credentials into arbitrarily many at the same balance. Both
-values are therefore derived with <code>G.DeriveNonce</code> (Section 4.4 of
-<span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>) from the key and the operation (<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>,
-<a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>), so that a rolled back or snapshotted random source
-reproduces an earlier response instead of yielding a second one. An
-implementation that draws either value directly <span class="bcp14">MUST</span> treat every
-repetition as a compromise of <code>skM</code>.<a href="#section-6-4.8.1" class="pilcrow">¶</a></p>
+holding two Credentials with that exponent forge Credentials at any
+balance below <code>2^L</code>, each with a fresh nullifier, which the nullifier
+store cannot detect. Both values are therefore derived with
+<code>G.DeriveNonce</code> (Section 4.3 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>) from the key and the operation
+(<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>, <a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>), so that a rolled back
+or snapshotted random source reproduces an earlier response instead of
+yielding a second one. An implementation that draws either value
+directly <span class="bcp14">MUST</span> treat every repetition as a compromise of <code>skM</code>.<a href="#section-6-4.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.9">Nullifier store:</dt>
+<dt id="section-6-4.9">Identity elements:</dt>
         <dd style="margin-left: 1.5em" id="section-6-4.10">
-          <p id="section-6-4.10.1">The scheme itself does not prevent a second spend of a Credential; the
+          <p id="section-6-4.10.1">Deserialization rejects the identity element (<a href="#act-wire" class="auto internal xref">Section 4.7</a>), and the
+verifier of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> rejects an instance that contains one. The check
+is soundness-critical for <code>A_prime</code>: were it the identity, <code>A_bar</code> would
+be too, the first spend equation would hold with <code>r2 = 0</code>, and the second
+would let a prover present <code>B_bar</code> as a blinding of any message of its
+choosing, at any balance, without holding a signature. An implementation
+whose group library accepts an encoding of the identity must perform the
+rejection itself.<a href="#section-6-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.11">Nullifier store:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.12">
+          <p id="section-6-4.12.1">The scheme itself does not prevent a second spend of a Credential; the
 Moderator's record of seen nullifiers does. The Moderator <span class="bcp14">MUST</span> check the
 nullifier of a spend against that record and add it to the record
 atomically with verifying the proof and issuing the refund, so that a
 spend is either fully processed or not at all. Losing the record
 re-admits every Credential spent while it was in effect; the record
 covers at least the lifetime of the credential context it was recorded
-under (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-4.10.1" class="pilcrow">¶</a></p>
+under (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-4.12.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.11">Single use of Credentials and states:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.12">
-          <p id="section-6-4.12.1">A Client <span class="bcp14">MUST</span> treat a Credential as spent, and <span class="bcp14">MUST</span> have stored the
+<dt id="section-6-4.13">Single use of Credentials and states:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.14">
+          <p id="section-6-4.14.1">A Client <span class="bcp14">MUST</span> treat a Credential as spent, and <span class="bcp14">MUST</span> have stored the
 returned state durably, no later than the moment the spend proof
 becomes observable outside the Client, and <span class="bcp14">MUST NOT</span> run <code>ProveSpend</code> on
 it again, whether or not the refund arrives. An implementation <span class="bcp14">MUST</span>
@@ -2697,66 +2737,72 @@ rejects, and links the two presentations to each other; one issuance
 state finalized against two responses, or one spend state against two
 refunds, yields Credentials that share a nullifier, of which at most
 one can ever be spent. A Client that loses the spend state after the
-Moderator has recorded the nullifier loses the balance.<a href="#section-6-4.12.1" class="pilcrow">¶</a></p>
+Moderator has recorded the nullifier loses the balance.<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.13">Constant time:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.14">
-          <p id="section-6-4.14.1"><code>Bits</code>, every operation on the witness of the spend relation, and every
+<dt id="section-6-4.15">Constant time:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.16">
+          <p id="section-6-4.16.1"><code>Bits</code>, every operation on the witness of the spend relation, and every
 seed and the scalars derived from it operate on the Client's balance and
 blinding factors, and <span class="bcp14">MUST</span> be implemented in constant time with respect
-to them (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.6" class="relref">Section 7.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>). The
-bit equations involve no branching on bit values, unlike a disjunctive
-range proof.<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
+to them (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.6" class="relref">Section 7.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>). The bit equations are linear in the
+bits, so nothing is selected by a bit's value; a disjunctive range proof
+would instead need its clause selection to be constant time as well. On
+the Moderator, <code>skM * A_prime</code> in <code>VerifySpend</code> and the inversion of
+<code>e + skM</code> and the multiplications by <code>x</code> in <code>IssueResponse</code> and
+<code>IssueRefund</code> operate on the signing key with inputs the Client chooses,
+and <span class="bcp14">MUST</span> be constant time with respect to <code>skM</code>; <code>A_bar</code> then enters the
+verification through a group element rather than a scalar, which
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.6" class="relref">Section 7.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> addresses for keyed-verification credentials.<a href="#section-6-4.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.15">Derived prover nonces:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.16">
-          <p id="section-6-4.16.1"><code>ProveCompact</code> is zero-knowledge when its nonces are indistinguishable
+<dt id="section-6-4.17">Derived prover nonces:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.18">
+          <p id="section-6-4.18.1"><code>ProveCompact</code> is zero-knowledge when its nonces are indistinguishable
 from uniform to a party without the witness
 (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03#section-8.4.2" class="relref">Section 8.4.2</a> of [<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>). <code>ProverNonces</code> meets this with
 <code>G.DeriveNonce</code> (Section 4.3 of <span>[<a href="#IHAT" class="cite xref">IHAT</a>]</span>), each nonce from its own
 <code>Nseed</code> bytes of fresh randomness; if the random source fails, each nonce
 is still a pseudorandom function of the witness at a distinct point, which
 relies on the blinding scalars in the witness carrying entropy the
-verifier lacks.<a href="#section-6-4.16.1" class="pilcrow">¶</a></p>
+verifier lacks.<a href="#section-6-4.18.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.17">Verification key secrecy:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.18">
-          <p id="section-6-4.18.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
-Moderator that issued it. A Moderator that shares <code>skM</code> with another party
-lets that party issue Credentials in its name.<a href="#section-6-4.18.1" class="pilcrow">¶</a></p>
-</dd>
-        <dd class="break"></dd>
-<dt id="section-6-4.19">Context granularity:</dt>
+<dt id="section-6-4.19">Verification key secrecy:</dt>
         <dd style="margin-left: 1.5em" id="section-6-4.20">
-          <p id="section-6-4.20.1">The credential context is visible at every spend through the fact that the
+          <p id="section-6-4.20.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
+Moderator that issued it. A Moderator that shares <code>skM</code> with another party
+lets that party issue Credentials in its name.<a href="#section-6-4.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.21">Context granularity:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.22">
+          <p id="section-6-4.22.1">The credential context is visible at every spend through the fact that the
 proof verifies under it, and so partitions Clients into the set sharing its
 value. It <span class="bcp14">MUST</span> be
 coarse: every Client issued under a given context <span class="bcp14">MUST</span> derive the
 byte-identical <code>ctx_cred</code>. The spend context does not partition Clients,
-since it binds a single presentation to a single challenge.<a href="#section-6-4.20.1" class="pilcrow">¶</a></p>
+since it binds a single presentation to a single challenge.<a href="#section-6-4.22.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.21">Balance width:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.22">
-          <p id="section-6-4.22.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
+<dt id="section-6-4.23">Balance width:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.24">
+          <p id="section-6-4.24.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
 the lifetime of a key and context (<a href="#act-config" class="auto internal xref">Section 4.1</a>). A Moderator that used
 different values of <code>L</code> for different Clients would partition them by the
 length of their spend proofs, and one that changed <code>L</code> under a key and
 context with outstanding Credentials would invalidate the balance
-invariant of the conservation argument.<a href="#section-6-4.22.1" class="pilcrow">¶</a></p>
+invariant of the conservation argument.<a href="#section-6-4.24.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
-<dt id="section-6-4.23">System requirements:</dt>
-        <dd style="margin-left: 1.5em" id="section-6-4.24">
-          <p id="section-6-4.24.1">Deployments must provide an atomic and durable nullifier store
+<dt id="section-6-4.25">System requirements:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.26">
+          <p id="section-6-4.26.1">Deployments must provide an atomic and durable nullifier store
 (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>), consistent configuration across Clients (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>),
 and coarse credential contexts. Privacy relies on the randomness
 requirements of <a href="#randomness" class="auto internal xref">Section 5.2</a>. Clients must use each Credential and
 each issuance or spend state only once, including across backups and
-restores.<a href="#section-6-4.24.1" class="pilcrow">¶</a></p>
+restores.<a href="#section-6-4.26.1" class="pilcrow">¶</a></p>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -2871,9 +2917,10 @@ the prover's <code>Nseed</code> bytes; for <code>ProveSpend</code>, the <code>n 
 its scalars, then the prover's <code>Nw * Nseed</code> bytes. The <code>state</code> entries
 are the <code>ClientIssuanceState</code> <code>(k, r, K)</code> as
 <code>SerializeScalar(k) || SerializeScalar(r) || SerializeElement(K)</code>, and
-the <code>ClientSpendState</code> <code>(kstar, r_star, v1, K_n)</code> as
+the <code>ClientSpendState</code> <code>(kstar, r_star, v1, s, a, K_prime)</code> as
 <code>SerializeScalar(kstar) || SerializeScalar(r_star) || I2OSP(v1, 8) ||
-SerializeElement(K_n)</code>. Every message and <code>credential</code> entry is the
+I2OSP(s, 8) || I2OSP(a, 8) || SerializeElement(K_prime)</code>. Every message
+and <code>credential</code> entry is the
 encoding of <a href="#act-wire" class="auto internal xref">Section 4.7</a>, and the spend context of every spend is
 <code>ctx_spend</code>.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
 <div id="act-tv-suite">
@@ -3028,8 +3075,8 @@ spend1.rand =
 spend1.state =
     d57d94b679338b989617f04f6ed9f1afa2b29d31f4412cdac0816e0c72ffb77d
     dde18e9ae210ee648897aacf5208621fddf0d8653adf502d18f275262f78dfeb
-    0000000000000007029d3bf1acb658578b907478454466484a210dc328706b91
-    e93f559a27dbcc314d
+    00000000000000070000000000000003000000000000000002a9eb8a86d01e82
+    d5d3073885846a477c870420a787d0b5e71daf6c91afdc2223
 spend1.message =
     83dd8af47d48bba13e3c9e60bff78ceab60341b3d5b7b5053a46bbebcd78662d
     000000000000000300000000000000000352c17fecfd9ffd21383691f225167d
@@ -3117,8 +3164,8 @@ spend2.rand =
 spend2.state =
     7844e03536f0c9d21c62e2e0869e3c10c827f24e431b4142931eb6853fb20e2e
     3ce55ad1e1506a50d0b4a3f443f91f4459d3d36ddb407f365930ee3fd85dd381
-    000000000000000803e073e74ef945a83c405f5c7333a29667443e430eed30ed
-    bbe34324b3fc2657bc
+    00000000000000080000000000000000000000000000000003259c1b272b08ae
+    295b5e529b4605057b8acf3973095c23abcedead5a86c70099
 spend2.message =
     d57d94b679338b989617f04f6ed9f1afa2b29d31f4412cdac0816e0c72ffb77d
     00000000000000000000000000000000037c9f865aef31c8e21263387b799db9
@@ -3216,8 +3263,8 @@ spend3.rand =
 spend3.state =
     ae7ed3abd7b9a274a963d5a6917c9b595011b8bea24d2ad49dd0f1b7e6e374ef
     f7dc077023f20c7121c631d26f8bcb78a879dad0711abfb60be406d43cd33ef7
-    0000000000000008037eab4c05ea8dce73c7f93432a3ca9f282c43e1cbebf586
-    efeca1fed5c699ace1
+    00000000000000080000000000000000000000000000000203845262186439cb
+    0f3f9a5b1da4f18d1878df96ebf83546148c8ed5f9e2d75651
 spend3.message =
     7844e03536f0c9d21c62e2e0869e3c10c827f24e431b4142931eb6853fb20e2e
     0000000000000000000000000000000202770b3363352028e4b7e0c4f1ca3074
@@ -3352,8 +3399,8 @@ spend4.rand =
 spend4.state =
     687608194536cd0926adce56a667824d84a30ff7f9f95a5e7ce7b0510c3f33bb
     e5e1ff7bac9f0fb69eeb23db74d61ac89a4c7e9fd886b62aabe3aeef48dda1f9
-    000000000000000703748201036813887d00e9d4d39f4ae7a36d116eeabf1f58
-    d886e5ff08fd0d26de
+    00000000000000070000000000000003000000000000000203cea89b1209b0c3
+    464ea0fcd048789396f950589d2379ba173b95df761a168b5f
 spend4.message =
     ae7ed3abd7b9a274a963d5a6917c9b595011b8bea24d2ad49dd0f1b7e6e374ef
     00000000000000030000000000000002026b3b266c0a0b47261d5833051f55f4
