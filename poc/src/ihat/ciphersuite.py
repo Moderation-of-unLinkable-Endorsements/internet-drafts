@@ -12,6 +12,9 @@ from Cryptodome.PublicKey.ECC import EccPoint
 from .common import I2OSP, Nseed, U16Prefixed, random
 
 
+Nh = 32
+
+
 FIELD_MODULUS = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
 ORDER = 0xFFFFFFFF00000000FFFFFFFFFFFFFFFFBCE6FAADA7179E84F3B9CAC2FC632551
 CURVE_A = FIELD_MODULUS - 3
@@ -247,40 +250,57 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         return P256Scalar(int.from_bytes(uniform, "big") % ORDER)
 
     def DeriveScalar(self, seed: bytes, info: bytes) -> P256Scalar:
+        key = expand_message_xmd(
+            U16Prefixed(info), b"DeriveScalar-" + self.ctx_proto, Nh
+        )
+        return self.SeedToScalar(key, seed)
+
+    def SeedToScalar(self, key: bytes, seed: bytes) -> P256Scalar:
         if len(seed) != Nseed:
             raise ValueError(f"seed must be exactly {Nseed} bytes")
-        derive_input = seed + U16Prefixed(info)
-        for counter in range(256):
-            s = self.HashToScalar(
-                derive_input + I2OSP(counter, 1),
-                DST=b"DeriveScalar-" + self.ctx_proto,
+        half = Nseed // 2
+        left, right = seed[:half], seed[half:]
+        for i in range(4):
+            mask = expand_message_xmd(
+                key + I2OSP(i, 1) + right,
+                b"SeedToScalar-" + self.ctx_proto,
+                half,
             )
-            if not s.isZero():
-                return s
-        raise DeriveError
+            left, right = right, _xor(left, mask)
+        s = self.scalar(int.from_bytes(left + right, "big") % self.Order())
+        if s.isZero():
+            raise DeriveError
+        return s
 
     def DeriveNonce(
         self, secret: bytes, label: bytes, instance: bytes, aux: bytes
     ) -> P256Scalar:
-        if len(aux) != Nseed:
-            raise ValueError(f"aux must be exactly {Nseed} bytes")
         derive_nonce_input = (
             U16Prefixed(label)
             + I2OSP(len(secret), 4)
             + secret
             + I2OSP(len(instance), 4)
             + instance
-            + U16Prefixed(aux)
         )
-        seed = expand_message_xmd(
-            derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
+        key = expand_message_xmd(
+            derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nh
         )
-        return self.DeriveScalar(seed, label)
+        return self.SeedToScalar(key, aux)
 
-    def DeriveKeyPair(self, seed: bytes, info: bytes) -> tuple[P256Scalar, P256Element]:
-        skA = self.DeriveScalar(seed, info)
-        pkA = self.ScalarMultGen(skA)
-        return (skA, pkA)
+    def DeriveKeyPair(
+        self, seed: bytes, info: bytes
+    ) -> tuple[P256Scalar, P256Element]:
+        if len(seed) != Nseed:
+            raise ValueError(f"seed must be exactly {Nseed} bytes")
+        derive_input = seed + U16Prefixed(info)
+        for counter in range(256):
+            skA = self.HashToScalar(
+                derive_input + I2OSP(counter, 1),
+                DST=b"DeriveKeyPair-" + self.ctx_proto,
+            )
+            if not skA.isZero():
+                return (skA, self.ScalarMultGen(skA))
+        raise DeriveError
 
     def GenerateKeyPair(self) -> tuple[P256Scalar, P256Element]:
         seed = random(Nseed)

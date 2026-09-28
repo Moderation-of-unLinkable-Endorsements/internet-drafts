@@ -30,7 +30,8 @@ def test_shared_derivation_preserves_domain_separation(monkeypatch):
     seed = bytes(range(act.Nseed))
     skM, pkM = act.G.DeriveKeyPair(seed, b"GenerateKeyPair")
     assert pkM == act.G.ScalarMultGen(skM)
-    assert skM != ihat.G.DeriveScalar(seed, b"GenerateKeyPair")
+    assert skM != ihat.G.DeriveKeyPair(seed, b"GenerateKeyPair")[0]
+    assert act.G.DeriveScalar(seed, b"x") != ihat.G.DeriveScalar(seed, b"x")
     monkeypatch.setattr(
         common.secrets, "token_bytes", lambda size: seed
     )
@@ -43,7 +44,7 @@ def test_shared_derivation_preserves_domain_separation(monkeypatch):
             act.G.DeriveScalar(wrong, b"test")
 
 
-def test_derivation_retries_zero_and_exhausts(monkeypatch):
+def test_key_derivation_retries_zero_and_exhausts(monkeypatch):
     calls = []
 
     def hash_to_scalar(value, *, DST):
@@ -51,15 +52,14 @@ def test_derivation_retries_zero_and_exhausts(monkeypatch):
         return act.G.scalar(int(value[-1] == 2))
 
     monkeypatch.setattr(act.G, "HashToScalar", hash_to_scalar)
-    assert act.G.DeriveScalar(
-        bytes(act.Nseed), b"test"
-    ) == act.G.scalar(1)
+    skM, _ = act.G.DeriveKeyPair(bytes(act.Nseed), b"test")
+    assert skM == act.G.scalar(1)
     assert [v[-1] for v, _ in calls] == [0, 1, 2]
     assert all(
-        dst == b"DeriveScalar-ACTv1-P256-SHA256" for _, dst in calls
+        dst == b"DeriveKeyPair-ACTv1-P256-SHA256" for _, dst in calls
     )
     monkeypatch.setattr(
         act.G, "HashToScalar", lambda value, *, DST: act.G.scalar(0)
     )
     with pytest.raises(DeriveError):
-        act.G.DeriveScalar(bytes(act.Nseed), b"test")
+        act.G.DeriveKeyPair(bytes(act.Nseed), b"test")

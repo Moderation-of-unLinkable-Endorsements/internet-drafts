@@ -146,3 +146,53 @@ def test_derive_nonce_binds_every_input():
         assert other != nonce
     with pytest.raises(ValueError):
         G.DeriveNonce(b"secret", b"label", b"instance", aux[1:])
+
+
+def _unpermute_seed(group, key, value):
+    from ihat import common
+    from ihat.ciphersuite import _xor, expand_message_xmd
+    from ihat.common import I2OSP
+
+    half = common.Nseed // 2
+    left, right = value[:half], value[half:]
+    for i in reversed(range(4)):
+        mask = expand_message_xmd(
+            key + I2OSP(i, 1) + left,
+            b"SeedToScalar-" + group.ctx_proto,
+            half,
+        )
+        left, right = _xor(right, mask), left
+    return left + right
+
+
+def test_seed_to_scalar_permutes_then_reduces():
+    from ihat import common
+    from ihat.ciphersuite import DeriveError
+
+    G = P256Group(b"test")
+    key = bytes(range(32))
+    for target in (bytes(range(48)), bytes(range(100, 148)), b"\xff" * 48):
+        seed = _unpermute_seed(G, key, target)
+        expected = int.from_bytes(target, "big") % ORDER
+        assert int(G.SeedToScalar(key, seed)) == expected
+    with pytest.raises(DeriveError):
+        G.SeedToScalar(key, _unpermute_seed(G, key, bytes(common.Nseed)))
+    with pytest.raises(ValueError, match="seed must be exactly 48 bytes"):
+        G.SeedToScalar(key, bytes(common.Nseed - 1))
+
+
+def test_related_randomness_gives_unrelated_nonces():
+    # Nonces for one operation whose aux differ in a single bit must not
+    # differ by a known amount, or two proofs reveal the witness.
+    from ihat import common
+
+    G = P256Group(b"test")
+    aux = bytes(range(common.Nseed))
+    nonce = G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    for position in range(common.Nseed):
+        for bit in (0, 7):
+            related = bytearray(aux)
+            related[position] ^= 1 << bit
+            other = G.DeriveNonce(b"secret", b"label", b"instance", bytes(related))
+            difference = int(nonce - other)
+            assert min(difference, ORDER - difference) > 2**200

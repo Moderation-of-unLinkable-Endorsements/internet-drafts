@@ -243,7 +243,8 @@ read-only sequence.
 
 For any byte string `x`, `len(x)` denotes its length in bytes.
 
-For two byte strings `x` and `y`, `x + y` denotes their concatenation.
+For two byte strings `x` and `y`, `x + y` denotes their concatenation, and,
+if they are of equal length, `_xor(x, y)` denotes their bytewise exclusive or.
 
 For a byte string `x`, `x[i:j]` denotes the substring of `x` that begins at
 its byte with index `i` and ends just before its byte with index `j`, where
@@ -298,10 +299,12 @@ as described in {{Section 2.1 of OPRF}}. The types `Element` and `Scalar`
 denote elements of the group and of its scalar field respectively. Group
 elements are added with `+` and subtracted with `-`; scalar multiplication of
 an `Element` `A` by a `Scalar` `r` is written `r * A`. Scalars are added,
-subtracted, and multiplied modulo `p`.
+subtracted, and multiplied modulo `p`. In the Python snippets, `G.scalar(x)`
+converts an integer `x` in `[0, p)` to a `Scalar`.
 
-The group also provides `G.DeriveScalar`, `G.DeriveKeyPair`, and
-`G.GenerateKeyPair`, defined in {{derive-scalar}} and {{keygen}}.
+The group also provides `G.DeriveScalar`, `G.SeedToScalar`,
+`G.DeriveNonce`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`, defined in
+{{derive-scalar}}, {{derive-nonce}}, and {{keygen}}.
 
 The following member functions are used. Except where noted, they are as
 defined in {{Section 2.1 of OPRF}}.
@@ -349,7 +352,8 @@ DeserializeScalar(buf):
 
 This document does not use the `RandomScalar()` member of
 {{Section 2.1 of OPRF}}. Every scalar that has to be unpredictable is instead
-obtained from `G.DeriveScalar` ({{derive-scalar}}), which is deterministic in a
+obtained from `G.DeriveScalar` ({{derive-scalar}}), `G.DeriveNonce`
+({{derive-nonce}}), or `G.DeriveKeyPair` ({{keygen}}), each deterministic in a
 random seed. This makes each algorithm reproducible from the seed it is given,
 which is what allows the test vectors of {{test-vectors}} to pin the randomness
 of an otherwise randomized protocol.
@@ -456,77 +460,96 @@ the context is fixed when `G` is constructed.
 
 ## Deriving Scalars {#derive-scalar}
 
-The group method `G.DeriveScalar` derives a value in the scalar field
-of `G`. To generate a random scalar, call it with a fresh random seed
-and an appropriate `info` string:
+The group method `G.DeriveScalar` derives a value in the scalar field of `G`.
+To generate a random scalar, call it with a fresh random seed and an
+appropriate `info` string:
 
 ~~~python
 def DeriveScalar(self, seed: bytes, info: bytes) -> Scalar:
-    if len(seed) != Nseed:
-        raise ValueError(f"seed must be exactly {Nseed} bytes")
-    derive_input = seed + U16Prefixed(info)
-    for counter in range(256):
-        s = self.HashToScalar(
-            derive_input + I2OSP(counter, 1),
-            DST=b"DeriveScalar-" + self.ctx_proto,
-        )
-        if not s.isZero():
-            return s
-    raise DeriveError
+    key = expand_message_xmd(
+        U16Prefixed(info), b"DeriveScalar-" + self.ctx_proto, Nh
+    )
+    return self.SeedToScalar(key, seed)
 ~~~
 
-The output is never zero, so a caller that needs a nonzero scalar needs no
-further check. The loop terminates after one iteration except with probability
-approximately `1/p`, and `DeriveError` is raised only if 256 consecutive
-iterations yield zero. This probability is negligible and can safely be
-ignored. That is, implementations might choose to panic rather than handle this
-exception. See {{security-considerations}} for details.
+The group method `G.SeedToScalar` permutes a seed with a four-round Feistel
+network whose round functions are keyed by `key`, and reduces the result
+modulo `p`:
+
+~~~python
+def SeedToScalar(self, key: bytes, seed: bytes) -> Scalar:
+    if len(seed) != Nseed:
+        raise ValueError(f"seed must be exactly {Nseed} bytes")
+    half = Nseed // 2
+    left, right = seed[:half], seed[half:]
+    for i in range(4):
+        mask = expand_message_xmd(
+            key + I2OSP(i, 1) + right,
+            b"SeedToScalar-" + self.ctx_proto,
+            half,
+        )
+        left, right = right, _xor(left, mask)
+    s = self.scalar(int.from_bytes(left + right, "big") % self.Order())
+    if s.isZero():
+        raise DeriveError
+    return s
+~~~
+
+`expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
+hash function of the ciphersuite. The Feistel network is a permutation of
+`Nseed`-byte strings for every key, so it maps a uniformly random seed to a
+uniformly random string. The reduction is the one `hash_to_field` applies to
+uniform bytes ({{Section 5.2 of HASH2CURVE}}), and since `Nseed` exceeds `Ns`
+by 16 bytes ({{ciphersuites}}), the scalar derived from a uniformly random
+seed is within about `2^-128` of uniform over the nonzero scalars. The output
+is zero, and `DeriveError` raised, with probability about `1/p`. This
+probability is negligible, and implementations might choose to panic rather
+than handle the exception.
 
 A seed MUST be `Nseed` bytes of `random` output, and MUST NOT be used for more
 than one derivation. An algorithm that needs several scalars therefore draws
 `Nseed` bytes for each of them, and additionally separates them by `info`;
 deriving several scalars from one seed would cap their joint entropy at the
-length of that seed. `HashToScalar` computes its output from a single
-intermediate digest of `Nh` bytes ({{Section 5.3.1 of HASH2CURVE}}), and the
-scalar field of the ciphersuite of this document has about `2^(8 * Nh)`
-elements. With the hash modeled as a random function, `G.DeriveScalar`
-therefore reaches only about `1 - 1/e` of the scalar field, and derived
-scalars are pseudorandom; see {{randomness}} and {{security-considerations}}.
+length of that seed, which the unlinkability argument of
+{{security-considerations}} does not permit. See {{randomness}}.
 
 ## Deriving Nonces {#derive-nonce}
 
 A nonce that must never repeat, such as that of a proof of knowledge, is
-derived rather than drawn. The group method `G.DeriveNonce` computes it
-from a secret the party holds, a public description of the operation, and
-fresh randomness, so that it repeats only if all of its inputs repeat:
+derived rather than drawn. The group method `G.DeriveNonce` permutes fresh
+randomness under a key derived from a secret the party holds and a public
+description of the operation, so that the nonce repeats only if all of its
+inputs repeat:
 
 ~~~python
 def DeriveNonce(
     self, secret: bytes, label: bytes, instance: bytes, aux: bytes
 ) -> Scalar:
-    if len(aux) != Nseed:
-        raise ValueError(f"aux must be exactly {Nseed} bytes")
     derive_nonce_input = (
         U16Prefixed(label)
         + I2OSP(len(secret), 4)
         + secret
         + I2OSP(len(instance), 4)
         + instance
-        + U16Prefixed(aux)
     )
-    seed = expand_message_xmd(
-        derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
+    key = expand_message_xmd(
+        derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nh
     )
-    return self.DeriveScalar(seed, label)
+    return self.SeedToScalar(key, aux)
 ~~~
 
-`expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
-hash function of the ciphersuite; its output is consumed by
-`G.DeriveScalar` as a seed, used once. Every `instance` in this document
-is an unambiguous encoding, with its variable-length parts
-length-prefixed. Implementations MUST wipe `secret`,
-`derive_nonce_input`, `seed`, and the returned value once it has been
-used.
+`aux` is a seed of `Nseed` bytes. When it is uniformly random, the nonce is
+distributed as a derived scalar ({{derive-scalar}}), whatever the key. The key
+is a pseudorandom function of `secret` at a point that identifies the
+operation, and with it the Feistel network of `G.SeedToScalar` is a
+pseudorandom permutation. When the random source fails, whether by repeating,
+by returning a constant, or by returning related values, the nonce is
+therefore still unpredictable to a party that does not know `secret`, and
+unrelated to the nonce of any other operation or of any other value of
+`aux`. Every `instance` in this document is an unambiguous encoding, with its
+variable-length parts length-prefixed. Implementations MUST wipe `secret`,
+`derive_nonce_input`, `key`, the intermediate values of `G.SeedToScalar`, and
+the returned value once it has been used.
 
 ## Key Generation {#keygen}
 
@@ -540,16 +563,23 @@ secrecy of `seed`. On the other hand, the `info` string is usually public.
 def DeriveKeyPair(
     self, seed: bytes, info: bytes
 ) -> tuple[Scalar, Element]:
-    skA = self.DeriveScalar(seed, info)
-    pkA = self.ScalarMultGen(skA)
-    return (skA, pkA)
+    if len(seed) != Nseed:
+        raise ValueError(f"seed must be exactly {Nseed} bytes")
+    derive_input = seed + U16Prefixed(info)
+    for counter in range(256):
+        skA = self.HashToScalar(
+            derive_input + I2OSP(counter, 1),
+            DST=b"DeriveKeyPair-" + self.ctx_proto,
+        )
+        if not skA.isZero():
+            return (skA, self.ScalarMultGen(skA))
+    raise DeriveError
 ~~~
 
-The derivation is the one {{Section 3.2 of OPRF}} performs inline: hash
-`seed + U16Prefixed(info)` together with a counter, rejecting zero
-({{derive-scalar}}). It differs only in its domain separation tag, which comes
-from the protocol context of this document rather than from an OPRF context
-string, and in the length of the seed.
+The derivation differs from that of {{Section 3.2 of OPRF}} only in its domain
+separation tag, which comes from the protocol context of this document rather
+than from an OPRF context string, and in the length of the seed. The loop
+terminates after one iteration except with probability about `1/p`.
 
 A fresh key pair is generated by deriving one from a random seed.
 
@@ -1154,9 +1184,9 @@ Two properties of this branch proof are what allow the composition below, and
 verifying commitment can be computed for *any* statement from a challenge and a
 response, by the function above, without knowing a witness; this is the
 extended honest-verifier zero-knowledge property. Second, the response is
-a fixed shift of the derived nonce `r`, which is indistinguishable from
-uniform, and so reveals nothing about the statement or witness that produced
-it; see {{security-considerations}}. One response can therefore be reused across
+a fixed shift of the derived nonce `r`, and so is statistically close to
+uniform independently of the statement and witness; see
+{{security-considerations}}. One response can therefore be reused across
 branches without revealing which branch produced it.
 
 It follows that a verifier given `proof_challenge` and one `response` can
@@ -1975,7 +2005,10 @@ ciphersuite in use ({{config}}).
 
 For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
 length is `Nn = 32` bytes and the seed length is `Nseed = Ns + 16` bytes, that
-is 48 bytes, for the ciphersuite below.
+is 48 bytes, for the ciphersuite below. The 16 bytes in excess of `Ns` make
+a derived scalar statistically close to uniform ({{derive-scalar}}), on the
+same grounds that {{HASH2CURVE}} oversamples by 16 bytes when it maps a byte
+string to a field element.
 
 ## IHAT(P-256, SHA-256)
 
@@ -2034,9 +2067,10 @@ P:
 ## Randomness {#randomness}
 
 Every random value in this document is a seed of `Nseed` bytes, drawn with
-`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}) or, for the
-nonce `r` of `ProveIssuer`, by `G.DeriveNonce` ({{derive-nonce}}); no
-scalar is sampled directly. Implementations MUST draw seeds with a
+`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}), by
+`G.DeriveKeyPair` ({{keygen}}) for a key, or by `G.DeriveNonce`
+({{derive-nonce}}) for the nonce `r` of `ProveIssuer`; no scalar is sampled
+directly. Implementations MUST draw seeds with a
 cryptographically secure random number generator and MUST NOT reuse a seed
 across derivations.
 They SHOULD treat a seed as being as sensitive as the values derived from it,
@@ -2064,27 +2098,27 @@ Blindness:
 : All the Anchor receives in a session is the blinded challenge `c * gamma2`.
   With uniform blinding factors, the blinded challenge is uniformly
   distributed and independent of the message and of the resulting signature,
-  and the scheme is perfectly blind {{TESSZHU}}. With the derived blinding
-  factors of this document it is computationally blind ("Derived blinding
-  factors" below): an Anchor cannot link an Endorsement to the session that
-  produced it. Blindness does not rest on the hardness of discrete
-  logarithms, so recovering them with a quantum computer does not break it,
-  as {{ARCH}} requires of the unlinkability of endorsement grants and
-  redemptions.
+  and the scheme is perfectly blind {{TESSZHU}}. The derived blinding factors
+  of this document are each within about `2^-128` of uniform ("Derived
+  blinding factors" below), so the scheme is statistically blind: an Anchor
+  cannot link an Endorsement to the session that produced it, even with
+  unbounded computation. This is what makes endorsement grants and
+  redemptions unlinkable as required by {{ARCH}}, including against an
+  attacker with a quantum computer that records transcripts today.
 
 Derived blinding factors:
 : `Challenge` derives its blinding factors with `G.DeriveScalar`, and
-  `Redeem` derives `delta` and the scalars of its proof the same way. A
-  derived scalar lies in a set covering about `1 - 1/e` of the scalar field
-  ({{derive-scalar}}). An adversary that could decide membership in that set
-  could discard each candidate session, or Anchor, whose implied blinding
-  factors fall outside it, and deciding membership requires inverting the
-  hash. Blindness and issuer hiding are therefore computational, with the
-  hash modeled as a random oracle. Each scalar has its own seed: deriving
+  `Redeem` derives `delta` and the commitment keys and openings of its proof
+  the same way, and the nonce `r` with `G.DeriveNonce`, whose output is
+  distributed as a derived scalar when its seed is uniformly random
+  ({{derive-nonce}}). Each is within about `2^-128` of uniform
+  ({{derive-scalar}}), so the four blinding factors of a session are jointly
+  within about `2^-126` of uniform, and blindness holds against unbounded
+  computation up to that distance. Each scalar has its own seed: deriving
   several scalars from one seed would bound their joint entropy by that
   seed's, and an exhaustive search over seeds would identify the one session
-  consistent with a given Endorsement. Implementations MUST NOT derive
-  several scalars from one seed.
+  consistent with a given Endorsement.
+  Implementations MUST NOT derive several scalars from one seed.
 
 Derived proof nonce:
 : A repeated Schnorr nonce in `ProveIssuer` reveals `delta`, which links the
@@ -2130,12 +2164,12 @@ Unforgeability under rerandomization:
   one-more unforgeability game.
 
 Issuer hiding:
-: To an adversary that cannot tell derived scalars from uniform ones, a
-  redemption reveals no information about which Anchor in `anchor_set` issued
-  the Endorsement, so a Moderator, an Anchor, and the two colluding learn only
-  that some key in `anchor_set` was used. Three facts establish this.
-  `X_hat` and the `response` of the single branch proof are indistinguishable
-  from uniform independently of the branch ({{branch}}). And the commitment
+: Up to the statistical distance given below, a redemption reveals no
+  information about which Anchor in `anchor_set` issued the Endorsement, so a
+  Moderator, an Anchor, and the two colluding learn only that some key in
+  `anchor_set` was used. Three facts establish this. `X_hat` and the
+  `response` of the single branch proof are statistically close to uniform
+  independently of the branch ({{branch}}). And the commitment
   scheme of {{pbvc}} hides which position it binds: a commitment key is
   distributed over the group essentially independently of that position, and
   an opening essentially independently of whether the value it opens to was
@@ -2145,12 +2179,14 @@ Issuer hiding:
 
 : The commitment of {{pbvc}} hides which position it binds, and the stacked
   composition is witness indistinguishable (appendix and Section 7 of
-  {{STACKSIG}}); those results assume uniform randomness, and the
-  `2 * q + 2` scalars a redemption derives are pseudorandom ("Derived
-  blinding factors" above), so issuer hiding is computational. It does not
-  rest on the hardness of discrete logarithms: the *binding* property of the
-  commitment does, and not its hiding, which is the direction {{ARCH}}
-  requires.
+  {{STACKSIG}}); those results assume uniform randomness, and each of the
+  `2 * q + 2` scalars a redemption derives is within about `2^-128` of
+  uniform ("Derived blinding factors" above), a statistical distance of at
+  most `(2 * q + 2) * 2^-128`. Like blindness, issuer hiding therefore holds
+  against unbounded computation, including a quantum computer that records
+  transcripts today. It is the *binding* property of the commitment, and not
+  its hiding, that rests on the discrete logarithm, which is the direction
+  {{ARCH}} requires.
 
 Partially binding commitments:
 : The soundness of the issuer-hiding proof rests on two things: the
