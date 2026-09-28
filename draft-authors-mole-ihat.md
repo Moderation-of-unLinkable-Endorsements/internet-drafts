@@ -210,12 +210,10 @@ This document is a work in progress. This revision specifies:
   proof over a Moderator's Anchor Set, whose size is logarithmic in that of the
   Anchor Set, and the algorithms `Redeem` and `VerifyRedemption`
   ({{redemption}});
-* one ciphersuite, over P-256.
+* one ciphersuite, over P-256, with test vectors ({{test-vectors}}).
 
-The following are **not yet specified** and are marked as such in the text:
-
-* the full security considerations ({{security-considerations}});
-* test vectors ({{test-vectors}}).
+The formal security statements and reductions are not yet written, and are
+marked as such in {{security-considerations}}.
 
 {{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
 redemption APIs. It supplies the issuance and redemption contexts; this
@@ -2340,17 +2338,212 @@ specified here is registered by {{PROTOCOLS}}.
 
 # Test Vectors {#test-vectors}
 
-> **TODO.** Test vectors for `G.DeriveKeyPair`, `G.DeriveScalar`,
-> `P`, `CreateContextBase`, `Message`, `ComputeChallenge`,
-> the four issuance algorithms, `Verify`, `CommitStep`, `GenerateVecBind`,
-> `ComputeProofChallenge`, `Redeem`, and `VerifyRedemption`, for each
-> ciphersuite in {{ciphersuites}}. Issuance and redemption are randomized,
-> but every algorithm is a deterministic function of the bytes it draws from
-> `random`, so a vector fixes one value per algorithm: the key seed, the
-> `rand` of `Commit`, the `rand` of `Challenge`, and the `rand` of `Redeem`.
-> A redemption vector also has to fix the Anchor Set, its order, the
-> Client's `index` in it, and a `challenge_digest`, and SHOULD include one
-> Anchor Set whose size is odd.
+The vectors below cover the ciphersuite of {{ciphersuites}}: `G.DeriveScalars`,
+the permutation `P`, a key pair, one issuance, and redemptions of the
+resulting Endorsement against an Anchor Set of two keys and against one of
+five. Byte strings are in hexadecimal, wrapped at 64 digits with the
+continuation lines indented; integers are decimal.
+
+Every algorithm is a deterministic function of the bytes it draws from
+`random`. Each `rand` entry is the concatenation of every `random` call the
+algorithm makes, in the order made; an implementation replays a vector by
+serving those bytes in place of `random`. For `G.GenerateKeyPair` it is the
+key seed; for `Commit`, the `3 * Nseed` bytes of `(a, t, y)`; for
+`Challenge`, the `Nn` bytes of the nullifier and then the `4 * Nseed` bytes
+of the blinding factors; and for `Redeem`, the `Nseed` bytes of `delta` and
+then the `(2 * q + 1) * Nseed` bytes of the issuer-hiding proof. The
+`commit.state` entry is the `AnchorState` `(a, y, t)` as
+`SerializeScalar(a) || SerializeScalar(y) || SerializeScalar(t)`, and the
+`challenge.state` entry is `nf || SerializeScalar(r1) || SerializeScalar(r2)
+|| SerializeScalar(gamma1) || SerializeScalar(gamma2) || SerializeScalar(c)`.
+`issue.Z` is `CreateContextBase(ctx_iss)`, and `key.P_pkA` is `P(pkA)`.
+Every message and `endorsement` entry is an encoding of {{wire}} or
+{{redemption-wire}}, and both issuance messages carry `issue.session_id`.
+The keys of each Anchor Set other than `key.pkA` were generated for the
+vectors. Both redemptions present the same Endorsement, which a Moderator
+would accept only once; each `nf` entry is the output of `VerifyRedemption`.
+
+## Ciphersuite {#ihat-tv-suite}
+
+~~~
+suite.identifier = 503235362d534841323536
+suite.ctx_proto = 4948415476312d503235362d534841323536
+~~~
+
+## Scalar Derivation {#ihat-tv-derive}
+
+~~~
+derive.info = 49484154207465737420766563746f7273
+derive.rand =
+    b491ebc7b27ab6686b79b3baaf7b25927fbe526f960022f8a57d19117e851a24
+    c92c63561f2eeaa41bf2ccd38f542fc9529989449460c9ba637562b809c0aa66
+    16e8abeb471ae9ca90d5a167ee82e11c1883c884b90089705e685340c4a71e24
+    2db356c9b2d831181cd46fbbf6700b24fdfbd763307775e8ea735664aa6752cf
+    143b4285c4babf4bf236040ce535d9bd
+derive.scalars =
+    8e206776b3b13202c0f91c77cdf07545a53224a8a70a9392e67cd8b5c514aae0
+    65fbf5ed7bff2e0ae92988c17faaa8b0d087574322006e06e05e103c5cf8de20
+    6d4e18742f79608cc98eadebfe23df733edf4cd3ac80229ecdb1370ec48f4660
+~~~
+
+## Key Pair {#ihat-tv-key}
+
+~~~
+key.rand =
+    43e61c3cab7fe45a244be4ee39d021ca8f321e60e3551edc333b35ef5a02fa60
+    348b68d1f71146eaa46d223bf89eda15
+key.skA =
+    bb38180155e1f20d1dbf004c91509fa7e29df40d3198188343e9ea0c15691a25
+key.pkA =
+    02780ffa25f6b3c2cdef39d64a847a3bcc03a137696e1a57d984fb486ebaae74
+    d9
+key.P_pkA =
+    02bb8cf74bf5298da4247cb2f15a56d3b69ce9ccac80868af957ac732aedf3f3
+    3f
+~~~
+
+## Issuance {#ihat-tv-issue}
+
+~~~
+issue.ctx_iss =
+    49484154207465737420766563746f72732069737375616e636520636f6e7465
+    7874
+issue.ctx_red =
+    49484154207465737420766563746f727320726564656d7074696f6e20636f6e
+    74657874
+issue.Z =
+    03e4d8bd93a95d62cd6206c01a2bb88b801e00c347fb2c76a42471d0d86c581e
+    2f
+issue.session_id =
+    49484154207465737420766563746f72732073657373696f6e
+issue.commit.rand =
+    eb65750be50f08b753084e5aaa5c7ff1f5cf704df5ff6f50580f86252b68036a
+    585fbf3cb880193720458e840ee62cad256fba5c97cd71c863a51eb09f00bf3d
+    62fa2f414b1ed06d89c26b44730cccb252c54acf76286e21578da59d7b1c550a
+    aff8cf57c97aac37fcfc8173983bb9ccb6c290cc04ab3c2be5bd926e8136099b
+    15521c0ab3cef48a36e8198a0c408479
+issue.commit.state =
+    6cd55389982a5c4869bd6d032eacbaad5999f837b3ec5cb26e0768daef846cc5
+    409d9ffa301f945abbde0a5976c015597156ee6de3741cd92b7cf0da93cc2cb1
+    7207b5513db23b55be86e6aca9c43c7fea0d630a978a18ef547a5ccd72c5f6a5
+issue.commit.message =
+    1949484154207465737420766563746f72732073657373696f6e02ff0bf3fe5d
+    4b74e6fc1a85f6c64e9c3b66dfb56fe51cf1435c6e3418cc4c37b803b71161f4
+    7bb7f161bdf97a0859c0e64c7dba8e9cf36b47f2f8be78b9dcef70b7
+issue.challenge.rand =
+    a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
+    2a241e1d7dbc231c763814e297999defaae82d271329fe3f288521b3d0af9771
+    e6c1812536b9f0e6d1e07cdda9a0850577268339096617cbe15784664fc20913
+    9ebaf59d04a9552f879c222da6da5a7dd0128f373861dc677b01bd9f29c0b609
+    355f703f6de72c62525470ab4fb53b7f674840a349e1668ad7b07c47f260de04
+    6e818e1df225daf8aee6c7a2229e2e0f812ee948219b18dc924f922dbc4f2fe2
+    cf0a100d3e5d2c41cdacdd8830a71924e5e0f3b482715d168da08cbb4eae6722
+issue.challenge.state =
+    a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
+    43fe130a855f39c1bdb878eb9ba77da55581a0c1a19020610ade2189c3c715c2
+    6b8b66575f3da50fca56c6a912423c6a4c323234360b70a1418619f5a50f58a6
+    c8b87746de082662bafc05d4c1720c20c8a085330b8b897b18c5a7fcc2b49495
+    85aaf1c778de16955727c890f99f97ce7c9f9bbd60a2fa0e5d228ca31e426b8f
+    51b91bf8ace61d102b64eac49b8c1b2fd4e56be08b5e359293834b032fe97e2a
+issue.challenge.message =
+    1949484154207465737420766563746f72732073657373696f6e450a2afe6c32
+    b223ecc974fc9d9fd99873f97b635facd5a45da73a5c7a0071c1
+issue.response.message =
+    a436e9af9871967ba9f4d11cb09e81a7cd19d079f822e0a0144658fc65140333
+    409d9ffa301f945abbde0a5976c015597156ee6de3741cd92b7cf0da93cc2cb1
+    7207b5513db23b55be86e6aca9c43c7fea0d630a978a18ef547a5ccd72c5f6a5
+issue.endorsement =
+    51b91bf8ace61d102b64eac49b8c1b2fd4e56be08b5e359293834b032fe97e2a
+    c003fbcf365ef3343bbf170455d0729ae578be8e847d936b551d8acf3768f3d5
+    77721b72226a41306dea580615b3a9b87e6aca355a59c1676cde64630e8e43e3
+    20e054407aa628fd699c51f6dc063e230c6b531dfb4dbf485280102bf9e918f9
+    a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
+~~~
+
+## Redemption Against 2 Anchors {#ihat-tv-redeem2}
+
+~~~
+redeem2.index = 1
+redeem2.anchor_set =
+    0294d7e1b3ffc50baff230b23fa2a82a1d270901ba0559abffa0446d12af7f80
+    9b02780ffa25f6b3c2cdef39d64a847a3bcc03a137696e1a57d984fb486ebaae
+    74d9
+redeem2.challenge_digest =
+    49484154207465737420766563746f7273206368616c6c656e67652064696765
+    7374
+redeem2.rand =
+    b5b84e47277be49f3a309f5c72b88342e544f4965ef73713170cf727be01aa59
+    dfcd9b73ae23f6d23063274409ef20fae8d6b0429e2cc02d434975d44f6d83b7
+    105c44d41ef0caf7290a0eb6c718ac2107d391f16b4d744f2e413c099dc33efc
+    e8cf2e642f9a8b1e1f830b307bb478a7f04836a3ebe89a7096e32a14f6023ba1
+    3a779487b86c6453d0c3a22d7a8d25edb8daf4d6e45f80cd035a94f9baa71586
+    99045ffeeaeaadac7dd42aa1dfb9f6767b8425c147eb7fde296d1a4e579b398b
+redeem2.delta =
+    8d50da85b3ce520151fa848e777febfe277dfa83e2c2508605b8faedfad248cc
+redeem2.message =
+    02fc2eb316f16330ff67c150960f49e687e90941523eedfd332fc24224739ed2
+    9951b91bf8ace61d102b64eac49b8c1b2fd4e56be08b5e359293834b032fe97e
+    2a8c76e8408e0d15504e1e9a6426365a3abc40f258cdc11ee8532647a348c82e
+    5777721b72226a41306dea580615b3a9b87e6aca355a59c1676cde64630e8e43
+    e320e054407aa628fd699c51f6dc063e230c6b531dfb4dbf485280102bf9e918
+    f9a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55
+    d75422ea9bdb85d798207f4933173ea51c503a9dfeb0840596692c676f84f8bc
+    d6086eead4dbcf264800df1177d01cfb5d2c5c774d614b5f6d263cb64cd174bf
+    562103c522892dd6077689cb1a56db39cba38759ad4011dd6d9d701f55a0beee
+    57af0620f42fa853d32f190f397129fb17686cdeca68f4ad94cf9dbc74a6c938
+    b4d56838
+redeem2.nf =
+    a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
+~~~
+
+## Redemption Against 5 Anchors {#ihat-tv-redeem5}
+
+~~~
+redeem5.index = 3
+redeem5.anchor_set =
+    03b2a4499ad643cee1225a21b1777586bb309933fd5e7ce6a041d0c685ea43ed
+    8102bdc1404aa8e4528c2c0a39224adbfba230b91f379d5fc53a3d658bd673f6
+    9afb0282203c62d4dff1f268b01b70d0b47c6ae30ec5482a79a667c7d937ad83
+    0334a002780ffa25f6b3c2cdef39d64a847a3bcc03a137696e1a57d984fb486e
+    baae74d903f955d5f33ceafc64459ec629d2bf82aa4f72c5b8bf2ae86970147f
+    b99d7a2786
+redeem5.challenge_digest =
+    49484154207465737420766563746f7273206368616c6c656e67652064696765
+    7374
+redeem5.rand =
+    3f35c08f755d907004a5a357b62ecd32f24e3076545f1a625ffbe81e63307899
+    60b02229f19d93f6b17f731488995c72f2ea660953aabd8df0dbd67cb175c601
+    17b027882f1251240e3681ac2edd0b6264a6298c1120f78010c1c22d4a8e70c0
+    d9639c54171618349157efcf43292bf7d915f417f05490371abf23fe03a79c8d
+    1b65fea1626e807cc856f008c0a13fbe5e79b4c1ac553607b84b8800a5b40a41
+    05d12b072e7433005d0f8f0b1111c921556a1c233d8d7aedc8f3fbda37684bf9
+    0d623275838ee926f823907225d68a9a7ef9554dbb7ff3b52ef630aa78ad2a64
+    fc6c463d83217c48e88a4dd2d40361aa6e0b1b04145c2b8fb7c450368889c5dd
+    a1150544b4cabfc08885cedc13df9c9025b18f33e00ce2bd32e354f710448b76
+    74119e9a7330397207807762cba41d01492856053193de68a1250e69faaa5296
+    059c82fbd1cc18c3b02783df9758655904829b0f695510bf049bd0d8cc0c161e
+    c9fd749aba93c804e0d16deb24d1a2fe9f8816a2903f052badff99e3fc5865a0
+redeem5.delta =
+    df197ae93fb0d02b9872577b08720d915e5f48d4f70da620d77aaecf3d875fbc
+redeem5.message =
+    02ccf7d53054c50ba38c35fce6a6b1dbd489e2aa07ca6594a93135318545fb61
+    0651b91bf8ace61d102b64eac49b8c1b2fd4e56be08b5e359293834b032fe97e
+    2a6f03c282d40e18e54d3ec627ba3fdb8f3d4f79c493bee806422c807c23e266
+    8677721b72226a41306dea580615b3a9b87e6aca355a59c1676cde64630e8e43
+    e320e054407aa628fd699c51f6dc063e230c6b531dfb4dbf485280102bf9e918
+    f9a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55
+    d7e0d18a33b799c1fef2123c4bc5838e4642f1ae6c2031e616851aa173e7738b
+    23600c2521c543acb1d1a379a6573f115a44dad79eed5c6e4e1d69b9b6086c35
+    e34063028071ef2eb426297682105021e0d2a1eb5211c88bbbacbe271bf35c56
+    f527c2e8022842d140f227cbb69e5c88e91f2e97b4c93e971565037b0553b238
+    4a59a50f9a03132481ef776b9c424849d57e3d02d27a5c304dcbf97b58aa18ec
+    4926d708926740603f510c59a33a9322b213933a235061592e9a7426958a27b7
+    871e48535190cceff6b98ca7674cc2c7bc1fb0d3a128d076deabdff9a0c36053
+    65fd12adf372250dd1237325de17f4dc2c0394c4a14b627b1c2bc3a393e5a7f6
+    832f4d3da25cba9d
+redeem5.nf =
+    a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
+~~~
 
 # Acknowledgments
 {:numbered="false"}
