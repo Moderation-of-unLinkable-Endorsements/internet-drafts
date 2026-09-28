@@ -244,12 +244,11 @@ algorithm.
 
 A seed MUST be `Nseed` bytes of `random` output, and MUST NOT be used for more
 than one derivation. An algorithm that needs several scalars therefore draws
-`Nseed` bytes for each of them, and additionally separates them by `info`.
-`Nseed` is larger than `Ns` ({{ciphersuites}}) so that the derived scalar is
-statistically close to uniform rather than merely unpredictable; deriving
-several scalars from one seed instead would cap their joint entropy at the
-length of that seed, which the unlinkability argument of
-{{act-security}} does not permit. See {{randomness}}.
+`Nseed` bytes for each of them, and additionally separates them by `info`;
+deriving several scalars from one seed would cap their joint entropy at the
+length of that seed. Derived scalars are pseudorandom (Section 4.2 of
+{{IHAT}}), so the unlinkability of {{act-security}} is computational. See
+{{randomness}}.
 
 ## Key Generation {#keygen}
 
@@ -495,8 +494,8 @@ scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. Each nonce is derived
 with `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the witness, the
 session, the relation, and fresh randomness; a repeated or failed random
-source therefore neither repeats a nonce across distinct proofs nor
-produces a zero nonce.
+source therefore neither repeats a nonce across proofs of distinct
+relations nor produces a zero nonce.
 
 ~~~ python
 class ProverNonces:
@@ -534,9 +533,9 @@ This rule binds only the prover; a verifier following {{SIGMA}} accepts
 these proofs unchanged. The derivation is deterministic in the witness,
 the tag, the relation, and `rand`: replaying the bytes of `random`
 reproduces a proof byte for byte, which the test vectors of
-{{act-test-vectors}} rely on, and a random source that repeats reproduces
-a proof rather than reusing a nonce under a different challenge. A retried
-operation draws fresh `rand` and produces a different proof.
+{{act-test-vectors}} rely on, and a random source that repeats all of `rand`
+reproduces a proof rather than reusing a nonce under a different challenge.
+A retried operation draws fresh `rand` and produces a different proof.
 
 ### Proving and Verifying {#act-prove}
 
@@ -1223,10 +1222,7 @@ ciphersuite fixes the group, hash functions, encodings, and domain separation
 tags. Both parties agree on the ciphersuite as specified in {{act-config}}.
 
 `ctx_proto` is as computed in {{act-config}}. The seed length is
-`Nseed = Ns + 16 = 48` bytes. The 16 bytes in excess of `Ns` make a derived
-scalar statistically close to uniform ({{derive-scalar}}), on the same grounds
-that {{HASH2CURVE}} oversamples by 128 bits when mapping bytes to a field
-element.
+`Nseed = Ns + 16 = 48` bytes.
 
 For the Credential scheme, the P-256 ciphersuite sets `MAX_BIT_LENGTH = 64`,
 which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
@@ -1330,15 +1326,17 @@ Unlinkability:
   `K`, `K_n`, and the bit commitments are hiding {{Pedersen91}}; the
   pair `(A_prime, B_bar)` is a uniform rerandomization of the signature
   {{TZ23}}; and the proofs are statistically zero-knowledge
-  ({{Section 7.5 of SIGMA}}), up to the derived nonces ("Derived prover
-  nonces" below). None of this relies on the hardness of discrete
-  logarithms, so an observer with a quantum computer that records
-  transcripts today gains nothing; such an attacker does recover `skM` from
-  `pkM` and can forge Credentials, so credit conservation does not hold
-  against it. The public amounts `s`, `a`, and `t`, and the configuration,
-  determine which Credentials could have produced a presentation; `t` is
-  the Moderator's choice, so {{PROTOCOLS}} constrains it as it constrains
-  `s`, and {{ARCH}} states the anonymity-set requirements.
+  ({{Section 7.5 of SIGMA}}). These hold statistically for uniform blinding
+  factors and nonces; with the derived ones of this document
+  ({{derive-scalar}}, "Derived prover nonces" below), unlinkability is
+  computational, resting on the hash. It does not rely on the hardness of
+  discrete logarithms, so recovering them with a quantum computer does not
+  break it; such an attacker does recover `skM` from `pkM` and can forge
+  Credentials, so credit conservation does not hold against it. The public
+  amounts `s`, `a`, and `t`, and the configuration, determine which
+  Credentials could have produced a presentation; `t` is the Moderator's
+  choice, so {{PROTOCOLS}} constrains it as it constrains `s`, and {{ARCH}}
+  states the anonymity-set requirements.
 
 Amount validation:
 : The spend relation constrains `c`, `s`, `a`, `v1`, and `v2` only modulo
@@ -1425,7 +1423,10 @@ Derived prover nonces:
   `Nseed` bytes of fresh randomness; if the random source fails, each nonce
   is still a pseudorandom function of the witness at a distinct point, which
   relies on the blinding scalars in the witness carrying entropy the
-  verifier lacks.
+  verifier lacks. A random source that repeats only part of a proof's
+  `rand` can repeat one nonce while changing another, and so the challenge;
+  the repeated nonce under two challenges reveals the corresponding witness
+  scalar.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the

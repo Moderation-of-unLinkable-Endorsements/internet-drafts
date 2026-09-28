@@ -484,19 +484,21 @@ exception. See {{security-considerations}} for details.
 
 A seed MUST be `Nseed` bytes of `random` output, and MUST NOT be used for more
 than one derivation. An algorithm that needs several scalars therefore draws
-`Nseed` bytes for each of them, and additionally separates them by `info`.
-`Nseed` is larger than `Ns` ({{ciphersuites}}) so that the derived scalar is
-statistically close to uniform rather than merely unpredictable; deriving
-several scalars from one seed instead would cap their joint entropy at the
-length of that seed, which the unlinkability argument of
-{{security-considerations}} does not permit. See {{randomness}}.
+`Nseed` bytes for each of them, and additionally separates them by `info`;
+deriving several scalars from one seed would cap their joint entropy at the
+length of that seed. `HashToScalar` computes its output from a single
+intermediate digest of `Nh` bytes ({{Section 5.3.1 of HASH2CURVE}}), and the
+scalar field of the ciphersuite of this document has about `2^(8 * Nh)`
+elements. With the hash modeled as a random function, `G.DeriveScalar`
+therefore reaches only about `1 - 1/e` of the scalar field, and derived
+scalars are pseudorandom; see {{randomness}} and {{security-considerations}}.
 
 ## Deriving Nonces {#derive-nonce}
 
 A nonce that must never repeat, such as that of a proof of knowledge, is
 derived rather than drawn. The group method `G.DeriveNonce` computes it
 from a secret the party holds, a public description of the operation, and
-fresh randomness, so that it repeats only if the whole operation repeats:
+fresh randomness, so that it repeats only if all of its inputs repeat:
 
 ~~~python
 def DeriveNonce(
@@ -1152,9 +1154,9 @@ Two properties of this branch proof are what allow the composition below, and
 verifying commitment can be computed for *any* statement from a challenge and a
 response, by the function above, without knowing a witness; this is the
 extended honest-verifier zero-knowledge property. Second, the response is
-statistically close to uniform independently of the statement and witness,
-because it is a fixed shift of the derived nonce `r`; see
-{{security-considerations}}. One response can therefore be reused across
+a fixed shift of the derived nonce `r`, which is indistinguishable from
+uniform, and so reveals nothing about the statement or witness that produced
+it; see {{security-considerations}}. One response can therefore be reused across
 branches without revealing which branch produced it.
 
 It follows that a verifier given `proof_challenge` and one `response` can
@@ -1973,10 +1975,7 @@ ciphersuite in use ({{config}}).
 
 For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
 length is `Nn = 32` bytes and the seed length is `Nseed = Ns + 16` bytes, that
-is 48 bytes, for the ciphersuite below. The 16 bytes in excess of `Ns` are
-what makes a derived scalar statistically close to uniform ({{derive-scalar}}),
-on the same grounds that {{HASH2CURVE}} oversamples by 16 bytes when it maps a
-byte string to a field element.
+is 48 bytes, for the ciphersuite below.
 
 ## IHAT(P-256, SHA-256)
 
@@ -2063,39 +2062,43 @@ mROS problem, which admits sub-exponential attacks.
 
 Blindness:
 : All the Anchor receives in a session is the blinded challenge `c * gamma2`.
-  Because `gamma2` is uniform and nonzero, the blinded challenge is uniformly
-  distributed and independent of the message and of the resulting signature.
-  The scheme is perfectly blind {{TESSZHU}}, so an Anchor cannot link an
-  Endorsement to the session that produced it, even with unbounded
-  computation. This is what makes endorsement grants and redemptions
-  unlinkable as required by {{ARCH}}, including against an attacker with a
-  quantum computer that records transcripts today.
+  With uniform blinding factors, the blinded challenge is uniformly
+  distributed and independent of the message and of the resulting signature,
+  and the scheme is perfectly blind {{TESSZHU}}. With the derived blinding
+  factors of this document it is computationally blind ("Derived blinding
+  factors" below): an Anchor cannot link an Endorsement to the session that
+  produced it. Blindness does not rest on the hardness of discrete
+  logarithms, so recovering them with a quantum computer does not break it,
+  as {{ARCH}} requires of the unlinkability of endorsement grants and
+  redemptions.
 
 Derived blinding factors:
-: Blindness is unconditional only if the blinding factors are. `Challenge`
-  derives them from seeds rather than sampling them, and `Redeem` derives
-  `delta` the same way, so the guarantee is statistical rather than
-  perfect: an Endorsement and a session are linkable by an adversary that
-  can find a seed consistent with both. Two properties of
-  {{derive-scalar}} keep the loss negligible. Each scalar gets its own seed, so
-  a seed consistent with any given value exists with overwhelming probability
-  and finding one therefore separates nothing; and each seed is `Ns + 16` bytes,
-  so each derived scalar is within about `2^-128` of uniform. Deriving several
-  scalars from one seed, or from a seed of `Ns` bytes, would break this: the
-  blinding factors of a session would then be jointly determined by fewer bits
-  than they contain, an exhaustive search over seeds would identify the one
-  session consistent with a given Endorsement, and unlinkability would hold
-  only against a bounded adversary. Implementations MUST NOT do either.
+: `Challenge` derives its blinding factors with `G.DeriveScalar`, and
+  `Redeem` derives `delta` and the scalars of its proof the same way. A
+  derived scalar lies in a set covering about `1 - 1/e` of the scalar field
+  ({{derive-scalar}}). An adversary that could decide membership in that set
+  could discard each candidate session, or Anchor, whose implied blinding
+  factors fall outside it, and deciding membership requires inverting the
+  hash. Blindness and issuer hiding are therefore computational, with the
+  hash modeled as a random oracle. Each scalar has its own seed: deriving
+  several scalars from one seed would bound their joint entropy by that
+  seed's, and an exhaustive search over seeds would identify the one session
+  consistent with a given Endorsement. Implementations MUST NOT derive
+  several scalars from one seed.
 
 Derived proof nonce:
 : A repeated Schnorr nonce in `ProveIssuer` reveals `delta`, which links the
   redemption to the Anchor. The nonce is therefore derived with
   `G.DeriveNonce` from `delta`, the proof statement, and its own seed
   ({{prove-issuer}}): with a working random source it is distributed as a
-  drawn nonce, and with a failed one it is still a
-  pseudorandom function of `delta`, unknown to the verifier, at a point that
-  identifies the statement, so it does not repeat across distinct statements
-  ({{derive-nonce}}). The Anchor's signing nonce `a` in `Commit` cannot be
+  derived scalar ("Derived blinding factors" above), and with a failed one it
+  is still a pseudorandom function of `delta` at a point that identifies the
+  statement, unpredictable to a verifier that does not know `delta`, and it
+  does not repeat across distinct statements ({{derive-nonce}}). A random
+  source that repeats only part of the randomness of `Redeem`, however, can
+  reuse `r`, or the seeds of a commitment key and its first opening, under a
+  different challenge, which reveals `delta`, or the trapdoor of that key and
+  with it a bit of `index`. The Anchor's signing nonce `a` in `Commit` cannot be
   protected the same way: it is fixed before the Client's challenge is
   known, so no public input distinguishes two sessions at that point, and
   only fresh randomness, or persistent per-session state, prevents its
@@ -2127,12 +2130,12 @@ Unforgeability under rerandomization:
   one-more unforgeability game.
 
 Issuer hiding:
-: Up to the statistical distance described below, a redemption reveals no
-  information about which Anchor in `anchor_set` issued the Endorsement, so a
-  Moderator, an Anchor, and the two colluding learn only that some key in
-  `anchor_set` was used. Three facts establish this.
-  `X_hat` and the `response` of the single branch proof are statistically close
-  to uniform independently of the branch ({{branch}}). And the commitment
+: To an adversary that cannot tell derived scalars from uniform ones, a
+  redemption reveals no information about which Anchor in `anchor_set` issued
+  the Endorsement, so a Moderator, an Anchor, and the two colluding learn only
+  that some key in `anchor_set` was used. Three facts establish this.
+  `X_hat` and the `response` of the single branch proof are indistinguishable
+  from uniform independently of the branch ({{branch}}). And the commitment
   scheme of {{pbvc}} hides which position it binds: a commitment key is
   distributed over the group essentially independently of that position, and
   an opening essentially independently of whether the value it opens to was
@@ -2142,16 +2145,12 @@ Issuer hiding:
 
 : The commitment of {{pbvc}} hides which position it binds, and the stacked
   composition is witness indistinguishable (appendix and Section 7 of
-  {{STACKSIG}}); those results assume uniform randomness. Here it is
-  statistical rather than perfect: `G.DeriveScalar` never returns zero
-  ({{derive-scalar}}), which excludes at most one value for each of the
-  `2 * q + 2` scalars a redemption derives, a statistical distance of at most
-  `(2 * q + 2) / p`, and each scalar has its own seed ("Derived blinding
-  factors" above). Like blindness, issuer hiding therefore holds against
-  unbounded computation, including a quantum computer that records
-  transcripts today. Note that it is the *binding* property of the
-  commitment, and not its hiding, that rests on the discrete logarithm,
-  which is the direction {{ARCH}} requires.
+  {{STACKSIG}}); those results assume uniform randomness, and the
+  `2 * q + 2` scalars a redemption derives are pseudorandom ("Derived
+  blinding factors" above), so issuer hiding is computational. It does not
+  rest on the hardness of discrete logarithms: the *binding* property of the
+  commitment does, and not its hiding, which is the direction {{ARCH}}
+  requires.
 
 Partially binding commitments:
 : The soundness of the issuer-hiding proof rests on two things: the
