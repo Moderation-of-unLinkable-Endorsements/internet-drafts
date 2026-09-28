@@ -38,5 +38,13 @@ checkers to reject scalars and elements from a different ciphersuite.
 This is a specification demo, not production cryptography. The Python code
 is not constant-time and does not securely erase secrets.
 
+IHAT's commitment key generation walks the public edge from `Q` to `P(Q)`
+in either direction, evaluating both byte-permutation directions at every
+step. Tests check that the operation schedule agrees for both orientations
+of the same edge and that existing proof outputs are preserved. These are
+functional checks, not timing guarantees: production implementations need
+constant-time selection, encoding validity checks, serialization, and group
+arithmetic, as well as constant-time handling of the rest of the issuer path.
+
 See [vendor/README.md](vendor/README.md) for the pinned upstream revision.
 Upstream code is imported unchanged and is not part of our lint targets.

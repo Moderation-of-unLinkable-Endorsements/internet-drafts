@@ -66,6 +66,9 @@ def test_shared_algorithms_match_ihat_draft():
         "GenerateKeyPair",
         "P",
         "Pinv",
+        "PermutationPair",
+        "SelectBytes",
+        "IsValidPermutationEncoding",
         "PermuteBytes",
         "UnpermuteBytes",
     ):
