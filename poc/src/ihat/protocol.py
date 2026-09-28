@@ -84,9 +84,7 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
     rand = random(3 * Nseed)
-    a = G.DeriveScalar(Seed(rand, 0), b"a")
-    t = G.DeriveScalar(Seed(rand, 1), b"t")
-    y = G.DeriveScalar(Seed(rand, 2), b"y")
+    (a, t, y) = G.DeriveScalars(rand, b"Commit")
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -107,12 +105,7 @@ def Challenge(
 
     rand = random(Nn + 4 * Nseed)
     nf = rand[:Nn]
-    seeds = rand[Nn:]
-
-    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
+    (r1, r2, gamma1, gamma2) = G.DeriveScalars(rand[Nn:], b"Challenge")
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -251,13 +244,10 @@ def CommitStep(
     return G.SerializeElement(C)
 
 
-def GenerateStep(
-    bind_left: bool, seed: bytes
-) -> tuple[Element, Scalar]:
-    secret = G.DeriveScalar(seed, b"GenerateStep")
+def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
     T = secret * B
     (Q, _) = G.PermutationPair(T, bind_left)
-    return (Q, secret)
+    return Q
 
 
 def EquivocateStep(
@@ -355,18 +345,13 @@ def ComputeProofChallenge(
 
 
 def GenerateVecBind(
-    q: int, index: int, rand: bytes
-) -> tuple[list[Element], list[Scalar]]:
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    index: int, trapdoors: Sequence[Scalar]
+) -> list[Element]:
     commitment_keys = []
-    trapdoors = []
-    for j in range(q):
+    for j in range(len(trapdoors)):
         bind_left = ((index >> j) & 1) == 0
-        (Q, secret) = GenerateStep(bind_left, Seed(rand, j))
-        commitment_keys.append(Q)
-        trapdoors.append(secret)
-    return (commitment_keys, trapdoors)
+        commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+    return commitment_keys
 
 
 def CommitValAtPlace(
@@ -374,17 +359,11 @@ def CommitValAtPlace(
     n: int,
     index: int,
     value: bytes,
-    rand: bytes,
-) -> tuple[bytes, list[Scalar]]:
-    q = len(commitment_keys)
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    openings: Sequence[Scalar],
+) -> bytes:
     V = [b"" for _ in range(n)]
     V[index] = value
-    rands = [
-        G.DeriveScalar(Seed(rand, j), b"opening") for j in range(q)
-    ]
-    return (VecCommit(V, commitment_keys, rands), rands)
+    return VecCommit(V, commitment_keys, openings)
 
 
 def VecEquivocate(
@@ -475,21 +454,22 @@ def ProveIssuer(
         ctx_red,
         challenge_digest,
     )
-    r = G.DeriveNonce(
-        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+    derived = G.DeriveNonces(
+        G.SerializeScalar(delta), b"ProveIssuer", instance, rand
     )
+    r = derived[0]
+    trapdoors = derived[1 : q + 1]
+    first_openings = derived[q + 1 :]
     A = B * r
 
-    (commitment_keys, trapdoors) = GenerateVecBind(
-        q, index, rand[Nseed : (q + 1) * Nseed]
-    )
+    commitment_keys = GenerateVecBind(index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
-    (root, first_openings) = CommitValAtPlace(
+    root = CommitValAtPlace(
         commitment_keys,
         len(Y),
         index,
         G.SerializeElement(A),
-        rand[(q + 1) * Nseed :],
+        first_openings,
     )
 
     proof_challenge = ComputeProofChallenge(
@@ -578,7 +558,7 @@ def Redeem(
 
     q = Depth(n)
     rand = random((2 * q + 2) * Nseed)
-    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
+    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta

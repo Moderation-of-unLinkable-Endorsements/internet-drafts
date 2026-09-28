@@ -203,4 +203,4 @@ def test_prover_nonces_are_derived(monkeypatch):
     assert other_instance.random_scalar() != first
     other_session = act.ProverNonces(witness, bytes(31) + b"\1", instance)
     assert other_session.random_scalar() != first
-    assert len(nonces.rand) == 2 * act.Nseed
+    assert len(nonces.nonces) == 2

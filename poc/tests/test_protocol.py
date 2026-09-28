@@ -83,18 +83,16 @@ def test_commit_step_runs_without_raising(monkeypatch):
 
 @pytest.mark.parametrize("bind_left", [False, True])
 def test_generate_step_preserves_key_and_trapdoor(bind_left):
-    seed = bytes(range(protocol.Nseed))
-    secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+    secret = protocol.Scalar(12345)
     T = secret * protocol.B
     expected = protocol.G.Pinv(T) if bind_left else T
-    assert protocol.GenerateStep(bind_left, seed) == (expected, secret)
+    assert protocol.GenerateStep(bind_left, secret) == expected
 
 
 @pytest.mark.parametrize("bind_left", ["left", "right", None, 0, 1])
 def test_generate_step_rejects_non_boolean_direction(bind_left):
     with pytest.raises(ValueError, match="bind_left must be a boolean"):
-        seed = random(protocol.Nseed)
-        protocol.GenerateStep(bind_left, seed)
+        protocol.GenerateStep(bind_left, protocol.Scalar(12345))
 
 
 def test_equivocate_step_runs_without_raising():
@@ -275,10 +273,10 @@ def test_vector_commitment_comprehensive():
         while 2**q < i:
             q += 1
         for j in range(0, i):
-            keys, trapdoor = GenerateVecBind(q, j, random(q * 48))
-            comm, opening = CommitValAtPlace(
-                keys, i, j, b"Bob", random(q * 48)
-            )
+            trapdoor = protocol.G.DeriveScalars(random(q * 48), b"test")
+            opening = protocol.G.DeriveScalars(random(q * 48), b"test")
+            keys = GenerateVecBind(j, trapdoor)
+            comm = CommitValAtPlace(keys, i, j, b"Bob", opening)
             V = [random(32) for i in range(0, i)]
             V[j] = b"Bob"
             newopen = VecEquivocateFromZero(keys, trapdoor, opening, V, j)
@@ -315,10 +313,9 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         calls.append(length)
         return bytes(i % 256 for i in range(length))
 
-    def previous_generate_step(bind_left, seed):
-        secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+    def previous_generate_step(bind_left, secret):
         T = secret * protocol.B
-        return (protocol.G.Pinv(T) if bind_left else T, secret)
+        return protocol.G.Pinv(T) if bind_left else T
 
     monkeypatch.setattr(protocol, "random", fixed_random)
     for index in range(size):
@@ -409,7 +406,7 @@ def test_verify_rejects_identity_commitment():
     # A Client that knows the discrete logarithm x of the key it presents
     # reaches A = identity with s = c * y * x.
     G = protocol.G
-    x = G.DeriveScalar(bytes(48), b"x")
+    (x,) = G.DeriveScalars(bytes(48), b"x")
     c, y, t = protocol.Scalar(5), protocol.Scalar(7), protocol.Scalar(9)
     shown = Endorsement(c, c * y * x, y, t, bytes(32))
     assert not Verify(x * protocol.B, shown, b"epoch-1", b"moderator-1")
@@ -444,3 +441,26 @@ def test_verify_issuer_rejects_identity_branch_commitment():
         protocol.VerifyRedemption(
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
         )
+
+
+def test_partly_repeated_randomness_gives_a_fresh_first_move():
+    # Two proofs of one statement whose randomness differs only in its last
+    # byte share no value of the first move, so neither delta nor a trapdoor
+    # can be solved for from the two responses.
+    _, pkA, endorsement = _issue()
+    anchor_set = [protocol.G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
+    anchor_set.append(pkA)
+    delta = protocol.Scalar(77)
+    X_hat = pkA + delta * protocol.B
+    q = protocol.Depth(len(anchor_set))
+    rand = bytes(range((2 * q + 1) * protocol.Nseed))
+    changed = rand[:-1] + bytes([rand[-1] ^ 1])
+    args = (anchor_set, 2, delta, X_hat, endorsement, b"i", b"r", b"d")
+    (c1, z1, keys1, openings1) = ProveIssuer(*args, rand)
+    (c2, z2, keys2, openings2) = ProveIssuer(*args, changed)
+    assert c1 != c2
+    assert z1 - z2 != (c2 - c1) * delta
+    assert all(k1 != k2 for k1, k2 in zip(keys1, keys2, strict=True))
+    assert all(
+        o1 != o2 for o1, o2 in zip(openings1, openings2, strict=True)
+    )

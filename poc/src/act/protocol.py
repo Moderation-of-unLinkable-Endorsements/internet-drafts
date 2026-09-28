@@ -70,23 +70,18 @@ class ProverNonces:
         session_id: bytes,
         instance: bytes,
     ) -> None:
-        self.secret = b"".join(G.SerializeScalar(w) for w in witness)
-        self.instance = (
-            session_id + I2OSP(len(instance), 4) + instance
+        self.nonces = G.DeriveNonces(
+            b"".join(G.SerializeScalar(w) for w in witness),
+            b"nonce",
+            session_id + I2OSP(len(instance), 4) + instance,
+            random(len(witness) * Nseed),
         )
-        self.rand = random(len(witness) * Nseed)
         self.count = 0
 
     def random_scalar(self) -> int:
         i = self.count
         self.count = i + 1
-        nonce = G.DeriveNonce(
-            self.secret,
-            b"nonce",
-            self.instance + I2OSP(i, 4),
-            Seed(self.rand, i),
-        )
-        return int(nonce)
+        return int(self.nonces[i])
 
 
 def Prove(
@@ -112,7 +107,7 @@ def SigningExponent(
     instance = U16Prefixed(label) + U16Prefixed(
         G.SerializeElement(X_A)
     )
-    e = G.DeriveNonce(
+    (e,) = G.DeriveNonces(
         G.SerializeScalar(skM), b"e", instance, random(Nseed)
     )
     if (e + skM).isZero():
@@ -150,8 +145,7 @@ def IssueRequest() -> (
     tuple[ClientIssuanceState, IssueRequestMessage]
 ):
     rand = random(2 * Nseed)
-    k = G.DeriveScalar(Seed(rand, 0), b"k")
-    r = G.DeriveScalar(Seed(rand, 1), b"r")
+    (k, r) = G.DeriveScalars(rand, b"IssueRequest")
 
     K = k * H2 + r * H3
 
@@ -264,13 +258,9 @@ def ProveSpend(
     # the remainder or one for its commitment, then L for the bits
     # of the topped-up balance.
     n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
-    rand = random(n * Nseed)
-    seed = [Seed(rand, i) for i in range(n)]
-    r1 = G.DeriveScalar(seed[0], b"r1")
-    r2 = G.DeriveScalar(seed[1], b"r2")
-    kstar = G.DeriveScalar(seed[2], b"kstar")
-    rn = G.DeriveScalar(seed[3], b"rn")
-    next_seed = 4
+    derived = G.DeriveScalars(random(n * Nseed), b"ProveSpend")
+    (r1, r2, kstar, rn) = derived[:4]
+    next_scalar = 4
 
     # Rerandomize the signature.
     B_msg = B + G.scalar(c) * H1 + k * H2 + r * H3 + ctx * H4
@@ -294,27 +284,25 @@ def ProveSpend(
         s1 = []
         r_star = rn
         for j in range(L):
-            info = b"s1" + I2OSP(j, 1)
-            s1.append(G.DeriveScalar(seed[next_seed + j], info))
+            s1.append(derived[next_scalar + j])
             Com1.append(b1[j] * H1 + s1[j] * H3)
             r_star = r_star + G.scalar(2**j) * s1[j]
         u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(L)]
         witness += b1 + s1 + u1
-        next_seed = next_seed + L
+        next_scalar = next_scalar + L
     else:
-        rc = G.DeriveScalar(seed[next_seed], b"rc")
+        rc = derived[next_scalar]
         Com_c = G.scalar(c) * H1 + rc * H3
         r_star = rn + rc
         witness += [rc]
-        next_seed = next_seed + 1
+        next_scalar = next_scalar + 1
 
     # Commit to the topped-up balance when there is a top-up.
     if a > 0:
         b2 = Bits(v2)
         s2 = []
         for j in range(L):
-            info = b"s2" + I2OSP(j, 1)
-            s2.append(G.DeriveScalar(seed[next_seed + j], info))
+            s2.append(derived[next_scalar + j])
             Com2.append(b2[j] * H1 + s2[j] * H3)
         u2 = [(G.scalar(1) - b2[j]) * s2[j] for j in range(L)]
         witness += b2 + s2 + u2

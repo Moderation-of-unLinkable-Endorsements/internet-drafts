@@ -302,8 +302,8 @@ an `Element` `A` by a `Scalar` `r` is written `r * A`. Scalars are added,
 subtracted, and multiplied modulo `p`. In the Python snippets, `G.scalar(x)`
 converts an integer `x` in `[0, p)` to a `Scalar`.
 
-The group also provides `G.DeriveScalar`, `G.SeedToScalar`,
-`G.DeriveNonce`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`, defined in
+The group also provides `G.DeriveScalars`, `G.SeedsToScalars`,
+`G.DeriveNonces`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`, defined in
 {{derive-scalar}}, {{derive-nonce}}, and {{keygen}}.
 
 The following member functions are used. Except where noted, they are as
@@ -352,11 +352,11 @@ DeserializeScalar(buf):
 
 This document does not use the `RandomScalar()` member of
 {{Section 2.1 of OPRF}}. Every scalar that has to be unpredictable is instead
-obtained from `G.DeriveScalar` ({{derive-scalar}}), `G.DeriveNonce`
-({{derive-nonce}}), or `G.DeriveKeyPair` ({{keygen}}), each deterministic in a
-random seed. This makes each algorithm reproducible from the seed it is given,
-which is what allows the test vectors of {{test-vectors}} to pin the randomness
-of an otherwise randomized protocol.
+obtained from `G.DeriveScalars` ({{derive-scalar}}), `G.DeriveNonces`
+({{derive-nonce}}), or `G.DeriveKeyPair` ({{keygen}}), each deterministic in
+its random input. This makes each algorithm reproducible from the randomness
+it is given, which is what allows the test vectors of {{test-vectors}} to pin
+the randomness of an otherwise randomized protocol.
 
 ## Errors {#errors}
 
@@ -450,8 +450,9 @@ ciphersuite.
 
 Every hash this document computes is domain-separated by `ctx_proto`,
 which it carries in its DST rather than in its input: `HashToGroup` and
-`HashToScalar` are so parameterized ({{ciphersuites}}), and so is
-`G.DeriveScalar` ({{derive-scalar}}). Every algorithm below therefore
+`HashToScalar` are so parameterized ({{ciphersuites}}), and so are
+`G.DeriveScalars` ({{derive-scalar}}) and `G.DeriveNonces`
+({{derive-nonce}}). Every algorithm below therefore
 depends on `ctx_proto`, including those in which it does not appear
 explicitly, and a value produced under one ciphersuite does not verify
 under another. The Python group instance `G` stores this context as
@@ -460,71 +461,84 @@ the context is fixed when `G` is constructed.
 
 ## Deriving Scalars {#derive-scalar}
 
-The group method `G.DeriveScalar` derives a value in the scalar field of `G`.
-To generate a random scalar, call it with a fresh random seed and an
-appropriate `info` string:
+The group method `G.DeriveScalars` derives values in the scalar field of `G`.
+An algorithm that needs random scalars draws `Nseed` bytes of randomness for
+each of them and derives them all with one call, under an `info` string that
+names the algorithm:
 
 ~~~python
-def DeriveScalar(self, seed: bytes, info: bytes) -> Scalar:
+def DeriveScalars(self, rand: bytes, info: bytes) -> list[Scalar]:
     key = expand_message_xmd(
-        U16Prefixed(info), b"DeriveScalar-" + self.ctx_proto, Nh
+        U16Prefixed(info), b"DeriveScalars-" + self.ctx_proto, Nh
     )
-    return self.SeedToScalar(key, seed)
+    return self.SeedsToScalars(key, rand)
 ~~~
 
-The group method `G.SeedToScalar` permutes a seed with a four-round Feistel
-network whose round functions are keyed by `key`, and reduces the result
-modulo `p`:
+The group method `G.SeedsToScalars` permutes its input with a four-round
+Feistel network whose round functions are keyed by `key`, splits the result
+into seeds of `Nseed` bytes, and reduces each modulo `p`:
 
 ~~~python
-def SeedToScalar(self, key: bytes, seed: bytes) -> Scalar:
-    if len(seed) != Nseed:
-        raise ValueError(f"seed must be exactly {Nseed} bytes")
-    half = Nseed // 2
-    left, right = seed[:half], seed[half:]
-    for i in range(4):
-        mask = expand_message_xmd(
-            key + I2OSP(i, 1) + right,
-            b"SeedToScalar-" + self.ctx_proto,
-            half,
+def SeedsToScalars(self, key: bytes, rand: bytes) -> list[Scalar]:
+    if len(rand) == 0 or len(rand) % Nseed != 0:
+        raise ValueError(
+            f"rand must be a positive multiple of {Nseed} bytes"
         )
-        left, right = right, _xor(left, mask)
-    s = self.scalar(int.from_bytes(left + right, "big") % self.Order())
-    if s.isZero():
-        raise DeriveError
-    return s
+    half = len(rand) // 2
+    left, right = rand[:half], rand[half:]
+    for i in range(4):
+        mask = b""
+        for j in range((half + Nseed - 1) // Nseed):
+            mask += expand_message_xmd(
+                key + I2OSP(i, 1) + I2OSP(j, 4) + right,
+                b"SeedsToScalars-" + self.ctx_proto,
+                Nseed,
+            )
+        left, right = right, _xor(left, mask[:half])
+    permuted = left + right
+    scalars = []
+    for k in range(len(rand) // Nseed):
+        s = self.scalar(
+            int.from_bytes(Seed(permuted, k), "big") % self.Order()
+        )
+        if s.isZero():
+            raise DeriveError
+        scalars.append(s)
+    return scalars
 ~~~
 
 `expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
-hash function of the ciphersuite. The Feistel network is a permutation of
-`Nseed`-byte strings for every key, so it maps a uniformly random seed to a
-uniformly random string. The reduction is the one `hash_to_field` applies to
-uniform bytes ({{Section 5.2 of HASH2CURVE}}), and since `Nseed` exceeds `Ns`
-by 16 bytes ({{ciphersuites}}), the scalar derived from a uniformly random
-seed is within about `2^-128` of uniform over the nonzero scalars. The output
-is zero, and `DeriveError` raised, with probability about `1/p`. This
-probability is negligible, and implementations might choose to panic rather
-than handle the exception.
+hash function of the ciphersuite. The Feistel network is a permutation of its
+input for every key, so it maps uniformly random input to uniformly random
+output. The reduction is the one `hash_to_field` applies to uniform bytes
+({{Section 5.2 of HASH2CURVE}}), and since `Nseed` exceeds `Ns` by 16 bytes
+({{ciphersuites}}), the scalars derived from uniformly random input are each
+within about `2^-128` of uniform over the nonzero scalars, and jointly within
+the sum of those distances. With the round functions modeled as random
+oracles, a change to any part of the input changes every derived scalar,
+except with negligible probability. A derived scalar is zero, and
+`DeriveError` raised, with probability about `1/p`. This probability is
+negligible, and implementations might choose to panic rather than handle the
+exception.
 
-A seed MUST be `Nseed` bytes of `random` output, and MUST NOT be used for more
-than one derivation. An algorithm that needs several scalars therefore draws
-`Nseed` bytes for each of them, and additionally separates them by `info`;
-deriving several scalars from one seed would cap their joint entropy at the
-length of that seed, which the unlinkability argument of
-{{security-considerations}} does not permit. See {{randomness}}.
+`rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
+it, and MUST NOT be used for more than one derivation. Deriving several
+scalars from fewer bytes would cap their joint entropy at the length of the
+input, which the unlinkability argument of {{security-considerations}} does
+not permit. See {{randomness}}.
 
 ## Deriving Nonces {#derive-nonce}
 
-A nonce that must never repeat, such as that of a proof of knowledge, is
-derived rather than drawn. The group method `G.DeriveNonce` permutes fresh
-randomness under a key derived from a secret the party holds and a public
-description of the operation, so that the nonce repeats only if all of its
-inputs repeat:
+The nonces of a proof of knowledge, and the other secret values of its first
+move, must not be reused under a different challenge. The group method
+`G.DeriveNonces` derives them together, keying the permutation of
+`G.SeedsToScalars` by a secret the party holds and a public description of
+the operation:
 
 ~~~python
-def DeriveNonce(
-    self, secret: bytes, label: bytes, instance: bytes, aux: bytes
-) -> Scalar:
+def DeriveNonces(
+    self, secret: bytes, label: bytes, instance: bytes, rand: bytes
+) -> list[Scalar]:
     derive_nonce_input = (
         U16Prefixed(label)
         + I2OSP(len(secret), 4)
@@ -533,23 +547,24 @@ def DeriveNonce(
         + instance
     )
     key = expand_message_xmd(
-        derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nh
+        derive_nonce_input, b"DeriveNonces-" + self.ctx_proto, Nh
     )
-    return self.SeedToScalar(key, aux)
+    return self.SeedsToScalars(key, rand)
 ~~~
 
-`aux` is a seed of `Nseed` bytes. When it is uniformly random, the nonce is
-distributed as a derived scalar ({{derive-scalar}}), whatever the key. The key
-is a pseudorandom function of `secret` at a point that identifies the
-operation, and with it the Feistel network of `G.SeedToScalar` is a
-pseudorandom permutation. When the random source fails, whether by repeating,
-by returning a constant, or by returning related values, the nonce is
-therefore still unpredictable to a party that does not know `secret`, and
-unrelated to the nonce of any other operation or of any other value of
-`aux`. Every `instance` in this document is an unambiguous encoding, with its
-variable-length parts length-prefixed. Implementations MUST wipe `secret`,
-`derive_nonce_input`, `key`, the intermediate values of `G.SeedToScalar`, and
-the returned value once it has been used.
+When `rand` is uniformly random, the nonces are distributed as derived
+scalars ({{derive-scalar}}), whatever the key. The key is a pseudorandom
+function of `secret` at a point that identifies the operation, and with it the
+Feistel network is a pseudorandom permutation of `rand`. Every nonce therefore
+changes, unpredictably to a party that does not know `secret`, whenever any
+part of `rand`, `secret`, or `instance` changes. A random source that repeats
+part of `rand`, returns a constant, or returns values related to earlier ones
+never causes a nonce to be reused under a different challenge; one that
+repeats all of `rand` for the same operation reproduces the same nonces, and
+so the same proof. Every `instance` in this document is an unambiguous
+encoding, with its variable-length parts length-prefixed. Implementations
+MUST wipe `secret`, `derive_nonce_input`, `key`, the intermediate values of
+`G.SeedsToScalars`, and the returned values once they have been used.
 
 ## Key Generation {#keygen}
 
@@ -689,9 +704,7 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
     rand = random(3 * Nseed)
-    a = G.DeriveScalar(Seed(rand, 0), b"a")
-    t = G.DeriveScalar(Seed(rand, 1), b"t")
-    y = G.DeriveScalar(Seed(rand, 2), b"y")
+    (a, t, y) = G.DeriveScalars(rand, b"Commit")
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -703,9 +716,9 @@ The Anchor stores `state` for the duration of the session and sends `commitment`
 to the Client in a `CommitMessage` ({{wire}}). The signing key is not needed
 until `Respond`.
 
-`Commit` draws all of its randomness in one call and splits it into one seed
-per scalar ({{derive-scalar}}). A test vector fixes the single value `rand`;
-`y` is nonzero by construction.
+`Commit` draws all of its randomness in one call and derives its three
+scalars from it together ({{derive-scalar}}). A test vector fixes the single
+value `rand`; `y` is nonzero by construction.
 
 ## Client Challenge {#challenge}
 
@@ -726,12 +739,7 @@ def Challenge(
 
     rand = random(Nn + 4 * Nseed)
     nf = rand[:Nn]
-    seeds = rand[Nn:]
-
-    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
+    (r1, r2, gamma1, gamma2) = G.DeriveScalars(rand[Nn:], b"Challenge")
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -759,9 +767,9 @@ def Challenge(
     return (state, challenge)
 ~~~
 
-As in `Commit`, all randomness is drawn in one call and split: the first `Nn`
-bytes are the nullifier, and the remaining `4 * Nseed` bytes are four seeds,
-one per blinding scalar. `ComputeChallenge` is as follows:
+As in `Commit`, all randomness is drawn in one call: the first `Nn` bytes are
+the nullifier, and the remaining `4 * Nseed` bytes derive the four blinding
+scalars. `ComputeChallenge` is as follows:
 
 ~~~python
 def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -> Scalar:
@@ -1236,13 +1244,10 @@ position it can later open to another value. A key that binds the `left`
 position is one whose `P(Q)` has the known logarithm, and vice versa:
 
 ~~~python
-def GenerateStep(
-    bind_left: bool, seed: bytes
-) -> tuple[Element, Scalar]:
-    secret = G.DeriveScalar(seed, b"GenerateStep")
+def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
     T = secret * B
     (Q, _) = G.PermutationPair(T, bind_left)
-    return (Q, secret)
+    return Q
 ~~~
 
 `bind_left` is a secret boolean: true binds the left position and false
@@ -1300,26 +1305,21 @@ def Depth(n: int) -> int:
 
 Bit `j` of `index` is the side of its pair that the binding value is on
 at level `j`, which fixes the direction of that level's key; each key has
-its own seed:
+its own trapdoor:
 
 ~~~python
 def GenerateVecBind(
-    q: int, index: int, rand: bytes
-) -> tuple[list[Element], list[Scalar]]:
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    index: int, trapdoors: Sequence[Scalar]
+) -> list[Element]:
     commitment_keys = []
-    trapdoors = []
-    for j in range(q):
+    for j in range(len(trapdoors)):
         bind_left = ((index >> j) & 1) == 0
-        (Q, secret) = GenerateStep(bind_left, Seed(rand, j))
-        commitment_keys.append(Q)
-        trapdoors.append(secret)
-    return (commitment_keys, trapdoors)
+        commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+    return commitment_keys
 ~~~
 
 The first move commits the value at `index` with every other leaf empty,
-one seed per level:
+under one opening per level:
 
 ~~~python
 def CommitValAtPlace(
@@ -1327,17 +1327,11 @@ def CommitValAtPlace(
     n: int,
     index: int,
     value: bytes,
-    rand: bytes,
-) -> tuple[bytes, list[Scalar]]:
-    q = len(commitment_keys)
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    openings: Sequence[Scalar],
+) -> bytes:
     V = [b"" for _ in range(n)]
     V[index] = value
-    rands = [
-        G.DeriveScalar(Seed(rand, j), b"opening") for j in range(q)
-    ]
-    return (VecCommit(V, commitment_keys, rands), rands)
+    return VecCommit(V, commitment_keys, openings)
 ~~~
 
 Once the other leaves are known, each level's randomness is shifted so that
@@ -1586,11 +1580,6 @@ also leaks: for a fixed public `Q`, its walk length describes the edge
 leaving `Q` in one case and the edge entering `Q` in the other. Both one-step
 permutations MUST be computed on each iteration of the selected walk.
 
-This changes neither the mathematical commitment key nor the random bytes,
-proof transcript, or wire encoding. With the same inputs and seeds,
-`GenerateStep` still returns `Pinv(T)` for left binding and `T` for right
-binding.
-
 ### Challenge Computation {#proof-challenge}
 
 `ProofStatement` encodes the statement being proven: the Anchor Set, the
@@ -1700,21 +1689,22 @@ def ProveIssuer(
         ctx_red,
         challenge_digest,
     )
-    r = G.DeriveNonce(
-        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+    derived = G.DeriveNonces(
+        G.SerializeScalar(delta), b"ProveIssuer", instance, rand
     )
+    r = derived[0]
+    trapdoors = derived[1 : q + 1]
+    first_openings = derived[q + 1 :]
     A = B * r
 
-    (commitment_keys, trapdoors) = GenerateVecBind(
-        q, index, rand[Nseed : (q + 1) * Nseed]
-    )
+    commitment_keys = GenerateVecBind(index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
-    (root, first_openings) = CommitValAtPlace(
+    root = CommitValAtPlace(
         commitment_keys,
         len(Y),
         index,
         G.SerializeElement(A),
-        rand[(q + 1) * Nseed :],
+        first_openings,
     )
 
     proof_challenge = ComputeProofChallenge(
@@ -1741,11 +1731,12 @@ def ProveIssuer(
     return (proof_challenge, response, commitment_keys, openings)
 ~~~
 
-`rand` holds one seed for the nonce `r`, then one for each of the `q`
-commitment keys, then one for each of the `q` first openings. The nonce
-is derived with `G.DeriveNonce` ({{derive-nonce}}) from `delta`, the proof
-statement, and its seed, so that proofs of distinct statements do not
-share it even if `rand` repeats.
+`ProveIssuer` derives the nonce `r`, the trapdoors of the `q` commitment
+keys, and the `q` openings of its first move with one call to
+`G.DeriveNonces` ({{derive-nonce}}), keyed by `delta` and the proof
+statement; `rand` holds `Nseed` bytes for each of these `2 * q + 1` scalars.
+Every value of the first move therefore changes whenever `delta`, the
+statement, or any part of `rand` does.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
@@ -1868,7 +1859,7 @@ def Redeem(
 
     q = Depth(n)
     rand = random((2 * q + 2) * Nseed)
-    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
+    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta")
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -2066,19 +2057,18 @@ P:
 
 ## Randomness {#randomness}
 
-Every random value in this document is a seed of `Nseed` bytes, drawn with
-`random` and consumed by `G.DeriveScalar` ({{derive-scalar}}), by
-`G.DeriveKeyPair` ({{keygen}}) for a key, or by `G.DeriveNonce`
-({{derive-nonce}}) for the nonce `r` of `ProveIssuer`; no scalar is sampled
-directly. Implementations MUST draw seeds with a
-cryptographically secure random number generator and MUST NOT reuse a seed
-across derivations.
-They SHOULD treat a seed as being as sensitive as the values derived from it,
-and SHOULD handle both in constant time: the seed drawn in `Commit` determines
-the Anchor's session state, the seed drawn in `Challenge` determines the
-Client's blinding factors, and the seeds drawn in `Redeem` determine every
-value of the issuer-hiding proof, so recovering any of them undoes the
-property that algorithm provides.
+Every random value in this document is drawn with `random`. Apart from the
+nullifier, it is consumed, `Nseed` bytes per scalar, by `G.DeriveScalars`
+({{derive-scalar}}), by `G.DeriveNonces` ({{derive-nonce}}) for the values of
+the issuer-hiding proof, or by `G.DeriveKeyPair` ({{keygen}}) for a key; no
+scalar is sampled directly. Implementations MUST draw this randomness with a
+cryptographically secure random number generator and MUST NOT reuse it across
+derivations. They SHOULD treat it as being as sensitive as the values derived
+from it, and SHOULD handle both in constant time: the randomness drawn in
+`Commit` determines the Anchor's session state, that drawn in `Challenge` the
+Client's blinding factors, and that drawn in `Redeem` every value of the
+issuer-hiding proof, so recovering any of it undoes the property that
+algorithm provides.
 
 # Security Considerations {#security-considerations}
 
@@ -2107,37 +2097,39 @@ Blindness:
   attacker with a quantum computer that records transcripts today.
 
 Derived blinding factors:
-: `Challenge` derives its blinding factors with `G.DeriveScalar`, and
-  `Redeem` derives `delta` and the commitment keys and openings of its proof
-  the same way, and the nonce `r` with `G.DeriveNonce`, whose output is
-  distributed as a derived scalar when its seed is uniformly random
-  ({{derive-nonce}}). Each is within about `2^-128` of uniform
+: `Challenge` derives its four blinding factors with `G.DeriveScalars`, and
+  `Redeem` derives `delta` the same way and the `2 * q + 1` scalars of its
+  proof with `G.DeriveNonces`, whose output is distributed as that of
+  `G.DeriveScalars` when its input is uniformly random ({{derive-nonce}}).
+  Each derived scalar is within about `2^-128` of uniform
   ({{derive-scalar}}), so the four blinding factors of a session are jointly
   within about `2^-126` of uniform, and blindness holds against unbounded
-  computation up to that distance. Each scalar has its own seed: deriving
-  several scalars from one seed would bound their joint entropy by that
-  seed's, and an exhaustive search over seeds would identify the one session
-  consistent with a given Endorsement.
-  Implementations MUST NOT derive several scalars from one seed.
+  computation up to that distance. Each scalar has `Nseed` bytes of
+  randomness of its own: deriving several scalars from fewer bytes would bound
+  their joint entropy by that input's, and an exhaustive search over inputs
+  would identify the one session consistent with a given Endorsement.
+  Implementations MUST NOT derive several scalars from fewer than `Nseed`
+  bytes each.
 
-Derived proof nonce:
-: A repeated Schnorr nonce in `ProveIssuer` reveals `delta`, which links the
-  redemption to the Anchor. The nonce is therefore derived with
-  `G.DeriveNonce` from `delta`, the proof statement, and its own seed
-  ({{prove-issuer}}): with a working random source it is distributed as a
-  derived scalar ("Derived blinding factors" above), and with a failed one it
-  is still a pseudorandom function of `delta` at a point that identifies the
-  statement, unpredictable to a verifier that does not know `delta`, and it
-  does not repeat across distinct statements ({{derive-nonce}}). A random
-  source that repeats only part of the randomness of `Redeem`, however, can
-  reuse `r`, or the seeds of a commitment key and its first opening, under a
-  different challenge, which reveals `delta`, or the trapdoor of that key and
-  with it a bit of `index`. The Anchor's signing nonce `a` in `Commit` cannot be
-  protected the same way: it is fixed before the Client's challenge is
-  known, so no public input distinguishes two sessions at that point, and
-  only fresh randomness, or persistent per-session state, prevents its
-  reuse. An Anchor that reuses `a` across two challenges reveals `y * skA`,
-  and hence `skA`, since `y` is public in the Endorsement.
+Derived first move:
+: A value of the first move of `ProveIssuer` reused under a different
+  challenge reveals `delta`, which names the Anchor, or the trapdoor of a
+  commitment key and with it a bit of `index`. `ProveIssuer` therefore derives
+  all of them together with `G.DeriveNonces` from `delta`, the proof
+  statement, and all of its randomness ({{prove-issuer}}). With a working
+  random source they are distributed as derived scalars ("Derived blinding
+  factors" above). With a failed one they are pseudorandom functions of
+  `delta`, unpredictable to a verifier that does not know `delta`, and each
+  of them changes whenever `delta`, the statement, or any part of the
+  randomness does ({{derive-nonce}}); a random source that repeats all of
+  its output reproduces the proof. The Anchor's signing nonce `a` in `Commit`
+  cannot be protected the same way: it is fixed before the Client's
+  challenge is known, so no public input distinguishes two sessions at that
+  point. `Commit` derives `a` together with `t` and `y`, so a random source
+  that repeats part of its output still changes `a`, but only fresh
+  randomness, or persistent per-session state, prevents a full repetition.
+  An Anchor that reuses `a` across two challenges reveals `y * skA`, and
+  hence `skA`, since `y` is public in the Endorsement.
 
 One-more unforgeability:
 : A Client that completes `k` issuance sessions under a given issuance context

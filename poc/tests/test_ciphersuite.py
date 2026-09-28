@@ -128,71 +128,100 @@ def test_permute_bytes_is_a_permutation():
         assert UnpermuteBytes(out) == buf
 
 
-def test_derive_nonce_binds_every_input():
+def test_derive_nonces_binds_every_input():
     from ihat import common
 
     G = P256Group(b"test")
     aux = bytes(common.Nseed)
-    nonce = G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux)
     assert not nonce.isZero()
-    assert nonce == G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    assert [nonce] == G.DeriveNonces(b"secret", b"label", b"instance", aux)
     for other in (
-        G.DeriveNonce(b"secret!", b"label", b"instance", aux),
-        G.DeriveNonce(b"secret", b"label!", b"instance", aux),
-        G.DeriveNonce(b"secret", b"label", b"instance!", aux),
-        G.DeriveNonce(b"secret", b"label", b"instance", b"\1" + aux[1:]),
-        P256Group(b"other").DeriveNonce(b"secret", b"label", b"instance", aux),
+        G.DeriveNonces(b"secret!", b"label", b"instance", aux),
+        G.DeriveNonces(b"secret", b"label!", b"instance", aux),
+        G.DeriveNonces(b"secret", b"label", b"instance!", aux),
+        G.DeriveNonces(b"secret", b"label", b"instance", b"\1" + aux[1:]),
+        P256Group(b"other").DeriveNonces(
+            b"secret", b"label", b"instance", aux
+        ),
     ):
-        assert other != nonce
-    with pytest.raises(ValueError):
-        G.DeriveNonce(b"secret", b"label", b"instance", aux[1:])
+        assert other != [nonce]
+    for wrong in (b"", aux[1:], aux + b"\0"):
+        with pytest.raises(ValueError, match="positive multiple of 48"):
+            G.DeriveNonces(b"secret", b"label", b"instance", wrong)
 
 
-def _unpermute_seed(group, key, value):
+def _unpermute(group, key, value):
     from ihat import common
     from ihat.ciphersuite import _xor, expand_message_xmd
     from ihat.common import I2OSP
 
-    half = common.Nseed // 2
+    half = len(value) // 2
     left, right = value[:half], value[half:]
     for i in reversed(range(4)):
-        mask = expand_message_xmd(
-            key + I2OSP(i, 1) + left,
-            b"SeedToScalar-" + group.ctx_proto,
-            half,
+        mask = b"".join(
+            expand_message_xmd(
+                key + I2OSP(i, 1) + I2OSP(j, 4) + left,
+                b"SeedsToScalars-" + group.ctx_proto,
+                common.Nseed,
+            )
+            for j in range((half + common.Nseed - 1) // common.Nseed)
         )
-        left, right = _xor(right, mask), left
+        left, right = _xor(right, mask[:half]), left
     return left + right
 
 
-def test_seed_to_scalar_permutes_then_reduces():
+@pytest.mark.parametrize("count", [1, 2, 3, 5])
+def test_seeds_to_scalars_permutes_then_reduces(count):
     from ihat import common
     from ihat.ciphersuite import DeriveError
 
     G = P256Group(b"test")
     key = bytes(range(32))
-    for target in (bytes(range(48)), bytes(range(100, 148)), b"\xff" * 48):
-        seed = _unpermute_seed(G, key, target)
-        expected = int.from_bytes(target, "big") % ORDER
-        assert int(G.SeedToScalar(key, seed)) == expected
+    target = bytes((7 * i + 1) % 256 for i in range(count * common.Nseed))
+    rand = _unpermute(G, key, target)
+    assert [int(s) for s in G.SeedsToScalars(key, rand)] == [
+        int.from_bytes(common.Seed(target, k), "big") % ORDER
+        for k in range(count)
+    ]
+    zero = bytes(common.Nseed) + target[common.Nseed :]
     with pytest.raises(DeriveError):
-        G.SeedToScalar(key, _unpermute_seed(G, key, bytes(common.Nseed)))
-    with pytest.raises(ValueError, match="seed must be exactly 48 bytes"):
-        G.SeedToScalar(key, bytes(common.Nseed - 1))
+        G.SeedsToScalars(key, _unpermute(G, key, zero))
 
 
 def test_related_randomness_gives_unrelated_nonces():
-    # Nonces for one operation whose aux differ in a single bit must not
-    # differ by a known amount, or two proofs reveal the witness.
+    # Nonces for one operation whose randomness differs in a single bit
+    # must not differ by a known amount, or two proofs reveal the witness.
     from ihat import common
 
     G = P256Group(b"test")
     aux = bytes(range(common.Nseed))
-    nonce = G.DeriveNonce(b"secret", b"label", b"instance", aux)
+    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux)
     for position in range(common.Nseed):
         for bit in (0, 7):
             related = bytearray(aux)
             related[position] ^= 1 << bit
-            other = G.DeriveNonce(b"secret", b"label", b"instance", bytes(related))
+            (other,) = G.DeriveNonces(
+                b"secret", b"label", b"instance", bytes(related)
+            )
+            difference = int(nonce - other)
+            assert min(difference, ORDER - difference) > 2**200
+
+
+def test_partial_repetition_changes_every_nonce():
+    # A random source that repeats all but one seed of an operation's
+    # randomness must not repeat any of its nonces.
+    from ihat import common
+
+    G = P256Group(b"test")
+    rand = bytes((3 * i) % 256 for i in range(5 * common.Nseed))
+    nonces = G.DeriveNonces(b"secret", b"label", b"instance", rand)
+    for k in range(5):
+        changed = bytearray(rand)
+        changed[k * common.Nseed] ^= 1
+        others = G.DeriveNonces(
+            b"secret", b"label", b"instance", bytes(changed)
+        )
+        for nonce, other in zip(nonces, others, strict=True):
             difference = int(nonce - other)
             assert min(difference, ORDER - difference) > 2**200

@@ -235,17 +235,18 @@ An implementation that raises an error MUST abort the affected protocol run.
 
 ## Deriving Scalars {#derive-scalar}
 
-Use `G.DeriveScalar(seed: bytes, info: bytes) -> Scalar` from Section
-4.2 of {{IHAT}}, using the ACT group instance initialized with
-`ctx_proto`. It rejects seeds of the wrong length with `ValueError`, and
-raises `DeriveError` in the negligible event that its output is zero. ACT
-applies the following seed requirements to this shared algorithm.
+Use `G.DeriveScalars(rand: bytes, info: bytes) -> list[Scalar]` from
+Section 4.2 of {{IHAT}}, using the ACT group instance initialized with
+`ctx_proto`. It rejects input whose length is not a positive multiple of
+`Nseed` with `ValueError`, and raises `DeriveError` in the negligible event
+that a derived scalar is zero. ACT applies the following requirements to
+this shared algorithm.
 
-A seed MUST be `Nseed` bytes of `random` output, and MUST NOT be used for more
-than one derivation. An algorithm that needs several scalars therefore draws
-`Nseed` bytes for each of them, and additionally separates them by `info`;
-deriving several scalars from one seed would cap their joint entropy at the
-length of that seed. A derived scalar is within about `2^-128` of uniform
+`rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
+it, and MUST NOT be used for more than one derivation; deriving several
+scalars from fewer bytes would cap their joint entropy at the length of the
+input. An algorithm derives all of its scalars with one call, under an `info`
+string that names it. A derived scalar is within about `2^-128` of uniform
 (Section 4.2 of {{IHAT}}), which the unlinkability argument of
 {{act-security}} relies on. See {{randomness}}.
 
@@ -341,7 +342,7 @@ def CreateCredentialProtocolContext(identifier: bytes) -> bytes:
 
 Throughout this section and wherever the algorithms of this section are
 invoked, `ctx_proto` denotes this value, and `HashToGroup`, `HashToScalar`,
-`G.DeriveScalar`, `G.DeriveNonce`, and the key generation of {{keygen}} are
+`G.DeriveScalars`, `G.DeriveNonces`, and the key generation of {{keygen}} are
 parameterized by it.
 
 The scheme has one further parameter, the *balance width* `L`. Balances and
@@ -491,11 +492,11 @@ recommends; the length prefixes keep the tag unambiguous.
 
 `ProveCompact` draws one nonce per witness scalar from its `rng`, in
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
-that `ProverNonces.random_scalar` computes below. Each nonce is derived
-with `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the witness, the
-session, the relation, and fresh randomness; a repeated or failed random
-source therefore neither repeats a nonce across proofs of distinct
-relations nor produces a zero nonce.
+that `ProverNonces.random_scalar` computes below. The nonces are derived
+together with `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the witness,
+the session, the relation, and fresh randomness, so that a failed random
+source never causes a nonce to be reused under a different challenge, and
+no nonce is zero.
 
 ~~~ python
 class ProverNonces:
@@ -505,23 +506,18 @@ class ProverNonces:
         session_id: bytes,
         instance: bytes,
     ) -> None:
-        self.secret = b"".join(G.SerializeScalar(w) for w in witness)
-        self.instance = (
-            session_id + I2OSP(len(instance), 4) + instance
+        self.nonces = G.DeriveNonces(
+            b"".join(G.SerializeScalar(w) for w in witness),
+            b"nonce",
+            session_id + I2OSP(len(instance), 4) + instance,
+            random(len(witness) * Nseed),
         )
-        self.rand = random(len(witness) * Nseed)
         self.count = 0
 
     def random_scalar(self) -> int:
         i = self.count
         self.count = i + 1
-        nonce = G.DeriveNonce(
-            self.secret,
-            b"nonce",
-            self.instance + I2OSP(i, 4),
-            Seed(self.rand, i),
-        )
-        return int(nonce)
+        return int(self.nonces[i])
 ~~~
 
 `witness` is the prover's whole witness in scalar-index order;
@@ -606,7 +602,7 @@ class Credential(NamedTuple):
 ### Signing Exponent {#act-signing-exponent}
 
 `IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
-exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonce`
+exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonces`
 (Section 4.3 of {{IHAT}}) from the signing key, the signed message, and
 fresh randomness. A random source that repeats therefore reproduces an
 earlier signature and never issues a second one with the same exponent
@@ -619,7 +615,7 @@ def SigningExponent(
     instance = U16Prefixed(label) + U16Prefixed(
         G.SerializeElement(X_A)
     )
-    e = G.DeriveNonce(
+    (e,) = G.DeriveNonces(
         G.SerializeScalar(skM), b"e", instance, random(Nseed)
     )
     if (e + skM).isZero():
@@ -649,8 +645,7 @@ def IssueRequest() -> (
     tuple[ClientIssuanceState, IssueRequestMessage]
 ):
     rand = random(2 * Nseed)
-    k = G.DeriveScalar(Seed(rand, 0), b"k")
-    r = G.DeriveScalar(Seed(rand, 1), b"r")
+    (k, r) = G.DeriveScalars(rand, b"IssueRequest")
 
     K = k * H2 + r * H3
 
@@ -897,13 +892,9 @@ def ProveSpend(
     # the remainder or one for its commitment, then L for the bits
     # of the topped-up balance.
     n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
-    rand = random(n * Nseed)
-    seed = [Seed(rand, i) for i in range(n)]
-    r1 = G.DeriveScalar(seed[0], b"r1")
-    r2 = G.DeriveScalar(seed[1], b"r2")
-    kstar = G.DeriveScalar(seed[2], b"kstar")
-    rn = G.DeriveScalar(seed[3], b"rn")
-    next_seed = 4
+    derived = G.DeriveScalars(random(n * Nseed), b"ProveSpend")
+    (r1, r2, kstar, rn) = derived[:4]
+    next_scalar = 4
 
     # Rerandomize the signature.
     B_msg = B + G.scalar(c) * H1 + k * H2 + r * H3 + ctx * H4
@@ -927,27 +918,25 @@ def ProveSpend(
         s1 = []
         r_star = rn
         for j in range(L):
-            info = b"s1" + I2OSP(j, 1)
-            s1.append(G.DeriveScalar(seed[next_seed + j], info))
+            s1.append(derived[next_scalar + j])
             Com1.append(b1[j] * H1 + s1[j] * H3)
             r_star = r_star + G.scalar(2**j) * s1[j]
         u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(L)]
         witness += b1 + s1 + u1
-        next_seed = next_seed + L
+        next_scalar = next_scalar + L
     else:
-        rc = G.DeriveScalar(seed[next_seed], b"rc")
+        rc = derived[next_scalar]
         Com_c = G.scalar(c) * H1 + rc * H3
         r_star = rn + rc
         witness += [rc]
-        next_seed = next_seed + 1
+        next_scalar = next_scalar + 1
 
     # Commit to the topped-up balance when there is a top-up.
     if a > 0:
         b2 = Bits(v2)
         s2 = []
         for j in range(L):
-            info = b"s2" + I2OSP(j, 1)
-            s2.append(G.DeriveScalar(seed[next_seed + j], info))
+            s2.append(derived[next_scalar + j])
             Com2.append(b2[j] * H1 + s2[j] * H3)
         u2 = [(G.scalar(1) - b2[j]) * s2[j] for j in range(L)]
         witness += b2 + s2 + u2
@@ -1250,21 +1239,22 @@ Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
 algorithms, and canonical encodings of Section 7.1 of {{IHAT}}. ACT uses
 `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
 ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
-`G.DeriveScalar`, `G.SeedToScalar`, `G.DeriveNonce`, and `G.DeriveKeyPair`;
+`G.DeriveScalars`, `G.SeedsToScalars`, `G.DeriveNonces`, and
+`G.DeriveKeyPair`;
 the group-element permutation used by IHAT is not needed.
 
 ## Randomness {#randomness}
 
-Every random value in this document is a seed of `Nseed` bytes consumed by
-`G.DeriveScalar` ({{derive-scalar}}), by `G.DeriveKeyPair` ({{keygen}}) for a
-key, or, for the values listed below, by `G.DeriveNonce` (Section 4.3 of
-{{IHAT}}); no scalar is sampled directly.
+Every random value in this document is drawn with `random` and consumed,
+`Nseed` bytes per scalar, by `G.DeriveScalars` ({{derive-scalar}}), by
+`G.DeriveKeyPair` ({{keygen}}) for a key, or, for the values listed below, by
+`G.DeriveNonces` (Section 4.3 of {{IHAT}}); no scalar is sampled directly.
 Implementations MUST draw with a cryptographically secure random number
-generator and MUST NOT reuse a seed across derivations. A seed is as
+generator and MUST NOT reuse randomness across derivations. Randomness is as
 sensitive as the values derived from it, and the constant-time requirement
 of {{act-security}} covers both.
 
-The following values MUST be derived with `G.DeriveNonce`, with the inputs
+The following values MUST be derived with `G.DeriveNonces`, with the inputs
 stated where they are used; drawing them directly is not conformant:
 
 * the Moderator's signing exponent `e` in `IssueResponse` and
@@ -1273,7 +1263,7 @@ stated where they are used; drawing them directly is not conformant:
   through `ProverNonces` ({{act-prover-nonces}}).
 
 The values drawn directly are the key seed of `G.GenerateKeyPair`, the
-`aux` inputs of the derivations above, and the Client's `k`, `r`, `r1`,
+randomness of the derivations above, and the Client's `k`, `r`, `r1`,
 `r2`, `kstar`, `rn`, `rc`, `s1`, and `s2`. A repetition among the
 Client's values harms only that Client; a repetition of a signing
 exponent or of a prover nonce is a key-compromise event
@@ -1363,7 +1353,7 @@ Randomness reuse:
   holding two Credentials with that exponent forge Credentials at any
   balance below `2^L`, each with a fresh nullifier, which the nullifier
   store cannot detect. Both values are therefore derived with
-  `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the key and the operation
+  `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the key and the operation
   ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled back
   or snapshotted random source reproduces an earlier response instead of
   yielding a second one. An implementation that draws either value
@@ -1407,9 +1397,9 @@ Single use of Credentials and states:
   Moderator has recorded the nullifier loses the balance.
 
 Constant time:
-: `Bits`, every operation on the witness of the spend relation, and every
-  seed and the scalars derived from it operate on the Client's balance and
-  blinding factors, and MUST be implemented in constant time with respect
+: `Bits`, every operation on the witness of the spend relation, and all
+  randomness and the scalars derived from it operate on the Client's balance
+  and blinding factors, and MUST be implemented in constant time with respect
   to them ({{Section 7.6 of SIGMA}}). The bit equations are linear in the
   bits, so nothing is selected by a bit's value; a disjunctive range proof
   would instead need its clause selection to be constant time as well. On
@@ -1421,18 +1411,18 @@ Constant time:
   {{Section 7.6 of SIGMA}} addresses for keyed-verification credentials.
 
 Derived prover nonces:
-: `ProverNonces` derives each nonce with `G.DeriveNonce` (Section 4.3 of
-  {{IHAT}}) from its own `Nseed` bytes of fresh randomness, so that each
-  nonce is within about `2^-128` of uniform whatever the witness, and the
-  proofs are statistically zero-knowledge. If the random source fails by
-  repeating all of a proof's `rand` or by returning a constant, each nonce is
-  still a pseudorandom function of the witness at a distinct point, and
-  `ProveCompact` remains zero-knowledge against a party without the witness
+: `ProverNonces` derives the nonces of a proof together with
+  `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the witness, the relation,
+  and `Nseed` bytes of fresh randomness per nonce, so that each nonce is
+  within about `2^-128` of uniform whatever the witness, and the proofs are
+  statistically zero-knowledge. If the random source fails, whether by
+  repeating all or part of `rand`, returning a constant, or returning values
+  related to earlier ones, the nonces are still pseudorandom functions of the
+  witness, and each changes whenever any part of `rand` or the relation
+  does, so no nonce is reused under a different challenge. `ProveCompact`
+  then remains zero-knowledge against a party without the witness
   ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars in the
-  witness carry entropy that party lacks. A random source that repeats only
-  part of `rand` can repeat one nonce while changing another, and so the
-  challenge; the repeated nonce under two challenges reveals the
-  corresponding witness scalar.
+  witness carry entropy that party lacks.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the
@@ -1481,12 +1471,12 @@ lines indented; amounts and `L` are decimal.
 
 Every algorithm is a deterministic function of the bytes it draws from
 `random`. Each `rand` entry is the concatenation of every `random` call
-the algorithm makes, in the order made, including the `aux` of
-`SigningExponent` and the `rand` of `ProverNonces`; an implementation
+the algorithm makes, in the order made, including those of
+`SigningExponent` and `ProverNonces`; an implementation
 replays a vector by serving those bytes in place of `random`. The order
 is: for `G.GenerateKeyPair`, the key seed; for `IssueRequest`, the
 `2 * Nseed` bytes of `k` and `r`, then the prover's `2 * Nseed` bytes;
-for `IssueResponse` and `IssueRefund`, the `Nseed` bytes of `aux`, then
+for `IssueResponse` and `IssueRefund`, the `Nseed` bytes of `e`, then
 the prover's `Nseed` bytes; for `ProveSpend`, the `n * Nseed` bytes of
 its scalars, then the prover's `Nw * Nseed` bytes. The `state` entries
 are the `ClientIssuanceState` `(k, r, K)` as
@@ -1546,33 +1536,33 @@ issue.request.rand =
     a98919981c0f9481c4eb6ee73b79569a2ea0fc45c81480ed4451367947c1cc19
     ee957b16356a0ae63d6c83fbd9d757e69fa8138ada38975479fd20c98160eb78
 issue.request.state =
-    9771955ca11f5823d2dd81bee85ff622460531e10f623041d071885105987a63
-    375a0690961e2d40724c10b8b964df4737d919b5f1a4052d75e006102a700275
-    02d5e37c27c5551cf4e93a46b8c2391a9c3233463632344296a6163a96beaf86
-    8f
+    52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
+    8345050c5401a4872f5f5e829bbc4bb357342f962579b9806cda0a1b17d3b40e
+    02c57734702e7261396219028ab900ae23fc36ba4764874f36b27d74902a4ff3
+    e3
 issue.request.message =
-    02d5e37c27c5551cf4e93a46b8c2391a9c3233463632344296a6163a96beaf86
-    8f2957cfc15870d4f987b6bc2c44092a6f5bdfe414f40c674a0667e003985b0d
-    f855c7603550daf61e215546203ebe927803cd0a74d016cb908e02187cd582ed
-    27f9bdaf521b6c611aead9d4619a85d63c1dc8ff80fca79daba71a151fef8be5
-    90
+    02c57734702e7261396219028ab900ae23fc36ba4764874f36b27d74902a4ff3
+    e368d87bb8f303dd70c65a2322dfa7940c897be51ccb015dee887fb62554e732
+    f76f952bdb52e4e202546b709a0cd33d70d199ac700b712ffd0a43fea9c46c8d
+    5b2e73af80f23f504d1d1bc3a91110498142ec05d769acdb767f402879e67ae4
+    41
 issue.response.c = 10
 issue.response.rand =
     b429f745895b193f227dbad7fd1798339020f1ebb88b5e0429485e01bc34f6db
     93c846f8766d5ec446946ef0d9c6a44873a0ef46a50e37eacf061d40d7440e34
     516d54ee586c67dbb8fd0b7e931fb60a1731d3867e50bbaa1a7422f352070618
 issue.response.message =
-    0282ea1cdb05da5149a95d911c8d94864a1e18039d3eb9add9212296914c5d79
-    2b392ea7d3aa9850a8e83ad34a89ef2c80ffc9323568a9d804005aa1bcdab030
-    99000000000000000a105571a811263fbe05022c51cce73fe264e32cbb1191f6
-    9a090841dedfbc73ea33ce5ae2d150f1c9ce773ff83e5c1f2e504a866ef79108
-    0d61883ab0c56015ad
+    0387a0108b62c709fdb1059a7134ede5cdf2c3a921b3ffd3eaa59e1e20b201c6
+    5c92f3993be7e0f336ac91ab5c5bbed2ec9010ea42230197c992ef2a060a3a6b
+    95000000000000000acdc3702711779cad01648f1e5b5791ea4a43d11b27c568
+    723b2e18d1e2455d7e549a3b8e74e2ee75240eb42d87dd3c91a9b5ab165c3401
+    db95d4b740a5afa9da
 issue.credential =
-    9771955ca11f5823d2dd81bee85ff622460531e10f623041d071885105987a63
-    000000000000000a375a0690961e2d40724c10b8b964df4737d919b5f1a4052d
-    75e006102a7002750282ea1cdb05da5149a95d911c8d94864a1e18039d3eb9ad
-    d9212296914c5d792b392ea7d3aa9850a8e83ad34a89ef2c80ffc9323568a9d8
-    04005aa1bcdab03099
+    52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
+    000000000000000a8345050c5401a4872f5f5e829bbc4bb357342f962579b980
+    6cda0a1b17d3b40e0387a0108b62c709fdb1059a7134ede5cdf2c3a921b3ffd3
+    eaa59e1e20b201c65c92f3993be7e0f336ac91ab5c5bbed2ec9010ea42230197
+    c992ef2a060a3a6b95
 ~~~
 
 ## Spend 1: ordinary spend (`s = 3`, `a = 0`) {#act-tv-spend1}
@@ -1626,57 +1616,57 @@ spend1.rand =
     6feafbde527e545759589059254213af26c663410aed38f2d2f6d887e776e1b4
     0a200a21f71f9ef8936fc6f4cbb45045
 spend1.state =
-    7f94975a165f12b8e54a140279d68b2620cf381eb515d7842f3324c34fc5a0ce
-    486603ff558a41b73acbb24a59cc31b38534b4ee8a5b68666f0c592ac36a86a4
-    00000000000000070000000000000003000000000000000002ba8efee7957123
-    cc344752452a01e7389f23d5833dd75bb700f22366a658b7cf
+    b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
+    491a080c46c6b5ffb25eaaa17e4f408ab289e896311f2e16810e907ac46cc371
+    00000000000000070000000000000003000000000000000003c832cc65dec9f4
+    88e59be20af29c29ff1d78b19a4b28799bbe9e3f0498b4fba3
 spend1.message =
-    9771955ca11f5823d2dd81bee85ff622460531e10f623041d071885105987a63
-    0000000000000003000000000000000002de3992cc52293b7838b5e55a8b309e
-    15155c2c2117a757c331f625ead65e9e4802fdcf30993888d685c4603bf25527
-    79a2430e0404f6f1974a60653fd765f6a35a02173b706022fdd6155d0312a24d
-    6848faee5e02bc026383391821f88a6d59282202530e8133e2b6df99a496203e
-    7227928877941774e18924c5b9ebeb9ff3e6b3ec03796997f925d18c50be48fa
-    929e7996dc5a11bb746d048e3b0a257c83b0136919028e5b242c2f0d640dfe46
-    de651d1999f77d351e0e9e32a4056a9a769f89c886ca02361f90e4ec50911b98
-    2c5d523f66f22093b5ca4595e226be764831f4a92f6aac8d70bd9d63bae2839a
-    f75c05fddf1c442ac532fb7ef7a5e908fefa0ce2018c8d7ae7b46b1e4b3ef1bb
-    055ab35da7ec0edda1ad156c3f7c76f0028308cd6f8f837021dcdf98e4930d36
-    c79e2b209428d002bc4abff8fcc34cbf6226ef4e7759fd0ed8b1e4f96f3f4ac9
-    5e2e7bc4606ace402700861bdf51708cdf2d2b548e64a5bec00ead2420e4d647
-    7c102368f8463cc6865579cb53720b003377ecda62bae4a6b13d06ddaceefcc4
-    165b2eed432081da7275a3de7e252f0db05266d596d5a0f4c452323c4ba101fa
-    8219b7e7c2047bde9c0db8bff129be3d9706964af967234cc78e11b078c03c32
-    2bebbd70a85927960f4be7835b7791ec8c893802e29b1f70845884e3f59b47d6
-    05409fbe2bd9d47b00ad5470e1750b130b4e89c4d523651a29c1590ccf4060b1
-    acd71e42c6f89629e78af6d5aa9eebae64cf86f26bbb38faec0cd830afce926a
-    0863150892130d0175ced3f6fe4eb591fea08f9ab4078ae97367683565c61e2a
-    2206f94f49cdb6df70082d41b7f0ed58ddbe9ea5f441fcd250296ce5b770d92a
-    45efa7b29fd5a143f73d8b5e525d9dd051d399ba88e5114f7be2be897f64c1a2
-    e93aa23a24a998e979b5326824c824e0c845e71d95ce8190cde1673c8f66fa45
-    4ea12fe3b43d0d49f4284f32283dfa1c3ff07ee211e633782e4d28f23a00bca4
-    0b3f4736ae026d8ffb530475eb5e42e7f545c88d33c4359d9dfc808994bf414c
-    272536d5104a3705a3505a71e086627115ae3f84702d06c3754643e8ac771fb4
-    dec5ff9968c0e31b2ce6660c5a6644043d32058ab240522ee15c3d42775b7ad6
-    f1493677b165da862381e3ea559d36d8f708cc58fa1937eccbb8c5077d488d8c
-    89576eabe6c423d05424357c7acecc8e0c4b651532fd7c
+    52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
+    0000000000000003000000000000000002502f9c9fb37e8997f6f0a18bc190e0
+    a645610cc7f2a6b61f2613b2beb722eace02b0953b71299fd93afdd45543995d
+    a57880d6e7e436c0dd1e67155803a8f2654e02f0616ad673e60b30ae93033e29
+    8da9f560e15daa84b4638f1a9f431bbc01257a02570e0714720a0a66ac6d5a78
+    481432a9afdbc51511d6b3dd26ca9d23d6dbb8c8022d139dcd299b9dddeee924
+    80c4a8398a75b243934adf7ccad7d405921139e32e035957b11c228231c5fc58
+    116032251115bd2dfe3f42e78f79cddd38337afc87b702c0bf522c60ad02494f
+    ad564a3b7c276064fc441223b3a8436014414ee9f7b4fad3f7f1650e136d9984
+    214f41501751bb6c90ca2d49f246e64096059875578272e8a3d10a0b7a614b91
+    ee8c16d765ea433344d8a37ae640bbfc7945fc59bfe6086903a296729cbd5315
+    db7874eba7a474fc788cdc3b8fa994b38755722b577aff3dcc7822057dd0f95c
+    c442f7ce8e6c3763b0ce456150be5d4cb29a84f691359c24daa02f08df23ea65
+    ed91b03648f9048e65885a4dbf70fbb8fde02fe29cc8eb8599be741b510a3ed4
+    554f9e18114ae42ebca0e00b3f19b8d83e8e6dadca07c286c6b238c560141424
+    4fffd614c7b1710c5ca811e37389157a36b43bd9c78e87c10641b8cbb662ae82
+    4300a93c2e88d0872dbeddf1d9aba5dc0bd56120b836b3e559e4784c2f2b2ba4
+    ccc3eeac700a0e39638fb5193078df3fd7625403c431b45151acfbb1eceefb76
+    7eebe103a3a5807196eb140ca4abef4709d6ad270d97f935e43d5b25190cedd2
+    b59e9e8d1ed5c29526462673609eb39e94e7cb9061991199593cd36494f6b445
+    fccf6f6ffa3f3a4a589ea523f94bd6d1b5bb986a9256f76b15980465854e25af
+    8e85c7772c322ad12289174e0e39fa32d30f28505904275c663e9465aedb2a70
+    6769368fb3505931359f073ffaecce3d2a060d7851c0b580307b0aa2e28a4eba
+    8d555c642ab743e23d9630449c0f3b89b7ff488f2c6068955f0508a219a0767c
+    e86520a848e4bdca416703ce05e223fbb2d335af9322346a8c21cc48951cd109
+    1ff18f088f9393e4f9fac066298cd1dadf9757afcdf4fcbb53d8116d3d2c79ac
+    dbd1e4c52ce1ead186ef34aff71fb69b8bfc46128f421e8fefe02a20f78cc9a3
+    9f3b6b5c3d4551c2cfffcb2ce2c1f5d4fb66f346a7e6d07ac24b5181f0a2ac12
+    97f4b6fa430b6c3ce6180a1fcdb73c36277ef42793ed78
 spend1.refund.t = 1
 spend1.refund.rand =
     d0d4df4841caccbc18ff93ded09078976a3cb986f376d910ec2d033fea1cd0b5
     fd5edf4b0cee435e2af14b8f987e66c55ca601fa35bdf956572c2cf5d59f457a
     0da9024b59468d25626b72e92fdce7e9e9eec22fcbad3491280989a561a42da6
 spend1.refund.message =
-    020bd8856af2da92d3b0e8be1ac4d249927a54a3b997d015cbfe32f192c34024
-    f8fe6abfc499b45f0db75d8d8a56f33c371c7f3b4fe433070c087884dcfb4238
-    5c00000000000000018891929968c69c51426c7d0b88e12b5e4cc76c84d07d53
-    e53cd0831c6d41a100b95158b867c292515fb3cde433954e6ffdff3b179541f9
-    3a724c3c9c6a64a26f
+    03d07adb9b8928f5bb8eddcee483dc6a068e01ee689cf1ade2a02bf19eb111c3
+    c4637cdeba2fe8a9c604504ab3933a3c83f727e8481d57929a286b21897878c3
+    d100000000000000018d4b80116b1fd61fa4b44cf5a04cba17774870dda6f926
+    c4078d48c478c570e6e4c8fdad84f9ec8bc45f668c71f8bd1bc30716d505e92e
+    f8d670967b54316981
 spend1.credential =
-    7f94975a165f12b8e54a140279d68b2620cf381eb515d7842f3324c34fc5a0ce
-    0000000000000008486603ff558a41b73acbb24a59cc31b38534b4ee8a5b6866
-    6f0c592ac36a86a4020bd8856af2da92d3b0e8be1ac4d249927a54a3b997d015
-    cbfe32f192c34024f8fe6abfc499b45f0db75d8d8a56f33c371c7f3b4fe43307
-    0c087884dcfb42385c
+    b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
+    0000000000000008491a080c46c6b5ffb25eaaa17e4f408ab289e896311f2e16
+    810e907ac46cc37103d07adb9b8928f5bb8eddcee483dc6a068e01ee689cf1ad
+    e2a02bf19eb111c3c4637cdeba2fe8a9c604504ab3933a3c83f727e8481d5792
+    9a286b21897878c3d1
 ~~~
 
 ## Spend 2: refresh (`s = 0`, `a = 0`) {#act-tv-spend2}
@@ -1709,43 +1699,43 @@ spend2.rand =
     e6f88c119d7f98025372912d5fbb4ef1328690385ba6c69230eb7222af491f46
     df25f5d5967d6181ac93f6ab5f0581fe
 spend2.state =
-    0cb03fac0c1c386f59959db21ad2081db89a0febce6d3d333d2c98ea509ac7e2
-    dfde10012917e76df43ce79b8abd579fbcc2ce95e3581bbc755a946d680d44f2
-    0000000000000008000000000000000000000000000000000391c5ac7946222e
-    da2eca67ea175370158f783f1849c71e012857affc00165834
+    83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
+    6ad38fb128750a61467d48bf9529bf80524a5e0b8632bbeee939703a3c2037a0
+    000000000000000800000000000000000000000000000000027d8362f8009f48
+    5425593deb0f9db8deb23e1acf6b6107eda3a9e1e77463c360
 spend2.message =
-    7f94975a165f12b8e54a140279d68b2620cf381eb515d7842f3324c34fc5a0ce
-    00000000000000000000000000000000034e76f8d6c431cb566f50a584f2683e
-    482ab88b6db0fce33310689a773697945203ec19b6dd6e542e55c4a9393cb892
-    3044f6702647a14ae16a74e93f6c54da7dc203c01abaf6e061eb8007c74c99f7
-    0cbcb7bedb30a31c6a1a5953e0f118376a5cb2036baa02753bb185d8b08f12ff
-    6595a5c9c31541ddbb916df9e386c2fa657b32ad8af8013a269f7f7ca3920e3b
-    1303e791492fcb3abe6473f936fa8f8085f79e385c9366b5e89158b7f9ff4838
-    4c836b7615051a82559ff2fd1658897e77bad71977c86fee7588c3a4c35dac72
-    eaa89121de09825c86d74907e1f5c6bf6e619bb3078e2d449b600881491c2a9b
-    4d8f89a35315a187308907fdc03797f4bca426a554c47aee82307174d7ded2fa
-    4b336f97e75d8c441f8a8a88601eb5b5857ed5f5796e0b2b213680201eb14c3e
-    b6c0d8a0a0f5a84e48e1199faf53e2cbfee61179ed2cdaf168e1d90e4fdf5ebc
-    41aa886289aba0b74ca5158fbae669561a32c8fe0feb4c9416397460f8d8e16f
-    ebf446b96251699c0c7db3716ca3e7c9237200ccdccbd6b29d702ecad4b6cf6d
-    be65aef950742f937c068a8565982e2fb8c1b7e6
+    b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
+    0000000000000000000000000000000003e8a75a952561578924033713ffa5c7
+    a5d3292def03bb40b9d8f80fe7a704d5d702334d018425203c12cfed9737abbc
+    1cc105944a1379e72c6ba979af96e4174b76037f15d92dff223548aa9dfb452f
+    cd804603f841ad5388ee1b09808218a16b92ac02323e9623d8e513de657a7f7b
+    d9c1a07a95bf538f1426904f9cfda0a7c0e0234a24aca6ef4eb44bbe46b34910
+    d75b711f7f669b32b28d0c9b2d513bcf6a629ae85494e269c51d4451a667516a
+    5ea2ee763488e5a21d817164dc3014519ce6f05b7ce3f7710c4e07dd6d44c32b
+    f26908d2caccf8fb5c1830afc305d33bb9b84fa915d5f8bfd32f861ab621bb45
+    6a84fb33b5bc3ee7239d5060a0382bebca867ebf737dcd1c5497f3a8916c1042
+    373b22213fed3951f08657a9d1b45ffae872400bc07836deed3e68cf86bb73ed
+    3670e342c6729aecf3e30290a3067f6e8f29b59f77c2ba7381171a71e928bd1d
+    97a6b7a9b753f03bb88ae5fae6dacc13c074d6c8857894f866cd4e7e3b34b383
+    dfd8fa7f0060ddda7cfd7261bd9f8897ebe90c34e6a531eedaf38c9336de1fc6
+    6186bc3e9eaa057aa62a33653f431ecad0d6f45f
 spend2.refund.t = 0
 spend2.refund.rand =
     95b4caea533d53f0792b7032eaa799459ce759de2e53720cc977c96647659efe
     a09b16bcd8d252ddb54e6d634b504804f60f932babe6e1da4505806962a93d2f
     0a451bc180e762813ca3e255ed2c8bd816f9d2954e6189a1777eb675fcf35ebc
 spend2.refund.message =
-    0269823b92c0f3b6569fde5c9d175b69ccd0e850ad55689766d2be12dfc1a3e2
-    a06fb0e6384b4acb3582e817b6d0cdf536d8dfc1e6fd49d6470f3a710e75682d
-    d20000000000000000fc30b8263b8bc9437c6448679357bb1599898ed08bdcaf
-    f1bad47954c88f5bb816ce848166f22f1108dee7879809ce5cfddb4c5425206b
-    2403a7514af01cb2b8
+    03f43eb44d7bb89d71a8b45243a292ab048cd454412d0786afffd5bdf93e2e4f
+    1a93ff246cad8d55cdb0259225be306b15bca37bcb93c473a91876f6441d64ea
+    da000000000000000058d2d746a2534760207dae0aadf73dc55899747d85bbe1
+    a6fcf804e90c69d9ebffdeeced9e150e495f220b1817eb4d13dca7c2ae50117c
+    da2c9b002573257275
 spend2.credential =
-    0cb03fac0c1c386f59959db21ad2081db89a0febce6d3d333d2c98ea509ac7e2
-    0000000000000008dfde10012917e76df43ce79b8abd579fbcc2ce95e3581bbc
-    755a946d680d44f20269823b92c0f3b6569fde5c9d175b69ccd0e850ad556897
-    66d2be12dfc1a3e2a06fb0e6384b4acb3582e817b6d0cdf536d8dfc1e6fd49d6
-    470f3a710e75682dd2
+    83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
+    00000000000000086ad38fb128750a61467d48bf9529bf80524a5e0b8632bbee
+    e939703a3c2037a003f43eb44d7bb89d71a8b45243a292ab048cd454412d0786
+    afffd5bdf93e2e4f1a93ff246cad8d55cdb0259225be306b15bca37bcb93c473
+    a91876f6441d64eada
 ~~~
 
 ## Spend 3: pure top-up (`s = 0`, `a = 2`) {#act-tv-spend3}
@@ -1802,59 +1792,59 @@ spend3.rand =
     d648214355259f6489a5e4d4e2348775e1aa9b2b5d0b17fc29845b3a06a2f978
     6ac03e67f7fbcd77d48eb569476340eb
 spend3.state =
-    abd3bf72d32e61734cb8953c98762b5f7c0d804988007508eaa7fb8f174fb497
-    44b6cad7d649a806b85dda2fbb173369dc1b3323b67c89277df5ab672f3db501
-    00000000000000080000000000000000000000000000000203071ee64d81ffac
-    bbd2455c8369afc59228fe2950c3ff635f60ccf2597458f8c6
+    1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
+    a821e7b5185df5fd500ca48e3dc6ef36202a44b310c62d7a1e302fb377b228dd
+    00000000000000080000000000000000000000000000000203c6d651f9b93f50
+    dfe8e62ce107ee8a199f21d84008ed38999217e21d77c45675
 spend3.message =
-    0cb03fac0c1c386f59959db21ad2081db89a0febce6d3d333d2c98ea509ac7e2
-    00000000000000000000000000000002027d2636ead329c209b47b85adedcae5
-    9e3e05dcfefaa2fb0eb3c08b1e49caad1802cdd03b9ccecd3f5bc4d8de96e400
-    49765b8f56f1aa9eae1c642e5def070154b003d2d393e2f22fadd8370e63ac3a
-    ebf1448be768efb9262af0797f7b2ff7c1014a03987d1e4031707638c83b9699
-    ba18fa0d4c85206724307048823c8b22a8a246c20241d986cbb02fb5be756c2a
-    948e27e54149f0c955765768763b35e887f140ec9503a5c850e8d95661596008
-    e099b8ac5291f4fbdd7ef47a610a19ffedfba3f32a36024d79e3ee48fd3559dc
-    113d5db8b0d5cbef4fcf49a092b552e83f54739324a3a702da6b877f9f8301fd
-    6d5da86e075fe9e0dd0b97f325ebafb5ba041e6e38e69b2797911e614e2368d3
-    6b103b12fcb9e09ffe639b6dc5577370b89f08c5f56ffcc15dd1bc6d8e5dbd93
-    ffb40d8aefa13ca2ac3366f984adb2367b802b3dcd8b6600cdd1ae0d0ef0a3c6
-    0c6d1b77c73d958029723fa66bd1f317b11720920fa6352cae1eb298554c2333
-    70133b32c65fe484098db49ff86965ae05c4874f413f2168e55d3f988074a2b7
-    59e4d70c92e43ebe121db4c736125c59917ebf69ca50404c4ca7e45735b4d49c
-    5dce487019d73b69fa8bfc8bc01a4a63b7be128d8df63f50a2664742c64e9379
-    62d3ea84f26b2f64713cbf202961fdf594785131485b81af3552f8cd0289f963
-    342072d477aab66398ac755435f1474d5ce3de21b82363e546c10af8334fab20
-    c51c4449691fa8317eb5577080eacd1b85a6000adea1362c1589c46990a024a5
-    3ca4fec73012951e72105f54ea1feaff0615f74fd74bb9442b2de0cdf10b1251
-    2b48f75c608b95bc2d683741445d4e551f01652070f9318a4956b91d01563f89
-    884b250625789d2e645821115ab6c447bf718d76740be27291204b5b3e87d7d3
-    2c7ca18d6b72fd3ec513e6d41e1ec5983255f5b381bae4d2642323123600068e
-    dc5b07198ca933b0068f3ed14e4a7532147db75fc6b84e4b265a7e04dab3cb50
-    a9f16e2771b4c71d655b3be3362015848cdc8ae64896f1f45d166136e6ee4b11
-    12aa0a22f6e08d9d76fb92a8716bcbdd7ac26903ed2096c64f64879c6281461e
-    8275c63d17ca568d9ca07c7aa1458194d8e1e876d8fb738439d621b0858e6445
-    4aba618bb63d350266740bc3a1221fcf1075e6051197dcc2135f91da35a9a1ac
-    a0493c0f0bec88d82ec7fb0eef0c7152a536ae23eb3ebd918bbfde4ea1b3eeff
-    e3d5171b53293bd71a4b75c4060c8b9c2677e8532f4f7fec454cd5d578429a14
-    f1e0181a750213ff11f0b74372e711fa7746bbd4f3565903
+    83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
+    0000000000000000000000000000000202aa2db83b35953ec853c96fa50e4878
+    ce3b83ad22be968f10694c08dce24d9f6102c1ec108964543768374bdbdc75fa
+    e4e67f466290951be408c7fb39517c3bc49d0293bcaa8356e89f999250c38fbe
+    9a3e0497685dfffdaf98b85e90a105c9c0f83a0225d6a448a6fbbb08dde6a6d6
+    10d8544c426396cee2efd5346b4881903eae423902b4c98fbebbee063b4f3ddb
+    06e276b311574641b4a7189009dcd72461be4509fb030cb5eb6fd0d05e1e6f86
+    1e0cd1f78a75d41f05c38288a98bd68df3cfb128ed25027da15363577ea082ea
+    09ef6d0a0bb2884f6d8c448ac2df20f18c3948347fbc52021f70d27d2ab81cfa
+    b8837f73152d20cfa32ef29581ab939dd2194556a5ea97f535adee9478851851
+    0da0ee41884728a37f5de00f0af9445186db1081ff0502fa3f282968a8d1116a
+    495868cf4676dd87165b484288f0babb6ab242d5a070067d36af7417a94c2fc2
+    09f1213280a18e63d1f680dc591a321b591735d79b88e46e77433274d0a076e3
+    87f6476856e8f61f86fa7d015bee44cca64d3ca3b63787598a495e5ad8f1596d
+    bd82befdf938abb67e73b042a2b1057d5c6b5dba30d1a484c41de02fb29f61d7
+    a3b3b4176880067b1b087e67d8e110c3cc6980438739f7d90d797fc82713dd8d
+    6c808eb07dd6b7a866dbb14a29b9343784236667c03b5b4b2785cabb59c134ce
+    ed3a4af52e8bef8df239bd971e2772c4c1cf913b33021bc89bc01966b1f26321
+    2a5d8b423b55273f4b7152350a6127988ee9d7c9368f3b0f2cb793859db98777
+    20c7b3d2808b8412363ffe86c49f79829d541ea5e57664c197c3487c20d23029
+    f650c2c0b9871a92a84aa1976631ff8adcbeb91564b4324220d180a1b6fcf63c
+    7d69dfa3bb5c08ea1aa965125e499b7f9e38dbf526d04becca3825c1279e59c0
+    1e6da1b8d1574e7767dc983ca3219fbdba0237ac264c232f65c1ac200ff1afe8
+    80b36a6404e5774eae6b8a7856734cef002f2225d62e0e9ddb96436e793f6eb4
+    94cfbe42e1d7c57959639e2442dfdc01a7a932b8382c25cae84e2d67674cf767
+    6bbf651430b223735af3f1beba945e81cee10d15d0355cb1b5760bd0ed418f09
+    0bb8b2bba698e3c66854bc67e96af002f008d2914cb3856568604b69934ac9ed
+    a4585dd28ec10791d5df38cc3c185c6cf927a05d2f7f1582bbf2866037dba2ce
+    7897ccb91dbccb62fc096b839f12bfcc891787ff8afbece87b8e280960f9311e
+    4e91bce4374dfdca3d2777d20e2d0c5fdc591a02b710b078c9e21f34ee3be643
+    b4a7e7c473e0c3e17f897724ae2029c9c87b46f0d525a74f
 spend3.refund.t = 2
 spend3.refund.rand =
     912d9992f195bfceea672989d47a02927822088f1470d8b0e9a8de1df4c028d8
     3c56fcdbee9108de7049551bc192dfaeeb02eee83b4f3e326c1ea261a0ac24ad
     f3dba144d9ee0d2d8df7c977aeaddfa73d01412a0eefb0a7926774193aa80f12
 spend3.refund.message =
-    02795a3b98075ef5d8a668f9ba92c02f63b2c1c98f94b6b18f73fa552f09ff66
-    e4d04da1342d34bdab32257f501dbc30cef2ab8a499ffa51c7d43cd9c7ef8815
-    590000000000000002ea418fea45543097fbf27b677bf57220d47f09b039b202
-    e5a0ed2e59c9de266c66a07fec99cd7ad38165f861324a3af0df6651c8a4b11a
-    28566ad35438726810
+    037278382de8d95b9104c2c423818fa38287c1ed9d030237264818de1e4ee9c2
+    9b8d0b95df0001c822e1628d7bec7b23490d973c049f5af596b3aecb4e54baca
+    050000000000000002da70ab90d7a2a112dbc9211598ffb4ec1ffbc650022de9
+    23bb80372958986e0543105c0ec763d33db4b427be3bbde9c604a5a77bd9e112
+    da5a929c188a3a3e9b
 spend3.credential =
-    abd3bf72d32e61734cb8953c98762b5f7c0d804988007508eaa7fb8f174fb497
-    000000000000000a44b6cad7d649a806b85dda2fbb173369dc1b3323b67c8927
-    7df5ab672f3db50102795a3b98075ef5d8a668f9ba92c02f63b2c1c98f94b6b1
-    8f73fa552f09ff66e4d04da1342d34bdab32257f501dbc30cef2ab8a499ffa51
-    c7d43cd9c7ef881559
+    1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
+    000000000000000aa821e7b5185df5fd500ca48e3dc6ef36202a44b310c62d7a
+    1e302fb377b228dd037278382de8d95b9104c2c423818fa38287c1ed9d030237
+    264818de1e4ee9c29b8d0b95df0001c822e1628d7bec7b23490d973c049f5af5
+    96b3aecb4e54baca05
 ~~~
 
 ## Spend 4: spend with top-up (`s = 3`, `a = 2`) {#act-tv-spend4}
@@ -1932,73 +1922,73 @@ spend4.rand =
     0d5e4fa662ca3050fb757bbd15d6040d569c4106c014cd45a815f609f8174583
     90b8461cb97570cb46d717ab190ad4ca
 spend4.state =
-    7005897e4e9731d908a469c185bcdabd506c86345329a9f25aea9924fa017599
-    379c178f99568e6f95e77d5a85e6e26cb8efc4377c797440087279a2cef08b4a
-    0000000000000007000000000000000300000000000000020253254677833518
-    aa402d0a3e6f1ab97dd704673600caab785a95b78c431c991b
+    6c511dfb1615e12295c9007b7f9932b6ea8355c4d17c28ccd0a5928a99c08fc2
+    911f8b7fc9f04ab3fafbb23e8f0381966b6820c2d9e7f23a8c1d5cf76c6a4f9b
+    000000000000000700000000000000030000000000000002025bdb3f39a5c58a
+    b0cb727759b63f2e3a38ce85097be2e23737f25e7fc245d365
 spend4.message =
-    abd3bf72d32e61734cb8953c98762b5f7c0d804988007508eaa7fb8f174fb497
-    0000000000000003000000000000000202f782e2fbe20bdd3913cb87a60f18a9
-    825b1b3502bbde7f61d3e57c1cda1a0df503f5eceaa7b14c98f342d67ab51cda
-    1a94dca84f83e5d0c9908f91d873964c9adb03994873a185a8b171f370f06a14
-    fa8081e248f7327856b09f775ac1aa7c8b386503db19e3129885f382b46826ba
-    acc88c282d4efdb0f790bf13c9773bd5594b3eb703289d0047abb1206db4f62f
-    ead4da9f0c8ef0a483d4a8b17ba0511e43f8e7e9f8033ecea5d0eda0a50f7c83
-    50095ed94c79ff2fa0e6d3929b3557ee4b1b4443a83103aa23cacd9c0717bc8b
-    87b0f244bda7698ce33b1a9031f0a8d955697698a323d203d5279d91f3cc866b
-    73ade7be42604508d9d530c47a41fac71b9830082fe07f9d022311cd632293c6
-    a1929a548cf67d3ff61ef159c3a56a9b34e15c0ec270dffbf0020f4421ac97c3
-    34814d4893d57af97eac09a3ff4650df470cb224ce90e468ef03025d6e99d0f6
-    8a404e29e26cd98af05fb0c093e8f98f984737ae40153bed4a1e978daf044b5a
-    df4664455ef502e52ec2d4c66e5df04fdb533838f9880e244ab7f2abddefccc4
-    7dc93208f41f060101c54384b1aea6f8eb8a2e3b9290aca82b038477d576af21
-    30b62a983f00f777d0afb83be1d1f53fd85c96a450c10ba609b38ac70ee2034d
-    a5a256141b1f12a6212f0a9b8a4a7bf7bcc04c7698109acff10afb61931bec97
-    f2d7265d3c8356613d00df808e6bfacbcb29ed47e839836498ed31253140a6dd
-    bd96cef62cd5c400ebf7d9424aa8e72452ce97ca274f4dad1728887c0a7f09a1
-    56702fbebe6e26b05b3f92106ebd5f1c082635fe4626e6eaab9c028ee71bdec7
-    8dc7557180adb833eda377392538845a0632c0708f1b53f4fa19e5bbee7a8236
-    750b7f1a06fb97b497231653210bf79be66c91ed9eda1a9a117184250e650a52
-    0df3272e391295ddc641eedb207fb6d75318277cd8b3275e386025c284af1a49
-    6f1e5c8e0836a940f4edf62494152dab914438be2ce61be0261d48bb1e1fd8df
-    e712bba85bef5a42a725c974c201f303a3acab07d5a5affa82955e3597c33773
-    7e2f45607365c4a7203f733839cd3722ecf8f852ff81f28f5835484d446398e5
-    f7196d1b97f4d6ecd149985abb4de4f98e1ff0e1f9efb380429e486c4f828fd9
-    032e3c991b2fbb4abcb5c7195f813b8bcc86dddfdbe522e3a5176507f21ac7c0
-    d32dd88b02a0aa281a785c6a45193c87c2addcc28a8566801fa5d55f79f7ebcc
-    da316637e5e22f4b36313f5a83dbd515fe4471f1c186f404844e99390fb68300
-    483eb93c053ab71333b14b4710715455f9123eba8bb5d29366b7b364cb6f451e
-    c7044b0dc88bf0fefcd2cfccf5e2313c2ba3d6f5c1ff1a91d7b780bb3aea4a4c
-    2ebd497aa101cb53af5533d6e1f8589a1e781f60eb0828cf7dabf4847a3ab6bf
-    3366db34c278bf8fa28aa544b3c6ff6d5c04422364cd4b9a3db9107044659033
-    6d1a4ffc075c5fb5b8b66fe92fd457d423ec842215fa8ede0fcb426130a82797
-    bc737b441a860686e6fbe1fef63f82a00d36cdc5f05c06b7fba6897e7e073056
-    fdc63141719c55497262dc676438c63f70e9fdb4edb7880fce6723ae71ae3c64
-    e5e76606153db3054c967b130e9ad62b55b129d6fe4a38b4c736144d8eb0cd86
-    9edb6eb2a5cee3933d6857232455ebd27c77862afa9baf7ec9d3e0b2a755eb43
-    7ae318e5f639f42e7e221d5a364526f9e1041b0a5a835ad5bbbbe652da85fa0b
-    0401d40f7960a950b2af332b2195926a55ed95ed22d9f198ea30bb869082d173
-    db7373b6c4a06ff45bcc6d30c58ee8e66f04ce478c0f5ef3441650665dba85e3
-    ee0164672db492ce92d902738badc8b86bd17ed1512810f6951bc12b27af08f1
-    8cc8faf12f9a7013b0fc8578591503e73cd777c0c0e31fa75697f9256c4559b9
-    68ac98b5f640d30b7f51961562d117774f999efe8fe88be6c32007
+    1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
+    0000000000000003000000000000000202c4423a2c8ce8ef1a53d38af6d11d16
+    32dad565358cf3d884e7239a8677a3f80802be6463fdf8b2a1012326495aa6e0
+    1b9e6567988c645abab8f84ae51b8ad5774203ca1de2fa4f7f16046c401d5471
+    f2d92c45ed00ad09fa08bdf786c895d431cc32023f8338cc9cd498e8a5b929ca
+    3b1ce49b5a70c76d56cbfc07d84f7d290bccbad303cbf47b280ac31b8f2002ed
+    951ca5a34c02dafe1cb0e268aed03fb1a2f661e6b503c1d19dd08fe15fd455f1
+    553dceace2b91effb0b9d2a7c709840308d03732dd99020e7dbb4d07fbc91878
+    3f6dd35048310944536eaf874279880e94d8f0ae57418a02eb77521e226e6560
+    5da28c1285330228be129f3736532d68471d42b62362d54402b248f28efa105c
+    c98aa0999211341ff14090302a585456575e24880cc8728bde028880ee051463
+    24930251e7055dd780b59125b4da2ce05de5b40cc531d73057f502c4031e49f7
+    a7b03e006f21c0cf747cd3dc46a562de017e5847e081719c61b670b112c6de75
+    14e5696686e3d6396994deee0df798163b7c4375119a1bc0843a72096dc8b042
+    8ca3560ae6e689875efd2834c998844c978c60bdb9640babee547adf45521658
+    63ab772cfe43e46362632fa5b8b346c9e58e2f088c61c00b81a12eb50c316b58
+    bb6e9d9fee029b463fcfdf3ea6fc00188e87b31d8e846ac4c0e26287bd402971
+    957ab0441d21b63b64dd7b90cc5f27ae4c6eafe855869cc6943a6b5c3c44aadc
+    0bf71e2acbdb02e45db8092f1a96a152c8845a97f9bea5e9c6ec0326e27c9220
+    06f9cd5f0f92e12cf4bcc1d44ebea0de7a18735ddf604b795c36b9cb68cc4428
+    67f3e268497f8786964734879bb3a8191e56b7e051bdd6d47e912cf79abd1390
+    89fe2638fabe34128315612ebf8e3cc4925bce0e99f8dfae9845e5327ab88be6
+    a08b3df0bfa2f9881c24080966621bfce8d4d6af43a81ce0800088e0b2fdd97e
+    ffea10fc23d531e837e829da1c730b24b999b3af5a8e50ae1b92299ed59442ff
+    701bc07ba536667f6276a106734b6fb02e9509edc8394e0512a52b96c3a189ff
+    689461cd569484d72b5670ddaba81dc8e42fa6d13d926b7f872d9d376c3cc035
+    86d77b4d5f02dd38bbbacdd9d657c03d14c49c5859a3ba39962518d82778a78d
+    a2e5099290435e3379170c2336e7e372d17d839db3700d83409d07c9caa4e7f7
+    4a2983a1f24c0597faba83b5e63e26f7f73c26c0cb4dd1ba4c5d45a7dddb0c86
+    af00f156f3d5101da42e84bc2a6b82cb75284fe26d4f1e5dcee0b78600f00d31
+    1c0c3af33de19a48f7c15bee6c6260c901b2e485593dd07e9ee0b2c88d84b779
+    2c6b56543370cb2639ea0158162f3d0e9a90522c590053262c4afd312f1c2a99
+    62e46c7718075d555b5f692802d02850093a6e0ba6c0f4376c6cc38426be7632
+    fc6518aa74135796fbb817a60089ba074ce33caae3d5eecbf911ad4d4387e41f
+    240bdff570ed9df19c0f86ca9e4dae575cec1ac1f4e642e9c07477d964942e69
+    b50fea023bd1b284c1a43cc3b507bf873b6fdb0fd1e706ed08ec5df5f326ac0a
+    4672a293bd90d141cfc3efb28d6c2ef86f395ed706ffe5d7f51f6ae878272eaa
+    2f0c0d9013290e57655c2257fb78ed9860138ac83ea01a9e9d8f80da7196e872
+    1cc98e8ebf46de9c4f138cbbf819b1c78797b9a159c7491075f6bab224e14e7f
+    5e7581ddf319a1196a749f3f211a1d795576c1147d3c3f4f54a1e531b1b05bb7
+    b156ad221c1cdfef28753e8548b1b2c0eae986d81bdbb1bbbbb14552378243d4
+    e00fe6168e1d8e96044f1cf236158505406fa9c3da33aeac820f71a0728f7117
+    be7fa07bf24f5035c1e6631c4d90d6048e40bed1a0d751f725dbe2499e82c924
+    dbff5f6df8855424821f88cbe8fdd27f7e74f540cd97faa8e1c340fff576eeaf
+    0c5512e403c5340c5f2d58f1a7a4e45aeba081b9b4e71e28b7eaab
 spend4.refund.t = 5
 spend4.refund.rand =
     15792e979eb42697338162856cb1eb2ead6eb2fdfca1ac6c998271398ea79aed
     f8c644173a51e3a3f5368e85b5b8543b19fc6d42d2ab5130dbd46e0dc8d8f43b
     34ed1514cb7272e7ae2e4981bcfd1072c13dc21d3905e5055216fad0c6feefc4
 spend4.refund.message =
-    02c3d7d3686b84d7666dbc9b310dc60d962c6e4aff1668629f3de83d646b8182
-    80923b72830171d5df1d4ab65ccaf55062f694119273a8a3f42790d3a417f947
-    68000000000000000558027e51cf5a139d636c90a7b09b1c3c8a19708d282133
-    93752cd2e24d7f7fe6287f1cb437a771356b997cd60c15282dbd5cf4f2f5449d
-    ce045f63282a81fc64
+    0302dbc52a39d9b292c27158d5d6d226dac6eb51a7d0f0f72914f3793589577f
+    31da41ce9717953c932de3a6e370a6c49dcc6ec3daac95e065b4d17d329cd807
+    150000000000000005ba37881fc654fc2ba48492982f0d5828ae54d9efa953e5
+    cbe7ef163e9291fb76dbf34bb932ebac868d68800d896f5584cd0c2f1339eb0d
+    72c62bb60dc98e97c6
 spend4.credential =
-    7005897e4e9731d908a469c185bcdabd506c86345329a9f25aea9924fa017599
-    000000000000000c379c178f99568e6f95e77d5a85e6e26cb8efc4377c797440
-    087279a2cef08b4a02c3d7d3686b84d7666dbc9b310dc60d962c6e4aff166862
-    9f3de83d646b818280923b72830171d5df1d4ab65ccaf55062f694119273a8a3
-    f42790d3a417f94768
+    6c511dfb1615e12295c9007b7f9932b6ea8355c4d17c28ccd0a5928a99c08fc2
+    000000000000000c911f8b7fc9f04ab3fafbb23e8f0381966b6820c2d9e7f23a
+    8c1d5cf76c6a4f9b0302dbc52a39d9b292c27158d5d6d226dac6eb51a7d0f0f7
+    2914f3793589577f31da41ce9717953c932de3a6e370a6c49dcc6ec3daac95e0
+    65b4d17d329cd80715
 ~~~
 
 # Acknowledgments
