@@ -83,3 +83,15 @@ def test_nonbinary_bit_openings_are_rejected(monkeypatch):
         tag = act.Tag(b"test", [])
         proof = act.Prove(tag, relation, witness)
         assert act.Verify(tag, relation, proof) is valid
+
+
+def test_spend_shape_must_match_amounts():
+    skM, _, credential = issued()
+    _, proof = act.ProveSpend(credential, b"epoch", 3, 0, b"challenge")
+    for bad in (
+        proof._replace(Com1=list(proof.Com1)[:-1]),
+        proof._replace(Com1=[*proof.Com1, act.H1]),
+        proof._replace(s=0, Com1=[]),
+    ):
+        with pytest.raises(VerifyError):
+            act.VerifySpend(skM, b"epoch", b"challenge", bad)

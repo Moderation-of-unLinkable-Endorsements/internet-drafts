@@ -165,6 +165,14 @@ Credential. {{PROTOCOLS}} maps these operations to the MoLE credential APIs,
 specifies when issuance is authorized, and supplies the credential and spend
 contexts. This document treats those contexts as opaque byte strings.
 
+> **TODO.** The ACT profile of {{PROTOCOLS}} is not yet written. This
+> document expects it to define how `ctx_cred` is agreed
+> ({{act-context}}), how `L` is published with the key ({{act-config}}),
+> the lifetime of the nullifier store and the policy bounding `t`
+> ({{act-security}}), and how a Client obtains a refund again after a
+> lost response ({{act-finalize-refund}}). Until then, those references
+> name requirements on that profile rather than text it contains.
+
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
@@ -194,7 +202,8 @@ Group:
   gives concrete instances.
 
 Hash:
-: A cryptographic hash function whose output length is `Nh` bytes.
+: A cryptographic hash function, used by the `HashToGroup`, `HashToScalar`,
+  and derivation algorithms that the group of {{IHAT}} provides.
 
 Sigma protocol:
 : The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
@@ -245,7 +254,7 @@ length of that seed, which the unlinkability argument of
 ## Key Generation {#keygen}
 
 Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
-4.3 of {{IHAT}}, with the ACT group instance of {{act-config}}. Both
+4.4 of {{IHAT}}, with the ACT group instance of {{act-config}}. Both
 return `tuple[Scalar, Element]`; ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
 `G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
@@ -310,7 +319,7 @@ request/response exchange followed by a Client-local finalization.
                                refund
                               <--------
 
-   credential = FinalizeRefund(pkM, ctx_cred, state, proof, refund)
+   credential = FinalizeRefund(pkM, ctx_cred, state, refund)
 ~~~
 {: #fig-act title="Credential issuance and spending overview"}
 
@@ -437,6 +446,12 @@ using it, and MUST raise an `AmountError` otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers ({{act-security}}).
 
+The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`, `t <= s + a`
+in `IssueRefund`, and `t <= s + a` and `v1 + t < 2^L` in `FinalizeRefund`
+are between integers. Each sum can reach `2^(L+1) - 2`, which does not fit
+in a `uint64` when `L = 64`, and an implementation MUST compute them
+without overflow.
+
 ## Zero-Knowledge Proofs {#act-proofs}
 
 Each proof of this document is a compact NARG string
@@ -516,8 +531,12 @@ class ProverNonces:
 `SerializeLinearRelation` of the relation ({{Section 3.6 of SIGMA}}).
 
 This rule binds only the prover; a verifier following {{SIGMA}} accepts
-these proofs unchanged. A proof repeated with the same inputs and the same
-`rand` is byte-identical, so a retried operation reproduces its proof.
+these proofs unchanged. The derivation is deterministic in the witness,
+the tag, the relation, and `rand`: replaying the bytes of `random`
+reproduces a proof byte for byte, which the test vectors of
+{{act-test-vectors}} rely on, and a random source that repeats reproduces
+a proof rather than reusing a nonce under a different challenge. A retried
+operation draws fresh `rand` and produces a different proof.
 
 ### Proving and Verifying {#act-prove}
 
@@ -763,7 +782,9 @@ class ClientSpendState(NamedTuple):
     kstar: Scalar
     r_star: Scalar
     v1: int
-    K_n: Element
+    s: int
+    a: int
+    K_prime: Element
 
 
 class SpendMessage(NamedTuple):
@@ -938,7 +959,11 @@ def ProveSpend(
     )
     pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
 
-    state = ClientSpendState(kstar, r_star, v1, K_n)
+    # The commitment the refund will sign, opened by the new
+    # Credential's secrets; the Moderator recomputes it from `proof`.
+    K_prime = G.scalar(v1) * H1 + kstar * H2 + r_star * H3
+
+    state = ClientSpendState(kstar, r_star, v1, s, a, K_prime)
     proof = SpendMessage(
         k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
     )
@@ -948,17 +973,18 @@ def ProveSpend(
 
 `A_bar` is not sent: the Moderator computes it as `skM * A_prime`. The
 values `kstar` and `r_star` are the nullifier and blinding factor of the
-Credential the refund will produce; they open the commitment
-`K_prime = K_n + V1`, with `V1` the balance commitment of
-`BalanceCommitment` below, to `v1 * H1 + kstar * H2 + r_star * H3`; the
-Moderator signs this in `IssueRefund`.
+Credential the refund will produce. They open `K_prime`, which equals
+`K_n + V1` with `V1` the balance commitment of `BalanceCommitment`
+below; the Moderator recomputes it from `proof` and signs it in
+`IssueRefund`, and the Client keeps it in `state` to check the refund.
 
 `ProveSpend` consumes the Credential: an implementation MUST NOT allow a
 second call on the same Credential value. The Client MUST treat the
 Credential as spent, and MUST have stored `state` durably, no later than
 the moment `proof` becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
-reveals the same nullifier ({{act-security}}).
+reveals the same nullifier ({{act-security}}). `state` holds everything
+`FinalizeRefund` needs, so the Client need not retain `proof`.
 
 ### Spend Verification {#act-verify-spend}
 
@@ -1043,10 +1069,9 @@ def IssueRefund(
     return RefundMessage(A, e, t, pok)
 ~~~
 
-The comparison `t <= s + a` is between integers; `s + a` may exceed `2^L`
-and an implementation MUST compute it without overflow. This bound keeps
-the new balance below `2^L` without a range proof over the refund
-({{act-security}}). The Moderator places the new balance anywhere in
+The comparison `t <= s + a` is between integers ({{act-amounts}}). This
+bound keeps the new balance below `2^L` without a range proof over the
+refund ({{act-security}}). The Moderator places the new balance anywhere in
 `[c - s, c + a]` without learning where in that interval it falls.
 
 ### Refund Finalization {#act-finalize-refund}
@@ -1058,21 +1083,15 @@ def FinalizeRefund(
     pkM: Element,
     ctx_cred: bytes,
     state: ClientSpendState,
-    proof: SpendMessage,
     refund: RefundMessage,
 ) -> Credential:
-    kstar, r_star, v1, K_n_state = state
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, _ = proof
+    kstar, r_star, v1, s, a, K_prime = state
     A, e, t, pok = refund
 
-    if K_n != K_n_state:
-        raise VerifyError
     if not 0 <= t < 2**L or t > s + a or v1 + t >= 2**L:
         raise AmountError
 
     ctx = CreateContextScalar(ctx_cred)
-    K_prime = BalanceCommitment(proof)
-
     X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
     X_G = G.ScalarMultGen(e) + pkM
 
@@ -1083,14 +1102,19 @@ def FinalizeRefund(
     return Credential(kstar, v1 + t, r_star, A, e)
 ~~~
 
-The state records `K_n` so that a refund is finalized only against the
-spend it was issued for. `FinalizeRefund` consumes `state`: a Client MUST
-NOT finalize one spend state against two refunds, since the two
-Credentials would share the nullifier `kstar`. The Client MUST NOT spend
-the consumed Credential again, whether or not the refund arrives. A
-Client that has sent a spend proof and not received a valid refund keeps
-`state` and MAY ask the Moderator for the refund again; {{PROTOCOLS}}
-describes this.
+A refund issued for a different spend signs a different `K_prime` and
+fails verification. `FinalizeRefund` consumes `state`: a Client MUST NOT
+finalize one spend state against two refunds, since the two Credentials
+would share the nullifier `kstar`. The Client MUST NOT spend the consumed
+Credential again, whether or not the refund arrives. A Client that has
+sent a spend proof and not received a valid refund keeps `state` and MAY
+ask the Moderator for the refund again; {{PROTOCOLS}} describes how, and
+the Moderator recognizes the request by the recorded nullifier `k`. The
+Moderator can answer with the refund it issued, which requires storing
+it with the nullifier, or run `IssueRefund` again. The latter produces a
+second signature under a different exponent; this is harmless, because
+every refund of one spend carries the nullifier `kstar`, so at most one
+of them can ever be spent ({{act-security}}).
 
 ## Encodings {#act-wire}
 
@@ -1220,7 +1244,7 @@ formats.
 ## ACT(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) for the group and
-SHA-256 for the hash function, with `Nh = 32`. The value of the ciphersuite
+SHA-256 for the hash function. The value of the ciphersuite
 identifier is `b"P256-SHA256"`.
 
 Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
@@ -1333,13 +1357,24 @@ Amount validation:
 Randomness reuse:
 : A repeated nonce in the `IssueResponse` or `Refund` proof reveals `skM`,
   and a repeated signing exponent `e` under one context lets a Client
-  combine two Credentials into arbitrarily many at the same balance. Both
-  values are therefore derived with `G.DeriveNonce` (Section 4.4 of
-  {{IHAT}}) from the key and the operation ({{act-signing-exponent}},
-  {{act-prover-nonces}}), so that a rolled back or snapshotted random source
-  reproduces an earlier response instead of yielding a second one. An
-  implementation that draws either value directly MUST treat every
-  repetition as a compromise of `skM`.
+  holding two Credentials with that exponent forge Credentials at any
+  balance below `2^L`, each with a fresh nullifier, which the nullifier
+  store cannot detect. Both values are therefore derived with
+  `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the key and the operation
+  ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled back
+  or snapshotted random source reproduces an earlier response instead of
+  yielding a second one. An implementation that draws either value
+  directly MUST treat every repetition as a compromise of `skM`.
+
+Identity elements:
+: Deserialization rejects the identity element ({{act-wire}}), and the
+  verifier of {{SIGMA}} rejects an instance that contains one. The check
+  is soundness-critical for `A_prime`: were it the identity, `A_bar` would
+  be too, the first spend equation would hold with `r2 = 0`, and the second
+  would let a prover present `B_bar` as a blinding of any message of its
+  choosing, at any balance, without holding a signature. An implementation
+  whose group library accepts an encoding of the identity must perform the
+  rejection itself.
 
 Nullifier store:
 : The scheme itself does not prevent a second spend of a Credential; the
@@ -1372,9 +1407,15 @@ Constant time:
 : `Bits`, every operation on the witness of the spend relation, and every
   seed and the scalars derived from it operate on the Client's balance and
   blinding factors, and MUST be implemented in constant time with respect
-  to them ({{Section 7.6 of SIGMA}}). The
-  bit equations involve no branching on bit values, unlike a disjunctive
-  range proof.
+  to them ({{Section 7.6 of SIGMA}}). The bit equations are linear in the
+  bits, so nothing is selected by a bit's value; a disjunctive range proof
+  would instead need its clause selection to be constant time as well. On
+  the Moderator, `skM * A_prime` in `VerifySpend` and the inversion of
+  `e + skM` and the multiplications by `x` in `IssueResponse` and
+  `IssueRefund` operate on the signing key with inputs the Client chooses,
+  and MUST be constant time with respect to `skM`; `A_bar` then enters the
+  verification through a group element rather than a scalar, which
+  {{Section 7.6 of SIGMA}} addresses for keyed-verification credentials.
 
 Derived prover nonces:
 : `ProveCompact` is zero-knowledge when its nonces are indistinguishable
@@ -1443,9 +1484,10 @@ the prover's `Nseed` bytes; for `ProveSpend`, the `n * Nseed` bytes of
 its scalars, then the prover's `Nw * Nseed` bytes. The `state` entries
 are the `ClientIssuanceState` `(k, r, K)` as
 `SerializeScalar(k) || SerializeScalar(r) || SerializeElement(K)`, and
-the `ClientSpendState` `(kstar, r_star, v1, K_n)` as
+the `ClientSpendState` `(kstar, r_star, v1, s, a, K_prime)` as
 `SerializeScalar(kstar) || SerializeScalar(r_star) || I2OSP(v1, 8) ||
-SerializeElement(K_n)`. Every message and `credential` entry is the
+I2OSP(s, 8) || I2OSP(a, 8) || SerializeElement(K_prime)`. Every message
+and `credential` entry is the
 encoding of {{act-wire}}, and the spend context of every spend is
 `ctx_spend`.
 
@@ -1579,8 +1621,8 @@ spend1.rand =
 spend1.state =
     d57d94b679338b989617f04f6ed9f1afa2b29d31f4412cdac0816e0c72ffb77d
     dde18e9ae210ee648897aacf5208621fddf0d8653adf502d18f275262f78dfeb
-    0000000000000007029d3bf1acb658578b907478454466484a210dc328706b91
-    e93f559a27dbcc314d
+    00000000000000070000000000000003000000000000000002a9eb8a86d01e82
+    d5d3073885846a477c870420a787d0b5e71daf6c91afdc2223
 spend1.message =
     83dd8af47d48bba13e3c9e60bff78ceab60341b3d5b7b5053a46bbebcd78662d
     000000000000000300000000000000000352c17fecfd9ffd21383691f225167d
@@ -1662,8 +1704,8 @@ spend2.rand =
 spend2.state =
     7844e03536f0c9d21c62e2e0869e3c10c827f24e431b4142931eb6853fb20e2e
     3ce55ad1e1506a50d0b4a3f443f91f4459d3d36ddb407f365930ee3fd85dd381
-    000000000000000803e073e74ef945a83c405f5c7333a29667443e430eed30ed
-    bbe34324b3fc2657bc
+    00000000000000080000000000000000000000000000000003259c1b272b08ae
+    295b5e529b4605057b8acf3973095c23abcedead5a86c70099
 spend2.message =
     d57d94b679338b989617f04f6ed9f1afa2b29d31f4412cdac0816e0c72ffb77d
     00000000000000000000000000000000037c9f865aef31c8e21263387b799db9
@@ -1755,8 +1797,8 @@ spend3.rand =
 spend3.state =
     ae7ed3abd7b9a274a963d5a6917c9b595011b8bea24d2ad49dd0f1b7e6e374ef
     f7dc077023f20c7121c631d26f8bcb78a879dad0711abfb60be406d43cd33ef7
-    0000000000000008037eab4c05ea8dce73c7f93432a3ca9f282c43e1cbebf586
-    efeca1fed5c699ace1
+    00000000000000080000000000000000000000000000000203845262186439cb
+    0f3f9a5b1da4f18d1878df96ebf83546148c8ed5f9e2d75651
 spend3.message =
     7844e03536f0c9d21c62e2e0869e3c10c827f24e431b4142931eb6853fb20e2e
     0000000000000000000000000000000202770b3363352028e4b7e0c4f1ca3074
@@ -1885,8 +1927,8 @@ spend4.rand =
 spend4.state =
     687608194536cd0926adce56a667824d84a30ff7f9f95a5e7ce7b0510c3f33bb
     e5e1ff7bac9f0fb69eeb23db74d61ac89a4c7e9fd886b62aabe3aeef48dda1f9
-    000000000000000703748201036813887d00e9d4d39f4ae7a36d116eeabf1f58
-    d886e5ff08fd0d26de
+    00000000000000070000000000000003000000000000000203cea89b1209b0c3
+    464ea0fcd048789396f950589d2379ba173b95df761a168b5f
 spend4.message =
     ae7ed3abd7b9a274a963d5a6917c9b595011b8bea24d2ad49dd0f1b7e6e374ef
     00000000000000030000000000000002026b3b266c0a0b47261d5833051f55f4

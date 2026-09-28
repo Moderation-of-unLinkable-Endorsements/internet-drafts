@@ -130,7 +130,9 @@ def _render(source: Source) -> str:
             G.SerializeScalar(spend.kstar)
             + G.SerializeScalar(spend.r_star)
             + spend.v1.to_bytes(8, "big")
-            + G.SerializeElement(spend.K_n),
+            + spend.s.to_bytes(8, "big")
+            + spend.a.to_bytes(8, "big")
+            + G.SerializeElement(spend.K_prime),
         )
         encoded = wire.EncodeSpend(proof)
         entries += entry(key + ".message", encoded)
@@ -142,7 +144,7 @@ def _render(source: Source) -> str:
         encoded = wire.EncodeRefund(refund)
         entries += entry(key + ".refund.message", encoded)
         refund = wire.DecodeRefund(encoded)
-        credential = act.FinalizeRefund(pkM, CTX_CRED, spend, proof, refund)
+        credential = act.FinalizeRefund(pkM, CTX_CRED, spend, refund)
         entries += entry(
             key + ".credential", wire.EncodeCredential(credential)
         )

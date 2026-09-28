@@ -5,6 +5,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from ihat.ciphersuite import P256Element as Element
+from ihat.protocol import VerifyError
 
 from .sigma import LinearRelation, Statement
 
@@ -66,7 +67,7 @@ def SpendRelation(
         _range(statement, "Com1", Com1, "b1", "s1", "u1", "s * H1")
     else:
         if Com_c is None:
-            raise ValueError("Com_c is required when s = 0")
+            raise VerifyError("Com_c is required when s = 0")
         statement.elements(Com_c=Com_c)
         statement.witness("rc")
         statement.equation("Com_c = c * H1 + rc * H3")
@@ -86,7 +87,11 @@ def _range(
 ) -> None:
     """The bit commitments `values` open to a value in `[0, 2^L)` that,
     plus the public `offset`, equals `c`."""
-    L = len(values)
+    from . import protocol as act
+
+    L = act.L
+    if len(values) != L:
+        raise VerifyError(f"{Com} must hold {L} commitments")
     # The draft writes `Com1[j]`; a Python name cannot, so `Com1_j`.
     statement.elements(**{f"{Com}_{j}": values[j] for j in range(L)})
     for name in (b, s, u):
