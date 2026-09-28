@@ -257,16 +257,12 @@ def CommitStep(
 
 
 def GenerateStep(
-    bind_direction: str, seed: bytes
+    bind_left: bool, seed: bytes
 ) -> tuple[Element, Scalar]:
     secret = G.DeriveScalar(seed, b"GenerateStep")
     T = secret * B
-    if bind_direction == "left":
-        return (G.Pinv(T), secret)
-    elif bind_direction == "right":
-        return (T, secret)
-    else:
-        raise ValueError("bind_direction must be 'left' or 'right'")
+    (Q, _) = G.PermutationPair(T, bind_left)
+    return (Q, secret)
 
 
 def EquivocateStep(
@@ -364,8 +360,8 @@ def GenerateVecBind(
     commitment_keys = []
     trapdoors = []
     for j in range(q):
-        direction = "right" if (index >> j) & 1 else "left"
-        (Q, secret) = GenerateStep(direction, Seed(rand, j))
+        bind_left = ((index >> j) & 1) == 0
+        (Q, secret) = GenerateStep(bind_left, Seed(rand, j))
         commitment_keys.append(Q)
         trapdoors.append(secret)
     return (commitment_keys, trapdoors)

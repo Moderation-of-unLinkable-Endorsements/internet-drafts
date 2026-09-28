@@ -81,16 +81,20 @@ def test_commit_step_runs_without_raising(monkeypatch):
     )
 
 
-@pytest.mark.parametrize("bind_direction", ["left", "right"])
-def test_generate_step_runs_without_raising(monkeypatch, bind_direction):
-    seed = random(protocol.Nseed)
-    protocol.GenerateStep(bind_direction, seed)
+@pytest.mark.parametrize("bind_left", [False, True])
+def test_generate_step_preserves_key_and_trapdoor(bind_left):
+    seed = bytes(range(protocol.Nseed))
+    secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+    T = secret * protocol.B
+    expected = protocol.G.Pinv(T) if bind_left else T
+    assert protocol.GenerateStep(bind_left, seed) == (expected, secret)
 
 
-def test_generate_step_rejects_invalid_direction():
-    with pytest.raises(ValueError, match="bind_direction must be 'left' or 'right'"):
+@pytest.mark.parametrize("bind_left", ["left", "right", None, 0, 1])
+def test_generate_step_rejects_non_boolean_direction(bind_left):
+    with pytest.raises(ValueError, match="bind_left must be a boolean"):
         seed = random(protocol.Nseed)
-        protocol.GenerateStep("invalid", seed)
+        protocol.GenerateStep(bind_left, seed)
 
 
 def test_equivocate_step_runs_without_raising():
@@ -301,4 +305,37 @@ def test_verify_end_to_end():
         b"challenge-digest",
     )
 
+
+@pytest.mark.parametrize("size", [2, 3, 8])
+def test_redemption_matches_previous_key_generation(monkeypatch, size):
+    _, pkA, endorsement = _issue()
+    calls = []
+
+    def fixed_random(length):
+        calls.append(length)
+        return bytes(i % 256 for i in range(length))
+
+    def previous_generate_step(bind_left, seed):
+        secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+        T = secret * protocol.B
+        return (protocol.G.Pinv(T) if bind_left else T, secret)
+
+    monkeypatch.setattr(protocol, "random", fixed_random)
+    for index in range(size):
+        anchor_set = [
+            protocol.G.ScalarMultGen(protocol.Scalar(1000 + i))
+            for i in range(size)
+        ]
+        anchor_set[index] = pkA
+        args = (anchor_set, index, endorsement, b"epoch-1", b"moderator-1", b"digest")
+        calls.clear()
+        redemption = protocol.Redeem(*args)
+        with monkeypatch.context() as previous:
+            previous.setattr(protocol, "GenerateStep", previous_generate_step)
+            assert redemption == protocol.Redeem(*args)
+        q = (size - 1).bit_length()
+        assert calls == [(2 * q + 2) * protocol.Nseed] * 2
+        assert protocol.VerifyRedemption(
+            anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
+        ) == endorsement.nf
 

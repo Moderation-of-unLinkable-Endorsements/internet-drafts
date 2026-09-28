@@ -1190,17 +1190,19 @@ position is one whose `P(Q)` has the known logarithm, and vice versa:
 
 ~~~python
 def GenerateStep(
-    bind_direction: str, seed: bytes
+    bind_left: bool, seed: bytes
 ) -> tuple[Element, Scalar]:
     secret = G.DeriveScalar(seed, b"GenerateStep")
     T = secret * B
-    if bind_direction == "left":
-        return (G.Pinv(T), secret)
-    elif bind_direction == "right":
-        return (T, secret)
-    else:
-        raise ValueError("bind_direction must be 'left' or 'right'")
+    (Q, _) = G.PermutationPair(T, bind_left)
+    return (Q, secret)
 ~~~
+
+`bind_left` is a secret boolean: true binds the left position and false
+binds the right. `G.PermutationPair` ({{permutation-pair}}) returns `(Q, P(Q))`,
+with `T = P(Q)` when binding left and `T = Q` when binding right. It walks
+the same permutation edge in either case, hiding which endpoint has the
+known logarithm. Its second output can be cached for use in `CommitStep`.
 
 The `secret` is the trapdoor: replacing the equivocal value shifts the
 randomness by the difference of the hashes times the trapdoor, and the
@@ -1251,8 +1253,8 @@ def GenerateVecBind(
     commitment_keys = []
     trapdoors = []
     for j in range(q):
-        direction = "right" if (index >> j) & 1 else "left"
-        (Q, secret) = GenerateStep(direction, Seed(rand, j))
+        bind_left = ((index >> j) & 1) == 0
+        (Q, secret) = GenerateStep(bind_left, Seed(rand, j))
         commitment_keys.append(Q)
         trapdoors.append(secret)
     return (commitment_keys, trapdoors)
@@ -1356,6 +1358,12 @@ until the result decodes to an element, and `Pinv` walks the same cycle
 backwards. Since a permutation partitions its domain into cycles, the two
 are inverse to each other.
 
+The following direct implementations define the permutation and its inverse.
+They MAY be used on public points, including the commitment keys in
+`CommitStep`. Key generation instead uses `G.PermutationPair`
+({{permutation-pair}}), whose execution does not distinguish the two binding
+directions when its outputs are fixed.
+
 ~~~python
 def P(self, element: Element) -> Element:
     buf = bytearray(self.SerializeElement(element))
@@ -1410,6 +1418,116 @@ def UnpermuteBytes(buf: bytearray) -> bytearray:
 
 The binding argument of {{security-considerations}} models `P` as a random
 permutation.
+
+#### Walking a Permutation Edge {#permutation-pair}
+
+`G.PermutationPair(T, bind_left)` returns `(Q, P(Q))`. If `bind_left` is true,
+it walks backwards from `T = P(Q)` to `Q`. Otherwise it walks forwards from
+`T = Q` to `P(Q)`. At each iteration it computes both one-step byte
+permutations, selects the next encoding using the secret bit, and tests
+whether that encoding is valid. It selects the order of the endpoints before
+decoding them, so both final decodings operate on the same public values
+`Q` and `P(Q)`, in that order.
+
+~~~python
+def PermutationPair(
+    self, element: Element, bind_left: bool
+) -> tuple[Element, Element]:
+    if not isinstance(bind_left, bool):
+        raise ValueError("bind_left must be a boolean")
+    start = bytearray(self.SerializeElement(element))
+    start[0] -= 0x02
+    buf = start
+    while True:
+        forward = PermuteBytes(buf)
+        backward = UnpermuteBytes(buf)
+        buf = SelectBytes(forward, backward, bind_left)
+        if IsValidPermutationEncoding(buf):
+            break
+
+    left = SelectBytes(start, buf, bind_left)
+    right = SelectBytes(buf, start, bind_left)
+    Q = self.DeserializeElement(
+        bytes([left[0] + 0x02]) + bytes(left[1:])
+    )
+    PQ = self.DeserializeElement(
+        bytes([right[0] + 0x02]) + bytes(right[1:])
+    )
+    return (Q, PQ)
+
+
+def SelectBytes(
+    left: bytearray, right: bytearray, choose_right: bool
+) -> bytearray:
+    mask = -int(choose_right)
+    return bytearray(
+        (a & ~mask) | (b & mask)
+        for a, b in zip(left, right, strict=True)
+    )
+~~~
+
+`SelectBytes` takes equal-length inputs and selects `right` if its boolean
+argument is true, or `left` otherwise. Implementations MUST perform this
+selection without secret-dependent branches or memory accesses.
+
+For P-256, encoding validity can be tested without attempting a point
+decoding or raising exceptions. Here `FIELD_MODULUS`, `CURVE_A`, and
+`CURVE_B` are the P-256 field modulus and Weierstrass coefficients from
+{{NISTCurves}}. Since the field modulus is 3 modulo 4, the fixed exponent
+below computes a square-root candidate; squaring it tests whether a root
+exists. P-256 has prime, odd order, so an affine point with `y = 0` cannot
+occur. Each valid `x` therefore supports both sign bits. The identity has
+no affine encoding.
+
+~~~python
+def IsValidPermutationEncoding(buf: bytearray) -> bool:
+    if len(buf) != 33:
+        return False
+    x = int.from_bytes(buf[1:], "big")
+    rhs = (
+        pow(x, 3, FIELD_MODULUS) + CURVE_A * x + CURVE_B
+    ) % FIELD_MODULUS
+    y = pow(rhs, (FIELD_MODULUS + 1) // 4, FIELD_MODULUS)
+    return (
+        ((buf[0] == 0) | (buf[0] == 1))
+        & (x < FIELD_MODULUS)
+        & (y * y % FIELD_MODULUS == rhs)
+    )
+~~~
+
+The validity test MUST execute in constant time for all 33-byte candidates,
+including those with an out-of-range coordinate or no square root. All
+conditions are evaluated; an exception-based decoder or short-circuit
+validation is not a substitute. The byte permutations, selections, initial
+serialization of `T`, and computation of `T = secret * B` MUST likewise
+have no secret-dependent timing or memory access patterns. The Python
+snippets specify the computation and operation schedule; Python integer
+arithmetic and the reference implementation's group operations do not
+provide these constant-time guarantees.
+
+To see why the loop may stop at the first valid encoding, fix the public
+output `Q`. Let `k` be the number of applications of `PermuteBytes` needed
+to reach `P(Q)` from `Q`. None of the `k - 1` intermediate encodings is
+valid. Walking backwards from `P(Q)` therefore reaches `Q` after exactly
+`k` applications of `UnpermuteBytes`, with the same sequence of validity
+results: `k - 1` failures followed by one success. Each orientation executes
+one forward permutation, one inverse permutation, one selection, and one
+validity test per iteration. Thus the observable operation schedule depends
+only on `Q`, which is included in the proof, and can be reproduced from it.
+This argument also covers fixed points and does not assume that `P` is
+random; the separate binding assumption on `P` is unchanged.
+
+Implementations MUST NOT optimize away the unused permutation direction.
+Calling `Pinv(T)` only for left binding leaks the direction directly.
+Computing `Pinv(T)` for both directions and selecting an endpoint afterwards
+also leaks: for a fixed public `Q`, its walk length describes the edge
+leaving `Q` in one case and the edge entering `Q` in the other. Both one-step
+permutations MUST be computed on each iteration of the selected walk.
+
+This changes neither the mathematical commitment key nor the random bytes,
+proof transcript, or wire encoding. With the same inputs and seeds,
+`GenerateStep` still returns `Pinv(T)` for left binding and `T` for right
+binding.
 
 ### Challenge Computation {#proof-challenge}
 
@@ -1861,27 +1979,12 @@ DeserializeScalar(buf):
   `[0, Order()-1]`.
 
 P:
-: P(G) is obtained as follows: Serialize
-  a G to a 33 byte This is a 33 byte vector where
-  the first byte is 0x03 or 0x04. Subtract 3 from that first
-  byte to make it 0x00 or 0x01.  Now this is a 33 byte vector, buf.
-  Define Pbuf as 4 iterations of the following:
-  left = buf[0:17] # 17 bytes
-  right = buf[17:33] # 16 bytes
-  left ^= SHAKE256(right, 17)
-  left[0] &= 0x01
-  right ^ = SHAKE256(left, 16)
-  left ^= SHAKE256(right, 17)
-  left[0] &= 0x01
-  right ^ = SHAKE256(left, 16)
-  buf = left || right
-  Pbuf is indistinguishable from random permutation on 257 bit vectors if we
-  model SHAKE256 as a random oracle.
-  P is defined as the result of deserializing the first entry in
-  Pbuf(buf), Pbuf(Pbuf(buf)), etc to deserialize. Note that one has to
-  add 3 again to get buf in SEC1 format. On average this takes 2
-  iterations of Pbuf. The inverse is obtained by applying Pbuf
-  inverse.
+: The SHA-256 Feistel permutation and cycle walk in {{permutation}}.
+  Compressed SEC1 prefixes are `0x02` and `0x03`; subtracting `0x02` gives
+  the one-bit prefix used by the byte permutation. `Pinv` reverses the
+  walk. `PermutationPair` ({{permutation-pair}}) is used during commitment
+  key generation. For a random encoding permutation, the walk takes about
+  two iterations on average.
 
 ## Randomness {#randomness}
 
@@ -2055,10 +2158,18 @@ Constant-time proving:
   distinguished by timing, memory access patterns, or the amount of randomness
   consumed. The specification is written so that the last of these is not a
   signal: the randomness a redemption consumes is a function of `q` alone
-  ({{redeem}}). The first move commits along the path only, and the third move
-  visits every node of the tree; an implementation that instead recomputes the
-  path lazily, or that branches on the value of `right` in a way an adversary can
-  observe, reintroduces the signal.
+  ({{redeem}}). The first move places the real branch commitment at `index`
+  and empty values at every other leaf; both commitment passes visit every
+  node of the tree. That placement and the later equivocation MUST avoid
+  observable secret-dependent branches and memory accesses.
+
+: Commitment key generation uses the balanced walk of {{permutation-pair}}.
+  Its iteration count is determined by the published commitment key, and
+  both binding directions execute the same operation schedule for that key.
+  This addresses the permutation walk only: secret-index selection,
+  scalar arithmetic, and the rest of the proving algorithm still require
+  constant-time implementations. In particular, source-level masking in
+  the Python reference implementation is not a constant-time guarantee.
 
 Single-use sessions:
 : **Implementations MUST ensure that the session state produced by `Commit` is
