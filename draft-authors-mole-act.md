@@ -243,12 +243,11 @@ that a derived scalar is zero. ACT applies the following requirements to
 this shared algorithm.
 
 `rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
-it, and MUST NOT be used for more than one derivation; deriving several
-scalars from fewer bytes would cap their joint entropy at the length of the
-input. An algorithm derives all of its scalars with one call, under an `info`
-string that names it. A derived scalar is within about `2^-128` of uniform
-(Section 4.2 of {{IHAT}}), which the unlinkability argument of
-{{act-security}} relies on. See {{randomness}}.
+it, and MUST NOT be used for more than one derivation. An algorithm derives
+all of its scalars with one call, under an `info` string that names it. A
+scalar so derived is within about `2^-128` of uniform (Section 4.2 of
+{{IHAT}}), which the unlinkability argument of {{act-security}} relies on.
+See {{randomness}}.
 
 ## Key Generation {#keygen}
 
@@ -1262,12 +1261,11 @@ stated where they are used; drawing them directly is not conformant:
 * every nonce of a `ProveCompact` prover of the Credential scheme,
   through `ProverNonces` ({{act-prover-nonces}}).
 
-The values drawn directly are the key seed of `G.GenerateKeyPair`, the
-randomness of the derivations above, and the Client's `k`, `r`, `r1`,
-`r2`, `kstar`, `rn`, `rc`, `s1`, and `s2`. A repetition among the
-Client's values harms only that Client; a repetition of a signing
-exponent or of a prover nonce is a key-compromise event
-({{act-security}}); those are therefore derived.
+The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, `s1`, and `s2` are
+derived with `G.DeriveScalars` from randomness alone. A repetition among
+them harms only that Client; a repetition of a signing exponent or of a
+prover nonce is a key-compromise event ({{act-security}}), and those are
+therefore derived from a secret as well.
 
 # Security Considerations {#act-security}
 

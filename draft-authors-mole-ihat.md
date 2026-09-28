@@ -441,7 +441,8 @@ issuance and redemption contexts of {{context-binding}}: those are inputs to
 the protocol, chosen by its participants, whereas `ctx_proto` is fixed by the
 ciphersuite.
 
-Every hash this document computes is domain-separated by `ctx_proto`,
+Every hash this document computes, other than the round functions of the
+permutation `P` ({{permutation}}), is domain-separated by `ctx_proto`,
 which it carries in its DST rather than in its input: `HashToGroup` and
 `HashToScalar` are so parameterized ({{ciphersuites}}), and so are
 `G.DeriveScalars` ({{derive-scalar}}) and `G.DeriveNonces`
@@ -508,17 +509,16 @@ output. The reduction is the one `hash_to_field` applies to uniform bytes
 ({{ciphersuites}}), the scalars derived from uniformly random input are each
 within about `2^-128` of uniform over the nonzero scalars, and jointly within
 the sum of those distances. With the round functions modeled as random
-oracles, a change to any part of the input changes every derived scalar,
-except with negligible probability. A derived scalar is zero, and
+oracles, a change to any part of an input chosen without reference to them
+changes every derived scalar, except with negligible probability. A derived
+scalar is zero, and
 `DeriveError` raised, with probability about `1/p`. This probability is
 negligible, and implementations might choose to panic rather than handle the
 exception.
 
 `rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
-it, and MUST NOT be used for more than one derivation. Deriving several
-scalars from fewer bytes would cap their joint entropy at the length of the
-input, which the unlinkability argument of {{security-considerations}} does
-not permit. See {{randomness}}.
+it, as the bound above requires, and MUST NOT be used for more than one
+derivation. See {{randomness}}.
 
 ## Deriving Nonces {#derive-nonce}
 
@@ -1135,10 +1135,8 @@ The construction below first defines the branch proof, then builds a partially
 binding tree commitment over its branches. It finally specifies the
 Fiat-Shamir challenge and the proving and verification algorithms.
 
-Each branch is the discrete logarithm proof of {{SIGMA}}, and the composition
-below could be expressed in that framework. It is written out here instead, so
-that this document fixes the transcript and the encodings without depending on
-work in progress.
+Each branch is the discrete logarithm proof of {{SIGMA}}. This document
+specifies the composition, its transcript, and its encodings directly.
 
 Throughout this section and its subsections, `x / y` denotes integer division
 of nonnegative integers, that is the quotient rounded down, and `x mod y` the
@@ -1647,9 +1645,9 @@ prefixes of their own; `q`, and with it the number of commitment keys, is
 determined by `n`. The label `"IssuerProof"` separates this transcript from the
 issuance transcript of {{challenge}}, which is hashed with the same function.
 
-Unlike `ComputeChallenge`, this function accepts zero rather than aborting and
-retrying: a challenge of zero yields a proof that verifies, and no branch is
-privileged by it.
+`ProveIssuer` and `VerifyIssuer` accept a challenge of zero, unlike
+`Challenge` ({{challenge}}): such a challenge yields a proof that verifies,
+and no branch is privileged by it.
 
 ### Proving {#prove-issuer}
 
@@ -1681,7 +1679,10 @@ def ProveIssuer(
         challenge_digest,
     )
     derived = G.DeriveNonces(
-        G.SerializeScalar(delta), b"ProveIssuer", instance, rand
+        G.SerializeScalar(delta) + I2OSP(index, 2),
+        b"ProveIssuer",
+        instance,
+        rand,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
@@ -1724,10 +1725,10 @@ def ProveIssuer(
 
 `ProveIssuer` derives the nonce `r`, the trapdoors of the `q` commitment
 keys, and the `q` openings of its first move with one call to
-`G.DeriveNonces` ({{derive-nonce}}), keyed by `delta` and the proof
-statement; `rand` holds `Nseed` bytes for each of these `2 * q + 1` scalars.
-Every value of the first move therefore changes whenever `delta`, the
-statement, or any part of `rand` does.
+`G.DeriveNonces` ({{derive-nonce}}), keyed by `delta`, `index`, and the
+proof statement; `rand` holds `Nseed` bytes for each of these `2 * q + 1`
+scalars. Every value of the first move therefore changes whenever `delta`,
+`index`, the statement, or any part of `rand` does.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
@@ -2095,32 +2096,30 @@ Derived blinding factors:
   Each derived scalar is within about `2^-128` of uniform
   ({{derive-scalar}}), so the four blinding factors of a session are jointly
   within about `2^-126` of uniform, and blindness holds against unbounded
-  computation up to that distance. Each scalar has `Nseed` bytes of
-  randomness of its own: deriving several scalars from fewer bytes would bound
-  their joint entropy by that input's, and an exhaustive search over inputs
-  would identify the one session consistent with a given Endorsement.
-  Implementations MUST NOT derive several scalars from fewer than `Nseed`
-  bytes each.
+  computation up to that distance. The bound rests on `Nseed` bytes of
+  randomness for each scalar ({{derive-scalar}}).
 
 Derived first move:
-: A value of the first move of `ProveIssuer` reused under a different
-  challenge reveals `delta`, which names the Anchor, or the trapdoor of a
-  commitment key and with it a bit of `index`. `ProveIssuer` therefore derives
-  all of them together with `G.DeriveNonces` from `delta`, the proof
-  statement, and all of its randomness ({{prove-issuer}}). With a working
-  random source they are distributed as derived scalars ("Derived blinding
-  factors" above). With a failed one they are pseudorandom functions of
-  `delta`, unpredictable to a verifier that does not know `delta`, and each
-  of them changes whenever `delta`, the statement, or any part of the
-  randomness does ({{derive-nonce}}); a random source that repeats all of
-  its output reproduces the proof. The Anchor's signing nonce `a` in `Commit`
-  cannot be protected the same way: it is fixed before the Client's
+: In `ProveIssuer`, the nonce `r` reused under a different challenge reveals
+  `delta`, which names the Anchor, and a commitment key reused with its first
+  opening under a different challenge reveals the key's trapdoor and with it
+  a bit of `index`. `ProveIssuer` therefore derives the nonce, the trapdoors,
+  and the first openings together with `G.DeriveNonces` from `delta`,
+  `index`, the proof statement, and all of its randomness ({{prove-issuer}}).
+  With a working random source they are distributed as derived scalars
+  ("Derived blinding factors" above). With a failed one they are
+  pseudorandom functions of `delta` and `index`, unpredictable to a verifier
+  that does not know `delta`, and each of them changes whenever `delta`,
+  `index`, the statement, or any part of the randomness does
+  ({{derive-nonce}}); a random source that repeats all of its output for the
+  same redemption reproduces the proof. The Anchor's signing nonce `a` in
+  `Commit` cannot be protected the same way: it is fixed before the Client's
   challenge is known, so no public input distinguishes two sessions at that
-  point. `Commit` derives `a` together with `t` and `y`, so a random source
-  that repeats part of its output still changes `a`, but only fresh
-  randomness, or persistent per-session state, prevents a full repetition.
-  An Anchor that reuses `a` across two challenges reveals `y * skA`, and
-  hence `skA`, since `y` is public in the Endorsement.
+  point. `Commit` derives `a` together with `t` and `y` ({{derive-scalar}}),
+  so a random source that fails by repeating part of its output still changes
+  `a`, but only fresh randomness, or persistent per-session state, prevents a
+  full repetition. An Anchor that reuses `a` across two challenges reveals
+  `y * skA`, and hence `skA`, since `y` is public in the Endorsement.
 
 One-more unforgeability:
 : A Client that completes `k` issuance sessions under a given issuance context
@@ -2338,9 +2337,10 @@ five. Byte strings are in hexadecimal, wrapped at 64 digits with the
 continuation lines indented; integers are decimal.
 
 Every algorithm is a deterministic function of the bytes it draws from
-`random`. Each `rand` entry is the concatenation of every `random` call the
-algorithm makes, in the order made; an implementation replays a vector by
-serving those bytes in place of `random`. For `G.GenerateKeyPair` it is the
+`random`. `derive.rand` is the `rand` argument of `G.DeriveScalars`; every
+other `rand` entry is the concatenation of every `random` call the algorithm
+makes, in the order made, and an implementation replays it by serving those
+bytes in place of `random`. For `G.GenerateKeyPair` it is the
 key seed; for `Commit`, the `3 * Nseed` bytes of `(a, t, y)`; for
 `Challenge`, the `Nn` bytes of the nullifier and then the `4 * Nseed` bytes
 of the blinding factors; and for `Redeem`, the `Nseed` bytes of `delta` and
@@ -2351,7 +2351,8 @@ then the `(2 * q + 1) * Nseed` bytes of the issuer-hiding proof. The
 || SerializeScalar(gamma1) || SerializeScalar(gamma2) || SerializeScalar(c)`.
 `issue.Z` is `CreateContextBase(ctx_iss)`, and `key.P_pkA` is `P(pkA)`.
 Every message and `endorsement` entry is an encoding of {{wire}} or
-{{redemption-wire}}, and both issuance messages carry `issue.session_id`.
+{{redemption-wire}}, and the commit and challenge messages carry
+`issue.session_id`.
 The keys of each Anchor Set other than `key.pkA` were generated for the
 vectors. Both redemptions present the same Endorsement, which a Moderator
 would accept only once; each `nf` entry is the output of `VerifyRedemption`.
@@ -2480,11 +2481,11 @@ redeem2.message =
     5777721b72226a41306dea580615b3a9b87e6aca355a59c1676cde64630e8e43
     e320e054407aa628fd699c51f6dc063e230c6b531dfb4dbf485280102bf9e918
     f9a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55
-    d75422ea9bdb85d798207f4933173ea51c503a9dfeb0840596692c676f84f8bc
-    d6086eead4dbcf264800df1177d01cfb5d2c5c774d614b5f6d263cb64cd174bf
-    562103c522892dd6077689cb1a56db39cba38759ad4011dd6d9d701f55a0beee
-    57af0620f42fa853d32f190f397129fb17686cdeca68f4ad94cf9dbc74a6c938
-    b4d56838
+    d714c350f6f59a6a260b4fc2fa6b83554a62720afeeef0a1f6a40d6f134793b7
+    bd5cbc652ab3cc02bb84a0d76bf8178171d92151551a0f343c3f1a34a0ff2e10
+    fa2102816a2d23f2cbc07ce7b4333991582ec5ee5b35ca2601fa0caf687f6926
+    04720320a2459dc44f42256d7d3208dae52c8678141c8c2c6cc294c55d1f6ea0
+    28746e89
 redeem2.nf =
     a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
 ~~~
@@ -2525,15 +2526,15 @@ redeem5.message =
     8677721b72226a41306dea580615b3a9b87e6aca355a59c1676cde64630e8e43
     e320e054407aa628fd699c51f6dc063e230c6b531dfb4dbf485280102bf9e918
     f9a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55
-    d7e0d18a33b799c1fef2123c4bc5838e4642f1ae6c2031e616851aa173e7738b
-    23600c2521c543acb1d1a379a6573f115a44dad79eed5c6e4e1d69b9b6086c35
-    e34063028071ef2eb426297682105021e0d2a1eb5211c88bbbacbe271bf35c56
-    f527c2e8022842d140f227cbb69e5c88e91f2e97b4c93e971565037b0553b238
-    4a59a50f9a03132481ef776b9c424849d57e3d02d27a5c304dcbf97b58aa18ec
-    4926d708926740603f510c59a33a9322b213933a235061592e9a7426958a27b7
-    871e48535190cceff6b98ca7674cc2c7bc1fb0d3a128d076deabdff9a0c36053
-    65fd12adf372250dd1237325de17f4dc2c0394c4a14b627b1c2bc3a393e5a7f6
-    832f4d3da25cba9d
+    d7449678e699e45554ee2eb9326079c57e8ef6d7912edcb2000a3d11396ea1b3
+    9de18c0a62f95d3e76268f65390dc36102d90dca63fdd403efb924c0114aad8b
+    82406302e13db2ad4422a1553407d2c7f6c772e20525d673ad205d16fa9489a4
+    02c7c842020ea2a5827f44e86b33cea8f7e18c58dc20eee2e708409ad4222e93
+    fac1c486c6029312233b8f37e594c4aa814ebf60bbca27dbc37af37e92aec19c
+    b6bd6099243e4060852b8cd323af4908afb202f9638e31171a289b2d78e8e360
+    39fbc7d340f77f4ea32da051165f6874073acf2e8c52c1b4f5023eca7d5bc132
+    b9eae698a2ed5d2765c7bee93f73715174a0eb27bc4aeec414c25592ecc6f1e7
+    a50278b8164f007b
 redeem5.nf =
     a0ab32bb3faea7dfe5e30dc762cde359fac2ad47aec08727b3aba7fac90e55d7
 ~~~

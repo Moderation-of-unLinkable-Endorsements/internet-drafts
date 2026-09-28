@@ -33,7 +33,8 @@ draft's `Relation` blocks, `src/act/sigma.py` runs them on the pinned CFRG
 code, and `src/act/wire.py` holds the message encodings, as
 `src/ihat/wire.py` does for IHAT. ACT shares IHAT's
 group and derivation code. Each group instance carries its own protocol context and provides
-`G.DeriveScalar`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`. Both schemes
+`G.DeriveScalars`, `G.DeriveNonces`, `G.DeriveKeyPair`, and
+`G.GenerateKeyPair`. Both schemes
 use the common `Seed` helper and 48-byte seeds.
 Group values carry an invariant ciphersuite type parameter, allowing static
 checkers to reject scalars and elements from a different ciphersuite.

@@ -464,3 +464,23 @@ def test_partly_repeated_randomness_gives_a_fresh_first_move():
     assert all(
         o1 != o2 for o1, o2 in zip(openings1, openings2, strict=True)
     )
+
+
+def test_a_repeated_key_at_another_position_gives_a_fresh_first_move():
+    # With one key at two positions, redeeming at either with the same
+    # randomness must not reuse r under a different challenge.
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2)), pkA]
+    delta = protocol.Scalar(77)
+    X_hat = pkA + delta * protocol.B
+    q = protocol.Depth(len(anchor_set))
+    rand = bytes(range((2 * q + 1) * protocol.Nseed))
+    (c0, z0, _, _), (c2, z2, _, _) = [
+        ProveIssuer(
+            anchor_set, index, delta, X_hat, endorsement, b"i", b"r", b"d",
+            rand,
+        )
+        for index in (0, 2)
+    ]
+    assert c0 != c2
+    assert z0 - z2 != (c2 - c0) * delta

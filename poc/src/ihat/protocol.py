@@ -455,7 +455,10 @@ def ProveIssuer(
         challenge_digest,
     )
     derived = G.DeriveNonces(
-        G.SerializeScalar(delta), b"ProveIssuer", instance, rand
+        G.SerializeScalar(delta) + I2OSP(index, 2),
+        b"ProveIssuer",
+        instance,
+        rand,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
