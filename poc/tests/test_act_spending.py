@@ -1,8 +1,8 @@
 import pytest
 
 from act import protocol as act, wire
-from ihat.ciphersuite import DeserializeError
-from ihat.protocol import VerifyError
+from rollatini.ciphersuite import DeserializeError
+from rollatini.protocol import VerifyError
 
 
 def issued(balance=10):

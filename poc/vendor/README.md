@@ -7,7 +7,7 @@ is `draft-irtf-cfrg-fiat-shamir-03`. The gitlink records the exact commit.
 
 `act/sigma.py` puts the submodule's `poc` directory on `sys.path` and calls
 its `prove_compact` and `verify_compact` directly, the way the ARC reference
-implementation does, over the IHAT group presented through upstream's group
+implementation does, over the Rollatini group presented through upstream's group
 interface so that the arithmetic is native. No upstream file is copied or
 patched. Its own vector harness, `poc/test_vectors.py`, is run by our test
 suite.

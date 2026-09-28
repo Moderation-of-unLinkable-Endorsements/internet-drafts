@@ -1,1 +1,0 @@
-"""Reference implementation of IHAT."""

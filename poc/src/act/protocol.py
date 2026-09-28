@@ -5,13 +5,13 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import NamedTuple
 
-from ihat.ciphersuite import DeriveError
-from ihat.ciphersuite import P256Element as Element
-from ihat.ciphersuite import P256Scalar as Scalar
-from ihat.common import I2OSP
-from ihat.common import U16Prefixed
-from ihat.ciphersuite import P256Group
-from ihat import common
+from rollatini.ciphersuite import DeriveError
+from rollatini.ciphersuite import P256Element as Element
+from rollatini.ciphersuite import P256Scalar as Scalar
+from rollatini.common import I2OSP
+from rollatini.common import U16Prefixed
+from rollatini.ciphersuite import P256Group
+from rollatini import common
 from .sigma import DeriveSessionID
 from .sigma import ProveCompact
 from .sigma import SerializeLinearRelation
@@ -20,7 +20,7 @@ from .sigma import VerifyCompact
 from .statements import CommitmentRelation
 from .statements import SignatureRelation
 from .statements import SpendRelation
-from ihat.protocol import VerifyError
+from rollatini.protocol import VerifyError
 
 Nseed = common.Nseed
 Seed = common.Seed

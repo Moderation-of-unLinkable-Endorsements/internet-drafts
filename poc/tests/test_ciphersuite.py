@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from ihat.ciphersuite import (
+from rollatini.ciphersuite import (
     DeserializeError,
     FIELD_MODULUS,
     ORDER,
@@ -119,7 +119,7 @@ def test_p_not_involution():
 
 
 def test_permute_bytes_is_a_permutation():
-    from ihat.ciphersuite import PermuteBytes, UnpermuteBytes
+    from rollatini.ciphersuite import PermuteBytes, UnpermuteBytes
 
     for i in range(32):
         buf = bytearray([i & 1]) + bytearray(range(i, i + 32))
@@ -129,7 +129,7 @@ def test_permute_bytes_is_a_permutation():
 
 
 def test_derive_nonces_binds_every_input():
-    from ihat import common
+    from rollatini import common
 
     G = P256Group(b"test")
     aux = bytes(common.Nseed)
@@ -152,9 +152,9 @@ def test_derive_nonces_binds_every_input():
 
 
 def _unpermute(group, key, value):
-    from ihat import common
-    from ihat.ciphersuite import _xor, expand_message_xmd
-    from ihat.common import I2OSP
+    from rollatini import common
+    from rollatini.ciphersuite import _xor, expand_message_xmd
+    from rollatini.common import I2OSP
 
     half = len(value) // 2
     left, right = value[:half], value[half:]
@@ -173,8 +173,8 @@ def _unpermute(group, key, value):
 
 @pytest.mark.parametrize("count", [1, 2, 3, 5])
 def test_seeds_to_scalars_permutes_then_reduces(count):
-    from ihat import common
-    from ihat.ciphersuite import DeriveError
+    from rollatini import common
+    from rollatini.ciphersuite import DeriveError
 
     G = P256Group(b"test")
     key = bytes(range(32))
@@ -192,7 +192,7 @@ def test_seeds_to_scalars_permutes_then_reduces(count):
 def test_related_randomness_gives_unrelated_nonces():
     # Nonces for one operation whose randomness differs in a single bit
     # must not differ by a known amount, or two proofs reveal the witness.
-    from ihat import common
+    from rollatini import common
 
     G = P256Group(b"test")
     aux = bytes(range(common.Nseed))
@@ -211,7 +211,7 @@ def test_related_randomness_gives_unrelated_nonces():
 def test_partial_repetition_changes_every_nonce():
     # A random source that repeats all but one seed of an operation's
     # randomness must not repeat any of its nonces.
-    from ihat import common
+    from rollatini import common
 
     G = P256Group(b"test")
     rand = bytes((3 * i) % 256 for i in range(5 * common.Nseed))

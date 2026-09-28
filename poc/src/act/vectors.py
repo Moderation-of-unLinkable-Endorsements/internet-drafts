@@ -8,8 +8,8 @@ them and compares against the draft, so the vectors are reproducible from
 this module alone.
 """
 
-from ihat import common
-from ihat.vectors import Source, block, entry
+from rollatini import common
+from rollatini.vectors import Source, block, entry
 
 from . import protocol as act, wire
 

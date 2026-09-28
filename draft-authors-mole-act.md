@@ -43,12 +43,12 @@ author:
 
 
 normative:
-  IHAT:
-    title: Issuer-Hiding Anonymous Tokens (IHAT)
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
+  ROLLATINI:
+    title: "Rollatini: An Issuer-Hiding Anonymous Token"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
     date: 2026
     seriesinfo:
-      Internet-Draft: draft-authors-mole-ihat
+      Internet-Draft: draft-authors-mole-rollatini
     author:
       -
         ins: S. Schlesinger
@@ -181,13 +181,13 @@ The capitalized terms Client, Moderator, and Credential are used as
 defined in {{ARCH}}; a lowercase credential is the generic cryptographic
 notion. The message-encoding conventions, Python notation, and helpers
 `I2OSP`, `U16Prefixed`, `random`, and `Seed` are those of
-Section 2 of {{IHAT}}. The algorithms use `bytes` for byte strings, `int`
+Section 2 of {{ROLLATINI}}. The algorithms use `bytes` for byte strings, `int`
 for integers, and `Sequence` and `NamedTuple` from Python's `typing` module.
 Record fields appear in the same order as their tuple representation.
 
 The group `G`, protocol context `ctx_proto`, seed length `Nseed`,
 generators, and balance width `L` are globals fixed by the ACT
-configuration ({{act-config}}). Shared group methods from {{IHAT}} use
+configuration ({{act-config}}). Shared group methods from {{ROLLATINI}} use
 the ACT group instance `G`, which stores `ctx_proto` and applies ACT
 domain separation. The shared `Seed` helper uses the same `Nseed = 48`
 for both schemes. Public byte-string inputs retain the length bounds
@@ -203,7 +203,7 @@ Group:
 
 Hash:
 : A cryptographic hash function, used by the `HashToGroup`, `HashToScalar`,
-  and derivation algorithms that the group of {{IHAT}} provides.
+  and derivation algorithms that the group of {{ROLLATINI}} provides.
 
 Sigma protocol:
 : The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
@@ -212,7 +212,7 @@ Sigma protocol:
 ## Prime-Order Group {#group}
 
 ACT uses the prime-order group interface and the `Element` and `Scalar`
-types of Section 3.1 of {{IHAT}}, instantiated as in {{ciphersuites}}.
+types of Section 3.1 of {{ROLLATINI}}, instantiated as in {{ciphersuites}}.
 The Python interface provides `G.scalar(x)` for an integer `x` in
 `[0, G.Order())`, `s.isZero()` for a scalar, and `A.isIdentity()` for an
 element. Arithmetic combines values of the same type: integer constants
@@ -222,7 +222,7 @@ an element `A` is `G.Identity() - A`.
 ## Errors {#errors}
 
 `DeserializeError`, `VerifyError`, `DeriveError`, and `ValueError` have the
-meanings given in Section 3.2 of {{IHAT}}. ACT additionally uses
+meanings given in Section 3.2 of {{ROLLATINI}}. ACT additionally uses
 `AmountError` when a balance or amount is outside the range admitted by
 {{act-amounts}}:
 
@@ -236,7 +236,7 @@ An implementation that raises an error MUST abort the affected protocol run.
 ## Deriving Scalars {#derive-scalar}
 
 Use `G.DeriveScalars(rand: bytes, info: bytes) -> list[Scalar]` from
-Section 4.2 of {{IHAT}}, using the ACT group instance initialized with
+Section 4.2 of {{ROLLATINI}}, using the ACT group instance initialized with
 `ctx_proto`. It rejects input whose length is not a positive multiple of
 `Nseed` with `ValueError`, and raises `DeriveError` in the negligible event
 that a derived scalar is zero. ACT applies the following requirements to
@@ -246,13 +246,13 @@ this shared algorithm.
 it, and MUST NOT be used for more than one derivation. An algorithm derives
 all of its scalars with one call, under an `info` string that names it. A
 scalar so derived is within about `2^-128` of uniform (Section 4.2 of
-{{IHAT}}), which the unlinkability argument of {{act-security}} relies on.
+{{ROLLATINI}}), which the unlinkability argument of {{act-security}} relies on.
 See {{randomness}}.
 
 ## Key Generation {#keygen}
 
 Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
-4.4 of {{IHAT}}, with the ACT group instance of {{act-config}}. Both
+4.4 of {{ROLLATINI}}, with the ACT group instance of {{act-config}}. Both
 return `tuple[Scalar, Element]`; ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
 `G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
@@ -492,7 +492,7 @@ recommends; the length prefixes keep the tag unambiguous.
 `ProveCompact` draws one nonce per witness scalar from its `rng`, in
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. The nonces are derived
-together with `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the witness,
+together with `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness,
 the session, the relation, and fresh randomness, so that a random source that
 fails independently of the witness does not cause a nonce to be reused under
 a different challenge, except with negligible probability, and no nonce is
@@ -603,7 +603,7 @@ class Credential(NamedTuple):
 
 `IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
 exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonces`
-(Section 4.3 of {{IHAT}}) from the signing key, the signed message, and
+(Section 4.3 of {{ROLLATINI}}) from the signing key, the signed message, and
 fresh randomness. A random source that repeats therefore reproduces an
 earlier signature and never issues a second one with the same exponent
 ({{act-security}}).
@@ -1236,19 +1236,19 @@ SHA-256 for the hash function. The value of the ciphersuite
 identifier is `b"P256-SHA256"`.
 
 Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
-algorithms, and canonical encodings of Section 7.1 of {{IHAT}}. ACT uses
+algorithms, and canonical encodings of Section 7.1 of {{ROLLATINI}}. ACT uses
 `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
 ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
 `G.DeriveScalars`, `G.SeedsToScalars`, `G.DeriveNonces`, and
 `G.DeriveKeyPair`;
-the group-element permutation used by IHAT is not needed.
+the group-element permutation used by Rollatini is not needed.
 
 ## Randomness {#randomness}
 
 Every random value in this document is drawn with `random` and consumed,
 `Nseed` bytes per scalar, by `G.DeriveScalars` ({{derive-scalar}}), by
 `G.DeriveKeyPair` ({{keygen}}) for a key, or, for the values listed below, by
-`G.DeriveNonces` (Section 4.3 of {{IHAT}}); no scalar is sampled directly.
+`G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}); no scalar is sampled directly.
 Implementations MUST draw with a cryptographically secure random number
 generator and MUST NOT reuse randomness across derivations. Randomness is as
 sensitive as the values derived from it, and the constant-time requirement
@@ -1353,7 +1353,7 @@ Randomness reuse:
   holding two Credentials with that exponent forge Credentials at any
   balance below `2^L`, each with a fresh nullifier, which the nullifier
   store cannot detect. Both values are therefore derived with
-  `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the key and the operation
+  `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the key and the operation
   ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled back
   or snapshotted random source reproduces an earlier response instead of
   yielding a second one. An implementation that draws either value
@@ -1412,9 +1412,9 @@ Constant time:
 
 Derived prover nonces:
 : `ProverNonces` derives the nonces of a proof together with
-  `G.DeriveNonces` (Section 4.3 of {{IHAT}}) from the witness, the relation,
-  and `Nseed` bytes of fresh randomness per nonce, so that each nonce is
-  within about `2^-128` of uniform whatever the witness, and the proofs are
+  `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness, the
+  relation, and `Nseed` bytes of fresh randomness per nonce, so that each nonce
+  is within about `2^-128` of uniform whatever the witness, and the proofs are
   statistically zero-knowledge. If the random source fails, whether by
   repeating all or part of `rand`, returning a constant, or returning values
   related to earlier ones, the nonces are still pseudorandom functions of the

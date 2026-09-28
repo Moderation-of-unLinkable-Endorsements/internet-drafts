@@ -1,4 +1,4 @@
-"""Functions shared by the IHAT and ACT implementations."""
+"""Functions shared by the Rollatini and ACT implementations."""
 
 import secrets
 
@@ -17,7 +17,7 @@ def U16Prefixed(value: bytes) -> bytes:
 
 
 def CreateProtocolContext(identifier: bytes) -> bytes:
-    return b"IHATv1-" + identifier
+    return b"Rollatiniv1-" + identifier
 
 
 def random(n: int) -> bytes:

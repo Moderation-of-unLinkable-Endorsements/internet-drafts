@@ -1,8 +1,8 @@
 import pytest
 
-import ihat.protocol as protocol
-from ihat import wire
-from ihat.ciphersuite import DeserializeError, ORDER
+import rollatini.protocol as protocol
+from rollatini import wire
+from rollatini.ciphersuite import DeserializeError, ORDER
 
 G = protocol.G
 SESSION_ID = b"session-7"

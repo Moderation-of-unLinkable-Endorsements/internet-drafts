@@ -47,22 +47,22 @@ def test_act_snippets_match_implementation():
     assert actual.keys() == expected.keys()
 
 
-def test_ihat_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-ihat.md").read_text()
+def test_rollatini_snippets_match_implementation():
+    draft = (ROOT / "draft-authors-mole-rollatini.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )
     expected = definitions(snippets)
     actual = definitions(
-        (ROOT / "poc/src/ihat/ciphersuite.py").read_text(),
+        (ROOT / "poc/src/rollatini/ciphersuite.py").read_text(),
         concrete_group=True,
     )
     actual.update(
-        definitions((ROOT / "poc/src/ihat/common.py").read_text())
+        definitions((ROOT / "poc/src/rollatini/common.py").read_text())
     )
     # The record types of protocol.py are implicit in the draft.
     protocol = definitions(
-        (ROOT / "poc/src/ihat/protocol.py").read_text(),
+        (ROOT / "poc/src/rollatini/protocol.py").read_text(),
         kinds=(ast.FunctionDef,),
     )
     actual.update(protocol)

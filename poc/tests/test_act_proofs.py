@@ -1,4 +1,4 @@
-from ihat import common
+from rollatini import common
 
 from act import protocol as act
 from act import sigma

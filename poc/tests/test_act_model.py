@@ -1,9 +1,9 @@
 import pytest
 
 from act import protocol as act
-from ihat import protocol as ihat
-from ihat.ciphersuite import DeriveError
-from ihat import common
+from rollatini import protocol as rollatini
+from rollatini.ciphersuite import DeriveError
+from rollatini import common
 
 
 def test_act_context_and_generators():
@@ -30,8 +30,8 @@ def test_shared_derivation_preserves_domain_separation(monkeypatch):
     seed = bytes(range(act.Nseed))
     skM, pkM = act.G.DeriveKeyPair(seed, b"GenerateKeyPair")
     assert pkM == act.G.ScalarMultGen(skM)
-    assert skM != ihat.G.DeriveKeyPair(seed, b"GenerateKeyPair")[0]
-    assert act.G.DeriveScalars(seed, b"x") != ihat.G.DeriveScalars(seed, b"x")
+    assert skM != rollatini.G.DeriveKeyPair(seed, b"GenerateKeyPair")[0]
+    assert act.G.DeriveScalars(seed, b"x") != rollatini.G.DeriveScalars(seed, b"x")
     monkeypatch.setattr(
         common.secrets, "token_bytes", lambda size: seed
     )

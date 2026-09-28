@@ -40,7 +40,7 @@ class Reader:
 
     def take(self, length: int) -> bytes:
         if self.offset + length > len(self.data):
-            raise DeserializeError("truncated IHAT message")
+            raise DeserializeError("truncated Rollatini message")
         result = self.data[self.offset : self.offset + length]
         self.offset += length
         return result
@@ -73,7 +73,7 @@ class Reader:
 
     def finish(self) -> None:
         if self.offset != len(self.data):
-            raise DeserializeError("trailing bytes in IHAT message")
+            raise DeserializeError("trailing bytes in Rollatini message")
 
 
 def EncodeCommitMessage(session_id: bytes, commitment: Commitment) -> bytes:

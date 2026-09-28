@@ -39,9 +39,9 @@ author:
 normative:
   ACT: I-D.draft-schlesinger-cfrg-act
   ARCHITECTURE: I-D.draft-jms-mole-architecture
-  IHAT:
-    title: Issuer-Hiding Anonymous Tokens (IHAT)
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
+  ROLLATINI:
+    title: "Rollatini: An Issuer-Hiding Anonymous Token"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
   HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk
@@ -236,9 +236,9 @@ The Anchor returns 200 (OK) with the response media type only when it produced
 a complete `EndorsementResponse`. A Client MUST reject a non-success status, an
 unexpected media type, a response whose type differs from its request, trailing
 bytes, or malformed type-specific content. Clients MUST NOT automatically
-redirect a grant POST carrying protocol state. If the second IHAT response is
-lost, the consumed session cannot be replayed. The Client starts a fresh grant
-session.
+redirect a grant POST carrying protocol state. If the second Rollatini response
+is lost, the consumed session cannot be replayed. The Client starts a fresh
+grant session.
 
 Every endorsement protocol defines a `Redemption` structure. It is the message
 a Client sends to redeem the Endorsement, carried in the
@@ -276,12 +276,12 @@ The values are defined as follows:
   `moderator_challenge`. It is not computed over a base64url or other textual
   encoding. SHA-256 is defined in {{SHA2}}.
 
-`challenge_digest` enters the Fiat-Shamir transcript in both IHAT and
+`challenge_digest` enters the Fiat-Shamir transcript in both Rollatini and
 Longfellow, but is not a Longfellow circuit public input. A redemption created
 for one `ModeratorChallenge` does not verify under another.
 
-The `Challenge` algorithm and `ChallengeMessage` in IHAT issuance are defined
-by {{IHAT}} and are unrelated to a `ModeratorChallenge`.
+The `Challenge` algorithm and `ChallengeMessage` in Rollatini issuance are
+defined by {{ROLLATINI}} and are unrelated to a `ModeratorChallenge`.
 
 ## Abstract Endorsement API
 
@@ -315,16 +315,16 @@ Endorsement, and `INVALID` otherwise. This prevents reuse of one Moderator
 Challenge within the configured replay protection scope. This type therefore
 implements the same abstract API as every other endorsement type.
 
-## Issuer-Hiding Anonymous Token (IHAT) {#ihat}
+## Rollatini {#rollatini}
 
 Endorsement type: 0x0002.
 
-This protocol uses the IHAT-TZ variant defined in {{IHAT}}. IHAT is a
-pairing-free, issuer-hiding endorsement scheme. The Anchor blindly signs a
+This protocol uses Rollatini {{ROLLATINI}}, a pairing-free Issuer-Hiding
+Anonymous Token (IHAT). The Anchor blindly signs a
 Client-chosen nullifier. The Client later proves,
 with an issuer-hiding proof, that its Endorsement verifies under one of the
 Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents and encodings of every message body, are defined in {{IHAT}}.
+contents and encodings of every message body, are defined in {{ROLLATINI}}.
 
 The following primitive types are ciphersuite-dependent:
 
@@ -337,28 +337,28 @@ opaque Element[Ne];
 
 The Client needs, from Anchor configuration ({{key-rotation}}):
 
-IHAT Ciphersuite
-: A ciphersuite identifier defined by {{IHAT}}. It determines `Element`,
+Rollatini Ciphersuite
+: A ciphersuite identifier defined by {{ROLLATINI}}. It determines `Element`,
   `Scalar`, and all cryptographic encodings.
 
 Anchor Public Key
-: `pkA`, an `Element`, as generated in {{IHAT}}, with a stable key ID.
+: `pkA`, an `Element`, as generated in {{ROLLATINI}}, with a stable key ID.
 
 Issuance Context
 : `ctx_iss`, the canonical encoding of the issuance epoch. Endorsements are
   valid for that epoch, see {{key-rotation}}.
 
 Redemption Context
-: `ctx_red`, the ASCII string `"MoLE-IHAT-ctx_red-v1"`, without a terminating
-  NUL byte. This fixed, domain-separated value is the same for all Moderators.
-  This is the cryptographic redemption Context defined by {{IHAT}}, not a
-  Moderator Challenge. A specific redemption operation is bound separately by
-  `challenge_digest`.
+: `ctx_red`, the ASCII string `"MoLE-Rollatini-ctx_red-v1"`, without a
+  terminating NUL byte. This fixed, domain-separated value is the same for all
+  Moderators. This is the cryptographic redemption Context defined by
+  {{ROLLATINI}}, not a Moderator Challenge. A specific redemption operation is
+  bound separately by `challenge_digest`.
 
 ### Grant
 
 The grant takes two HTTP exchanges and three protocol messages. The Anchor
-speaks first, as specified by {{IHAT}}:
+speaks first, as specified by {{ROLLATINI}}:
 
 1. The Client sends an `EndorsementRequest` with an empty `body`. The Anchor
    runs `Commit(skA, ctx_iss)`, stores the returned state under a fresh
@@ -371,23 +371,23 @@ speaks first, as specified by {{IHAT}}:
    returns a `ResponseMessage`.
    Tombstones are retained through session expiry. All later requests for the
    identifier fail without invoking `Respond`.
-3. The Client runs `Finalize(pkA, state, response)` as specified by {{IHAT}}.
-   On failure it MUST discard the session state and MUST NOT retry with that
-   state.
+3. The Client runs `Finalize(pkA, state, response)` as specified by
+   {{ROLLATINI}}. On failure it MUST discard the session state and MUST NOT
+   retry with that state.
 
 `CommitMessage`, `ChallengeMessage`, `ResponseMessage`, `session_id`, and the
-Endorsement encoding are defined by {{IHAT}}. The session identifier is only
-transport correlation and is not bound into the Endorsement.
+Endorsement encoding are defined by {{ROLLATINI}}. The session identifier is
+only transport correlation and is not bound into the Endorsement.
 
 The Anchor learns neither `nf` nor the final Endorsement. Under the statistical
-blindness claim in {{IHAT}}, its protocol transcript does not let it
+blindness claim in {{ROLLATINI}}, its protocol transcript does not let it
 recognize the Endorsement when it is later redeemed. Timing, network, and
 configuration metadata are outside that claim.
 
 ### Redemption
 
 The type-specific `Redemption` payload is the encoding of `Redemption` in
-{{IHAT}}. `RedeemRequest` derives `challenge_digest` as in
+{{ROLLATINI}}. `RedeemRequest` derives `challenge_digest` as in
 {{challenge-binding}} and calls
 `Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)`.
 The ordered `anchor_set` comes from Moderator configuration; `index` selects
@@ -407,10 +407,10 @@ the scheme does not enforce global single use.
 
 Endorsement type: 0x0003.
 
-Where IHAT requires Anchors to run new cryptography, this protocol preserves
-backward compatibility with credentials Clients may hold, such as mdocs.
-The Client proves in zero knowledge, using the scheme of {{LONGFELLOW}}, that it
-holds a valid credential from one of an accepted set of issuers, without
+Where Rollatini requires Anchors to run new cryptography, this protocol
+preserves backward compatibility with credentials Clients may hold, such as
+mdocs. The Client proves in zero knowledge, using the scheme of {{LONGFELLOW}},
+that it holds a valid credential from one of an accepted set of issuers, without
 revealing which issuer or any credential attribute. An experimental circuit is
 described in {{HIDDEN-ISSUER-CIRCUIT}}.
 
@@ -491,7 +491,7 @@ transcript binding, and checks that the configured epoch and
 `challenge_digest` from `moderator_challenge`. The common caller performs the
 atomic replay protection check.
 
-### Differences from IHAT
+### Differences from Rollatini
 
 Longfellow does not inherently require an Anchor to change its issuance
 protocol. Scarcity then depends on the legacy credential's own issuance limits
@@ -779,7 +779,7 @@ the binding between update and presented credential. Open problem.
 
 This draft assumes authenticated configuration supplies endpoints, supported
 types, keys, epochs, accepted issuer sets, and type-specific inputs. The order
-of accepted sets is significant because IHAT proof branches and Longfellow
+of accepted sets is significant because Rollatini proof branches and Longfellow
 issuer inputs match elements by position.
 
 > **Editor note.** Configuration discovery, serialization, authentication,
@@ -834,9 +834,9 @@ independent regional stores, but then the same Endorsement can be accepted once
 in each region. Credentials can likewise be presented once in each region,
 potentially creating divergent updates. Separate Moderators also do not
 coordinate stores.
-An IHAT redemption exposes the same nullifier in each scope, making cross-scope
-reuse linkable if records are compared. Proof rerandomization does not hide that
-reuse.
+A Rollatini redemption exposes the same nullifier in each scope, making
+cross-scope reuse linkable if records are compared. Proof rerandomization does
+not hide that reuse.
 
 # IANA Considerations {#iana}
 
@@ -860,7 +860,7 @@ carry the registered `uint16` type as specified in {{common}}.
 |:----------------|:------------------------------|:---------------|
 | 0x0000          | Reserved                      | this document  |
 | 0x0001          | No Endorsement Required       | {{no-endorsement-required}} |
-| 0x0002          | IHAT                          | {{ihat}}       |
+| 0x0002          | Rollatini                          | {{rollatini}}       |
 | 0x0003          | Longfellow                    | {{longfellow}} |
 | 0xFF00 - 0xFFFF | Reserved for testing          | this document  |
 {: #endorsement-types title="Candidate MoLE Endorsement Type Values"}
@@ -877,13 +877,13 @@ The registration template contains:
 
 The following initial registrations are candidates only.
 
-### IHAT {#iana-ihat}
+### Rollatini {#iana-rollatini}
 
 * Value: 0x0002
-* Name: IHAT
+* Name: Rollatini
 * Exchanges: 2
 * Publicly Verifiable: Yes
-* Reference: {{ihat}}
+* Reference: {{rollatini}}
 
 ### Longfellow {#iana-longfellow}
 
@@ -958,7 +958,7 @@ random bytes ({{greasing}}).
 
 A Client requests a resource protected by a Moderator that uses credential
 type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
-0x0002 (IHAT). The Client obtains the Endorsement before contacting that
+0x0002 (Rollatini). The Client obtains the Endorsement before contacting that
 Moderator.
 
 ~~~ aasvg
@@ -986,7 +986,7 @@ Finalize               |                 |
 ~~~
 {: #fig-example title="Complete exchange"}
 
-The first IHAT request has an empty body. The Anchor returns a
+The first Rollatini request has an empty body. The Anchor returns a
 `CommitMessage`. The Client then sends the corresponding `ChallengeMessage`,
 and the Anchor returns a `ResponseMessage`:
 
@@ -1000,8 +1000,8 @@ EndorsementRequest { 0x0002, "" }
 
 The Client finalizes the `ResponseMessage` into an Endorsement. It then obtains
 a `ModeratorChallenge` from the Moderator, computes its digest, and sends an
-HTTP request with a `CredentialRequest` containing the IHAT `Redemption` and a
-Privacy Pass `TokenRequest`:
+HTTP request with a `CredentialRequest` containing the Rollatini `Redemption`
+and a Privacy Pass `TokenRequest`:
 
 ~~~
 GET /resource HTTP/1.1
