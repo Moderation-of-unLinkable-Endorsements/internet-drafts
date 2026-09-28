@@ -1407,9 +1407,10 @@ Constant time:
 : `Bits`, every operation on the witness of the spend relation, and every
   seed and the scalars derived from it operate on the Client's balance and
   blinding factors, and MUST be implemented in constant time with respect
-  to them ({{Section 7.6 of SIGMA}}). The bit equations involve no
-  branching on bit values, unlike a disjunctive range proof. On the
-  Moderator, `skM * A_prime` in `VerifySpend` and the inversion of
+  to them ({{Section 7.6 of SIGMA}}). The bit equations are linear in the
+  bits, so nothing is selected by a bit's value; a disjunctive range proof
+  would instead need its clause selection to be constant time as well. On
+  the Moderator, `skM * A_prime` in `VerifySpend` and the inversion of
   `e + skM` and the multiplications by `x` in `IssueResponse` and
   `IssueRefund` operate on the signing key with inputs the Client chooses,
   and MUST be constant time with respect to `skM`; `A_bar` then enters the
