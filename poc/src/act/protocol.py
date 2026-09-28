@@ -28,7 +28,6 @@ random = common.random
 SIGMA_SUITE = b"sigma-proofs_Shake128_P256"
 Ns = 32
 Ne = 33
-Nh = 32
 L = 8
 
 

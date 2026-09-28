@@ -194,7 +194,8 @@ Group:
   gives concrete instances.
 
 Hash:
-: A cryptographic hash function whose output length is `Nh` bytes.
+: A cryptographic hash function, used by the `HashToGroup`, `HashToScalar`,
+  and derivation algorithms that the group of {{IHAT}} provides.
 
 Sigma protocol:
 : The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
@@ -245,7 +246,7 @@ length of that seed, which the unlinkability argument of
 ## Key Generation {#keygen}
 
 Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
-4.3 of {{IHAT}}, with the ACT group instance of {{act-config}}. Both
+4.4 of {{IHAT}}, with the ACT group instance of {{act-config}}. Both
 return `tuple[Scalar, Element]`; ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
 `G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
@@ -437,6 +438,12 @@ using it, and MUST raise an `AmountError` otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers ({{act-security}}).
 
+The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`, `t <= s + a`
+in `IssueRefund`, and `t <= s + a` and `v1 + t < 2^L` in `FinalizeRefund`
+are between integers. Each sum can reach `2^(L+1) - 2`, which does not fit
+in a `uint64` when `L = 64`, and an implementation MUST compute them
+without overflow.
+
 ## Zero-Knowledge Proofs {#act-proofs}
 
 Each proof of this document is a compact NARG string
@@ -516,8 +523,12 @@ class ProverNonces:
 `SerializeLinearRelation` of the relation ({{Section 3.6 of SIGMA}}).
 
 This rule binds only the prover; a verifier following {{SIGMA}} accepts
-these proofs unchanged. A proof repeated with the same inputs and the same
-`rand` is byte-identical, so a retried operation reproduces its proof.
+these proofs unchanged. The derivation is deterministic in the witness,
+the tag, the relation, and `rand`: replaying the bytes of `random`
+reproduces a proof byte for byte, which the test vectors of
+{{act-test-vectors}} rely on, and a random source that repeats reproduces
+a proof rather than reusing a nonce under a different challenge. A retried
+operation draws fresh `rand` and produces a different proof.
 
 ### Proving and Verifying {#act-prove}
 
@@ -1043,10 +1054,9 @@ def IssueRefund(
     return RefundMessage(A, e, t, pok)
 ~~~
 
-The comparison `t <= s + a` is between integers; `s + a` may exceed `2^L`
-and an implementation MUST compute it without overflow. This bound keeps
-the new balance below `2^L` without a range proof over the refund
-({{act-security}}). The Moderator places the new balance anywhere in
+The comparison `t <= s + a` is between integers ({{act-amounts}}). This
+bound keeps the new balance below `2^L` without a range proof over the
+refund ({{act-security}}). The Moderator places the new balance anywhere in
 `[c - s, c + a]` without learning where in that interval it falls.
 
 ### Refund Finalization {#act-finalize-refund}
@@ -1220,7 +1230,7 @@ formats.
 ## ACT(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) for the group and
-SHA-256 for the hash function, with `Nh = 32`. The value of the ciphersuite
+SHA-256 for the hash function. The value of the ciphersuite
 identifier is `b"P256-SHA256"`.
 
 Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
@@ -1333,13 +1343,24 @@ Amount validation:
 Randomness reuse:
 : A repeated nonce in the `IssueResponse` or `Refund` proof reveals `skM`,
   and a repeated signing exponent `e` under one context lets a Client
-  combine two Credentials into arbitrarily many at the same balance. Both
-  values are therefore derived with `G.DeriveNonce` (Section 4.4 of
-  {{IHAT}}) from the key and the operation ({{act-signing-exponent}},
-  {{act-prover-nonces}}), so that a rolled back or snapshotted random source
-  reproduces an earlier response instead of yielding a second one. An
-  implementation that draws either value directly MUST treat every
-  repetition as a compromise of `skM`.
+  holding two Credentials with that exponent forge Credentials at any
+  balance below `2^L`, each with a fresh nullifier, which the nullifier
+  store cannot detect. Both values are therefore derived with
+  `G.DeriveNonce` (Section 4.3 of {{IHAT}}) from the key and the operation
+  ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled back
+  or snapshotted random source reproduces an earlier response instead of
+  yielding a second one. An implementation that draws either value
+  directly MUST treat every repetition as a compromise of `skM`.
+
+Identity elements:
+: Deserialization rejects the identity element ({{act-wire}}), and the
+  verifier of {{SIGMA}} rejects an instance that contains one. The check
+  is soundness-critical for `A_prime`: were it the identity, `A_bar` would
+  be too, the first spend equation would hold with `r2 = 0`, and the second
+  would let a prover present `B_bar` as a blinding of any message of its
+  choosing, at any balance, without holding a signature. An implementation
+  whose group library accepts an encoding of the identity must perform the
+  rejection itself.
 
 Nullifier store:
 : The scheme itself does not prevent a second spend of a Credential; the
@@ -1372,9 +1393,14 @@ Constant time:
 : `Bits`, every operation on the witness of the spend relation, and every
   seed and the scalars derived from it operate on the Client's balance and
   blinding factors, and MUST be implemented in constant time with respect
-  to them ({{Section 7.6 of SIGMA}}). The
-  bit equations involve no branching on bit values, unlike a disjunctive
-  range proof.
+  to them ({{Section 7.6 of SIGMA}}). The bit equations involve no
+  branching on bit values, unlike a disjunctive range proof. On the
+  Moderator, `skM * A_prime` in `VerifySpend` and the inversion of
+  `e + skM` and the multiplications by `x` in `IssueResponse` and
+  `IssueRefund` operate on the signing key with inputs the Client chooses,
+  and MUST be constant time with respect to `skM`; `A_bar` then enters the
+  verification through a group element rather than a scalar, which
+  {{Section 7.6 of SIGMA}} addresses for keyed-verification credentials.
 
 Derived prover nonces:
 : `ProveCompact` is zero-knowledge when its nonces are indistinguishable
