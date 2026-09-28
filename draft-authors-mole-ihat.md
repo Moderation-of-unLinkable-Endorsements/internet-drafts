@@ -48,7 +48,6 @@ normative:
   I2OSP: RFC8017
   OPRF: RFC9497
   TLS13: RFC8446
-  SIGMA: I-D.irtf-cfrg-sigma-protocols-02
   NISTCurves:
     title: "Digital Signature Standard (DSS)"
     target: https://doi.org/10.6028/NIST.FIPS.186-5
@@ -67,6 +66,7 @@ normative:
         org: Standards for Efficient Cryptography Group (SECG)
 
 informative:
+  SIGMA: I-D.irtf-cfrg-sigma-protocols-03
   CDS94:
     title: "Proofs of Partial Knowledge and Simplified Design of Witness Hiding Protocols"
     target: https://doi.org/10.1007/3-540-48658-5_19
@@ -190,11 +190,6 @@ of each Endorsement, i.e., when and for whom it may later be used.
   and the Moderator. For example, it may be a long-term identity of the target
   Moderator. This may be used to prevent Endorsement reuse across Moderators
   without requiring a synchronized state between them.
-
-> TODO Decide whether the validity window or the Moderator identity should be
-> an explicit part of the syntax here. Currently we leave the issuance and
-> redemption contexts as arbitrary strings chosen by the higher level protocol.
-> Arguably we should deal with this security sensitive stuff here.
 
 ## Scope
 
@@ -1144,8 +1139,6 @@ Each branch is the discrete logarithm proof of {{SIGMA}}, and the composition
 below could be expressed in that framework. It is written out here instead, so
 that this document fixes the transcript and the encodings without depending on
 work in progress.
-
-> **TODO:** Revisit once {{SIGMA}} is stable.
 
 Throughout this section and its subsections, `x / y` denotes integer division
 of nonnegative integers, that is the quotient rounded down, and `x mod y` the
