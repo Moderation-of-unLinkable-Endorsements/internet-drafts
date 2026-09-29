@@ -1447,13 +1447,15 @@ derived scalar is zero. ACT applies the following requirements to this
 shared algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2"><code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code> and <span class="bcp14">MUST NOT</span> be used for
 more than one derivation. An algorithm derives all of its scalars with one
-call, under an <code>info</code> string that names it. In the random oracle model,
-conditioned on the adversary not querying the secret derivation inputs,
-each derived scalar has statistical distance at most <code>2^-128</code> from
-uniform over the nonzero scalars (Section 4.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>). This bound
-comes from reducing <code>Ns + 16</code> bytes to a scalar and accumulates over the
-derived values. <a href="#act-security" class="auto internal xref">Section 6</a> discusses the oracle-query bounds needed
-for unlinkability. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+call, under an <code>info</code> string that names it. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">The hash-to-scalar method reduces an <code>Ns + 16</code>-byte string modulo <code>p</code>.
+For a uniformly random string of this length, the resulting scalar has
+statistical distance at most <code>2^-128</code> from uniform over the nonzero scalars,
+conditioned on the result being nonzero. The 16-byte margin follows the
+hash-to-field method for a 128-bit security target
+(<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5" class="relref">Section 5</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>). <a href="#act-security" class="auto internal xref">Section 6</a> describes the random-oracle
+analysis needed to apply this sampling bound to the derived scalar and
+nonce vectors.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
@@ -1488,9 +1490,10 @@ its record of accepted spends to enforce single use.<a href="#section-4-1" class
 a signature, a public return amount <code>t</code>, and a proof of correct signing.
 The Client combines this message with its saved spend state to finalize a
 fresh Credential with balance <code>c - s + t</code>. Every spend declares a public
-<em>top-up allowance</em> <code>a</code>, set to zero when no top-up is allowed. The Moderator
-chooses <code>t</code> with <code>0 &lt;= t &lt;= s + a</code>, so the balance increases exactly when
-<code>t &gt; s</code>, by at most <code>a</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<em>top-up allowance</em> <code>a</code>. When no top-up is allowed, the spend sets <code>a = 0</code>.
+The Moderator chooses <code>t</code> with <code>0 &lt;= t &lt;= s + a</code>, so the balance increases
+exactly when <code>t &gt; s</code>, by at most <code>a</code>. With <code>a = 0</code>, the return amount is
+at most <code>s</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">A presentation hides its Credential's balance beyond the public amounts
 and the predicates they establish. It is intended to be unlinkable to the
 issuance or refund that produced that Credential and to other
@@ -1652,8 +1655,8 @@ Client keeps its own copy of the context for as long as it holds the
 Credential. A Credential presented under a context other than the one it
 was issued under fails verification; the mismatch is not otherwise
 signalled.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
-<p id="section-4.2-5">Credential contexts <span class="bcp14">MUST</span> define coarse groups of Clients that share each
-context value; see <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">The set of Clients sharing a credential context <span class="bcp14">MUST</span> be coarse; see
+<a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-amounts">
@@ -1931,8 +1934,7 @@ can be spent (<a href="#act-security" class="auto internal xref">Section 6</a>).
 encoding <code>X_A = B + c * H1 + ctx * H4 + K</code> as <code>A = X_A / (e + skM)</code>. It
 proves that <code>A</code> is such a signature under <code>pkM</code> without revealing <code>skM</code>,
 with the witness <code>x = e + skM</code> and <code>X_G = x * B</code>, which the Client
-computes as <code>e * B + pkM</code>. The relation uses SIGMA's reserved <code>G</code> for <code>B</code>
-(<a href="#act-proofs" class="auto internal xref">Section 4.4</a>):<a href="#section-4.5.3-1" class="pilcrow">¶</a></p>
+computes as <code>e * B + pkM</code>:<a href="#section-4.5.3-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-4.5.3-2">
 <pre>
 Relation Signature(A, X_A, X_G):
@@ -2661,17 +2663,19 @@ The idealized argument uses independent uniform blinding scalars and
 prover nonces: the commitments <code>K</code>, <code>K_n</code>, and the bit commitments are
 hiding <span>[<a href="#Pedersen91" class="cite xref">Pedersen91</a>]</span>, the pair <code>(A_prime, B_bar)</code> rerandomizes the
 signature <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, and the proofs are statistically zero-knowledge in
-the random oracle model (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.5" class="relref">Section 7.5</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>).<a href="#section-6-4.4.1" class="pilcrow">¶</a></p>
-<p id="section-6-4.4.2">The specified scalar and nonce derivations expand secret hash outputs.
-Their unlinkability argument requires replacing the derived vectors by
-independent random scalars, with a loss accounting for scalar-reduction
-bias, collisions, and the adversary's queries to secret derivation inputs
-(Section 4.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>). Concrete bounds for this replacement and
-its composition with the proofs remain to be established. The public
-amounts <code>s</code>, <code>a</code>, and <code>t</code>, and the configuration, determine which
-Credentials could have produced a presentation; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
-constrains these amounts, and <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> states the anonymity-set
-requirements.<a href="#section-6-4.4.2" class="pilcrow">¶</a></p>
+the random oracle model (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.5" class="relref">Section 7.5</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>). This idealized
+argument does not rely on the hardness of discrete logarithms.<a href="#section-6-4.4.1" class="pilcrow">¶</a></p>
+<p id="section-6-4.4.2">For the specified hash-derived scalars and nonces, the intended
+statistical guarantee is in the random oracle model, against adversaries
+with unbounded computation and a bounded number of classical oracle
+queries. The proof strategy replaces the derived vectors by independent
+random scalars, with a loss accounting for scalar-reduction bias,
+collisions, and queries to secret derivation inputs (Section 4.2 of
+<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>). Concrete bounds for this replacement and its composition
+with the proofs remain to be established. The public amounts <code>s</code>, <code>a</code>,
+and <code>t</code>, and the configuration, determine which Credentials could have
+produced a presentation; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> constrains these amounts, and
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> states the anonymity-set requirements.<a href="#section-6-4.4.2" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-6-4.5">Quantum adversaries:</dt>
@@ -2887,6 +2891,10 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
 <dt id="BBS">[BBS]</dt>
         <dd>
 <span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Boyen, X.</span>, and <span class="refAuthor">H. Shacham</span>, <span class="refTitle">"Short Group Signatures"</span>, <span class="seriesInfo">CRYPTO 2004</span>, <time datetime="2004" class="refDate">2004</time>, <span>&lt;<a href="https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf">https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HASH2CURVE">[HASH2CURVE]</dt>
+        <dd>
+<span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="KVAC">[KVAC]</dt>
         <dd>
