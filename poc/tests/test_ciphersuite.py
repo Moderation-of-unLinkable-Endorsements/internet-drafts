@@ -153,7 +153,7 @@ def test_derive_nonces_binds_every_input():
 
 def _unpermute(group, key, value):
     from rollatini import common
-    from rollatini.ciphersuite import _xor, expand_message_xmd
+    from rollatini.ciphersuite import _xor
     from rollatini.common import I2OSP
 
     half = len(value) // 2

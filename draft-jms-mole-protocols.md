@@ -361,7 +361,7 @@ The grant takes two HTTP exchanges and three protocol messages. The Anchor
 speaks first, as specified by {{ROLLATINI}}:
 
 1. The Client sends an `EndorsementRequest` with an empty `body`. The Anchor
-   runs `Commit(skA, ctx_iss)`, stores the returned state under a fresh
+   runs `Commit(ctx_iss)`, stores the returned state under a fresh
    `session_id`, and returns a `CommitMessage` in the response body.
 2. The Client runs `Challenge(pkA, ctx_iss, ctx_red, commitment)`, stores the
    returned state, and sends a `ChallengeMessage` containing the returned
