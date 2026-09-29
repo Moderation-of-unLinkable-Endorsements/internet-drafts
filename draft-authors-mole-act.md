@@ -244,9 +244,9 @@ this shared algorithm.
 
 `rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
 it, and MUST NOT be used for more than one derivation. An algorithm derives
-all of its scalars with one call, under an `info` string that names it. A
-scalar so derived is within about `2^-128` of uniform (Section 4.2 of
-{{ROLLATINI}}), which the unlinkability argument of {{act-security}} relies on.
+all of its scalars with one call, under an `info` string that names it. Each
+derived scalar is within about `2^-128` of uniform (Section 4.2 of
+{{ROLLATINI}}); the unlinkability argument of {{act-security}} relies on this.
 See {{randomness}}.
 
 ## Key Generation {#keygen}
@@ -493,10 +493,8 @@ recommends; the length prefixes keep the tag unambiguous.
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. The nonces are derived
 together with `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness,
-the session, the relation, and fresh randomness, so that a random source that
-fails independently of the witness does not cause a nonce to be reused under
-a different challenge, except with negligible probability, and no nonce is
-zero.
+the session, the relation, and fresh randomness; see "Derived prover nonces"
+in {{act-security}}.
 
 ~~~ python
 class ProverNonces:
@@ -530,7 +528,7 @@ these proofs unchanged. The derivation is deterministic in the witness,
 the tag, the relation, and `rand`: replaying the bytes of `random`
 reproduces a proof byte for byte, which the test vectors of
 {{act-test-vectors}} rely on, and a random source that repeats all of `rand`
-reproduces a proof rather than reusing a nonce under a different challenge.
+reproduces the same proof.
 A retried operation draws fresh `rand` and produces a different proof.
 
 ### Proving and Verifying {#act-prove}
@@ -1212,9 +1210,8 @@ tags. Both parties agree on the ciphersuite as specified in {{act-config}}.
 
 `ctx_proto` is as computed in {{act-config}}. The seed length is
 `Nseed = Ns + 16 = 48` bytes. The 16 bytes in excess of `Ns` make a derived
-scalar statistically close to uniform ({{derive-scalar}}), on the same grounds
-that {{HASH2CURVE}} oversamples by 128 bits when mapping bytes to a field
-element.
+scalar statistically close to uniform ({{derive-scalar}}), as in the
+field-element reduction of {{HASH2CURVE}}.
 
 For the Credential scheme, the P-256 ciphersuite sets `MAX_BIT_LENGTH = 64`,
 which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
@@ -1240,8 +1237,7 @@ algorithms, and canonical encodings of Section 7.1 of {{ROLLATINI}}. ACT uses
 `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
 ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
 `G.DeriveScalars`, `G.SeedsToScalars`, `G.DeriveNonces`, and
-`G.DeriveKeyPair`;
-the group-element permutation used by Rollatini is not needed.
+`G.DeriveKeyPair`. The group-element permutation of Rollatini is not used.
 
 ## Randomness {#randomness}
 
@@ -1263,11 +1259,11 @@ stated where they are used; drawing them directly is not conformant:
   through `ProverNonces` ({{act-prover-nonces}}).
 
 The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, `s1`, and `s2` are
-derived with `G.DeriveScalars` from randomness alone. A repetition among
-them harms only that Client; a repeated signing exponent, or a prover nonce
+derived with `G.DeriveScalars` from randomness alone; a repetition among them
+harms only that Client. The signing exponent and the prover nonces are also
+derived from a secret, because a repeated signing exponent, or a prover nonce
 repeated under a different challenge, can compromise `skM` or reveal a
-witness scalar ({{act-security}}), and those are therefore derived from a
-secret as well.
+witness scalar ({{act-security}}).
 
 # Security Considerations {#act-security}
 
@@ -1324,9 +1320,9 @@ Unlinkability:
   ({{Section 7.5 of SIGMA}}). These hold for uniform blinding factors and
   nonces, and those of this document are each within about `2^-128` of
   uniform ({{derive-scalar}}, "Derived prover nonces" below). None of this
-  relies on the hardness of discrete logarithms, so an observer with a
-  quantum computer that records transcripts today gains nothing; such an
-  attacker does recover `skM` from `pkM` and can forge Credentials, so credit
+  relies on the hardness of discrete logarithms, so transcripts recorded
+  today reveal nothing to a future quantum computer. Such an attacker can,
+  however, recover `skM` from `pkM` and forge Credentials, so credit
   conservation does not hold against it. The public amounts `s`, `a`, and
   `t`, and the configuration, determine which Credentials could have
   produced a presentation; `t` is the Moderator's choice, so {{PROTOCOLS}}
@@ -1397,12 +1393,11 @@ Single use of Credentials and states:
   Moderator has recorded the nullifier loses the balance.
 
 Constant time:
-: `Bits`, every operation on the witness of the spend relation, and all
-  randomness and the scalars derived from it operate on the Client's balance
-  and blinding factors, and MUST be implemented in constant time with respect
-  to them ({{Section 7.6 of SIGMA}}). The bit equations are linear in the
-  bits, so nothing is selected by a bit's value; a disjunctive range proof
-  would instead need its clause selection to be constant time as well. On
+: `Bits`, every operation on the witness of the spend relation, and every
+  operation on the Client's randomness and the scalars derived from it MUST be
+  implemented in constant time with respect to those secrets
+  ({{Section 7.6 of SIGMA}}). The bit equations are linear in the bits, so
+  nothing is selected by a bit's value. On
   the Moderator, `skM * A_prime` in `VerifySpend` and the inversion of
   `e + skM` and the multiplications by `x` in `IssueResponse` and
   `IssueRefund` operate on the signing key with inputs the Client chooses,
@@ -1413,17 +1408,15 @@ Constant time:
 Derived prover nonces:
 : `ProverNonces` derives the nonces of a proof together with
   `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness, the
-  relation, and `Nseed` bytes of fresh randomness per nonce, so that each nonce
-  is within about `2^-128` of uniform whatever the witness, and the proofs are
-  statistically zero-knowledge. If the random source fails, whether by
-  repeating all or part of `rand`, returning a constant, or returning values
-  related to earlier ones, the nonces are still pseudorandom functions of the
-  witness, and, unless the random source depends on the witness, each
-  changes, except with negligible probability, whenever any part of `rand`
-  or the relation does, so no nonce is reused under a different challenge.
-  `ProveCompact` then remains zero-knowledge against a party without the
-  witness ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars
-  in the witness carry entropy that party lacks.
+  relation, and `Nseed` bytes of fresh randomness per nonce. With a working
+  random source each nonce is within about `2^-128` of uniform, and the
+  proofs are statistically zero-knowledge. With a failed one the nonces
+  remain pseudorandom functions of the witness and change with any part of
+  `rand` or the relation, as Section 4.3 of {{ROLLATINI}} states, so no nonce
+  is reused under a different challenge. `ProveCompact` then remains
+  zero-knowledge against a party without the witness
+  ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars in the
+  witness carry entropy that party lacks.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the
