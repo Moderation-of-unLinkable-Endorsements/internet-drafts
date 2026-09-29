@@ -9,10 +9,11 @@ from Cryptodome.Hash import SHA256
 from Cryptodome.PublicKey import ECC
 from Cryptodome.PublicKey.ECC import EccPoint
 
-from .common import I2OSP, Nseed, Seed, U16Prefixed, random
+from .common import I2OSP, Nseed, U16Prefixed, random
 
 
 Nh = 32
+s_in_bytes = 64
 
 
 FIELD_MODULUS = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
@@ -97,6 +98,10 @@ def _sha256(data: bytes) -> bytes:
 
 def _xor(left: bytes, right: bytes) -> bytes:
     return bytes(a ^ b for a, b in zip(left, right, strict=True))
+
+
+def PadToBlock(value: bytes) -> bytes:
+    return value + bytes(-len(value) % s_in_bytes)
 
 
 def PermuteBytes(buf: bytearray) -> bytearray:
@@ -249,53 +254,50 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         uniform = expand_message_xmd(value, dst, 48)
         return P256Scalar(int.from_bytes(uniform, "big") % ORDER)
 
-    def DeriveScalars(self, rand: bytes, info: bytes) -> list[P256Scalar]:
+    def DeriveScalars(
+        self, rand: bytes, info: bytes, count: int
+    ) -> list[P256Scalar]:
+        if len(rand) != Nseed:
+            raise ValueError(f"rand must be exactly {Nseed} bytes")
         key = expand_message_xmd(
-            U16Prefixed(info), b"DeriveScalars-" + self.ctx_proto, Nh
+            rand + U16Prefixed(info),
+            b"DeriveScalars-" + self.ctx_proto,
+            Nh,
         )
-        return self.SeedsToScalars(key, rand)
+        return self.ExpandScalars(key, count)
+
+    def ExpandScalars(self, key: bytes, count: int) -> list[P256Scalar]:
+        scalars = []
+        for i in range(count):
+            s = self.HashToScalar(
+                key + I2OSP(i, 4), DST=b"ExpandScalars-" + self.ctx_proto
+            )
+            if s.isZero():
+                raise DeriveError
+            scalars.append(s)
+        return scalars
 
     def DeriveNonces(
-        self, secret: bytes, label: bytes, instance: bytes, rand: bytes
+        self,
+        secret: bytes,
+        label: bytes,
+        instance: bytes,
+        rand: bytes,
+        count: int,
     ) -> list[P256Scalar]:
+        if len(rand) != Nseed:
+            raise ValueError(f"rand must be exactly {Nseed} bytes")
         derive_nonce_input = (
-            U16Prefixed(label)
-            + I2OSP(len(secret), 4)
-            + secret
+            PadToBlock(rand)
+            + PadToBlock(I2OSP(len(secret), 4) + secret)
+            + U16Prefixed(label)
             + I2OSP(len(instance), 4)
             + instance
         )
         key = expand_message_xmd(
             derive_nonce_input, b"DeriveNonces-" + self.ctx_proto, Nh
         )
-        return self.SeedsToScalars(key, rand)
-
-    def SeedsToScalars(self, key: bytes, rand: bytes) -> list[P256Scalar]:
-        if len(rand) == 0 or len(rand) % Nseed != 0:
-            raise ValueError(
-                f"rand must be a positive multiple of {Nseed} bytes"
-            )
-        half = len(rand) // 2
-        left, right = rand[:half], rand[half:]
-        for i in range(4):
-            mask = b""
-            for j in range((half + Nseed - 1) // Nseed):
-                mask += expand_message_xmd(
-                    key + I2OSP(i, 1) + I2OSP(j, 4) + right,
-                    b"SeedsToScalars-" + self.ctx_proto,
-                    Nseed,
-                )
-            left, right = right, _xor(left, mask[:half])
-        permuted = left + right
-        scalars = []
-        for k in range(len(rand) // Nseed):
-            s = self.scalar(
-                int.from_bytes(Seed(permuted, k), "big") % self.Order()
-            )
-            if s.isZero():
-                raise DeriveError
-            scalars.append(s)
-        return scalars
+        return self.ExpandScalars(key, count)
 
     def DeriveKeyPair(
         self, seed: bytes, info: bytes

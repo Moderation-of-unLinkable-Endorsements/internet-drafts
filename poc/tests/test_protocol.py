@@ -140,7 +140,7 @@ def test_prove_issuer_runs_without_raising(monkeypatch):
         b"epoch-1",
         b"moderator-1",
         b"challenge-digest",
-        bytes(3 * protocol.Nseed),
+        bytes(protocol.Nseed),
     )
 
 
@@ -248,9 +248,9 @@ def test_prove_issuer_rejects_bad_index_and_randomness_length():
     )
 
     with pytest.raises(ValueError, match="index"):
-        ProveIssuer(*args[:1], 2, *args[2:], bytes(3 * protocol.Nseed))
+        ProveIssuer(*args[:1], 2, *args[2:], bytes(protocol.Nseed))
     with pytest.raises(ValueError, match="randomness"):
-        ProveIssuer(*args, bytes(3 * protocol.Nseed - 1))
+        ProveIssuer(*args, bytes(protocol.Nseed - 1))
 
 
 def test_redeem_rejects_bad_index():
@@ -273,8 +273,8 @@ def test_vector_commitment_comprehensive():
         while 2**q < i:
             q += 1
         for j in range(0, i):
-            trapdoor = protocol.G.DeriveScalars(random(q * 48), b"test")
-            opening = protocol.G.DeriveScalars(random(q * 48), b"test")
+            trapdoor = protocol.G.DeriveScalars(random(48), b"test", q)
+            opening = protocol.G.DeriveScalars(random(48), b"test", q)
             keys = GenerateVecBind(j, trapdoor)
             comm = CommitValAtPlace(keys, i, j, b"Bob", opening)
             V = [random(32) for i in range(0, i)]
@@ -330,8 +330,7 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         with monkeypatch.context() as previous:
             previous.setattr(protocol, "GenerateStep", previous_generate_step)
             assert redemption == protocol.Redeem(*args)
-        q = (size - 1).bit_length()
-        assert calls == [(2 * q + 2) * protocol.Nseed] * 2
+        assert calls == [2 * protocol.Nseed] * 2
         assert protocol.VerifyRedemption(
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
         ) == endorsement.nf
@@ -412,7 +411,7 @@ def test_verify_rejects_identity_commitment():
     # A Client that knows the discrete logarithm x of the key it presents
     # reaches A = identity with s = c * y * x.
     G = protocol.G
-    (x,) = G.DeriveScalars(bytes(48), b"x")
+    (x,) = G.DeriveScalars(bytes(48), b"x", 1)
     c, y, t = protocol.Scalar(5), protocol.Scalar(7), protocol.Scalar(9)
     shown = Endorsement(c, c * y * x, y, t, bytes(32))
     assert not Verify(x * protocol.B, shown, b"epoch-1", b"moderator-1")
@@ -458,8 +457,7 @@ def test_partly_repeated_randomness_gives_a_fresh_first_move():
     anchor_set.append(pkA)
     delta = protocol.Scalar(77)
     X_hat = pkA + delta * protocol.B
-    q = protocol.Depth(len(anchor_set))
-    rand = bytes(range((2 * q + 1) * protocol.Nseed))
+    rand = bytes(range(protocol.Nseed))
     changed = rand[:-1] + bytes([rand[-1] ^ 1])
     args = (anchor_set, 2, delta, X_hat, endorsement, b"i", b"r", b"d")
     (c1, z1, keys1, openings1) = ProveIssuer(*args, rand)
@@ -479,8 +477,7 @@ def test_a_repeated_key_at_another_position_gives_a_fresh_first_move():
     anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2)), pkA]
     delta = protocol.Scalar(77)
     X_hat = pkA + delta * protocol.B
-    q = protocol.Depth(len(anchor_set))
-    rand = bytes(range((2 * q + 1) * protocol.Nseed))
+    rand = bytes(range(protocol.Nseed))
     (c0, z0, _, _), (c2, z2, _, _) = [
         ProveIssuer(
             anchor_set, index, delta, X_hat, endorsement, b"i", b"r", b"d",

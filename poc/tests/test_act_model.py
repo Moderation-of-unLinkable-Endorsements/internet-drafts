@@ -31,17 +31,17 @@ def test_shared_derivation_preserves_domain_separation(monkeypatch):
     skM, pkM = act.G.DeriveKeyPair(seed, b"GenerateKeyPair")
     assert pkM == act.G.ScalarMultGen(skM)
     assert skM != rollatini.G.DeriveKeyPair(seed, b"GenerateKeyPair")[0]
-    assert act.G.DeriveScalars(seed, b"x") != rollatini.G.DeriveScalars(seed, b"x")
+    assert act.G.DeriveScalars(seed, b"x", 1) != rollatini.G.DeriveScalars(
+        seed, b"x", 1
+    )
     monkeypatch.setattr(
         common.secrets, "token_bytes", lambda size: seed
     )
     assert act.G.GenerateKeyPair() == (skM, pkM)
     assert act.Seed(b"x" * act.Nseed + seed, 1) == seed
     for wrong in (b"", bytes(act.Nseed - 1), bytes(act.Nseed + 1)):
-        with pytest.raises(
-            ValueError, match="positive multiple of 48 bytes"
-        ):
-            act.G.DeriveScalars(wrong, b"test")
+        with pytest.raises(ValueError, match="exactly 48 bytes"):
+            act.G.DeriveScalars(wrong, b"test", 1)
 
 
 def test_key_derivation_retries_zero_and_exhausts(monkeypatch):

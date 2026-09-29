@@ -67,6 +67,7 @@ normative:
 
 informative:
   SIGMA: I-D.irtf-cfrg-sigma-protocols-03
+  DETSIGS: I-D.irtf-cfrg-det-sigs-with-noise
   CDS94:
     title: "Proofs of Partial Knowledge and Simplified Design of Witness Hiding Protocols"
     target: https://doi.org/10.1007/3-540-48658-5_19
@@ -295,7 +296,7 @@ an `Element` `A` by a `Scalar` `r` is written `r * A`. Scalars are added,
 subtracted, and multiplied modulo `p`. In the Python snippets, `G.scalar(x)`
 converts an integer `x` in `[0, p)` to a `Scalar`.
 
-The group also provides `G.DeriveScalars`, `G.SeedsToScalars`,
+The group also provides `G.DeriveScalars`, `G.ExpandScalars`,
 `G.DeriveNonces`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`, defined in
 {{derive-scalar}}, {{derive-nonce}}, and {{keygen}}.
 
@@ -443,8 +444,9 @@ ciphersuite.
 Every hash this document computes, other than the round functions of the
 permutation `P` ({{permutation}}), is domain-separated by `ctx_proto`, which
 appears in its DST. `HashToGroup` and `HashToScalar` are so parameterized
-({{ciphersuites}}), as are `G.DeriveScalars` ({{derive-scalar}}) and
-`G.DeriveNonces` ({{derive-nonce}}). Every algorithm below therefore depends
+({{ciphersuites}}), as are `G.DeriveScalars` and `G.ExpandScalars`
+({{derive-scalar}}) and `G.DeriveNonces` ({{derive-nonce}}). Every algorithm
+below therefore depends
 on `ctx_proto`, even where it does not appear, and a value produced under one
 ciphersuite does not verify under another. The Python group instance `G`
 stores this context as `G.ctx_proto`. The group methods below use `self` for
@@ -452,45 +454,35 @@ that instance, so the context is fixed when `G` is constructed.
 
 ## Deriving Scalars {#derive-scalar}
 
-The group method `G.DeriveScalars` derives values in the scalar field of `G`.
-An algorithm that needs random scalars draws `Nseed` bytes of randomness for
-each of them and derives them all with one call, under an `info` string that
-names the algorithm:
+The group method `G.DeriveScalars` derives `count` values in the scalar field
+of `G` from `Nseed` bytes of randomness `rand`. An algorithm that needs random
+scalars derives them all with one call, under an `info` string that names the
+algorithm. `rand` and `info` are hashed into a key, which is expanded into
+the scalars:
 
 ~~~python
-def DeriveScalars(self, rand: bytes, info: bytes) -> list[Scalar]:
+def DeriveScalars(
+    self, rand: bytes, info: bytes, count: int
+) -> list[Scalar]:
+    if len(rand) != Nseed:
+        raise ValueError(f"rand must be exactly {Nseed} bytes")
     key = expand_message_xmd(
-        U16Prefixed(info), b"DeriveScalars-" + self.ctx_proto, Nh
+        rand + U16Prefixed(info),
+        b"DeriveScalars-" + self.ctx_proto,
+        Nh,
     )
-    return self.SeedsToScalars(key, rand)
+    return self.ExpandScalars(key, count)
 ~~~
 
-The group method `G.SeedsToScalars` permutes its input with a four-round
-Feistel network whose round functions are keyed by `key`, splits the result
-into seeds of `Nseed` bytes, and reduces each modulo `p`:
+The group method `G.ExpandScalars` hashes the key and an index to each scalar
+in turn:
 
 ~~~python
-def SeedsToScalars(self, key: bytes, rand: bytes) -> list[Scalar]:
-    if len(rand) == 0 or len(rand) % Nseed != 0:
-        raise ValueError(
-            f"rand must be a positive multiple of {Nseed} bytes"
-        )
-    half = len(rand) // 2
-    left, right = rand[:half], rand[half:]
-    for i in range(4):
-        mask = b""
-        for j in range((half + Nseed - 1) // Nseed):
-            mask += expand_message_xmd(
-                key + I2OSP(i, 1) + I2OSP(j, 4) + right,
-                b"SeedsToScalars-" + self.ctx_proto,
-                Nseed,
-            )
-        left, right = right, _xor(left, mask[:half])
-    permuted = left + right
+def ExpandScalars(self, key: bytes, count: int) -> list[Scalar]:
     scalars = []
-    for k in range(len(rand) // Nseed):
-        s = self.scalar(
-            int.from_bytes(Seed(permuted, k), "big") % self.Order()
+    for i in range(count):
+        s = self.HashToScalar(
+            key + I2OSP(i, 4), DST=b"ExpandScalars-" + self.ctx_proto
         )
         if s.isZero():
             raise DeriveError
@@ -499,61 +491,78 @@ def SeedsToScalars(self, key: bytes, rand: bytes) -> list[Scalar]:
 ~~~
 
 `expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
-hash function of the ciphersuite. The Feistel network is a permutation of its
-input for every key, so it maps uniformly random input to uniformly random
-output. The reduction is the one `hash_to_field` applies to uniform bytes
-({{Section 5.2 of HASH2CURVE}}). Since `Nseed` exceeds `Ns` by 16 bytes
-({{ciphersuites}}), each scalar derived from uniformly random input is within
-about `2^-128` of uniform over the nonzero scalars, and the scalars are
-jointly within the sum of those distances. Modeling the round functions as
-random oracles, a change to any part of an input that does not depend on them
-changes every derived scalar, except with negligible probability. A derived
-scalar is zero, and `DeriveError` raised, with probability about `1/p`, which
-is negligible; implementations might choose to panic rather than handle the
-exception.
+hash function of the ciphersuite. Every derived scalar depends on all of
+`rand`, so a change to any part of it changes every scalar, except with
+negligible probability. Modeling the hash function as a random oracle, the
+scalars derived from uniformly random `rand` are independent of an
+adversary's view unless it evaluates the hash function on one of the inputs
+the derivation hashes. Each of those holds at least `Nh` bytes the adversary
+does not know: `rand`, the key, or an intermediate value of
+`expand_message_xmd`. An adversary that evaluates the hash function `Q` times
+therefore hits one with probability about `Q / 2^(8 * Nh)`. Short of that,
+each scalar is within about `2^-128` of uniform over the nonzero scalars,
+since `HashToScalar` reduces 16 bytes more than `Ns` ({{ciphersuites}}), and
+the scalars are jointly within the sum of those distances. A derived scalar is zero, and `DeriveError` raised, with
+probability about `1/p`, which is negligible; implementations might choose
+to panic rather than handle the exception.
 
-`rand` MUST be output of `random`, `Nseed` bytes for each scalar derived from
-it, as the bound above requires, and MUST NOT be used for more than one
-derivation. See {{randomness}}.
+`rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
+more than one derivation. See {{randomness}}.
 
 ## Deriving Nonces {#derive-nonce}
 
 The nonces of a proof of knowledge, and the other secret values of its first
 move, must not be reused under a different challenge. The group method
-`G.DeriveNonces` derives them together, keying the permutation of
-`G.SeedsToScalars` by a secret the party holds and a public description of
-the operation:
+`G.DeriveNonces` derives them together from `rand`, a secret the party holds,
+and a public description of the operation, as the hedged signatures of
+{{DETSIGS}} derive theirs:
 
 ~~~python
 def DeriveNonces(
-    self, secret: bytes, label: bytes, instance: bytes, rand: bytes
+    self,
+    secret: bytes,
+    label: bytes,
+    instance: bytes,
+    rand: bytes,
+    count: int,
 ) -> list[Scalar]:
+    if len(rand) != Nseed:
+        raise ValueError(f"rand must be exactly {Nseed} bytes")
     derive_nonce_input = (
-        U16Prefixed(label)
-        + I2OSP(len(secret), 4)
-        + secret
+        PadToBlock(rand)
+        + PadToBlock(I2OSP(len(secret), 4) + secret)
+        + U16Prefixed(label)
         + I2OSP(len(instance), 4)
         + instance
     )
     key = expand_message_xmd(
         derive_nonce_input, b"DeriveNonces-" + self.ctx_proto, Nh
     )
-    return self.SeedsToScalars(key, rand)
+    return self.ExpandScalars(key, count)
 ~~~
 
-When `rand` is uniformly random, the nonces are distributed as derived scalars
-({{derive-scalar}}) for any key. The key is a pseudorandom function of `secret`
-at a point that identifies the operation, so to a party that does not know
-`secret` the Feistel network is a pseudorandom permutation of `rand`. If the
-random source fails in a way that does not depend on `secret`, a change to
-any part of `rand`, `secret`, or `instance` therefore changes every nonce
-unpredictably, except with negligible probability, and no nonce is reused
-under a different challenge. Repeating all of `rand` for the same operation
-reproduces the same proof. Every `instance` in this document is an
+`PadToBlock` appends zero bytes up to a multiple of `s_in_bytes`, the input
+block size of the hash function ({{Section 5.3.1 of HASH2CURVE}}):
+
+~~~python
+def PadToBlock(value: bytes) -> bytes:
+    return value + bytes(-len(value) % s_in_bytes)
+~~~
+
+`expand_message_xmd` starts its input with a block of zeros, so the hash
+function absorbs `rand` in a block of its own and then `secret` in blocks of
+its own, before any public input, as {{DETSIGS}} recommends against
+side-channel and fault attacks. When `rand` is uniformly random, the nonces
+are distributed as derived scalars ({{derive-scalar}}). If the random source
+fails in a way that does not depend on `secret`, the nonces are still hash
+outputs on an input that contains `secret`, so to an adversary that does not
+know `secret` a change to any part of `rand` or `instance` changes every
+nonce unpredictably, except with negligible probability, and no nonce is
+reused under a different challenge. Repeating all of `rand` for the same
+operation reproduces the same proof. Every `instance` in this document is an
 unambiguous encoding, with its variable-length parts length-prefixed.
-Implementations MUST wipe `secret`, `derive_nonce_input`, `key`, the
-intermediate values of `G.SeedsToScalars`, and the returned values once they
-have been used.
+Implementations MUST wipe `secret`, `derive_nonce_input`, `key`, and the
+returned values once they have been used.
 
 ## Key Generation {#keygen}
 
@@ -691,8 +700,8 @@ The Anchor opens a session by committing to the values it will later reveal.
 def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
-    rand = random(3 * Nseed)
-    (a, t, y) = G.DeriveScalars(rand, b"Commit")
+    rand = random(Nseed)
+    (a, t, y) = G.DeriveScalars(rand, b"Commit", 3)
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -725,9 +734,11 @@ def Challenge(
 
     (A, C) = commitment
 
-    rand = random(Nn + 4 * Nseed)
+    rand = random(Nn + Nseed)
     nf = rand[:Nn]
-    (r1, r2, gamma1, gamma2) = G.DeriveScalars(rand[Nn:], b"Challenge")
+    (r1, r2, gamma1, gamma2) = G.DeriveScalars(
+        rand[Nn:], b"Challenge", 4
+    )
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -756,7 +767,7 @@ def Challenge(
 ~~~
 
 As in `Commit`, all randomness is drawn in one call: the first `Nn` bytes are
-the nullifier, and the remaining `4 * Nseed` bytes derive the four blinding
+the nullifier, and the remaining `Nseed` bytes derive the four blinding
 scalars. `ComputeChallenge` is as follows:
 
 ~~~python
@@ -1651,7 +1662,7 @@ def ProveIssuer(
     q = Depth(len(anchor_set))
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
-    if len(rand) != (2 * q + 1) * Nseed:
+    if len(rand) != Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
     instance = ProofStatement(
@@ -1667,6 +1678,7 @@ def ProveIssuer(
         b"ProveIssuer",
         instance,
         rand,
+        2 * q + 1,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
@@ -1709,9 +1721,8 @@ def ProveIssuer(
 
 `ProveIssuer` derives the nonce `r`, the trapdoors of the `q` commitment
 keys, and the `q` openings of its first move with one call to
-`G.DeriveNonces` ({{derive-nonce}}), keyed by `delta`, `index`, and the
-proof statement; `rand` holds `Nseed` bytes for each of these `2 * q + 1`
-scalars.
+`G.DeriveNonces` ({{derive-nonce}}), with `delta` and `index` as the secret
+and the proof statement as the instance.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
@@ -1824,9 +1835,8 @@ def Redeem(
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
-    q = Depth(n)
-    rand = random((2 * q + 2) * Nseed)
-    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta")
+    rand = random(2 * Nseed)
+    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta", 1)
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -1841,7 +1851,7 @@ def Redeem(
         ctx_iss,
         ctx_red,
         challenge_digest,
-        rand[Nseed:],
+        Seed(rand, 1),
     )
 
     return Redemption(
@@ -1954,16 +1964,14 @@ and domain separation tags. Both parties are assumed to agree on the
 ciphersuite in use ({{config}}).
 
 For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
-length is `Nn = 32` bytes and the seed length is `Nseed = Ns + 16` bytes, that
-is 48 bytes, for the ciphersuite below. The 16 bytes in excess of `Ns` make
-a derived scalar statistically close to uniform ({{derive-scalar}}), as in the
-field-element reduction of {{HASH2CURVE}}.
+length is `Nn = 32` bytes and the seed length, that of the random input to
+every derivation, is `Nseed = 48` bytes for the ciphersuite below.
 
 ## Rollatini(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) {{NISTCurves}} for the group and
-SHA-256 for the hash function, with `Nh = 32`. The value of the ciphersuite
-identifier is `"P256-SHA256"`.
+SHA-256 for the hash function, with `Nh = 32` and `s_in_bytes = 64`. The
+value of the ciphersuite identifier is `"P256-SHA256"`.
 
 The interface of {{group}} is instantiated as follows.
 
@@ -2016,7 +2024,7 @@ P:
 ## Randomness {#randomness}
 
 Every random value in this document is drawn with `random`. Apart from the
-nullifier, it is consumed, `Nseed` bytes per scalar, by `G.DeriveScalars`
+nullifier, it is consumed in inputs of `Nseed` bytes, by `G.DeriveScalars`
 ({{derive-scalar}}), by `G.DeriveNonces` ({{derive-nonce}}) for the values of
 the issuer-hiding proof, or by `G.DeriveKeyPair` ({{keygen}}) for a key; no
 scalar is sampled directly. Implementations MUST draw this randomness with a
@@ -2047,31 +2055,34 @@ Blindness:
   With uniform blinding factors, the blinded challenge is uniformly
   distributed and independent of the message and of the resulting signature,
   and the scheme is perfectly blind {{TESSZHU}}. The blinding factors of this
-  document are each within about `2^-128` of uniform ("Derived blinding
-  factors" below), so the scheme is statistically blind: an Anchor cannot
-  link an Endorsement to the session that produced it, even with unbounded
-  computation. Endorsement grants and redemptions are therefore unlinkable,
-  as {{ARCH}} requires, even to an attacker who records transcripts for a
-  future quantum computer.
+  document are derived by hashing ("Derived blinding factors" below), so in
+  the random oracle model the scheme is statistically blind: an Anchor can
+  link an Endorsement to the session that produced it only by evaluating the
+  hash function on one of the secret inputs from which the Client derives
+  its blinding factors ({{derive-scalar}}). Finding one by search takes about
+  `2^256` evaluations, or `2^128` on a quantum computer. Endorsement grants and redemptions are therefore unlinkable, as
+  {{ARCH}} requires, even to an attacker who records transcripts for a future
+  quantum computer.
 
 Derived blinding factors:
 : `Challenge` derives its four blinding factors with `G.DeriveScalars`, and
   `Redeem` derives `delta` the same way and the `2 * q + 1` scalars of its
-  proof with `G.DeriveNonces` ({{derive-nonce}}). With `Nseed` bytes of
-  randomness per scalar, each is within about `2^-128` of uniform
-  ({{derive-scalar}}), so the four blinding factors of a session are jointly
-  within about `2^-126` of uniform, and blindness holds against unbounded
-  computation up to that distance.
+  proof with `G.DeriveNonces` ({{derive-nonce}}). Short of an evaluation of
+  the hash function on one of their secret inputs, each is within about
+  `2^-128` of uniform ({{derive-scalar}}), so the four blinding factors of a
+  session are jointly within about `2^-126` of uniform, and blindness holds
+  up to that distance.
 
 Derived first move:
 : In `ProveIssuer`, the nonce `r` reused under a different challenge reveals
   `delta`, which names the Anchor, and a commitment key reused with its first
   opening under a different challenge can reveal the key's trapdoor and with
   it a bit of `index`. `ProveIssuer` therefore derives all of these together
-  with `G.DeriveNonces`, keyed by `delta`, `index`, and the proof statement
-  ({{prove-issuer}}), so that a failed random source does not cause any of
-  them to be reused under a different challenge ({{derive-nonce}}). The
-  Anchor's signing nonce `a` in `Commit` cannot be protected this way, since
+  with `G.DeriveNonces`, from `delta`, `index`, and the proof statement as
+  well as fresh randomness ({{prove-issuer}}), so that a failed random source
+  does not cause any of them to be reused under a different challenge
+  ({{derive-nonce}}). The Anchor's signing nonce `a` in `Commit` cannot be
+  protected this way, since
   it is fixed before the Client's challenge exists and no input distinguishes
   two sessions at that point. `Commit` derives `a` together with `t` and `y`
   ({{derive-scalar}}), so a random source that repeats part of its output
@@ -2115,10 +2126,11 @@ Issuer hiding:
   independently of whether the value it opens to was committed or
   equivocated. The stacked composition is therefore witness indistinguishable
   (appendix and Section 7 of {{STACKSIG}}). These results assume uniform
-  randomness; each of the `2 * q + 2` scalars a redemption derives is within
-  about `2^-128` of uniform ("Derived blinding factors" above), a statistical
-  distance of at most `(2 * q + 2) * 2^-128`. Like blindness, issuer hiding
-  therefore holds against unbounded computation, including a quantum computer
+  randomness; in the random oracle model, each of the `2 * q + 2` scalars a
+  redemption derives is within about `2^-128` of uniform ("Derived blinding
+  factors" above), a statistical distance of at most `(2 * q + 2) * 2^-128`.
+  Like blindness, issuer hiding therefore holds in that model against an
+  adversary that does not find those inputs, including a quantum computer
   that records transcripts today. The *binding* property of the commitment,
   not its hiding, rests on the discrete logarithm, which is the direction
   {{ARCH}} requires.
@@ -2175,7 +2187,7 @@ Constant-time proving:
   differently from the others, and that leaf is the secret the proof hides.
   Implementations MUST NOT allow the binding path to be distinguished by
   timing, memory access patterns, or the amount of randomness consumed; the
-  randomness a redemption consumes depends only on `q` ({{redeem}}). The first
+  randomness a redemption consumes is `2 * Nseed` bytes ({{redeem}}). The first
   move places the real branch commitment at `index` and empty values at every
   other leaf; both commitment passes visit every node of the tree. That
   placement and the later equivocation MUST avoid observable secret-dependent
@@ -2295,10 +2307,10 @@ makes, in the order made, and an implementation replays it by serving those
 bytes in place of `random`.
 
 For `G.GenerateKeyPair` the `rand` entry is the key seed; for `Commit`, the
-`3 * Nseed` bytes of `(a, t, y)`; for `Challenge`, the `Nn` bytes of the
-nullifier and then the `4 * Nseed` bytes of the blinding factors; and for
-`Redeem`, the `Nseed` bytes of `delta` and then the `(2 * q + 1) * Nseed`
-bytes of the issuer-hiding proof. The `commit.state` entry is the
+`Nseed` bytes of `(a, t, y)`; for `Challenge`, the `Nn` bytes of the
+nullifier and then the `Nseed` bytes of the blinding factors; and for
+`Redeem`, the `Nseed` bytes of `delta` and then the `Nseed` bytes of the
+issuer-hiding proof. The `commit.state` entry is the
 `AnchorState` `(a, y, t)` as
 `SerializeScalar(a) || SerializeScalar(y) || SerializeScalar(t)`, and the
 `challenge.state` entry is `nf || SerializeScalar(r1) || SerializeScalar(r2)`
@@ -2324,30 +2336,27 @@ suite.ctx_proto = 526f6c6c6174696e6976312d503235362d534841323536
 derive.info = 526f6c6c6174696e69207465737420766563746f7273
 derive.rand =
     2901ba7aa4385020806b9dfda274116e8e7b40dc4b7ea5ecf802f450f385d95a
-    23b24f8989262dd0098c67f1b18c70491895f96ba9ffd425f438e32d27c0f307
-    89192aaee2fb81ddab56a33ba979e1dcd662a1d0030115f54fc5f3ba9460f5cc
-    34f8d290513e7ee4b333809f8468084d625e481f88467d66441fc84823863262
-    2425cece0fcf97086b853bd5ab9450a8
+    23b24f8989262dd0098c67f1b18c7049
 derive.scalars =
-    573b619ef137c7250534f24b28a0b7b384c8960bc77263469bbf89cfbb371d83
-    0f6fbf7e381387e9ee9136b587a32a6c109f75fea0f204d2cb641a5caecae0fc
-    c2a227d6440176b1cd129ca7178229aaa8be2438ac8f11c0f8ca4843b9b702fc
+    d3a1cf0eb8ad06b36ccbec270304fe9d1e463aebe0074628e973372cc060dde1
+    236ca33273718791d45cf1bd10bc8d27ae93514c23829beccfc7d4d810e9d2fa
+    15bf15da1582d7290ef5c5ff6a3d56751903eff0d3c53a45f200654078bcca87
 ~~~
 
 ## Key Pair {#rollatini-tv-key}
 
 ~~~
 key.rand =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
-    fcd7b4dab3af98a5efd69ba6733ea379
+    1895f96ba9ffd425f438e32d27c0f30789192aaee2fb81ddab56a33ba979e1dc
+    d662a1d0030115f54fc5f3ba9460f5cc
 key.skA =
-    280ce0d127793cb57514092502764058ed0ede80b6d15c4f4fb3c439fa78d393
+    cf0f461405dbbe310331b868ef937601c99fc006b07cc17e557a2bb379a03d10
 key.pkA =
-    0207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40cd3ca0
-    0e
+    02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf017
+    6e
 key.P_pkA =
-    02d802cc8b5c60d171c578ef281cf713c68f91353500788720dcb638cc830806
-    3f
+    03e07a7634377aae0b8d88ecf0639ff8a9483532fdda7f128863aba3d94fa491
+    0e
 ~~~
 
 ## Issuance {#rollatini-tv-issue}
@@ -2365,48 +2374,41 @@ issue.Z =
 issue.session_id =
     526f6c6c6174696e69207465737420766563746f72732073657373696f6e
 issue.commit.rand =
-    906dbfcbc9d3337a4fbf3021a6d1cc15eb712fa952f188ce9e95525268c95edf
-    3d2f99fb8c71f143641e78aace5c66d4319d25049e26d8cd9d4c8b02276b83af
-    fbc7459397f34277addd760073bab17c25b7018513eec1ec6963f83619f5a4b6
-    5b188a4bd1f8372893cafe1d4e9c6e14dff470ec235490aacaa96e215c080538
-    de752d72e39e49c42372d24c6109946e
+    34f8d290513e7ee4b333809f8468084d625e481f88467d66441fc84823863262
+    2425cece0fcf97086b853bd5ab9450a8
 issue.commit.state =
-    35c75c813abf38684e562df2dd331e6dff94a669a0f1deaa98b4465ff83c74b6
-    a4bb5925932d79b4415268d5319d98bb2b70adb14693d4947730591c90ad6ec4
-    180be148f976e0061fe44c6d9e951fd14f59106bc8b67d46f1b4657db5ed2738
+    1ff634c3b291a37a1bba99abc3cf59647d0ae9e5102f20940bfaf0dd8e2d8fbe
+    0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
+    aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
 issue.commit.message =
     1e526f6c6c6174696e69207465737420766563746f72732073657373696f6e03
-    62e7748420ed195d1005a88bb0a7b393c436c6b1875007565ef684655c6942a9
-    033f23d42585f792fbcd8f93c5b0ad871d989848282c1a2b2be6b0fc9f5354b9
-    47
+    1112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da694f
+    032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524b2
+    89
 issue.challenge.rand =
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
-    55c64c6b1edbc24aeb2392f1147b8d5861a6577d61de1cd13db65c9a48ffaa27
-    bf9077c7de35d1ebff82cb7f7c2e91c382e9d123dbf8bed70aab3d175732ca3c
-    9a60a21fa9128f27e96ea17ea1e6b97fdb10d3bcb15cb33dec322e1df1fece74
-    a61320c98a1568c6d5f5f3f8b8300d4d28a196775781b9473cb64573a712e918
-    fc95610b507fc63b10a6fea250c1f43da1734c78bf2b0bf6ee1520b0f59ace7d
-    769b235a47f9c310e80992a02594e272576c943bdf2ff553f9578b6d1787e938
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    fcd7b4dab3af98a5efd69ba6733ea379906dbfcbc9d3337a4fbf3021a6d1cc15
+    eb712fa952f188ce9e95525268c95edf
 issue.challenge.state =
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
-    3ab365ac888ba1c9fd7246a4a05789986d5ebcd8b4d98561eef32d25e2b16bbb
-    5ab0bdb73a4c082c784ca4956793ba1e2441ea01adc8d00d21e1a68ee130e70d
-    d303dfbbdee3c0f0fd90f361c3028b0314507e01b731ba861a444ba2bf566893
-    4db0cf565e786362751004c2b9657f3debd0ab54996c136b3e09221dd0b60ed0
-    eaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c116
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    09e017c74e57c56748f9a216c5aeee53a8bd370ea34f5b0a14a1022b92d768aa
+    cabc4eb33008cab5717d53fc710a4056d38931e5611cab7693a4b722bdfbfe1b
+    1c60cd093a4c1d04c9fa6dc94a76dda2e6058238e4d6808247b4e14f52f06f25
+    2ea7756101a348c56b54b240d0df324d808a477e612dd530276896e85d832b6d
+    e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
 issue.challenge.message =
-    1e526f6c6c6174696e69207465737420766563746f72732073657373696f6e29
-    495c128dc51625ca6d3582f45f80ec63de3ce7c4d1b7e974797e8ee9788cdf
+    1e526f6c6c6174696e69207465737420766563746f72732073657373696f6ec4
+    c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
 issue.response.message =
-    65ca05f9566b5261f41be06d7c90278716d5869c5910598edb6b785ce7378d12
-    a4bb5925932d79b4415268d5319d98bb2b70adb14693d4947730591c90ad6ec4
-    180be148f976e0061fe44c6d9e951fd14f59106bc8b67d46f1b4657db5ed2738
+    c13f29a8276124c478e0becdbc59a1533e908bbee01b5cff12fb4e698ab91de6
+    0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
+    aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
 issue.endorsement =
-    eaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c116
-    9087d31f04b8c30906bf40dc7b40fbc25f0fefabd88679e6401fc9330c7d0bf9
-    4ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f35b
-    5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd8a
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+    e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
+    381070d16151da97f15dbff860b81d9e5b7de45fc0ed44deaa13a85431f5283b
+    65ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd11
+    6062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b557b
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
 ~~~
 
 ## Redemption Against 2 Anchors {#rollatini-tv-redeem2}
@@ -2414,35 +2416,32 @@ issue.endorsement =
 ~~~
 redeem2.index = 1
 redeem2.anchor_set =
-    032f8ec4cf1551eb0b430018c400de15f1bff9cb2ff765bd4395d3a44b5b51ee
-    e60207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40cd3c
-    a00e
+    02f3c80b6a4766e60b0f436bb60565ba7273eb72fad58dada88b73b5df7f35e0
+    9d02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf0
+    176e
 redeem2.challenge_digest =
     526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
     20646967657374
 redeem2.rand =
-    644ab5c7098accd602b255a968372a4456033a95bec633bf0ecea472b0175ace
-    e9073e60074887fce64c537fde6fdd88225410fcb6e40d00fb652141e6d19f9a
-    418c18e4b0177981a85b09323ccb6325bf949b541dce86e244978bea6238f4b5
-    ec1497dac66c2803f15b06cc530a5961ca99a7db68fd8816691248473c40c532
-    03c5e1687d4628a176c8e2759133c57e5ad851bb1b77ee602f44f62ffaf5e6fc
-    d182209607584bff6fc2e710630d312b7072ca68831668b5e21997a882642baa
-redeem2.delta =
-    0198195e3e01a9c735a3b9928fd1c3c3ec414780f819136dde24473fc0bf7a71
-redeem2.message =
-    0378e5a7cf6a8596543715321225cfdf6c2d6ed70e92baf716cff3f1fe030974
-    d6eaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c1
-    16475747945eb6530cb6dafe6b0d639a85a1bb98ab239ac59f0f7278e1d19641
-    694ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f3
-    5b5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd
-    8a6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc8
-    7551bf62a2d158d24d1abc1951ecb6a299c841fa7a92df85e8b1cbda4c2caddc
-    be974cc1ef8ea3a30c546e1b1a6c94187c8622585159dc6fbcf06377c7ea151b
-    8c21021ca29fb81309b4c299063c86c2073b41d96921e5e6db305af6c097d34c
-    b508202083711707c83287f975be1f1971605548a3e302c85c8c0fe2db07fdcb
-    60032e1c
-redeem2.nf =
+    25b7018513eec1ec6963f83619f5a4b65b188a4bd1f8372893cafe1d4e9c6e14
+    dff470ec235490aacaa96e215c080538de752d72e39e49c42372d24c6109946e
     6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+redeem2.delta =
+    33c221d1588baa3ac3589f2e8972fbc1b6b18a32ddf6a54bc7d55be6e8763f18
+redeem2.message =
+    020e4737feb353d8f713342c0eb52ed2a1a2c569d658daaf16f907a872380105
+    0ce62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
+    279958a11e2506950f8d014b0329e8fc5ab36eca2c1a4ba5113e9d852cb2555a
+    5a65ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
+    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
+    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
+    7d1ff5ecfc12e85838877af8f3870b39c8184ff220228da2f8afd963d8d6a1e0
+    2aaea3abcb638dfb3561d518d6eb67c58e8f1a8c4958792eb5a6544f5f0cd164
+    f52102e33b5e85210390c67a1cae58e947a8f888a6d5c4d7c2b24f36aabb64b5
+    0401fa20110d052c26abab640ce09b4bc4b9646316837dbc8dd5a23bee4b47fe
+    3aaec247
+redeem2.nf =
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
 ~~~
 
 ## Redemption Against 5 Anchors {#rollatini-tv-redeem5}
@@ -2450,48 +2449,39 @@ redeem2.nf =
 ~~~
 redeem5.index = 3
 redeem5.anchor_set =
-    02b02d8d30999a53dfb6312df2e6d227a2f5717661b7b3df2721c613db7d0ab6
-    e003721469d5a224f40864771bffdd25e49be802a53515ec5e43cf9a81aeb93c
-    3123036631d1cea227225e7db53375ef69e1204caef568b5522eca3d525f1fea
-    36a3aa0207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40
-    cd3ca00e03abd1b51dd8691888e795afb72c6b53acfa658bcd391cffc2df6d14
-    a58f017ec1
+    03c9df5f77dc47fb0892bb500c9623b3d793f05075dd2454139185fffbe0e856
+    3102a56ce949a989b3cdf73657719889a56d54e5cb0bf4b7a6409440280a98bd
+    266402fe80fa33232f36549fc3cb619468d1c18585aa28aaaa31de5549f1e4a6
+    bfbc6d02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323
+    ccf0176e021d67b295ebd6c17d1651e9df194a94e1d7dde3955e7bcb5158c2c6
+    e13c10fcb3
 redeem5.challenge_digest =
     526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
     20646967657374
 redeem5.rand =
-    07c9f848e02c89a824b51140305f0a581865eb85e790f0c87cdbf370cd76a014
-    3eb778db32ef36f6c92eb03c95a5b70bbfb1488acb6352b146c4d091111913d9
-    ca88f309b7c21525ca0f387a3542739771cc662e4ff48fb913790a17fa0efc21
-    d382bfe2b46d3fce2f6eeb157bb606167be944265167cf537846e1beb8d2eb6f
-    71b52332dd75e0af7e71a3c943d3ee82edb3cc2bf6593a178895a4b87cc2da17
-    b3167b838b0cb48d981ea587e4d9d220e088da42f5eb3934f90d980476d6f513
-    9ed3b9128169a2dfe8089864b588d8975ea518a74443cd3d730d526ab0c91668
-    214eeb94a51f7258efe1b015f514a0af45a8a4e3613c22b5bc5fb117868f79a1
-    fc104573ab6be3f01643d841933092dae344d4770d15b488233d5fff845c1490
-    847570d14878c15af51e79885d200652185a2412644ea91a31c95fb647a5e83e
-    d37730a6d2771111cb0763edf822e823c95b506866fd8f871749aa93b65380b1
-    99190b44670fa1b6fac9b8e32d8b4bed693fcc851d20bfb23dfe07ebdceef464
+    278228bc418f00cb9dd39e5020e580092272b6370cf14c6c6ea4ff5444b68fcf
+    c0e0b548a7ff0d9248e21220577501ee644ab5c7098accd602b255a968372a44
+    56033a95bec633bf0ecea472b0175acee9073e60074887fce64c537fde6fdd88
 redeem5.delta =
-    f958820bfe6e614314f31fdfab4917b5c2c06184b21a6da46c5c49b562d4628c
+    094ac33f15105dfa8b102e3c707e8f1ce90cb48ad544b5b6fbe9b17c44e634b1
 redeem5.message =
-    039cfbe7cb9baeb1985ff5f067bb01f23b7c0d083cace7d156217a3295972161
-    0beaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c1
-    160ac14c8cd200b524f7d2fdb63842f4ba07e9fd4220bd78aa828375f2546b55
-    de4ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f3
-    5b5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd
-    8a6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc8
-    75ce11c86ddc9cff2e9b0385e6ef7c49d68b88a2721859658928cf1dc107a100
-    d2e63fe94e1cd0069e22b8edebf6b38f12844e1271d2f64e7cdd589400b9272f
-    ea4063033623d479556c58cedbb0baf69661aa4892675b2ea4ec008f6faca7c6
-    d7a42da703e04e0a5c2308f9869f2e95af5b6470d1e688cde97fd9adc39d855b
-    cea4e8eb5503e3e46af39b71900237c1cfb4ac14af2acfbe4dd750f566d99018
-    267cda3338a440609fb987228a77cff8725d40ee1cd7b8fd3531cf202498fdac
-    05b63c3a209f70f76494ed9f4e55e81e52b0f7d9d575dc9ec93db00164586302
-    2d4ed09b6953ca70b01528cb72445664fba5751cc51a6457c58c16c969968bb0
-    ba96268b0fc9fe90
+    02e4a72beabef3e6037b33aff1e56c5c1e19192e9194c0780e048f5da21f4400
+    6ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
+    2756b4ae805c0054aa48f3304ce0a646361ac6b3bf00a7f4aa2ac828f167ec11
+    1465ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
+    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
+    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
+    7d8e74e453c9a9a13fc605a1d443bd8cdc8b0a5f9ff7a988d8535d66be881028
+    bcc6499b6935a542579dcb86e5fe58240d02a468d9a01f29b7563260b5843663
+    7d40630299ac22177836651a8495be06aa2807899da3f2962eae96b33cf33734
+    41751913033d68319ee3b6ac6f9cb378b68c6bfab174b950d1808839a5990a67
+    b2b9fea1ca03dadded9dfc1c00d619e8713b4ea7e897b2dff6c747a1a02bf4ef
+    747a42b14e3b40607ee586efb34851f192bfa32e07cbee98c1065f2bacdebaa4
+    764256b45b7fa612133e0bf8506994e159d1e0c18cf02ffbef51041e493913c4
+    1a8358c21ad1b614d5effcb4a1c63483eccb92688cc2e31a12b8b731d2869513
+    8f5be4b3829c2549
 redeem5.nf =
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
 ~~~
 
 ## Redemption Against 1 Anchor {#rollatini-tv-redeem1}
@@ -2499,29 +2489,29 @@ redeem5.nf =
 ~~~
 redeem1.index = 0
 redeem1.anchor_set =
-    0207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40cd3ca0
-    0e
+    02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf017
+    6e
 redeem1.challenge_digest =
     526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
     20646967657374
 redeem1.rand =
-    90cf8609cd2fdc49bb67cf32c55f99cecdf59fb1b4137a44a7c88b50d91ecf88
-    f64d1e70c99867855538672f291ea7a2842f202b5db7e00657488f1414c1eee5
-    530c92c852c672d5b466fd3d68746761bbd7986f9f76b4bb6eb8023dfeda72a9
+    225410fcb6e40d00fb652141e6d19f9a418c18e4b0177981a85b09323ccb6325
+    bf949b541dce86e244978bea6238f4b5ec1497dac66c2803f15b06cc530a5961
+    ca99a7db68fd8816691248473c40c53203c5e1687d4628a176c8e2759133c57e
 redeem1.delta =
-    67f4005bd42493a6c791c29f76d0b6c077e788c1832dda758a27d457c3ed0b42
+    a20875aba695e447305ba2833a23d141dcd105d6703b149489272c5bb6850bc2
 redeem1.message =
-    03214bec395a1eee012e3272af93eb9b7df12f55e122421f72e660c71e5b11df
-    ffeaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c1
-    1699dc586b3ec18cda657c0ac4d4e4dc7a41f5dd1f566d82a41b19594e7eae33
-    704ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f3
-    5b5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd
-    8a6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc8
-    75c85384d2a2f07d6d2f6f419d00a29b448002d76011aac9f8a4500019af6a33
-    bb64d1c5bd8cce45d18c3bc208b3a54be023e59023ad4a62aadcfe7d47e34e05
-    e10000
+    036c7114e474fe664a90bf71604dab46a02905f3fa421d9d8952e514a4001cb8
+    9ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
+    271ca069fa7fa55962a7d78cfb969861786aea5250ac35d0b1a83d2939fc8bf4
+    0865ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
+    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
+    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
+    7d1203f01e897e951be4842a32a5cf062acf7a80953dc75cfccc5532fa396ac1
+    37948e7fa247b645a950cb4700d122fd457dd7ffe89af2267b172f3f57830d73
+    560000
 redeem1.nf =
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
 ~~~
 
 # Acknowledgments

@@ -74,7 +74,8 @@ class ProverNonces:
             b"".join(G.SerializeScalar(w) for w in witness),
             b"nonce",
             session_id + I2OSP(len(instance), 4) + instance,
-            random(len(witness) * Nseed),
+            random(Nseed),
+            len(witness),
         )
         self.count = 0
 
@@ -108,7 +109,7 @@ def SigningExponent(
         G.SerializeElement(X_A)
     )
     (e,) = G.DeriveNonces(
-        G.SerializeScalar(skM), b"e", instance, random(Nseed)
+        G.SerializeScalar(skM), b"e", instance, random(Nseed), 1
     )
     if (e + skM).isZero():
         raise DeriveError
@@ -144,8 +145,8 @@ class Credential(NamedTuple):
 def IssueRequest() -> (
     tuple[ClientIssuanceState, IssueRequestMessage]
 ):
-    rand = random(2 * Nseed)
-    (k, r) = G.DeriveScalars(rand, b"IssueRequest")
+    rand = random(Nseed)
+    (k, r) = G.DeriveScalars(rand, b"IssueRequest", 2)
 
     K = k * H2 + r * H3
 
@@ -254,11 +255,11 @@ def ProveSpend(
 
     ctx = CreateContextScalar(ctx_cred)
 
-    # One seed per scalar: four fixed ones, then L for the bits of
-    # the remainder or one for its commitment, then L for the bits
-    # of the topped-up balance.
+    # Four fixed scalars, then L for the bits of the remainder or
+    # one for its commitment, then L for the bits of the topped-up
+    # balance.
     n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
-    derived = G.DeriveScalars(random(n * Nseed), b"ProveSpend")
+    derived = G.DeriveScalars(random(Nseed), b"ProveSpend", n)
     (r1, r2, kstar, rn) = derived[:4]
     next_scalar = 4
 

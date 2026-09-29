@@ -83,8 +83,8 @@ def Message(nf: bytes, ctx_red: bytes) -> bytes:
 def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
-    rand = random(3 * Nseed)
-    (a, t, y) = G.DeriveScalars(rand, b"Commit")
+    rand = random(Nseed)
+    (a, t, y) = G.DeriveScalars(rand, b"Commit", 3)
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -103,9 +103,11 @@ def Challenge(
 
     (A, C) = commitment
 
-    rand = random(Nn + 4 * Nseed)
+    rand = random(Nn + Nseed)
     nf = rand[:Nn]
-    (r1, r2, gamma1, gamma2) = G.DeriveScalars(rand[Nn:], b"Challenge")
+    (r1, r2, gamma1, gamma2) = G.DeriveScalars(
+        rand[Nn:], b"Challenge", 4
+    )
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -443,7 +445,7 @@ def ProveIssuer(
     q = Depth(len(anchor_set))
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
-    if len(rand) != (2 * q + 1) * Nseed:
+    if len(rand) != Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
     instance = ProofStatement(
@@ -459,6 +461,7 @@ def ProveIssuer(
         b"ProveIssuer",
         instance,
         rand,
+        2 * q + 1,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
@@ -557,9 +560,8 @@ def Redeem(
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
-    q = Depth(n)
-    rand = random((2 * q + 2) * Nseed)
-    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta")
+    rand = random(2 * Nseed)
+    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta", 1)
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -574,7 +576,7 @@ def Redeem(
         ctx_iss,
         ctx_red,
         challenge_digest,
-        rand[Nseed:],
+        Seed(rand, 1),
     )
 
     return Redemption(

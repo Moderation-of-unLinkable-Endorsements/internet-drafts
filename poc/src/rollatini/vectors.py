@@ -72,7 +72,7 @@ def _render(source: Source) -> str:
         + entry("suite.ctx_proto", rollatini.ctx_proto)
     )
 
-    scalars = G.DeriveScalars(source(3 * rollatini.Nseed), DERIVE_INFO)
+    scalars = G.DeriveScalars(source(rollatini.Nseed), DERIVE_INFO, 3)
     out += "\n## Scalar Derivation {#rollatini-tv-derive}\n\n" + block(
         entry("derive.info", DERIVE_INFO)
         + entry("derive.rand", source.rand())
@@ -154,7 +154,7 @@ def _render(source: Source) -> str:
             anchor_set, index, endorsement, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         rand = source.rand()
-        (delta,) = G.DeriveScalars(common.Seed(rand, 0), b"delta")
+        (delta,) = G.DeriveScalars(common.Seed(rand, 0), b"delta", 1)
         entries += entry(key + ".rand", rand)
         entries += entry(key + ".delta", G.SerializeScalar(delta))
         encoded = wire.EncodeRedemption(redemption)

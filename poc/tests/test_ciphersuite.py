@@ -133,60 +133,70 @@ def test_derive_nonces_binds_every_input():
 
     G = P256Group(b"test")
     aux = bytes(common.Nseed)
-    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux)
+    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux, 1)
     assert not nonce.isZero()
-    assert [nonce] == G.DeriveNonces(b"secret", b"label", b"instance", aux)
+    assert [nonce] == G.DeriveNonces(b"secret", b"label", b"instance", aux, 1)
     for other in (
-        G.DeriveNonces(b"secret!", b"label", b"instance", aux),
-        G.DeriveNonces(b"secret", b"label!", b"instance", aux),
-        G.DeriveNonces(b"secret", b"label", b"instance!", aux),
-        G.DeriveNonces(b"secret", b"label", b"instance", b"\1" + aux[1:]),
+        G.DeriveNonces(b"secret!", b"label", b"instance", aux, 1),
+        G.DeriveNonces(b"secret", b"label!", b"instance", aux, 1),
+        G.DeriveNonces(b"secret", b"label", b"instance!", aux, 1),
+        G.DeriveNonces(b"secret", b"label", b"instance", b"\1" + aux[1:], 1),
         P256Group(b"other").DeriveNonces(
-            b"secret", b"label", b"instance", aux
+            b"secret", b"label", b"instance", aux, 1
         ),
     ):
         assert other != [nonce]
     for wrong in (b"", aux[1:], aux + b"\0"):
-        with pytest.raises(ValueError, match="positive multiple of 48"):
-            G.DeriveNonces(b"secret", b"label", b"instance", wrong)
+        with pytest.raises(ValueError, match="exactly 48"):
+            G.DeriveNonces(b"secret", b"label", b"instance", wrong, 1)
+        with pytest.raises(ValueError, match="exactly 48"):
+            G.DeriveScalars(wrong, b"info", 1)
 
 
-def _unpermute(group, key, value):
+def test_derivation_hashes_then_expands():
     from rollatini import common
-    from rollatini.ciphersuite import _xor
-    from rollatini.common import I2OSP
+    from rollatini.common import I2OSP, U16Prefixed
 
-    half = len(value) // 2
-    left, right = value[:half], value[half:]
-    for i in reversed(range(4)):
-        mask = b"".join(
-            expand_message_xmd(
-                key + I2OSP(i, 1) + I2OSP(j, 4) + left,
-                b"SeedsToScalars-" + group.ctx_proto,
-                common.Nseed,
+    G = P256Group(b"test")
+    rand = bytes(range(common.Nseed))
+
+    def expand(seed, count):
+        return [
+            G.HashToScalar(
+                seed + I2OSP(i, 4), DST=b"ExpandScalars-" + G.ctx_proto
             )
-            for j in range((half + common.Nseed - 1) // common.Nseed)
-        )
-        left, right = _xor(right, mask[:half]), left
-    return left + right
+            for i in range(count)
+        ]
+
+    seed = expand_message_xmd(
+        rand + U16Prefixed(b"info"), b"DeriveScalars-" + G.ctx_proto, 32
+    )
+    assert G.DeriveScalars(rand, b"info", 5) == expand(seed, 5)
+
+    # The random bytes fill the first block after the hash's zero block,
+    # and the secret starts a block of its own.
+    secret = bytes(range(100, 134))
+    derive_nonce_input = (
+        rand + bytes(16)
+        + I2OSP(len(secret), 4) + secret + bytes(26)
+        + U16Prefixed(b"label") + I2OSP(8, 4) + b"instance"
+    )
+    seed = expand_message_xmd(
+        derive_nonce_input, b"DeriveNonces-" + G.ctx_proto, 32
+    )
+    assert G.DeriveNonces(secret, b"label", b"instance", rand, 3) == expand(
+        seed, 3
+    )
 
 
-@pytest.mark.parametrize("count", [1, 2, 3, 5])
-def test_seeds_to_scalars_permutes_then_reduces(count):
+def test_a_zero_scalar_raises(monkeypatch):
     from rollatini import common
     from rollatini.ciphersuite import DeriveError
 
     G = P256Group(b"test")
-    key = bytes(range(32))
-    target = bytes((7 * i + 1) % 256 for i in range(count * common.Nseed))
-    rand = _unpermute(G, key, target)
-    assert [int(s) for s in G.SeedsToScalars(key, rand)] == [
-        int.from_bytes(common.Seed(target, k), "big") % ORDER
-        for k in range(count)
-    ]
-    zero = bytes(common.Nseed) + target[common.Nseed :]
+    monkeypatch.setattr(G, "HashToScalar", lambda *_, **__: Scalar(0))
     with pytest.raises(DeriveError):
-        G.SeedsToScalars(key, _unpermute(G, key, zero))
+        G.DeriveScalars(bytes(common.Nseed), b"info", 1)
 
 
 def test_related_randomness_gives_unrelated_nonces():
@@ -196,31 +206,31 @@ def test_related_randomness_gives_unrelated_nonces():
 
     G = P256Group(b"test")
     aux = bytes(range(common.Nseed))
-    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux)
+    (nonce,) = G.DeriveNonces(b"secret", b"label", b"instance", aux, 1)
     for position in range(common.Nseed):
         for bit in (0, 7):
             related = bytearray(aux)
             related[position] ^= 1 << bit
             (other,) = G.DeriveNonces(
-                b"secret", b"label", b"instance", bytes(related)
+                b"secret", b"label", b"instance", bytes(related), 1
             )
             difference = int(nonce - other)
             assert min(difference, ORDER - difference) > 2**200
 
 
 def test_partial_repetition_changes_every_nonce():
-    # A random source that repeats all but one seed of an operation's
+    # A random source that repeats all but one byte of an operation's
     # randomness must not repeat any of its nonces.
     from rollatini import common
 
     G = P256Group(b"test")
-    rand = bytes((3 * i) % 256 for i in range(5 * common.Nseed))
-    nonces = G.DeriveNonces(b"secret", b"label", b"instance", rand)
-    for k in range(5):
+    rand = bytes((3 * i) % 256 for i in range(common.Nseed))
+    nonces = G.DeriveNonces(b"secret", b"label", b"instance", rand, 5)
+    for position in range(0, common.Nseed, 7):
         changed = bytearray(rand)
-        changed[k * common.Nseed] ^= 1
+        changed[position] ^= 1
         others = G.DeriveNonces(
-            b"secret", b"label", b"instance", bytes(changed)
+            b"secret", b"label", b"instance", bytes(changed), 5
         )
         for nonce, other in zip(nonces, others, strict=True):
             difference = int(nonce - other)
