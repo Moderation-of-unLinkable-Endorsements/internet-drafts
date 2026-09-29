@@ -400,8 +400,8 @@ def CreateContextScalar(ctx_cred: bytes) -> Scalar:
     )
 ~~~
 
-The context is never carried on the wire. Each party supplies it to every
-algorithm of this section that computes or checks a signature, so a spend
+No message of this document carries the context. Each party supplies it to
+every algorithm of this section that computes or checks a signature, so a spend
 verifies only under the context the Credential was issued under. A
 Client keeps its own copy of the context for as long as it holds the
 Credential. A Credential presented under a context other than the one it
@@ -1168,7 +1168,7 @@ struct {
 } RefundMessage;
 ~~~
 
-Neither context appears on the wire; both are inputs held by each party
+Neither context appears in these messages; both are inputs held by each party
 ({{act-context}}, {{act-spending}}). The Credential is held by the Client
 and never sent:
 

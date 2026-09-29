@@ -257,8 +257,7 @@ struct {
 
 The `challenge` field carries exactly the type-specific challenge defined
 for the named credential type in {{PROTOCOLS}}. The Moderator endpoint for
-Redeem & Issue comes from configuration ({{configuration}}), not from the
-challenge.
+Redeem & Issue comes from configuration ({{configuration}}).
 
 A field that binds a presentation to a request, such as the ACT
 `request_context` of {{PROTOCOLS}}, is constructed by the Moderator and
