@@ -156,7 +156,14 @@ supported protocol types, public key material, and the Anchor set associated
 with each Moderator policy. Its contents and format are defined in the Key
 Rotation and Discovery section of {{PROTOCOLS}}.
 
-# Error Handling
+Clients MUST retain the authenticated association between each Moderator,
+its Redeem & Issue endpoint, and the policies and credential configurations
+it serves. Cached Credentials MUST identify this configuration so that the
+Client can select the endpoint when it needs to obtain a Credential. A
+Client that retains a presentation for recovery MUST also retain the HTTP
+request needed to resend it to its original destination.
+
+# Error Handling {#http-errors}
 
 Moderators can use MoLE as optional authentication. A `200` response MAY
 include a `WWW-Authenticate: Mole` challenge. This tells the Client that a
@@ -166,8 +173,9 @@ greasing rules of {{PROTOCOLS}}.
 
 A `401` response with a `WWW-Authenticate: Mole` challenge means that the
 Moderator requires MoLE, or another acceptable authentication scheme,
-before serving the resource. A `403` response means that the Moderator
-understood the presented MoLE material but did not accept it under policy.
+before serving the resource. A `403` response means that policy forbids
+the request. {{act-responses}} specifies the status codes and credential
+headers for ACT exchanges.
 
 ## Endorsement
 
@@ -313,10 +321,15 @@ credential material from the Moderator. The parameter distinguishes them,
 `response` for issuance and `update` after a presentation.
 
 The Moderator MUST send `Mole-Credential` with the `update` parameter
-after a presentation. It sets the update when the Credential remains
-usable after presentation. It marks the update as absent to intentionally
-consume the Credential. Clients MUST follow the Credential type semantics
-for reuse after an omitted update.
+after accepting a presentation. For `ACCEPTED_WITH_UPDATE`, the optional
+update is present and carries the credential type's `Update`. For
+`ACCEPTED_NO_UPDATE`, the optional update is absent. The Client MUST process
+this header even when the protected operation returns an error status.
+
+An absent optional update records the Moderator's decision to consume the
+Credential without a replacement. A missing header supplies no such
+decision; Clients MUST apply the credential type's recovery rules and
+single-use requirements.
 
 * `update` which contains a base64url OptionalCredentialUpdate value, encoded per {{BASE64}}
 
@@ -326,6 +339,43 @@ Mole-Credential: update="<optional-credential-update>"
 
 Each credential type MUST define the challenge fields that partition cached
 Credentials, or state that Credentials of that type are not cacheable.
+
+### ACT Responses {#act-responses}
+
+For credential type `0x0001`, the Moderator MUST use the following response
+rules. The issuance rows apply to Redeem & Issue, and the presentation rows
+apply to Presentation and Update, as specified in {{PROTOCOLS}}.
+
+| Outcome | HTTP status | Mole-Credential |
+|---|---|---|
+| Malformed request encoding | `400` | Omitted |
+| Missing, expired, or invalid authentication | `401` | Omitted |
+| Rejection by policy before acceptance | `403` | Omitted |
+| Successful issuance | `200` | `response` with the `CredentialResponse` |
+| Newly accepted presentation | Protected operation's status | `update` with the recorded result |
+| Recovery of an accepted presentation's result | `409` | `update` with the recorded result |
+{: #tab-act-responses title="ACT HTTP responses"}
+
+A `401` response MUST include a `WWW-Authenticate: Mole` challenge for the
+required exchange. Invalid authentication includes an unknown or retired
+key, an unaccepted credential context, a failed proof, or a repeated
+nullifier for which recovery is unavailable. A recoverable byte-identical
+presentation is handled by the recovery row.
+
+Acceptance of an ACT presentation is the commit of its nullifier-store
+transaction. A response sent after that commit MUST carry the recorded
+update, including when the protected operation fails with a `4xx` or `5xx`
+status. The update is present for a refund and absent for a recorded
+`NoUpdate` decision. Rejecting a presentation MUST NOT create a nullifier
+record or carry a credential update.
+
+A recovery response uses `409` (Conflict, {{Section 15.5.10 of HTTP}})
+because the presentation has
+already been accepted. It carries only the recorded credential result and
+MUST NOT authorize another attempt of the protected operation.
+Application-specific recovery determines the outcome of the earlier
+operation. The Client finalizes a recovered refund under the same rules as
+a refund received with the original response.
 
 
 # Security Considerations

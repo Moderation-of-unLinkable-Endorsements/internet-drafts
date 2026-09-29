@@ -159,10 +159,11 @@ presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
 provide a numeric balance as this state ({{credential-scheme}}).
 
 The Moderator is both the issuer and the verifier. A Client obtains an initial
-Credential, spends credits, and finalizes the refund that replaces the spent
-Credential. {{PROTOCOLS}} maps these operations to the MoLE credential APIs,
-specifies when issuance is authorized, and supplies the credential and spend
-contexts. This document treats those contexts as opaque byte strings.
+Credential, spends credits, and finalizes a fresh Credential that replaces
+the spent Credential. {{PROTOCOLS}} maps these operations to the MoLE
+credential APIs, specifies when issuance is authorized, and supplies the
+credential and spend contexts. This document treats those contexts as
+opaque byte strings.
 
 # Conventions and Definitions
 
@@ -204,6 +205,7 @@ Sigma protocol:
 
 ACT uses the prime-order group interface and the `Element` and `Scalar`
 types of Section 3.1 of {{ROLLATINI}}, instantiated as in {{ciphersuites}}.
+The prime `p = G.Order()` is the group order and the scalar-field modulus.
 The Python interface provides `G.scalar(x)` for an integer `x` in
 `[0, G.Order())`, `s.isZero()` for a scalar, and `A.isIdentity()` for an
 element. Arithmetic combines values of the same type: integer constants
@@ -235,10 +237,13 @@ shared algorithm.
 
 `rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
 more than one derivation. An algorithm derives all of its scalars with one
-call, under an `info` string that names it. In the random oracle model, each
-derived scalar is within about `2^-128` of uniform (Section 4.2 of
-{{ROLLATINI}}); the unlinkability argument of {{act-security}} relies on this.
-See {{randomness}}.
+call, under an `info` string that names it. In the random oracle model,
+conditioned on the adversary not querying the secret derivation inputs,
+each derived scalar has statistical distance at most `2^-128` from
+uniform over the nonzero scalars (Section 4.2 of {{ROLLATINI}}). This bound
+comes from reducing `Ns + 16` bytes to a scalar and accumulates over the
+derived values. {{act-security}} discusses the oracle-query bounds needed
+for unlinkability. See {{randomness}}.
 
 ## Key Generation {#keygen}
 
@@ -253,32 +258,41 @@ pkM)` because the Moderator is the issuer. The Moderator publishes
 A MoLE Credential is an Anonymous Credit Token (ACT). It is a
 keyed-verification anonymous credential {{KVAC}} over a privately
 verifiable, pairing-free BBS-style signature {{BBS}} {{TZ23}}, whose
-hidden state is a *balance*: a nonnegative integer number of credits. A
-Moderator issues a Credential with an initial balance, and the Client
-later *spends* from it. A spend reveals a public amount `s` and proves,
-in zero knowledge, that the Credential holds at least `s` credits and
-has not been spent before. In the same exchange the Moderator issues a
-*refund*: a fresh Credential whose balance is the remainder plus a
-Moderator-chosen return amount `t`. A spend may also declare a public
-*top-up allowance* `a`, in which case the refund may return up to `s +
-a`, raising the balance; without one, `t` is at most `s`. The Moderator
-never learns the balance, and cannot link a spend to the issuance or
-refund that produced the Credential it consumed, nor two spends to each
-other.
+hidden state is a *balance* `c`: a nonnegative integer number of credits.
+A Moderator issues a Credential with an initial balance of its choosing,
+and the Client later *spends* from it. A spend reveals a public amount `s`
+and proves, in zero knowledge, that the Credential holds at least `s`
+credits. It also reveals a nullifier, which the Moderator checks against
+its record of accepted spends to enforce single use.
 
-The allowance `a` bounds the additional credit the Moderator may grant;
-`t` is the amount it actually returns. The new balance is `c - s + t`,
-so its increase over `c` is at most `a`.
+In the same exchange the Moderator issues a *refund*: a message containing
+a signature, a public return amount `t`, and a proof of correct signing.
+The Client combines this message with its saved spend state to finalize a
+fresh Credential with balance `c - s + t`. Every spend declares a public
+*top-up allowance* `a`, set to zero when no top-up is allowed. The Moderator
+chooses `t` with `0 <= t <= s + a`, so the balance increases exactly when
+`t > s`, by at most `a`.
+
+A presentation hides its Credential's balance beyond the public amounts
+and the predicates they establish. It is intended to be unlinkable to the
+issuance or refund that produced that Credential and to other
+presentations, subject to the assumptions and anonymity-set requirements
+of {{act-security}}.
 
 This is the credential type `0x0001` of {{PROTOCOLS}}. In the vocabulary of
 {{ARCH}}, a spend is a *Presentation* whose *Predicate* is "the balance is at
-least `s`", and the refund is the *Update*.
+least `s`", and the refund message is the *Update*.
 
 The scheme is a two-party protocol between a Client and a Moderator. The
 Moderator holds a key pair `(skM, pkM)` and is both the issuer and the
 verifier: Credentials are not publicly verifiable, and only their issuer can
 check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.
+
+For spending, both parties also have `s`, `a`, and a *spend context*
+`ctx_spend` that binds the proof to the Moderator's challenge
+({{act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
+digest of the encoded challenge.
 
 ~~~
    Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
@@ -295,13 +309,14 @@ request/response exchange followed by a Client-local finalization.
 
    credential = FinalizeIssue(pkM, ctx_cred, state, response)
 
-                   ...
+             Spending inputs at both parties: s, a, ctx_spend
 
    state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
 
-                                proof
+                         proof (includes nullifier k)
                               -------->
 
+                   Check and record proof.k atomically with:
                    VerifySpend(skM, ctx_cred, ctx_spend, proof)
                    refund = IssueRefund(skM, ctx_cred, proof, t)
 
@@ -408,8 +423,8 @@ Credential. A Credential presented under a context other than the one it
 was issued under fails verification; the mismatch is not otherwise
 signalled.
 
-The credential context partitions Clients into the set that shares its
-value, and MUST be coarse; see {{act-security}}.
+Credential contexts MUST define coarse groups of Clients that share each
+context value; see {{act-security}}.
 
 ## Amounts {#act-amounts}
 
@@ -442,11 +457,10 @@ without overflow.
 
 Each proof of this document is a compact NARG string
 ({{Section 5.5 of SIGMA}}) for a linear relation declared where it is
-used, in the notation of {{Section 3.4 of SIGMA}}, with `G` the generator
-`B` of {{ciphersuites}}. Compact proofs are used because a batchable proof
-adds one element per equation, most of the message for the spend relation,
-and a Moderator verifies each spend on its own, atomically with recording
-its nullifier.
+used, in the notation of {{Section 3.4 of SIGMA}}. In a `Relation` block,
+the reserved name `G` denotes the generator `B` at element index zero.
+Compact proofs carry a single challenge scalar in place of all
+per-equation commitments, reducing the size of the spend message.
 
 The ciphersuite is `sigma-proofs_Shake128_P256` of
 {{Section 8 of SIGMA}}. Its group is the group of {{ciphersuites}}
@@ -457,7 +471,7 @@ encoded identically in both documents.
 
 Every proof is bound to a *tag* ({{Section 5.1 of SIGMA}}) built by `Tag`
 from a label naming the operation and a possibly empty list of *bindings*:
-public byte strings that the proof must be bound to but that do not appear
+public byte strings to which the proof must be bound that do not appear
 in the relation.
 
 ~~~ python
@@ -546,10 +560,11 @@ def Verify(
 
 ## Issuance {#act-issuance}
 
-Issuance produces a signature on the message
-`B + c * H1 + k * H2 + r * H3 + ctx * H4`, where `c` is the balance chosen
-by the Moderator, `ctx` is the context scalar, and `k` and `r` are chosen
-by the Client and hidden from the Moderator:
+Issuance produces a signature on the attributes `(c, k, r, ctx)`, whose
+group-element encoding is `B + c * H1 + k * H2 + r * H3 + ctx * H4`.
+Here `c` is the balance chosen by the Moderator, `ctx` is the context
+scalar, and `k` and `r` are chosen by the Client and hidden from the
+Moderator:
 
 ~~~
   IssueRequest -> IssueResponse -> FinalizeIssue
@@ -589,9 +604,10 @@ class Credential(NamedTuple):
 
 `IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
 exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonces`
-(Section 4.3 of {{ROLLATINI}}) from the signing key, the signed message, and
-fresh randomness. A random source that repeats therefore reproduces an
-earlier signature and never issues a second one with the same exponent
+(Section 4.3 of {{ROLLATINI}}) from the signing key, the group-element
+encoding of the signed attributes, and fresh randomness. Repeating these
+inputs reproduces the same signature. Changing the signed encoding changes
+the derivation input even when the random source repeats
 ({{act-security}}).
 
 ~~~ python
@@ -610,8 +626,8 @@ def SigningExponent(
 ~~~
 
 `label` is `IssueResponse` or `Refund`, the tag label of the
-accompanying proof, and `X_A` is the message being signed. The abort
-when `e + skM` is zero has probability about `1/p`; a caller that
+accompanying proof, and `X_A` is the group-element encoding being signed.
+The abort when `e + skM` is zero has probability about `1/p`; a caller that
 retries draws fresh randomness.
 
 ### Issuance Request {#act-issue-request}
@@ -649,11 +665,12 @@ can be spent ({{act-security}}).
 
 ### Issuance Response {#act-issue-response}
 
-The Moderator checks the request, chooses the balance, and signs the
-message `X_A = B + c * H1 + ctx * H4 + K` as `A = X_A / (e + skM)`. It
+The Moderator checks the request, chooses the balance `c`, and signs the
+encoding `X_A = B + c * H1 + ctx * H4 + K` as `A = X_A / (e + skM)`. It
 proves that `A` is such a signature under `pkM` without revealing `skM`,
-with the witness `x = e + skM` and `X_G = x * G`, which the Client
-computes as `e * G + pkM`:
+with the witness `x = e + skM` and `X_G = x * B`, which the Client
+computes as `e * B + pkM`. The relation uses SIGMA's reserved `G` for `B`
+({{act-proofs}}):
 
 ~~~
 Relation Signature(A, X_A, X_G):
@@ -747,7 +764,8 @@ succeeds.
 
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
-Client, and the only binding of the spend proof's tag. {{PROTOCOLS}}
+Client. The spend proof uses `Tag(b"Spend", [ctx_spend])`, with
+`ctx_spend` as its sole binding ({{act-tags}}). {{PROTOCOLS}}
 sets it to the SHA-256 digest of the challenge that triggered the
 presentation. The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
@@ -794,12 +812,13 @@ An absent commitment list is empty, and an absent `Com_c` is `None`.
 A spend shows two things about the hidden balance `c`: the *remainder*
 `v1 = c - s` is nonnegative, so the Credential covers the spend, and the
 *topped-up balance* `v2 = c + a` is below `2^L`, so the refund may return
-up to `s + a` without a balance leaving `[0, 2^L)`. Each is a range
-proof over the bits of the value, needed only when its amount is nonzero:
-for `s = 0` the remainder is the balance itself, which is below `2^L` by
-issuance, and for `a = 0` so is the topped-up balance. The relation
-therefore has four shapes, selected by whether `s` and `a` are zero; a
-group marked with a condition below is present exactly when it holds.
+up to `s + a` without the balance exceeding `2^L - 1`. Each range proof
+uses the bits of its value. The proof for `v1` is needed when `s > 0`, and
+the proof for `v2` when `a > 0`. When the corresponding amount is zero,
+the value equals `c`, whose range follows from issuance and prior refunds
+({{act-security}}). The relation therefore has four shapes, selected by
+whether `s` and `a` are zero; a group marked with a condition below is
+present exactly when it holds.
 
 ~~~
 Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n,
@@ -834,7 +853,7 @@ Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n,
 
 The first equation states that `A_prime` is a rerandomization of a
 signature under `skM`, since the verifier computes `A_bar = skM * A_prime`.
-The second opens the signed message to the hidden balance `c` and blinding
+The second opens the signed encoding to the hidden balance `c` and blinding
 factor `r`, relative to the public `H1_prime`, which fixes the nullifier
 `k` and the context. The third opens `K_n` to the next nullifier and so
 shows that `K_n` has no `H1` component, which would otherwise raise the
@@ -846,8 +865,8 @@ prover. The two sum equations tie the
 committed bits to the balance: the left-hand side of the first opens under
 `H1` to `s + v1`, so `c = s + v1` with `0 <= v1 < 2^L`; the second gives
 `c + a = v2 < 2^L`. When `s = 0`, `Com_c` opens to `c` directly. The
-equations share the witness `c`. The witness is supplied in the order
-listed.
+equations share the witness `c`. The witness scalars are supplied in the
+order listed.
 
 ### Spend Proof Generation {#act-prove-spend}
 
@@ -958,7 +977,8 @@ Credential as spent, and MUST have stored `state` durably, no later than
 the moment `proof` becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
 reveals the same nullifier ({{act-security}}). `state` holds everything
-`FinalizeRefund` needs, so the Client need not retain `proof`.
+`FinalizeRefund` needs. {{PROTOCOLS}} additionally requires retaining
+`proof` for refund recovery.
 
 ### Spend Verification {#act-verify-spend}
 
@@ -1275,8 +1295,10 @@ Assumptions:
   derived signing exponents are programmed. {{BBDT16}} covers the
   keyed-verification setting for the underlying MAC.
 
-> **TODO.** Write out this reduction, and the statistical unlinkability
-> argument, for the idealized scheme.
+> **TODO.** Write out the credit-conservation reduction and the statistical
+> unlinkability argument for the idealized scheme, together with bounds
+> for the concrete scalar and nonce derivations in the random oracle model.
+> Analyze unlinkability against quantum random-oracle queries.
 
 Credit conservation:
 : Fix a Moderator key, a credential context, and a balance width `L`. For
@@ -1301,25 +1323,32 @@ Credit conservation:
   * a recorded nullifier is never counted twice.
 
 Unlinkability:
-: A spend reveals nothing about which issuance or refund produced the
-  Credential it consumes, nor about the balance beyond the public amounts,
-  to a Moderator that sees every message and holds `skM`. The commitments
-  `K`, `K_n`, and the bit commitments are hiding {{Pedersen91}}; the
-  pair `(A_prime, B_bar)` is a uniform rerandomization of the signature
-  {{TZ23}}; and the proofs are statistically zero-knowledge
-  ({{Section 7.5 of SIGMA}}). These hold for uniform blinding factors and
-  nonces, and in the random oracle model those of this document are each
-  within about `2^-128` of uniform ({{derive-scalar}}, "Derived prover
-  nonces" below). None of this relies on the hardness of discrete
-  logarithms, so transcripts recorded today reveal nothing to a future
-  quantum computer, which would need about `2^128` evaluations of the hash
-  function to find a secret input of a derivation by search. Such an
-  attacker can, however, recover `skM` from `pkM` and forge Credentials, so
-  credit conservation does not hold against it. The public amounts `s`, `a`, and
-  `t`, and the configuration, determine which Credentials could have
-  produced a presentation; `t` is the Moderator's choice, so {{PROTOCOLS}}
-  constrains it as it constrains `s`, and {{ARCH}} states the anonymity-set
+: The intended property is that a spend hides which issuance or refund
+  produced its Credential, and the balance beyond the public amounts and
+  predicates, from a Moderator that sees every message and holds `skM`.
+  The idealized argument uses independent uniform blinding scalars and
+  prover nonces: the commitments `K`, `K_n`, and the bit commitments are
+  hiding {{Pedersen91}}, the pair `(A_prime, B_bar)` rerandomizes the
+  signature {{TZ23}}, and the proofs are statistically zero-knowledge in
+  the random oracle model ({{Section 7.5 of SIGMA}}).
+
+  The specified scalar and nonce derivations expand secret hash outputs.
+  Their unlinkability argument requires replacing the derived vectors by
+  independent random scalars, with a loss accounting for scalar-reduction
+  bias, collisions, and the adversary's queries to secret derivation inputs
+  (Section 4.2 of {{ROLLATINI}}). Concrete bounds for this replacement and
+  its composition with the proofs remain to be established. The public
+  amounts `s`, `a`, and `t`, and the configuration, determine which
+  Credentials could have produced a presentation; {{PROTOCOLS}}
+  constrains these amounts, and {{ARCH}} states the anonymity-set
   requirements.
+
+Quantum adversaries:
+: A quantum computer capable of solving discrete logarithms in `G` can
+  recover `skM` from `pkM` and forge Credentials. The unlinkability of
+  recorded transcripts under the specified hash-derived randomness
+  requires an analysis in the quantum random oracle model. This analysis
+  remains open for this construction.
 
 Amount validation:
 : The spend relation constrains `c`, `s`, `a`, `v1`, and `v2` only modulo
@@ -1400,16 +1429,14 @@ Constant time:
 Derived prover nonces:
 : `ProverNonces` derives the nonces of a proof together with
   `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness, the
-  relation, and `Nseed` bytes of fresh randomness. With a working random
-  source each nonce is within about `2^-128` of uniform in the random oracle
-  model, and the proofs are statistically zero-knowledge. With a failed one
-  the nonces remain hash outputs on an input that contains the witness and
-  change with any part of `rand` or the relation, as Section 4.3 of
-  {{ROLLATINI}} states, so no nonce is reused under a different challenge.
-  `ProveCompact` then remains zero-knowledge against a party without the
-  witness
-  ({{Section 8.4.2 of FIAT-SHAMIR}}), provided the blinding scalars in the
-  witness carry entropy that party lacks.
+  session, the relation, and `Nseed` bytes of fresh randomness. Its security
+  analysis must establish that the nonce vector is indistinguishable from
+  fresh uniform randomness to parties without the witness, as required by
+  {{Section 8.4.2 of FIAT-SHAMIR}}. This requires bounds on oracle queries
+  and collisions, as well as the accumulated scalar-reduction bias of
+  {{derive-scalar}}. If the random source fails independently of the
+  witness, the argument additionally requires sufficient entropy in the
+  witness that is unknown to the adversary.
 
 Verification key secrecy:
 : `VerifySpend` requires `skM`, so a Credential can be verified only by the
