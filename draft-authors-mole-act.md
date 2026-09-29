@@ -164,14 +164,6 @@ Credential. {{PROTOCOLS}} maps these operations to the MoLE credential APIs,
 specifies when issuance is authorized, and supplies the credential and spend
 contexts. This document treats those contexts as opaque byte strings.
 
-> **TODO.** The ACT profile of {{PROTOCOLS}} is not yet written. This
-> document expects it to define how `ctx_cred` is agreed
-> ({{act-context}}), how `L` is published with the key ({{act-config}}),
-> the lifetime of the nullifier store and the policy bounding `t`
-> ({{act-security}}), and how a Client obtains a refund again after a
-> lost response ({{act-finalize-refund}}). Until then, these references
-> state requirements the profile must meet.
-
 # Conventions and Definitions
 
 {::boilerplate bcp14-tagged}
@@ -756,7 +748,7 @@ succeeds.
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
 Client, and the only binding of the spend proof's tag. {{PROTOCOLS}}
-sets it to the `challenge_digest` of the challenge that triggered the
+sets it to the SHA-256 digest of the challenge that triggered the
 presentation. The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
 Moderator authorizes a top-up by verifying the proof with the value it
