@@ -37,7 +37,9 @@ author:
     email: ot-ietf@thibault.uk
 
 normative:
-  ACT: I-D.draft-schlesinger-cfrg-act
+  ACT:
+    title: "Anonymous Credit Tokens (ACT)"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
   ARCHITECTURE: I-D.draft-jms-mole-architecture
   ROLLATINI:
     title: "Rollatini: An Issuer-Hiding Anonymous Token"
@@ -175,8 +177,11 @@ interchangeable terms.
 
 Each credential protocol defines the contents of its type-specific
 `CredentialChallenge` body. Endorsement protocols use the common Challenge in
-{{challenge-binding}}. A Moderator MUST retain enough state to verify that a
-response uses a Challenge it issued and that remains valid.
+{{challenge-binding}}. For a new operation, a Moderator MUST retain enough
+state to verify that a response uses a Challenge it issued and that remains
+valid. A credential protocol can return an already accepted result after its
+Challenge expires, without authorizing a new operation
+({{act-missing-refund}}).
 
 # Endorsement Protocols {#endorsement-protocols}
 
@@ -625,69 +630,341 @@ replay protection before returning an accepted result.
 
 Credential type: 0x0001.
 
-An ACT credential {{ACT}} is an anonymous state machine: the Moderator can
-test a predicate against the Credential's hidden state and update that
-state, without learning the state or linking presentations. This protocol is
-intended to provide every property required by
-{{ARCHITECTURE}}, including that updates provably apply to the credential
-that was presented.
+An ACT Credential, specified in {{ACT}}, carries a hidden *balance*, a number
+of credits. The Moderator issues a Credential with an initial balance of its
+choosing. A presentation *spends* a public amount `s`, proving that the
+balance covers it, and may accept a *top-up* of at most `a` that the
+challenge offers. In the same exchange the Moderator issues a *refund*, a
+fresh Credential whose balance is the remainder plus a return amount `t` of
+its choosing, with `0 <= t <= s + a`. The Moderator learns `s`, `a`, `t`, and
+a single-use nullifier, and not the balance.
 
-### Configuration
+A Credential is invalid once spent, and its replacement exists only once the
+Moderator has answered, so one Credential supports one presentation in flight
+at a time. This gives the Moderator:
 
-The Moderator publishes its ACT public key and the predicate description
-({{key-rotation}}).
+Concurrency control:
+: A Credential copied to several parties can be spent by only one of them;
+  every other copy presents a nullifier the Moderator has already recorded.
 
-### Redeem & Issue
+Dynamic revocation:
+: The Moderator ends a Client's access by declining to refund, without
+  waiting for a Credential to expire.
+
+Per-session adjustment:
+: A balance changes only through `s`, `a`, and `t`, each of which can follow
+  the Moderator's assessment of the request, subject to {{privacy-act}}.
+
+The abstract credential API maps onto {{ACT}} as follows:
+
+| Abstract operation | ACT |
+|---|---|
+| `CreateIssuanceRequest` | `IssueRequest`, with key selection ({{act-issue}}) |
+| `IssueCredential` | `IssueResponse` ({{act-issue}}) |
+| `FinalizeIssuance` | `FinalizeIssue` |
+| `CreatePresentationAndUpdate` | `ProveSpend` ({{act-spend}}) |
+| `ProcessPresentation` | `VerifySpend` and `IssueRefund` ({{act-spend}}) |
+| `FinalizeUpdate` | `FinalizeRefund` |
+
+The Client's `presentation_state` is the `ClientSpendState` of {{ACT}}
+together with the octets of the `PresentationAndUpdate` it sent, which it
+needs to recover a lost refund ({{act-missing-refund}}).
+`ProcessPresentation` returns `ACCEPTED_WITH_UPDATE` with a refund, and
+`ACCEPTED_NO_UPDATE` when the Moderator declines to refund.
+
+### Configuration {#act-configuration}
+
+The Moderator publishes, in its configuration ({{key-rotation}}):
+
+Public Key
+: `pkM`, encoded with `SerializeElement`. Its identifier is
+  `key_id = SHA-256(SerializeElement(pkM))`, and `truncated_key_id` is the
+  last byte of `key_id`.
+
+Ciphersuite
+: The ACT ciphersuite identifier; {{ACT}} defines `P256-SHA256`.
+
+Balance Width
+: `L`, fixed for the lifetime of the key and credential context ({{ACT}}).
+
+Credential Context
+: `credential_context`, an opaque byte string of at most `2^16 - 2` bytes
+  that names the epoch or policy that Credentials under the key are valid
+  for.
+
+Result Retention Period
+: How long the Moderator keeps the result of each presentation
+  ({{act-missing-refund}}).
+
+The credential context of {{ACT}} is
+
+~~~
+ctx_cred = credential_context || I2OSP(L, 1)
+~~~
+
+which includes `L` as {{ACT}} recommends. A Moderator expires every
+outstanding Credential under a key by publishing a new `credential_context`,
+without changing the key. A refund is issued under the context of the spent
+Credential, so balances do not carry over to a new context. A Moderator
+SHOULD announce the successor context and a grace period before expiry.
+Clients obtain Credentials under the new context through Redeem & Issue;
+this document does not specify balance migration.
+
+A Moderator MAY have several active keys, for instance during a rotation. It
+MUST ensure that no two active keys share a `truncated_key_id`, and SHOULD
+keep the number of active keys small ({{privacy-act}}).
+
+### Redeem & Issue {#act-issue}
 
 ~~~ tls-presentation
 struct {
   uint8 truncated_key_id;
-  opaque request<V>;
+  IssueRequestMessage request;
 } IssuanceRequest;
 
 struct {
-  opaque response<V>;
+  IssueResponseMessage response;
 } IssuanceResponse;
 ~~~
 
-The structure fields are:
+`IssueRequestMessage` and `IssueResponseMessage` are defined in {{ACT}}.
 
-* `truncated_key_id` selects the configured ACT key.
-* `request` is the encoded ACT issuance request.
-* `response` is the encoded ACT issuance response.
+The Client runs `IssueRequest()`, keeps the returned state, and sends the
+request with the truncated identifier of the key it holds in its
+configuration.
 
-These structures are intended to implement `CreateIssuanceRequest`,
-`IssueCredential`, and `FinalizeIssuance`.
+The Moderator processes a `CredentialRequest` in this order:
 
-### Presentation and Update
+1. It selects the active key whose `truncated_key_id` matches, and rejects
+   the request if there is none.
+2. It checks that `request` deserializes and that its proof verifies, as
+   `IssueResponse` does, and rejects the request otherwise.
+3. It validates the accompanying redemption with `FinalizeRedeem`
+   ({{endorsement-protocols}}).
+4. It chooses the initial balance `c` under its policy. As one atomic
+   transaction, it inserts the `replay_protection_id` returned by
+   `FinalizeRedeem`, failing if it is present, and runs
+   `IssueResponse(skM, ctx_cred, c, request)` under the current credential
+   context of the key. If either step fails, the transaction is rolled back
+   and nothing is recorded.
+5. It returns the result in a `CredentialResponse`.
 
-The Client presents the Credential against the selected predicate,
-spending it, and in the same message requests the replacement that carries
-the updated state.
+The Endorsement is therefore consumed only together with a response, and a
+malformed request does not cost the Client its Endorsement.
+
+The Client runs `FinalizeIssue(pkM, ctx_cred, state, response)` and stores
+the resulting Credential with `key_id`, `credential_context`, `L`, and the
+identity of the Moderator. If finalization fails, the Client MUST discard
+the state, SHOULD refresh its configuration, and MAY retry Redeem & Issue
+with a fresh Endorsement.
+
+### Presentation and Update {#act-present}
+
+The ACT `Challenge` names the amounts, the context the Moderator accepts,
+and the scope of the authorization it asks for:
+
+~~~ tls-presentation
+struct {
+  uint64 s;
+  uint64 a;
+  opaque credential_context<V>;
+  opaque request_context<V>;
+} Challenge;
+~~~
+
+`s` is the amount to spend and is the Predicate of {{ARCHITECTURE}}: a
+presentation succeeds only if the balance is at least `s`. `a` is the
+largest top-up the Moderator offers in this presentation, `0` if none. A
+challenge with `s = a = 0` asks for a refresh, which replaces the nullifier
+and leaves the balance unchanged, since `t <= s + a = 0`. A Moderator that
+wants to lower balances challenges with `s > 0` and returns `t < s`; one that
+wants to raise them offers `a > 0`. `credential_context` repeats the
+configured value, so that a Client can tell that its Credential has expired
+without refetching the configuration. It is the challenge field that
+partitions cached Credentials ({{HTTP-TRANSPORT}}).
+
+#### Challenge Binding {#act-challenge-binding}
+
+The spend context of {{ACT}} is
+
+~~~
+ctx_spend = SHA-256(credential_challenge)
+~~~
+
+where `credential_challenge` is the complete TLS encoding of the
+`CredentialChallenge` of {{HTTP-TRANSPORT}}, including its `credential_type`
+and the length-prefixed ACT `Challenge`. The Client hashes those octets, not
+their base64url encoding. This digest is separate from the redemption digest
+of {{challenge-binding}}.
+
+The presentation does not carry the challenge. The Moderator determines the
+challenge a presentation answers from its policy and the request it is
+authorizing, and selects one of two profiles by what it puts in
+`request_context`:
+
+Policy-scoped:
+: `request_context` is empty. Every challenge under a policy then has the
+  same octets and the same digest, and a presentation is a one-use bearer
+  authorization under that policy: the Moderator accepts it once, against
+  whichever request carries it ({{security-act}}).
+
+Request-bound:
+: `request_context` is non-empty and identifies the request, session, or
+  time window the presentation is for. The Moderator MUST accept a
+  presentation only under a value it issued, or would issue, for the
+  request being authorized. The value MAY be stateless, for instance an
+  authenticated encoding of the origin, the method and target, a session
+  identifier, or a time window, which the Moderator recomputes from the
+  request. The binding is only as specific as what the value encodes; to
+  bind one operation, it MUST distinguish every request field that affects
+  authorization, including the request body where relevant.
+
+When several challenges could apply to a request, for instance for adjacent
+time windows or for two credential contexts during a rollover, the Moderator
+runs steps 2 and 3 of {{act-spend}} for each until one succeeds. The two
+profiles differ only in the challenge octets. The cryptographic operations,
+the message formats, and the nullifier rules are the same.
+
+#### Spending and Refunds {#act-spend}
+
+A Client that holds no Usable Credential ({{act-client-state}}) for this
+Moderator under the challenged `credential_context`, or whose Credential
+`ProveSpend` would reject for the challenged `s` and `a`, does not present.
+It runs Redeem & Issue if it holds an Endorsement, and otherwise obtains one
+first ({{endorsement-protocols}}).
+
+Otherwise the Client computes `ctx_spend`, runs
+`ProveSpend(credential, ctx_cred, s, a, ctx_spend)`, stores the returned
+state and the presentation as {{act-client-state}} requires, and sends:
 
 ~~~ tls-presentation
 struct {
   opaque key_id[32];
-  opaque spend_proof<V>;
+  SpendMessage spend;
 } PresentationAndUpdate;
 
 struct {
-  opaque refund<V>;
+  RefundMessage refund;
 } Update;
 ~~~
 
-The structure fields are:
+`SpendMessage` and `RefundMessage` are defined in {{ACT}}. The full `key_id`
+is sent: the Moderator issued the Credential and knows its key, so the
+identifier tells it nothing more.
 
-* `key_id` identifies the ACT key.
-* `spend_proof` is the encoded ACT spend proof.
-* `refund` is the encoded ACT refund.
+The Moderator processes a presentation as follows. Steps 1 and 2 read public
+state and the nullifier store, step 3 is one atomic transaction on the
+nullifier store, and step 4 lies outside it.
 
-These structures are intended to implement `CreatePresentationAndUpdate`,
-`ProcessPresentation`, and `FinalizeUpdate`.
+1. It looks up `(key_id, spend.k)` in the nullifier store. If a record
+   exists and holds the SHA-256 digest of the received
+   `PresentationAndUpdate` octets, the Moderator answers from the record
+   ({{act-missing-refund}}), even if the challenge has expired or the key or
+   context has been retired. A record with a different digest, or whose
+   result has been deleted, causes the presentation to be rejected. Only an
+   unrecorded nullifier proceeds to step 2.
+2. It checks that `key_id` names an active key, determines the challenge
+   ({{act-challenge-binding}}), and checks that its `credential_context` is
+   accepted for that key and that `spend.s` and `spend.a` equal its `s` and
+   `a`. It rejects the presentation if any check fails.
+3. As one atomic transaction, it runs
+   `VerifySpend(skM, ctx_cred, ctx_spend, spend)`, decides under its policy
+   whether to refund and, if so, the return amount `t`, runs
+   `IssueRefund(skM, ctx_cred, spend, t)` if it refunds, and inserts a record
+   for `(key_id, spend.k)`. The record holds the *result*: the digest of the
+   presentation octets, `ctx_cred`, and the decision, either `Refund(t)`,
+   optionally with the octets of the `RefundMessage`, or `NoUpdate`. The
+   insertion MUST fail if the record exists by then, so of two racing
+   presentations at most one commits. If any step fails, the transaction is
+   rolled back and no refund is returned.
+4. It attempts the protected operation and returns the result as the
+   `Update`: the refund, or, for `NoUpdate`, an absent update
+   ({{HTTP-TRANSPORT}}), which leaves the Client without a replacement.
 
-> **Editor note.** The mapping from ACT issuance, spend, and refund operations
-> to MoLE Contexts and payloads is undefined. This protocol is not interoperable
-> until that mapping and its canonical encodings are specified.
+Spending credits authorizes one attempt of the protected operation. A
+failure after step 3 can charge the Client without completing step 4; a
+retry recovers the result but does not authorize another attempt. Reliable
+execution needs application-specific recovery, for example a durable outbox
+written in step 3 and a worker that retries the operation idempotently under
+the presentation digest. This document does not specify that recovery.
+
+The Client runs `FinalizeRefund(pkM, ctx_cred, state, refund)` and stores
+the resulting Credential in place of the spent one, with the same `key_id`
+and `credential_context`. If the refund does not verify, the Client discards
+it and proceeds as in {{act-missing-refund}}.
+
+### Client State {#act-client-state}
+
+An ACT Credential goes through the following states:
+
+~~~ aasvg
+   +----------+
+   |  Usable  |  balance c
+   +----+-----+
+        |
+        | ProveSpend(credential, ctx_cred, s, a, ctx_spend)
+        v
+   +----------+
+   |  Spent   |  awaiting refund; the Credential is invalid
+   +----+-----+
+        |
+        | FinalizeRefund(pkM, ctx_cred, state, refund)
+        v
+   +----------+
+   |  Usable  |  balance c - s + t, in [c - s, c + a]
+   +----------+
+~~~
+{: #fig-act-states title="ACT Credential states"}
+
+Usable:
+: The Client holds a Credential with balance `c`, its `credential_context`,
+  and its `key_id`, and may present it against a challenge whose `s` is at
+  most `c` and whose `credential_context` matches.
+
+Spent:
+: The Client has run `ProveSpend`, and the Credential is invalid whether or
+  not the presentation is sent or answered ({{ACT}}). Besides the spend state
+  that {{ACT}} requires it to store, the Client MUST durably store the
+  presentation octets before the presentation leaves it.
+
+A valid refund returns the Client to Usable. A Credential chain is therefore
+serialized: one presentation at a time, each waiting for the Moderator's
+answer to the previous one. A Client MAY hold several independent Credentials
+for one Moderator, for instance under two contexts during a rollover; each is
+its own chain, and different chains can present concurrently.
+
+### Lost Refunds {#act-missing-refund}
+
+A presentation may be sent and its response lost, or the Moderator may fail
+between committing step 3 of {{act-spend}} and returning the result. The
+Client cannot then finalize, and the spent Credential cannot be reused.
+
+A Moderator SHOULD keep each result, and the key its record names, for the
+result retention period it publishes ({{act-configuration}}). A Client
+missing an `Update` MAY resend the byte-identical `PresentationAndUpdate`.
+Step 1 of {{act-spend}} answers it before any challenge check, so an expired
+challenge does not prevent recovery:
+
+* For a recorded `Refund(t)`, the Moderator returns the refund it stored, or
+  runs `IssueRefund(skM, ctx_cred, spend, t)` again with the recorded
+  `ctx_cred` and `t`. Re-running `IssueRefund` is harmless, since every
+  refund of one spend shares the nullifier `kstar` ({{ACT}}).
+* For a recorded `NoUpdate`, the Moderator returns an absent update.
+
+The Moderator MUST NOT authorize another operation for a recorded nullifier,
+and MUST NOT change a recorded decision.
+
+After the result retention period, a retry is rejected, and the Client MUST
+discard the spend state and obtain a new Credential through Redeem & Issue.
+Deleting a result MUST NOT delete its nullifier while the credential context
+is accepted ({{key-rotation}}).
+
+### Limitations {#act-limitations}
+
+A `SpendMessage` grows linearly in `L` ({{ACT}}). With P-256 and `L = 32`,
+it is about 4.5 KB when one of `s` and `a` is nonzero and 8.7 KB when both
+are, before base64url encoding in the `Authorization` header. Deployments
+with tight header limits should choose `L` accordingly.
 
 ## Privacy Pass with a Reverse Flow {#credential-reverse}
 
@@ -782,6 +1059,12 @@ types, keys, epochs, accepted issuer sets, and type-specific inputs. The order
 of accepted sets is significant because Rollatini proof branches and Longfellow
 issuer inputs match elements by position.
 
+ACT configuration adds, per key, the ciphersuite, balance width, credential
+context, and result retention period ({{act-configuration}}). ACT
+nullifiers MUST remain recorded while their credential context is accepted
+for their key. A Moderator that publishes different keys or contexts to
+different Clients partitions them ({{ARCHITECTURE}}).
+
 > **Editor note.** Configuration discovery, serialization, authentication,
 > canonical encodings, consistency, and rotation remain undefined. The wire
 > protocols are not interoperable until these are specified.
@@ -809,6 +1092,45 @@ select Anchor Sets that differ by just one Anchor. If one flow aborts but the
 other does not, then the Moderator immediately learns the Anchor of the accepted
 Endorsement.
 
+## Anonymous Credit Tokens {#privacy-act}
+
+An ACT presentation reveals `s`, `a`, and the nullifier, and, because the
+proof verifies, the key and credential context of the Credential. Its
+Update reveals `t`. The unlinkability of {{ACT}} holds among the Clients
+that share all of these, so each partitions Clients:
+
+Keys and contexts:
+: The truncated key identifier limits what a Client reveals at issuance to
+  one byte, and every active key splits the Clients holding Credentials
+  under it. {{ACT}} requires the credential context to be coarse: a
+  per-Client or per-session context makes presentations linkable without
+  breaking any cryptographic property.
+
+Amounts:
+: The initial balance, `s`, `a`, and `t` MUST NOT vary per Client under a
+  policy, since a Moderator could recognize a Client by the values it
+  uses. A Moderator SHOULD draw them from a small set of values fixed by
+  policy, so that a value reveals no more than the policy decision it
+  encodes. A Client whose balance plus `a` reaches `2^L` cannot present,
+  which sets it apart. A Moderator SHOULD choose `L` above the largest
+  balance its policy lets Clients reach plus the largest `a` it offers.
+
+Balance inference:
+: A presentation succeeds only if the balance covers `s`. A Moderator that
+  challenges a Client repeatedly with amounts of its choosing can bound the
+  balance, and in the end recover it and use it to link presentations
+  ({{ARCHITECTURE}}). The serialized chain of {{act-client-state}} limits
+  such probing to one presentation per round trip. Clients SHOULD limit the
+  number of presentations they make in one context, as {{ARCHITECTURE}}
+  recommends.
+
+Timing:
+: The refund arrives in the same exchange as the presentation, so a Client
+  that presents it in another context at once is likely the one that just
+  received it. {{ARCHITECTURE}} keeps a Credential used in one context
+  locked to that context for a period of time; this applies to the refund
+  that replaces it.
+
 # Security Considerations {#security-considerations}
 
 All exchanges defined in this document and {{HTTP-TRANSPORT}} MUST be
@@ -833,10 +1155,64 @@ require the Client to know that region. A deployment can instead operate
 independent regional stores, but then the same Endorsement can be accepted once
 in each region. Credentials can likewise be presented once in each region,
 potentially creating divergent updates. Separate Moderators also do not
-coordinate stores.
+coordinate stores. For ACT, all servers accepting the same key and credential
+context MUST share one atomic nullifier store; independent stores need
+disjoint keys or contexts. Otherwise a Client can fork a balance across
+stores, which breaks the credit conservation of {{ACT}}.
 A Rollatini redemption exposes the same nullifier in each scope, making
 cross-scope reuse linkable if records are compared. Proof rerandomization does
 not hide that reuse.
+
+## Anonymous Credit Tokens {#security-act}
+
+Nullifier store:
+: Step 3 of {{act-spend}} is the atomic transaction that {{ACT}} requires.
+  The store MUST be durable: a Moderator that loses it re-admits every
+  Credential spent under a context for as long as that context is
+  accepted. Nullifiers MAY be partitioned by key and context and discarded
+  once the context is no longer accepted.
+
+Amounts:
+: Step 2 of {{act-spend}} requires `spend.s` and `spend.a` to equal the
+  challenge's `s` and `a`. Accepting another `s` would let the Client choose
+  its charge, and accepting a larger `a` would let it choose how far its
+  balance may rise. {{ACT}} gives the range checks that credit conservation
+  needs.
+
+Credential sharing:
+: Copies of one Credential yield one presentation: the first to reach the
+  Moderator commits in step 3, and every other copy is rejected as a
+  double spend and is linkable to the first ({{ACT}}).
+
+Recorded results:
+: A recorded result is returned only for a byte-identical presentation and
+  never authorizes another operation. A party that replays an observed
+  presentation receives a refund it cannot finalize without the spend
+  state. A recorded `NoUpdate` stays `NoUpdate`; answering a retry with a
+  refund would undo the Moderator's revocation.
+
+Dynamic revocation:
+: A Moderator that records `NoUpdate` ends a Client's access, and the
+  Client loses its remaining balance with no cryptographic recourse.
+  Clients therefore trust Moderators to refund honest presentations; a
+  Moderator that withholds refunds indiscriminately costs its Clients their
+  Endorsements. Client Vendors can limit their Clients' use of such a
+  Moderator.
+
+Presentation scope:
+: Under the policy-scoped profile of {{act-challenge-binding}}, a party
+  that sees a presentation before the Moderator does, such as an
+  intermediary terminating TLS for the Moderator, can attach it to another
+  request under the same policy. The nullifier ensures that only one use is
+  accepted, not which. Deployments that need a presentation tied to one
+  request use the request-bound profile.
+
+Verification cost:
+: An unrecorded nullifier passes step 1 of {{act-spend}}, so a forged
+  presentation costs the Moderator a full `VerifySpend`, whose cost is
+  linear in `L`. Mitigations are rate limiting applied before verification,
+  which identifies Clients no more than the transport already does, and a
+  small `L`.
 
 # IANA Considerations {#iana}
 
