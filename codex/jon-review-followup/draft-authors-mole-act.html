@@ -1,0 +1,3387 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Anonymous Credit Tokens (ACT)</title>
+<meta content="Samuel Schlesinger" name="author">
+<meta content="Jonathan Katz" name="author">
+<meta content="Armando Faz-Hernandez" name="author">
+<meta content="Deep Inder Mohan" name="author">
+<meta content="
+       This document specifies Anonymous Credit Tokens (ACT), a keyed-verification
+anonymous credential scheme with a hidden credit balance. A Client spends a
+public amount and receives a fresh Credential for the remaining balance and
+a return amount chosen by the issuer. The issuer verifies each spend without
+learning the balance or linking it to issuance or to other spends. 
+       ACT uses a pairing-free BBS-style signature and proofs over linear relations.
+This document defines its cryptographic operations, encodings, and security
+requirements. The MoLE protocols use ACT as a Credential scheme. 
+    " name="description">
+<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="moderation" name="keyword">
+<meta content="credential" name="keyword">
+<meta content="credits" name="keyword">
+<meta content="unlinkability" name="keyword">
+<meta content="privacy" name="keyword">
+<meta content="draft-authors-mole-act-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.34.1
+    Python 3.14.7
+    ConfigArgParse 1.7.7
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.1.1
+    natsort 8.4.0
+    platformdirs 4.11.10
+    pycountry 24.6.1
+    PyYAML 6.0.3
+    requests 2.33.1
+    wcwidth 0.8.4
+-->
+<link href="draft-authors-mole-act.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Italic'), local('Lora-Italic'), url('https://martinthomson.github.io/rfc-css/fonts/lora-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Lora Regular'), local('Lora-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/lora-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C88, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-cyrillic.woff2') format('woff2');
+  unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-vietnamese.woff2') format('woff2');
+  unicode-range: U+0102-0103, U+0110-0111, U+1EA0-1EF9, U+20AB;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-024F, U+0259, U+1E00-1EFF, U+2020, U+20A0-20AB, U+20AD-20CF, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: local('Lora Bold'), local('Lora-Bold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-bold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Lora';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: local('Lora SemiBold'), local('Lora-SemiBold'), url('https://martinthomson.github.io/rfc-css/fonts/lora-semibold-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Oxygen Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: local('Oxygen Mono'), local('OxygenMono-Regular'), url('https://martinthomson.github.io/rfc-css/fonts/oxygenmono-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: italic;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-italic-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic-ext.woff2') format('woff2');
+  unicode-range: U+0460-052F, U+1C80-1C8A, U+20B4, U+2DE0-2DFF, U+A640-A69F, U+FE2E-FE2F;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-cyrillic.woff2') format('woff2');
+  unicode-range: U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-greek.woff2') format('woff2');
+  unicode-range: U+0370-0377, U+037A-037F, U+0384-038A, U+038C, U+038E-03A1, U+03A3-03FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: 'Sofia Sans Semi Condensed';
+  font-style: normal;
+  font-weight: 1 1000;
+  src: url('https://martinthomson.github.io/rfc-css/fonts/sofiasanssemicondensed-regular-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+:root {
+  color-scheme: light dark;
+  --background-color: #fff;
+  --text-color: #222;
+  --title-color: #191919;
+  --link-color: #2a6496;
+  --highlight-color: #f9f9f9;
+  --line-color: #eee;
+  --pilcrow-weak: #ddd;
+  --pilcrow-strong: #bbb;
+  --small-font-size: 14.5px;
+  --font-mono: 'Oxygen Mono', monospace;
+  --font-title: "Sofia Sans Semi Condensed", sans-serif;
+  scrollbar-color: #bbb #eee;
+}
+body {
+  max-width: 600px;
+  margin: 75px auto;
+  padding: 0 5px;
+  color: var(--text-color);
+  background-color: var(--background-color);
+  font: 16px/22px "Lora", serif;
+  scroll-behavior: smooth;
+}
+
+.ears {
+  display: none;
+}
+
+/* headings */
+section {
+  clear: both;
+}
+.section-number {
+  padding-right: 0.5em;
+}
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-title);
+  font-weight: 680;
+  margin: 0.8em 0 0.3em;
+  font-size-adjust: 0.5;
+  color: var(--title-color);
+}
+h1 {
+  &#title {
+    font-size: 32px;
+    line-height: 40px;
+    clear: both;
+    margin: 1.5em 0 0.2em;
+  }
+  &#rfcnum {
+    margin: 1.5em 0 0.2em;
+    & + h1#title {
+      margin: 0.2em 0;
+    }
+  }
+}
+
+h1, h2, h3 {
+  font-size: 22px;
+  line-height: 27px;
+}
+h4, h5, h6 {
+  font-size: 20px;
+  line-height: 24px;
+}
+
+/* general structure */
+.author {
+  padding-bottom: 0.3em;
+  vertical-align: top;
+}
+#abstract+p {
+  font-size: 18px;
+  line-height: 24px;
+  & code, & samp, & tt {
+    font-size: 16px;
+    line-height: 0;
+  }
+}
+
+p {
+  padding: 0;
+  margin: 0.5em 0;
+  text-align: left;
+}
+div {
+  margin: 0;
+}
+.alignRight {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    margin: 0;
+    float: right;
+    clear: both;
+  }
+  & > *:nth-child(2) {
+    clear: both;
+    display: block;
+    border: none;
+  }
+}
+svg {
+  display: block;
+  /* font-family isn't space-separated, but =~ will have to do */
+  &[font-family~="monospace" i], & [font-family~="monospace" i] {
+    font-family: var(--font-mono);
+  }
+}
+.alignCenter {
+  margin: 1em 0;
+  &.art-text {
+    background-color: var(--highlight-color);
+    border: 1px solid var(--line-color);
+    border-radius: 3px;
+    padding: 0.5em 1em 0;
+    margin-bottom: 0.5em;
+    & pre {
+      padding: 0;
+      width: auto;
+    }
+  }
+  & > *:first-child {
+    border: none;
+    /* this isn't optimal, but it's an existence proof.  PrinceXML doesn't
+       support flexbox yet.
+    */
+    display: table;
+    margin: 0 auto;
+  }
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 0.5em 2em;
+  & :is(ol, ul) {
+    margin-left: 1em;
+  }
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+  & li {
+    margin-top: 0.5em;
+  }
+}
+:is(ul, ol).compact, .ulCompact, .olCompact {
+  margin: 0 0 0 2em;
+  & li {
+    margin: 0;
+    & :first-child { margin-top: 0; }
+    & :last-child { margin-bottom: 0; }
+  }
+}
+
+/* definition lists */
+dl {
+  clear: left;
+  --indent: 3ch;
+  /* --indent: attr(indent ch); not supported in any browser, but we can dream */
+  &.olPercent {
+    --indent: 5ch;
+    & > dt {
+      min-width: calc(var(--indent) - 2ch);
+      float: none;
+    }
+  }
+
+  dl > dd > & {
+    margin-top: 0.5em;
+    margin-bottom: 0;
+  }
+
+  &:not(.dlNewline) > dt {
+    float: left;
+    margin-right: 2ch;
+    min-width: 8ch;
+  }
+  & > dd {
+    margin-bottom: .8em;
+    margin-left: var(--indent) !important; /* stupid element overrides */
+    min-height: 2ex;
+  }
+}
+:is(dl.compact, .dlCompact) > dd {
+  margin-bottom: 0;
+  & > :is(:first-child, .break:first-child + *) {
+    margin-top: 0;
+  }
+  & > :is(:last-child) {
+    margin-bottom: 0;
+  }
+}
+:is(dd, span).break {
+  display: none;
+}
+
+/* links */
+a {
+  text-decoration: none;
+  &[href] {
+    color: var(--link-color);
+    &:hover { text-decoration: underline; }
+    &.selfRef {
+      color: var(--text-color);
+      &:hover {
+        text-decoration: none;
+        background-color: var(--highlight-color);
+      }
+    }
+  }
+}
+.iref + a[href].internal {
+  color: var(--text-color);
+}
+a.xref:is(.cite, .auto), :is(#status-of-memo, #copyright) a {
+  white-space: nowrap;
+}
+
+/* Figures */
+tt, code, pre {
+  background-color: var(--highlight-color);
+  font: 14px/22px var(--font-mono);
+}
+tt, code {
+  /* changing the font for inline elements leads to different ascender
+     and descender heights; as we want to retain baseline alignment,
+     remove leading to avoid altering the final height of lines
+     note: this fails if these blocks take an entire line,
+     a different solution would be great */
+  line-height: 0;
+}
+:is(h1, h2, h3, h4, h5, h6) :is(tt, code) {
+  font-size: 84%;
+}
+pre {
+  border: 1px solid var(--line-color);
+  font-size: 13.5px;
+  line-height: 16px;
+  letter-spacing: -0.2px;
+  margin: 5px;
+  padding: 5px;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0.5em 0;
+  padding: 0;
+  & blockquote {
+    margin: 0.8em 0.4em 0.4em;
+  }
+}
+figcaption, caption {
+  font-style: italic;
+  margin: 0.5em 1.5em;
+  text-align: left;
+  caption-side: bottom;
+}
+@media screen {
+  /* Auto-collapse boilerplate. */
+  :is(#status-of-memo, #copyright) {
+    & p {
+      margin: -2px 0;
+      max-height: 0;
+      transition: max-height 2s ease, margin 0.5s ease 0.5s;
+      overflow: hidden;
+    }
+    &:hover p,
+    & h2:target ~ p {
+      margin: 0.5em 0;
+      max-height: 500px;
+      overflow: auto;
+    }
+  }
+  pre, svg {
+    display: inline-block;
+    /* In the horizontal direction, sometimes people make over-sized figures.
+       Scrollbars for those is therefore necessary: auto adds them as necessary..
+       In the vertical direction, the line-height can combine with the font
+       asender/descender height to produce scrollbars: hidden avoids that. */
+    overflow: auto hidden;
+  }
+  pre {
+    max-width: 100%;
+    width: calc(100% - 22px - 1em);
+  }
+  svg {
+    max-width: calc(100% - 22px - 1em);
+  }
+  figure pre {
+    display: block;
+    width: calc(100% - 25px);
+  }
+  :is(pre, svg) + .pilcrow {
+    display: inline-block;
+    vertical-align: text-bottom;
+    padding-bottom: 8px;
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 0 2em;
+  font-style: italic;
+}
+blockquote {
+  margin: 1em 0;
+  border-left: 2px var(--pilcrow-strong) solid;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+
+/* tables */
+table {
+  width: auto;
+  max-width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  &.right { margin-left: auto; }
+  &.center { margin-left: auto; margin-right: auto; }
+  &.left { margin-right: auto; }
+  & .text-left { text-align: left; }
+  & .text-center { text-align: center; }
+  & .text-right { text-align: right; }
+  & caption {
+    margin: 0;
+    padding: 3px 0 3px 1em;
+  }
+  & p { margin: 0; }
+}
+
+thead, tbody {
+  border: 1px solid var(--line-color);
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 5px 10px;
+}
+th {
+  background-color: var(--line-color);
+}
+:is(tr:nth-child(2n), thead+tbody > tr:nth-child(2n+1)) > td {
+  background-color: var(--background-color);
+}
+:is(tr:nth-child(2n+1), thead+tbody > tr:nth-child(2n)) > td {
+  background-color: var(--highlight-color);
+}
+
+/* pilcrow */
+a.pilcrow {
+  margin-left: 3px;
+  opacity: 0.2;
+  user-select: none;
+  &[href] {
+    color: var(--pilcrow-weak);
+    &:hover { text-decoration: none; }
+  }
+  @media not print {
+    :hover > &, &:focus {
+      opacity: 1;
+    }
+    &[href]:hover {
+      color: var(--pilcrow-strong);
+      background-color: transparent;
+    }
+  }
+  @media print {
+    display: none;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid var(--line-color);
+}
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: 600;
+  font-size: var(--small-font-size);
+}
+.role {
+  font-variant: all-small-caps;
+}
+sub, sup {
+  line-height: 1;
+  font-size: 80%;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: var(--small-font-size);
+  line-height: 18px;
+  --identifier-width: 15ch;
+  & dt {
+    width: var(--identifier-width);
+    min-width: var(--identifier-width);
+    clear: left;
+    float: left;
+    text-align: right;
+    margin-right: 1ch;
+  }
+  & dd {
+    margin: 0;
+    margin-left: calc(1em + var(--identifier-width)) !important;
+    min-width: 5em;
+  }
+  & .authors {
+    & .author {
+      display: inline-block;
+      margin-right: 1.5em;
+    }
+    & .org {
+      font-style: italic;
+    }
+  }
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #999;
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+  & .prepared {
+    float: right;
+  }
+}
+
+/* table of contents */
+#toc {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+
+  & nav {
+    & ul {
+      margin: 0 0.5em 0 0;
+      padding: 0;
+      list-style: none;
+    }
+    & li {
+      line-height: 1.3em;
+      margin: 2px 0;
+      padding-left: 1.2em;
+      text-indent: -1.2em;
+    }
+  }
+  & a.xref {
+    white-space: normal;
+  }
+}
+
+.references {
+  & > dt {
+    text-align: right;
+    font-weight: bold;
+    min-width: 10ch;
+    margin-right: 1.5ch;
+    &:target::before {
+      content: "⇒";
+      margin: 0 10px 0 -25px;
+    }
+  }
+  & > dd {
+    margin-left: 12ch !important;
+    overflow: visible;
+    & .refInstance {
+      margin-bottom: 0.8em;
+    }
+    & .ascii {
+      margin-bottom: 0.25em;
+    }
+  }
+}
+
+#rfc\.index\.index + ul {
+  margin-left: 0;
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  max-width: 20em;
+  margin: 1em auto 1em 0;
+
+  & .nameRole {
+    font-weight: 700;
+    margin-left: 0;
+  }
+  & .label {
+    margin: 0.5em 0;
+  }
+  & .type {
+    display: none;
+  }
+  & .alternative-contact {
+    margin: 0.5em 0 0.25em 0;
+  }
+  & .non-ascii {
+    margin: 0 0 0 2em;
+  }
+  & div.left {
+    text-align: left;
+  }
+  & div.right {
+    text-align: right;
+  }
+}
+
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+@media (min-width: 500px) {
+  #authors-addresses {
+    & > section {
+      column-count: 2;
+      column-gap: 20px;
+    }
+    & > section > h2 {
+      column-span: all;
+    }
+    /* hack for break-inside: avoid-column */
+    & address {
+      display: inline-block;
+      break-inside: avoid-column;
+    }
+  }
+}
+
+/* Comments */
+.rfcEditorRemove {
+  & p:first-of-type {
+    font-style: italic;
+  }
+}
+.cref {
+  background-color: rgba(249, 232, 105, 0.3);
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+
+@media screen {
+  #toc {
+    & nav {
+      font-family: var(--font-title);
+      font-weight: 360;
+      & > ul { margin-bottom: 2em; }
+      & ul {
+        margin: 0 0 0 4px;
+        & :is(p, li) {
+          margin: 2px 0;
+        }
+      }
+    }
+    & a.toplink {
+      float: right;
+    }
+  }
+}
+@media not screen {
+  #toc a.toplink {
+    display: none;
+  }
+}
+
+
+/* TOC layout for smaller screens */
+@media screen and (max-width: 929px) {
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 1px 0 0 0;
+    margin: 0;
+    border-bottom: 1px solid #ccc;
+    opacity: 0.6;
+    & h2 {
+      margin: 0;
+      padding: 2px 0 2px 6px;
+      padding-right: 1em;
+      font-size: 18px;
+      line-height: 24px;
+      min-width: 190px;
+      text-align: right;
+      background-color: #444;
+      color: white;
+      cursor: pointer;
+      &::before { /* css hamburger */
+        float: right;
+        position: relative;
+        width: 1em;
+        height: 1px;
+        left: -164px;
+        margin: 8px 0 0 0;
+        background: white none repeat scroll 0 0;
+        box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+        content: "";
+      }
+    }
+    & nav {
+      display: none;
+      background-color: var(--background-color);
+      padding: 0.5em 1em 1em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      height: calc(100vh - 48px);
+      border-left: 1px solid #ddd;
+    }
+    &.active {
+      opacity: 1;
+      & nav { display: block; }
+    }
+    /* Make the collapsed ToC header render white on gray also when it's a link */
+    & h2 a,
+    & h2 a:is(:link, :focus, :hover),
+    & a.toplink,
+    & a.toplink:hover {
+      color: white;
+      background-color: #444;
+      text-decoration: none;
+    }
+    & a.toplink {
+      margin: 2px 0.5em 0;
+    }
+  }
+}
+
+/* TOC layout for wide screens */
+@media screen and (min-width: 930px) {
+  body {
+    padding-right: 360px;
+    padding-right: calc(min(180px + 20%, 500px));
+  }
+  #toc {
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    right: calc(50vw - 480px);
+    width: 312px;
+    margin: 0;
+    padding: 0;
+    z-index: 1;
+    & h2 {
+      margin: 0;
+      padding: 0.25em 1em 1em 0;
+    }
+    & nav {
+      display: block;
+      height: calc(90vh - 84px);
+      bottom: 0;
+      padding: 0.5em 0 2em;
+      overflow: auto;
+      overscroll-behavior: contain;
+      scrollbar-width: thin;
+    }
+    & a.toplink {
+      margin: 8px 0.5em 0;
+    }
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc {
+    page-break-before: always;
+    border-top: none;
+    padding-top: 0;
+  }
+  #n-introduction {
+    page-break-before: always;
+  }
+  figure, pre, .vcard {
+    page-break-inside: avoid;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  :is(h2, h3, h4, h5, h6)+*, dd {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+}
+
+/* Dark mode. */
+@media (prefers-color-scheme: dark) {
+:root {
+  --background-color: #121212;
+  --text-color: #f0f0f0;
+  --title-color: #fff;
+  --link-color: #4da4f0;
+  --highlight-color: #282828;
+  --line-color: #444;
+  --pilcrow-weak: #444;
+  --pilcrow-strong: #666;
+  scrollbar-color: #777 #333;
+}
+}
+
+/* SVG Trick: a prefix match works because only black and white are allowed */
+svg {
+  & :is([stroke="black"], [stroke^="#000"]) {
+    stroke: var(--text-color);
+  }
+  & :is([stroke="white"], [stroke^="#fff"]) {
+    stroke: var(--background-color);
+  }
+  & :is([fill="black"], [fill^="#000"], :not([fill])) {
+    fill: var(--text-color);
+  }
+  & :is([fill="white"], [fill^="#fff"]) {
+    fill: var(--background-color);
+  }
+}
+</style>
+
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">ACT</td>
+<td class="right">September 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Schlesinger, et al.</td>
+<td class="center">Expires 2 April 2027</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Network Working Group</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-authors-mole-act-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-09-29" class="published">29 September 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2027-04-02">2 April 2027</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">S. Schlesinger</div>
+<div class="org">Google LLC</div>
+</div>
+<div class="author">
+      <div class="author-name">J. Katz</div>
+<div class="org">Google LLC</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Faz-Hernandez</div>
+<div class="org">Cloudflare, Inc.</div>
+</div>
+<div class="author">
+      <div class="author-name">D. I. Mohan</div>
+<div class="org">Georgia Institute of Technology</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Anonymous Credit Tokens (ACT)</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">This document specifies Anonymous Credit Tokens (ACT), a keyed-verification
+anonymous credential scheme with a hidden credit balance. A Client spends a
+public amount and receives a fresh Credential for the remaining balance and
+a return amount chosen by the issuer. The issuer verifies each spend without
+learning the balance or linking it to issuance or to other spends.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">ACT uses a pairing-free BBS-style signature and proofs over linear relations.
+This document defines its cryptographic operations, encodings, and security
+requirements. The MoLE protocols use ACT as a Credential scheme.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<section class="note rfcEditorRemove" id="section-note.1">
+      <h2 id="name-about-this-document">
+<a href="#name-about-this-document" class="section-name selfRef">About This Document</a>
+      </h2>
+<p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
+<p id="section-note.1-2">
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-act/">https://datatracker.ietf.org/doc/draft-authors-mole-act/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+<p id="section-note.1-3">Source for this draft and an issue tracker can be found at
+        <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 2 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-preliminaries" class="internal xref">Preliminaries</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1" class="keepWithNext"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-prime-order-group" class="internal xref">Prime-Order Group</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-errors" class="internal xref">Errors</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-deriving-scalars" class="internal xref">Deriving Scalars</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.4">
+                <p id="section-toc.1-1.3.2.4.1"><a href="#section-3.4" class="auto internal xref">3.4</a>.  <a href="#name-key-generation" class="internal xref">Key Generation</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-the-credential-scheme" class="internal xref">The Credential Scheme</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-configuration" class="internal xref">Configuration</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.1">
+                    <p id="section-toc.1-1.4.2.1.2.1.1"><a href="#section-4.1.1" class="auto internal xref">4.1.1</a>.  <a href="#name-generators" class="internal xref">Generators</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1.2.2">
+                    <p id="section-toc.1-1.4.2.1.2.2.1"><a href="#section-4.1.2" class="auto internal xref">4.1.2</a>.  <a href="#name-key-generation-2" class="internal xref">Key Generation</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-credential-context" class="internal xref">Credential Context</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.3">
+                <p id="section-toc.1-1.4.2.3.1"><a href="#section-4.3" class="auto internal xref">4.3</a>.  <a href="#name-amounts" class="internal xref">Amounts</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4">
+                <p id="section-toc.1-1.4.2.4.1"><a href="#section-4.4" class="auto internal xref">4.4</a>.  <a href="#name-zero-knowledge-proofs" class="internal xref">Zero-Knowledge Proofs</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.1">
+                    <p id="section-toc.1-1.4.2.4.2.1.1"><a href="#section-4.4.1" class="auto internal xref">4.4.1</a>.  <a href="#name-tags" class="internal xref">Tags</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.2">
+                    <p id="section-toc.1-1.4.2.4.2.2.1"><a href="#section-4.4.2" class="auto internal xref">4.4.2</a>.  <a href="#name-prover-nonces" class="internal xref">Prover Nonces</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.4.2.3">
+                    <p id="section-toc.1-1.4.2.4.2.3.1"><a href="#section-4.4.3" class="auto internal xref">4.4.3</a>.  <a href="#name-proving-and-verifying" class="internal xref">Proving and Verifying</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5">
+                <p id="section-toc.1-1.4.2.5.1"><a href="#section-4.5" class="auto internal xref">4.5</a>.  <a href="#name-issuance" class="internal xref">Issuance</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.1">
+                    <p id="section-toc.1-1.4.2.5.2.1.1"><a href="#section-4.5.1" class="auto internal xref">4.5.1</a>.  <a href="#name-signing-exponent" class="internal xref">Signing Exponent</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.2">
+                    <p id="section-toc.1-1.4.2.5.2.2.1"><a href="#section-4.5.2" class="auto internal xref">4.5.2</a>.  <a href="#name-issuance-request" class="internal xref">Issuance Request</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.3">
+                    <p id="section-toc.1-1.4.2.5.2.3.1"><a href="#section-4.5.3" class="auto internal xref">4.5.3</a>.  <a href="#name-issuance-response" class="internal xref">Issuance Response</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.5.2.4">
+                    <p id="section-toc.1-1.4.2.5.2.4.1"><a href="#section-4.5.4" class="auto internal xref">4.5.4</a>.  <a href="#name-issuance-finalization" class="internal xref">Issuance Finalization</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6">
+                <p id="section-toc.1-1.4.2.6.1"><a href="#section-4.6" class="auto internal xref">4.6</a>.  <a href="#name-spending" class="internal xref">Spending</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6.2.1">
+                    <p id="section-toc.1-1.4.2.6.2.1.1"><a href="#section-4.6.1" class="auto internal xref">4.6.1</a>.  <a href="#name-the-spend-relation" class="internal xref">The Spend Relation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6.2.2">
+                    <p id="section-toc.1-1.4.2.6.2.2.1"><a href="#section-4.6.2" class="auto internal xref">4.6.2</a>.  <a href="#name-spend-proof-generation" class="internal xref">Spend Proof Generation</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6.2.3">
+                    <p id="section-toc.1-1.4.2.6.2.3.1"><a href="#section-4.6.3" class="auto internal xref">4.6.3</a>.  <a href="#name-spend-verification" class="internal xref">Spend Verification</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6.2.4">
+                    <p id="section-toc.1-1.4.2.6.2.4.1"><a href="#section-4.6.4" class="auto internal xref">4.6.4</a>.  <a href="#name-refund-issuance" class="internal xref">Refund Issuance</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.6.2.5">
+                    <p id="section-toc.1-1.4.2.6.2.5.1"><a href="#section-4.6.5" class="auto internal xref">4.6.5</a>.  <a href="#name-refund-finalization" class="internal xref">Refund Finalization</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.7">
+                <p id="section-toc.1-1.4.2.7.1"><a href="#section-4.7" class="auto internal xref">4.7</a>.  <a href="#name-encodings" class="internal xref">Encodings</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-actp-256-sha-256" class="internal xref">ACT(P-256, SHA-256)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-references" class="internal xref">References</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-normative-references" class="internal xref">Normative References</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-informative-references" class="internal xref">Informative References</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#appendix-A" class="auto internal xref">Appendix A</a>.  <a href="#name-test-vectors" class="internal xref">Test Vectors</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
+                <p id="section-toc.1-1.9.2.1.1"><a href="#appendix-A.1" class="auto internal xref">A.1</a>.  <a href="#name-ciphersuite" class="internal xref">Ciphersuite</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
+                <p id="section-toc.1-1.9.2.2.1"><a href="#appendix-A.2" class="auto internal xref">A.2</a>.  <a href="#name-key-pair" class="internal xref">Key Pair</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.3">
+                <p id="section-toc.1-1.9.2.3.1"><a href="#appendix-A.3" class="auto internal xref">A.3</a>.  <a href="#name-issuance-2" class="internal xref">Issuance</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.4">
+                <p id="section-toc.1-1.9.2.4.1"><a href="#appendix-A.4" class="auto internal xref">A.4</a>.  <a href="#name-spend-1-ordinary-spend-s-3-" class="internal xref">Spend 1: ordinary spend (<code>s = 3</code>, <code>a = 0</code>)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.5">
+                <p id="section-toc.1-1.9.2.5.1"><a href="#appendix-A.5" class="auto internal xref">A.5</a>.  <a href="#name-spend-2-refresh-s-0-a-0" class="internal xref">Spend 2: refresh (<code>s = 0</code>, <code>a = 0</code>)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.6">
+                <p id="section-toc.1-1.9.2.6.1"><a href="#appendix-A.6" class="auto internal xref">A.6</a>.  <a href="#name-spend-3-pure-top-up-s-0-a-2" class="internal xref">Spend 3: pure top-up (<code>s = 0</code>, <code>a = 2</code>)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.7">
+                <p id="section-toc.1-1.9.2.7.1"><a href="#appendix-A.7" class="auto internal xref">A.7</a>.  <a href="#name-spend-4-spend-with-top-up-s" class="internal xref">Spend 4: spend with top-up (<code>s = 3</code>, <code>a = 2</code>)</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="introduction">
+<section id="section-1">
+      <h2 id="name-introduction">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-1-1">MoLE Credentials carry per-Client state that a Moderator tests and updates at
+each presentation without learning it, and without being able to link
+presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
+provide a numeric balance as this state (<a href="#credential-scheme" class="auto internal xref">Section 4</a>).<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2">The Moderator is both the issuer and the verifier. A Client obtains an initial
+Credential, spends credits, and finalizes a fresh Credential that replaces
+the spent Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> maps these operations to the MoLE
+credential APIs, specifies when issuance is authorized, and supplies the
+credential and spend contexts. This document treats those contexts as
+opaque byte strings.<a href="#section-1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-2">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-2-1">The key words "<span class="bcp14">MUST</span>", "<span class="bcp14">MUST NOT</span>", "<span class="bcp14">REQUIRED</span>", "<span class="bcp14">SHALL</span>", "<span class="bcp14">SHALL NOT</span>", "<span class="bcp14">SHOULD</span>", "<span class="bcp14">SHOULD NOT</span>", "<span class="bcp14">RECOMMENDED</span>", "<span class="bcp14">NOT RECOMMENDED</span>",
+"<span class="bcp14">MAY</span>", and "<span class="bcp14">OPTIONAL</span>" in this document are to be interpreted as
+described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
+appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">The capitalized terms Client, Moderator, and Credential are used as
+defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>; a lowercase credential is the generic cryptographic
+notion. The message-encoding conventions, Python notation, and helpers
+<code>I2OSP</code>, <code>U16Prefixed</code>, <code>random</code>, and <code>Seed</code> are those of
+Section 2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. The algorithms use <code>bytes</code> for byte strings, <code>int</code>
+for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code> module.
+Record fields appear in the same order as their tuple representation.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">The group <code>G</code>, protocol context <code>ctx_proto</code>, seed length <code>Nseed</code>,
+generators, and balance width <code>L</code> are globals fixed by the ACT
+configuration (<a href="#act-config" class="auto internal xref">Section 4.1</a>). Shared group methods from <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> use
+the ACT group instance <code>G</code>, which stores <code>ctx_proto</code> and applies ACT
+domain separation. Both schemes use <code>Nseed = 48</code>. Public byte-string
+inputs retain the length bounds
+specified by the operation that uses them.<a href="#section-2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="preliminaries">
+<section id="section-3">
+      <h2 id="name-preliminaries">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
+      </h2>
+<p id="section-3-1">The construction has three dependencies:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-3-2">
+        <dt id="section-3-2.1">Group:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.2">
+          <p id="section-3-2.2.1">A prime-order group implementing the interface in <a href="#group" class="auto internal xref">Section 3.1</a>. <a href="#ciphersuites" class="auto internal xref">Section 5</a>
+gives concrete instances.<a href="#section-3-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.3">Hash:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.4">
+          <p id="section-3-2.4.1">A cryptographic hash function, used by the <code>HashToGroup</code>, <code>HashToScalar</code>,
+and derivation algorithms that the group of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> provides.<a href="#section-3-2.4.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-3-2.5">Sigma protocol:</dt>
+        <dd style="margin-left: 1.5em" id="section-3-2.6">
+          <p id="section-3-2.6.1">The compact non-interactive Sigma protocol of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, instantiated in
+<a href="#act-proofs" class="auto internal xref">Section 4.4</a>.<a href="#section-3-2.6.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<div id="group">
+<section id="section-3.1">
+        <h3 id="name-prime-order-group">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prime-order-group" class="section-name selfRef">Prime-Order Group</a>
+        </h3>
+<p id="section-3.1-1">ACT uses the prime-order group interface and the <code>Element</code> and <code>Scalar</code>
+types of Section 3.1 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, instantiated as in <a href="#ciphersuites" class="auto internal xref">Section 5</a>.
+The prime <code>p = G.Order()</code> is the group order and the scalar-field modulus.
+The Python interface provides <code>G.scalar(x)</code> for an integer <code>x</code> in
+<code>[0, G.Order())</code>, <code>s.isZero()</code> for a scalar, and <code>A.isIdentity()</code> for an
+element. Arithmetic combines values of the same type: integer constants
+are converted with <code>G.scalar</code> before scalar arithmetic. The negative of
+an element <code>A</code> is <code>G.Identity() - A</code>.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="errors">
+<section id="section-3.2">
+        <h3 id="name-errors">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-errors" class="section-name selfRef">Errors</a>
+        </h3>
+<p id="section-3.2-1"><code>DeserializeError</code>, <code>VerifyError</code>, <code>DeriveError</code>, and <code>ValueError</code> have the
+meanings given in Section 3.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. ACT additionally uses
+<code>AmountError</code> when a balance or amount is outside the range admitted by
+<a href="#act-amounts" class="auto internal xref">Section 4.3</a>:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-3.2-2">
+<pre>
+class AmountError(ValueError):
+    """A credit amount is outside its permitted range."""
+</pre><a href="#section-3.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-3.2-3">An implementation that raises an error <span class="bcp14">MUST</span> abort the affected protocol run.<a href="#section-3.2-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="derive-scalar">
+<section id="section-3.3">
+        <h3 id="name-deriving-scalars">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
+        </h3>
+<p id="section-3.3-1">Use <code>G.DeriveScalars(rand: bytes, info: bytes, count: int) -&gt;
+list[Scalar]</code> from Section 4.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, using the ACT group instance
+initialized with <code>ctx_proto</code>. It rejects <code>rand</code> whose length is not <code>Nseed</code>
+with <code>ValueError</code>, and raises <code>DeriveError</code> in the negligible event that a
+derived scalar is zero. ACT applies the following requirements to this
+shared algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+<p id="section-3.3-2"><code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code> and <span class="bcp14">MUST NOT</span> be used for
+more than one derivation. An algorithm derives all of its scalars with one
+call, under an <code>info</code> string that names it. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">The hash-to-scalar method reduces an <code>Ns + 16</code>-byte string modulo <code>p</code>.
+For a uniformly random string of this length, the resulting scalar has
+statistical distance at most <code>2^-128</code> from uniform over the nonzero scalars,
+conditioned on the result being nonzero. The 16-byte margin follows the
+hash-to-field method for a 128-bit security target
+(<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5" class="relref">Section 5</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>). <a href="#act-security" class="auto internal xref">Section 6</a> describes the random-oracle
+analysis needed to apply this sampling bound to the derived scalar and
+nonce vectors.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="keygen">
+<section id="section-3.4">
+        <h3 id="name-key-generation">
+<a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
+        </h3>
+<p id="section-3.4-1">Use <code>G.DeriveKeyPair(seed, info)</code> and <code>G.GenerateKeyPair()</code> from Section
+4.4 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
+return <code>tuple[Scalar, Element]</code>; ACT names the returned keys <code>(skM,
+pkM)</code> because the Moderator is the issuer. The Moderator publishes
+<code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="credential-scheme">
+<section id="section-4">
+      <h2 id="name-the-credential-scheme">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-the-credential-scheme" class="section-name selfRef">The Credential Scheme</a>
+      </h2>
+<p id="section-4-1">A MoLE Credential is an Anonymous Credit Token (ACT). It is a
+keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span> over a privately
+verifiable, pairing-free BBS-style signature <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, whose
+hidden state is a <em>balance</em> <code>c</code>: a nonnegative integer number of credits.
+A Moderator issues a Credential with an initial balance of its choosing,
+and the Client later <em>spends</em> from it. A spend reveals a public amount <code>s</code>
+and proves, in zero knowledge, that the Credential holds at least <code>s</code>
+credits. It also reveals a nullifier, which the Moderator checks against
+its record of accepted spends to enforce single use.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">In the same exchange the Moderator issues a <em>refund</em>: a message containing
+a signature, a public return amount <code>t</code>, and a proof of correct signing.
+The Client combines this message with its saved spend state to finalize a
+fresh Credential with balance <code>c - s + t</code>. Every spend declares a public
+<em>top-up allowance</em> <code>a</code>. When no top-up is allowed, the spend sets <code>a = 0</code>.
+The Moderator chooses <code>t</code> with <code>0 &lt;= t &lt;= s + a</code>, so the balance increases
+exactly when <code>t &gt; s</code>, by at most <code>a</code>. With <code>a = 0</code>, the return amount is
+at most <code>s</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">A presentation hides its Credential's balance beyond the public amounts
+and the predicates they establish. It is intended to be unlinkable to the
+issuance or refund that produced that Credential and to other
+presentations, subject to the assumptions and anonymity-set requirements
+of <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">This is the credential type <code>0x0001</code> of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. In the vocabulary of
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>, a spend is a <em>Presentation</em> whose <em>Predicate</em> is "the balance is at
+least <code>s</code>", and the refund message is the <em>Update</em>.<a href="#section-4-4" class="pilcrow">¶</a></p>
+<p id="section-4-5">The scheme is a two-party protocol between a Client and a Moderator. The
+Moderator holds a key pair <code>(skM, pkM)</code> and is both the issuer and the
+verifier: Credentials are not publicly verifiable, and only their issuer can
+check a spend. Each of the two flows, issuance and spending, is a single
+request/response exchange followed by a Client-local finalization.<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-6">For spending, both parties also have <code>s</code>, <code>a</code>, and a <em>spend context</em>
+        <code>ctx_spend</code> that binds the proof to the Moderator's challenge
+(<a href="#act-spending" class="auto internal xref">Section 4.6</a>). <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> defines this context as the SHA-256
+digest of the encoded challenge.<a href="#section-4-6" class="pilcrow">¶</a></p>
+<span id="name-credential-issuance-and-spe"></span><div id="fig-act">
+<figure id="figure-1">
+        <div class="alignLeft art-text artwork" id="section-4-7.1">
+<pre>
+   Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
+ ------------------------------------------------------------------
+   state, request = IssueRequest()
+
+                              request
+                              --------&gt;
+
+                 response = IssueResponse(skM, ctx_cred, c, request)
+
+                              response
+                              &lt;--------
+
+   credential = FinalizeIssue(pkM, ctx_cred, state, response)
+
+             Spending inputs at both parties: s, a, ctx_spend
+
+   state, proof = ProveSpend(credential, ctx_cred, s, a, ctx_spend)
+
+                         proof (includes nullifier k)
+                              --------&gt;
+
+                   Check and record proof.k atomically with:
+                   VerifySpend(skM, ctx_cred, ctx_spend, proof)
+                   refund = IssueRefund(skM, ctx_cred, proof, t)
+
+                               refund
+                              &lt;--------
+
+   credential = FinalizeRefund(pkM, ctx_cred, state, refund)
+</pre>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-credential-issuance-and-spe" class="selfRef">Credential issuance and spending overview</a>
+        </figcaption></figure>
+</div>
+<p id="section-4-8">The Moderator chooses the initial balance <code>c</code> and the return amount <code>t</code>
+according to its policy; both are outside the scope of this document, as is
+the nullifier store the Moderator keeps to reject a second spend of the same
+Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies both, together with the carriage of the
+four messages.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<div id="act-config">
+<section id="section-4.1">
+        <h3 id="name-configuration">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-configuration" class="section-name selfRef">Configuration</a>
+        </h3>
+<p id="section-4.1-1">A ciphersuite (<a href="#ciphersuites" class="auto internal xref">Section 5</a>) is identified by an ASCII byte string
+<code>identifier</code>, and both parties <span class="bcp14">MUST</span> agree on it before
+running the protocol. The Credential scheme is specified for the P-256
+ciphersuite of <a href="#ciphersuites" class="auto internal xref">Section 5</a>; its protocol context is<a href="#section-4.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.1-2">
+<pre>
+def CreateCredentialProtocolContext(identifier: bytes) -&gt; bytes:
+    return b"ACTv1-" + identifier
+</pre><a href="#section-4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1-3">Throughout this section and wherever the algorithms of this section are
+invoked, <code>ctx_proto</code> denotes this value, and <code>HashToGroup</code>, <code>HashToScalar</code>,
+<code>G.DeriveScalars</code>, <code>G.DeriveNonces</code>, and the key generation of <a href="#keygen" class="auto internal xref">Section 3.4</a> are
+parameterized by it.<a href="#section-4.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.1-4">The scheme has one further parameter, the <em>balance width</em> <code>L</code>. Balances and
+amounts are integers in <code>[0, 2^L)</code>. <code>L</code> <span class="bcp14">MUST</span> satisfy <code>1 &lt;= L &lt;=
+MAX_BIT_LENGTH</code>, where <code>MAX_BIT_LENGTH</code> is fixed by the ciphersuite. The size
+of a spend proof and the cost of producing and verifying it grow linearly in
+<code>L</code>, so a deployment <span class="bcp14">SHOULD</span> choose the smallest <code>L</code> that accommodates its
+largest balance. The Moderator publishes <code>L</code> together with its public key
+(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>); a Client <span class="bcp14">MUST</span> use the published value.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+<p id="section-4.1-5"><code>L</code> is fixed for the lifetime of a key and credential context.
+<a href="#act-security" class="auto internal xref">Section 6</a> shows by induction over issuances and refunds that every
+balance the Moderator has signed lies below <code>2^L</code>, assuming one value of <code>L</code>
+per key and context. A Moderator that changes <code>L</code> <span class="bcp14">MUST</span> also change the
+credential context or the key. Deployments are <span class="bcp14">RECOMMENDED</span> to include <code>L</code> in
+the credential context, for instance by appending <code>I2OSP(L, 1)</code> to it, so
+that changing <code>L</code> changes the context.<a href="#section-4.1-5" class="pilcrow">¶</a></p>
+<div id="act-generators">
+<section id="section-4.1.1">
+          <h4 id="name-generators">
+<a href="#section-4.1.1" class="section-number selfRef">4.1.1. </a><a href="#name-generators" class="section-name selfRef">Generators</a>
+          </h4>
+<p id="section-4.1.1-1">The scheme uses the group generator <code>B = G.Generator()</code> and four further
+elements <code>H1</code>, <code>H2</code>, <code>H3</code>, <code>H4</code>, fixed by the ciphersuite:<a href="#section-4.1.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.1.1-2">
+<pre>
+def CreateGenerators() -&gt; tuple[Element, Element, Element, Element]:
+    return (
+        G.HashToGroup(b"GenH1"),
+        G.HashToGroup(b"GenH2"),
+        G.HashToGroup(b"GenH3"),
+        G.HashToGroup(b"GenH4"),
+    )
+</pre><a href="#section-4.1.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.1.1-3"><code>H1</code> commits to the balance, <code>H2</code> to the nullifier, <code>H3</code> is the blinding
+base, and <code>H4</code> binds the credential context (<a href="#act-context" class="auto internal xref">Section 4.2</a>). The discrete
+logarithm of any of these elements with respect to any other, or to <code>B</code>, <span class="bcp14">MUST NOT</span> be known to any party; deriving them by hashing fixed labels ensures this.
+The five elements are pairwise distinct except with negligible probability;
+an implementation <span class="bcp14">MAY</span> verify this once when instantiating a ciphersuite.<a href="#section-4.1.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-keygen">
+<section id="section-4.1.2">
+          <h4 id="name-key-generation-2">
+<a href="#section-4.1.2" class="section-number selfRef">4.1.2. </a><a href="#name-key-generation-2" class="section-name selfRef">Key Generation</a>
+          </h4>
+<p id="section-4.1.2-1">A Moderator holds a key pair <code>(skM, pkM)</code>, generated with <code>G.GenerateKeyPair</code>
+of <a href="#keygen" class="auto internal xref">Section 3.4</a> under the protocol context of this section, or derived from a
+seed with <code>G.DeriveKeyPair</code>. The Moderator publishes <code>SerializeElement(pkM)</code> in
+its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>). The signing key <code>skM</code> is also the
+verification key: <code>VerifySpend</code> requires it.<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-context">
+<section id="section-4.2">
+        <h3 id="name-credential-context">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-credential-context" class="section-name selfRef">Credential Context</a>
+        </h3>
+<p id="section-4.2-1">Every Credential is bound at issuance to a <em>credential context</em> <code>ctx_cred</code>,
+an opaque byte string of at most <code>2^16 - 1</code> bytes chosen by the Moderator and
+agreed with the Client out of band; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> says how. It
+restricts <em>when</em>, or under which policy, a Credential may be spent, so that a
+Moderator can for instance expire all Credentials of an epoch at once without
+rotating its key.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
+<p id="section-4.2-2">The context is bound as a signed attribute. It is mapped to a scalar and
+carried under <code>H4</code>:<a href="#section-4.2-2" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.2-3">
+<pre>
+def CreateContextScalar(ctx_cred: bytes) -&gt; Scalar:
+    return G.HashToScalar(
+        U16Prefixed(ctx_cred) + b"CredentialContext"
+    )
+</pre><a href="#section-4.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.2-4">No message of this document carries the context. Each party supplies it to
+every algorithm of this section that computes or checks a signature, so a spend
+verifies only under the context the Credential was issued under. A
+Client keeps its own copy of the context for as long as it holds the
+Credential. A Credential presented under a context other than the one it
+was issued under fails verification; the mismatch is not otherwise
+signalled.<a href="#section-4.2-4" class="pilcrow">¶</a></p>
+<p id="section-4.2-5">The set of Clients sharing a credential context <span class="bcp14">MUST</span> be coarse; see
+<a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-amounts">
+<section id="section-4.3">
+        <h3 id="name-amounts">
+<a href="#section-4.3" class="section-number selfRef">4.3. </a><a href="#name-amounts" class="section-name selfRef">Amounts</a>
+        </h3>
+<p id="section-4.3-1">Balances and amounts are nonnegative integers below <code>2^L</code>. On the wire they
+are <code>uint64</code> values; in the algebra they enter as scalars.
+<code>G.scalar(x)</code> denotes the <code>Scalar</code> whose integer value is <code>x</code>, and <code>Bits(x)</code> its
+binary decomposition, least significant bit first, into <code>L</code> scalars each equal
+to <code>0</code> or <code>1</code>:<a href="#section-4.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.3-2">
+<pre>
+def Bits(x: int) -&gt; list[Scalar]:
+    return [G.scalar((x &gt;&gt; j) &amp; 1) for j in range(L)]
+</pre><a href="#section-4.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.3-3">An implementation <span class="bcp14">MUST</span> compute <code>Bits</code> in constant time with respect to <code>x</code>,
+which is the Client's hidden balance.<a href="#section-4.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.3-4">A party that receives an amount <span class="bcp14">MUST</span> check that it is below <code>2^L</code> before
+using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. The spend range proof
+bounds a difference of amounts. The bounds on each amount are needed to
+interpret this difference over the integers (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.3-4" class="pilcrow">¶</a></p>
+<p id="section-4.3-5">The comparisons <code>s &lt;= c</code> and <code>c + a &lt; 2^L</code> in <code>ProveSpend</code>, <code>t &lt;= s + a</code>
+in <code>IssueRefund</code>, and <code>t &lt;= s + a</code> and <code>v1 + t &lt; 2^L</code> in <code>FinalizeRefund</code>
+are between integers. Each sum can reach <code>2^(L+1) - 2</code>, which does not fit
+in a <code>uint64</code> when <code>L = 64</code>, and an implementation <span class="bcp14">MUST</span> compute them
+without overflow.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-proofs">
+<section id="section-4.4">
+        <h3 id="name-zero-knowledge-proofs">
+<a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-zero-knowledge-proofs" class="section-name selfRef">Zero-Knowledge Proofs</a>
+        </h3>
+<p id="section-4.4-1">Each proof of this document is a compact NARG string
+(<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-5.5" class="relref">Section 5.5</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>) for a linear relation declared where it is
+used, in the notation of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>. In a <code>Relation</code> block,
+the reserved name <code>G</code> denotes the generator <code>B</code> at element index zero.
+Compact proofs carry a single challenge scalar in place of all
+per-equation commitments, reducing the size of the spend message.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
+<p id="section-4.4-2">The ciphersuite is <code>sigma-proofs_Shake128_P256</code> of
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-8" class="relref">Section 8</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>. Its group is the group of <a href="#ciphersuites" class="auto internal xref">Section 5</a>
+with the same element and scalar encodings, so statement elements are
+encoded identically in both documents.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+<div id="act-tags">
+<section id="section-4.4.1">
+          <h4 id="name-tags">
+<a href="#section-4.4.1" class="section-number selfRef">4.4.1. </a><a href="#name-tags" class="section-name selfRef">Tags</a>
+          </h4>
+<p id="section-4.4.1-1">Every proof is bound to a <em>tag</em> (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-5.1" class="relref">Section 5.1</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>) built by <code>Tag</code>
+from a label naming the operation and a possibly empty list of <em>bindings</em>:
+public byte strings to which the proof must be bound that do not appear
+in the relation.<a href="#section-4.4.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.4.1-2">
+<pre>
+def Tag(label: bytes, bindings: Sequence[bytes]) -&gt; bytes:
+    tag = ctx_proto + b"-" + label + b"-CMPT-with-" + SIGMA_SUITE
+    for binding in bindings:
+        tag += U16Prefixed(binding)
+    return tag
+</pre><a href="#section-4.4.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4.1-3"><code>SIGMA_SUITE</code> is the ciphersuite identifier <code>"sigma-proofs_Shake128_P256"</code>.
+The labels are a fixed set, and each binding is length-prefixed, so
+distinct inputs yield distinct tags (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03#section-5.1" class="relref">Section 5.1</a> of [<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>).
+Bindings are arbitrary byte strings, not the US-ASCII text that section
+recommends; the length prefixes keep the tag unambiguous.<a href="#section-4.4.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-prover-nonces">
+<section id="section-4.4.2">
+          <h4 id="name-prover-nonces">
+<a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-prover-nonces" class="section-name selfRef">Prover Nonces</a>
+          </h4>
+<p id="section-4.4.2-1"><code>ProveCompact</code> draws one nonce per witness scalar from its <code>rng</code>, in
+scalar-index order. The <code>rng</code> <span class="bcp14">MUST</span> return, on its <code>i</code>-th call, the value
+that <code>ProverNonces.random_scalar</code> computes below. The nonces are derived
+together with <code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the witness,
+the session, the relation, and fresh randomness; see "Derived prover nonces"
+in <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.4.2-2">
+<pre>
+class ProverNonces:
+    def __init__(
+        self,
+        witness: Sequence[Scalar],
+        session_id: bytes,
+        instance: bytes,
+    ) -&gt; None:
+        self.nonces = G.DeriveNonces(
+            b"".join(G.SerializeScalar(w) for w in witness),
+            b"nonce",
+            session_id + I2OSP(len(instance), 4) + instance,
+            random(Nseed),
+            len(witness),
+        )
+        self.count = 0
+
+    def random_scalar(self) -&gt; int:
+        i = self.count
+        self.count = i + 1
+        return int(self.nonces[i])
+</pre><a href="#section-4.4.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.4.2-3"><code>witness</code> is the prover's whole witness in scalar-index order;
+<code>session_id</code> is the 32-byte <code>DeriveSessionID(tag)</code> of
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03#section-5.1" class="relref">Section 5.1</a> of [<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>; and <code>instance</code> is the
+<code>SerializeLinearRelation</code> of the relation (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.6" class="relref">Section 3.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>).<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.4.2-4">This rule binds only the prover; a verifier following <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> accepts
+these proofs unchanged. The derivation is deterministic in the witness,
+the tag, the relation, and <code>rand</code>: replaying the bytes of <code>random</code>
+reproduces a proof byte for byte, which the test vectors of
+<a href="#act-test-vectors" class="auto internal xref">Appendix A</a> rely on, and a random source that repeats all of <code>rand</code>
+reproduces the same proof.
+A retried operation draws fresh <code>rand</code> and produces a different proof.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-prove">
+<section id="section-4.4.3">
+          <h4 id="name-proving-and-verifying">
+<a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-proving-and-verifying" class="section-name selfRef">Proving and Verifying</a>
+          </h4>
+<p id="section-4.4.3-1">A relation is proven and verified as follows, where <code>relation</code> is the
+declared relation compiled as in <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, and
+<code>DeriveSessionID</code>, <code>SerializeLinearRelation</code>, <code>ProveCompact</code>, and
+<code>VerifyCompact</code> are those of <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span> and <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>.<a href="#section-4.4.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.4.3-2">
+<pre>
+def Prove(
+    tag: bytes, relation: LinearRelation, witness: Sequence[Scalar]
+) -&gt; bytes:
+    nonces = ProverNonces(
+        witness,
+        DeriveSessionID(tag),
+        SerializeLinearRelation(relation),
+    )
+    return ProveCompact(tag, relation, witness, nonces)
+
+
+def Verify(
+    tag: bytes, relation: LinearRelation, proof: bytes
+) -&gt; bool:
+    return VerifyCompact(tag, relation, proof)
+</pre><a href="#section-4.4.3-2" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="act-issuance">
+<section id="section-4.5">
+        <h3 id="name-issuance">
+<a href="#section-4.5" class="section-number selfRef">4.5. </a><a href="#name-issuance" class="section-name selfRef">Issuance</a>
+        </h3>
+<p id="section-4.5-1">Issuance produces a signature on the attributes <code>(c, k, r, ctx)</code>, whose
+group-element encoding is <code>B + c * H1 + k * H2 + r * H3 + ctx * H4</code>.
+Here <code>c</code> is the balance chosen by the Moderator, <code>ctx</code> is the context
+scalar, and <code>k</code> and <code>r</code> are chosen by the Client and hidden from the
+Moderator:<a href="#section-4.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5-2">
+<pre>
+  IssueRequest -&gt; IssueResponse -&gt; FinalizeIssue
+</pre><a href="#section-4.5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5-3"><code>IssueRequest</code> and <code>FinalizeIssue</code> are run by the Client, and
+<code>IssueResponse</code> by the Moderator. The Python records are:<a href="#section-4.5-3" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.5-4">
+<pre>
+class ClientIssuanceState(NamedTuple):
+    k: Scalar
+    r: Scalar
+    K: Element
+
+
+class IssueRequestMessage(NamedTuple):
+    K: Element
+    pok: bytes
+
+
+class IssueResponseMessage(NamedTuple):
+    A: Element
+    e: Scalar
+    c: int
+    pok: bytes
+
+
+class Credential(NamedTuple):
+    k: Scalar
+    c: int
+    r: Scalar
+    A: Element
+    e: Scalar
+</pre><a href="#section-4.5-4" class="pilcrow">¶</a>
+</div>
+<div id="act-signing-exponent">
+<section id="section-4.5.1">
+          <h4 id="name-signing-exponent">
+<a href="#section-4.5.1" class="section-number selfRef">4.5.1. </a><a href="#name-signing-exponent" class="section-name selfRef">Signing Exponent</a>
+          </h4>
+<p id="section-4.5.1-1"><code>IssueResponse</code> here and <code>IssueRefund</code> (<a href="#act-refund" class="auto internal xref">Section 4.6.4</a>) choose the
+exponent <code>e</code> of the signature <code>(A, e)</code>. It is derived with <code>G.DeriveNonces</code>
+(Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the signing key, the group-element
+encoding of the signed attributes, and fresh randomness. Repeating these
+inputs reproduces the same signature. Changing the signed encoding changes
+the derivation input even when the random source repeats
+(<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.5.1-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.5.1-2">
+<pre>
+def SigningExponent(
+    skM: Scalar, label: bytes, X_A: Element
+) -&gt; Scalar:
+    instance = U16Prefixed(label) + U16Prefixed(
+        G.SerializeElement(X_A)
+    )
+    (e,) = G.DeriveNonces(
+        G.SerializeScalar(skM), b"e", instance, random(Nseed), 1
+    )
+    if (e + skM).isZero():
+        raise DeriveError
+    return e
+</pre><a href="#section-4.5.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.1-3"><code>label</code> is <code>IssueResponse</code> or <code>Refund</code>, the tag label of the
+accompanying proof, and <code>X_A</code> is the group-element encoding being signed.
+The abort when <code>e + skM</code> is zero has probability about <code>1/p</code>; a caller that
+retries draws fresh randomness.<a href="#section-4.5.1-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-issue-request">
+<section id="section-4.5.2">
+          <h4 id="name-issuance-request">
+<a href="#section-4.5.2" class="section-number selfRef">4.5.2. </a><a href="#name-issuance-request" class="section-name selfRef">Issuance Request</a>
+          </h4>
+<p id="section-4.5.2-1">The Client commits to a fresh nullifier <code>k</code> and blinding factor <code>r</code>, and
+proves that it knows the opening:<a href="#section-4.5.2-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5.2-2">
+<pre>
+Relation Commitment(H2, H3, K):
+  Witness: k, r
+  Equations:
+    K = k * H2 + r * H3
+</pre><a href="#section-4.5.2-2" class="pilcrow">¶</a>
+</div>
+<div class="lang-python sourcecode" id="section-4.5.2-3">
+<pre>
+def IssueRequest() -&gt; (
+    tuple[ClientIssuanceState, IssueRequestMessage]
+):
+    rand = random(Nseed)
+    (k, r) = G.DeriveScalars(rand, b"IssueRequest", 2)
+
+    K = k * H2 + r * H3
+
+    tag = Tag(b"IssueRequest", [])
+    pok = Prove(tag, CommitmentRelation(K), [k, r])
+
+    return ClientIssuanceState(k, r, K), IssueRequestMessage(K, pok)
+</pre><a href="#section-4.5.2-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.2-4">The nullifier <code>k</code> is revealed when the Credential is spent, and the
+Moderator uses it to reject a second spend. A Client <span class="bcp14">MUST NOT</span> reuse it
+across Credentials, and <span class="bcp14">MUST NOT</span> finalize one <code>state</code> against two
+responses: the two Credentials would share <code>k</code>, and at most one of them
+can be spent (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.5.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-issue-response">
+<section id="section-4.5.3">
+          <h4 id="name-issuance-response">
+<a href="#section-4.5.3" class="section-number selfRef">4.5.3. </a><a href="#name-issuance-response" class="section-name selfRef">Issuance Response</a>
+          </h4>
+<p id="section-4.5.3-1">The Moderator checks the request, chooses the balance <code>c</code>, and signs the
+encoding <code>X_A = B + c * H1 + ctx * H4 + K</code> as <code>A = X_A / (e + skM)</code>. It
+proves that <code>A</code> is such a signature under <code>pkM</code> without revealing <code>skM</code>,
+with the witness <code>x = e + skM</code> and <code>X_G = x * B</code>, which the Client
+computes as <code>e * B + pkM</code>:<a href="#section-4.5.3-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.5.3-2">
+<pre>
+Relation Signature(A, X_A, X_G):
+  Witness: x
+  Equations:
+    X_A = x * A
+    X_G = x * G
+</pre><a href="#section-4.5.3-2" class="pilcrow">¶</a>
+</div>
+<div class="lang-python sourcecode" id="section-4.5.3-3">
+<pre>
+def IssueResponse(
+    skM: Scalar,
+    ctx_cred: bytes,
+    c: int,
+    request: IssueRequestMessage,
+) -&gt; IssueResponseMessage:
+    K, pok = request
+
+    if not 0 &lt;= c &lt; 2**L:
+        raise AmountError
+
+    tag = Tag(b"IssueRequest", [])
+    if not Verify(tag, CommitmentRelation(K), pok):
+        raise VerifyError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+
+    e = SigningExponent(skM, b"IssueResponse", X_A)
+    x = e + skM
+    A = G.ScalarInverse(x) * X_A
+    X_G = G.ScalarMultGen(x)
+
+    tag = Tag(b"IssueResponse", [])
+    pok = Prove(tag, SignatureRelation(A, X_A, X_G), [x])
+
+    return IssueResponseMessage(A, e, c, pok)
+</pre><a href="#section-4.5.3-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.3-4">The check <code>c &lt; 2^L</code> bounds every issued balance; the soundness of
+spending relies on it (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.5.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-finalize-issuance">
+<section id="section-4.5.4">
+          <h4 id="name-issuance-finalization">
+<a href="#section-4.5.4" class="section-number selfRef">4.5.4. </a><a href="#name-issuance-finalization" class="section-name selfRef">Issuance Finalization</a>
+          </h4>
+<p id="section-4.5.4-1">The Client checks the response and assembles the Credential.<a href="#section-4.5.4-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.5.4-2">
+<pre>
+def FinalizeIssue(
+    pkM: Element,
+    ctx_cred: bytes,
+    state: ClientIssuanceState,
+    response: IssueResponseMessage,
+) -&gt; Credential:
+    k, r, K = state
+    A, e, c, pok = response
+
+    if not 0 &lt;= c &lt; 2**L:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + G.scalar(c) * H1 + ctx * H4 + K
+    X_G = G.ScalarMultGen(e) + pkM
+
+    tag = Tag(b"IssueResponse", [])
+    if not Verify(tag, SignatureRelation(A, X_A, X_G), pok):
+        raise VerifyError
+
+    return Credential(k, c, r, A, e)
+</pre><a href="#section-4.5.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.5.4-3">A Credential is the tuple <code>(k, c, r, A, e)</code>; its encoding, for storage, is
+given in <a href="#act-wire" class="auto internal xref">Section 4.7</a>. It is never sent. The Client also retains
+<code>ctx_cred</code>, which is not part of the Credential but is needed to spend it.<a href="#section-4.5.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-spending">
+<section id="section-4.6">
+        <h3 id="name-spending">
+<a href="#section-4.6" class="section-number selfRef">4.6. </a><a href="#name-spending" class="section-name selfRef">Spending</a>
+        </h3>
+<p id="section-4.6-1">Spending consumes a Credential with balance <code>c</code> and produces one with
+balance <code>c - s + t</code>. The amount <code>s</code> and the top-up allowance <code>a</code> are
+chosen by the Client to match the Moderator's challenge (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>);
+the return amount <code>t</code>, with <code>0 &lt;= t &lt;= s + a</code>, is chosen by the
+Moderator. With <code>s = a = 0</code> a spend changes nothing but the nullifier and
+refreshes the Credential. Spending consists of four algorithms:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.6-2">
+<pre>
+  ProveSpend -&gt; VerifySpend -&gt; IssueRefund -&gt; FinalizeRefund
+</pre><a href="#section-4.6-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6-3"><code>ProveSpend</code> and <code>FinalizeRefund</code> are run by the Client; <code>VerifySpend</code>
+and <code>IssueRefund</code> by the Moderator, in that order and only if <code>VerifySpend</code>
+succeeds.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
+<p id="section-4.6-4">A spend is bound to a <em>spend context</em> <code>ctx_spend</code>, an opaque byte string
+of at most <code>2^16 - 1</code> bytes supplied by the verifier and known to the
+Client. The spend proof uses <code>Tag(b"Spend", [ctx_spend])</code>, with
+<code>ctx_spend</code> as its sole binding (<a href="#act-tags" class="auto internal xref">Section 4.4.1</a>). <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
+sets it to the SHA-256 digest of the challenge that triggered the
+presentation. The top-up allowance is bound by the relation: a proof
+produced for one value of <code>a</code> does not verify under another, so a
+Moderator authorizes a top-up by verifying the proof with the value it
+accepts, and a Moderator that offers none <span class="bcp14">MUST</span> reject a spend with
+<code>a != 0</code>.<a href="#section-4.6-4" class="pilcrow">¶</a></p>
+<p id="section-4.6-5">The Python records for spending are:<a href="#section-4.6-5" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6-6">
+<pre>
+class ClientSpendState(NamedTuple):
+    kstar: Scalar
+    r_star: Scalar
+    v1: int
+    s: int
+    a: int
+    K_prime: Element
+
+
+class SpendMessage(NamedTuple):
+    k: Scalar
+    s: int
+    a: int
+    A_prime: Element
+    B_bar: Element
+    K_n: Element
+    Com1: Sequence[Element]
+    Com_c: Element | None
+    Com2: Sequence[Element]
+    pok: bytes
+
+
+class RefundMessage(NamedTuple):
+    A: Element
+    e: Scalar
+    t: int
+    pok: bytes
+</pre><a href="#section-4.6-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6-7">An absent commitment list is empty, and an absent <code>Com_c</code> is <code>None</code>.<a href="#section-4.6-7" class="pilcrow">¶</a></p>
+<div id="act-spend-relation">
+<section id="section-4.6.1">
+          <h4 id="name-the-spend-relation">
+<a href="#section-4.6.1" class="section-number selfRef">4.6.1. </a><a href="#name-the-spend-relation" class="section-name selfRef">The Spend Relation</a>
+          </h4>
+<p id="section-4.6.1-1">A spend shows two things about the hidden balance <code>c</code>: the <em>remainder</em>
+            <code>v1 = c - s</code> is nonnegative, so the Credential covers the spend, and the
+<em>topped-up balance</em> <code>v2 = c + a</code> is below <code>2^L</code>, so the refund may return
+up to <code>s + a</code> without the balance exceeding <code>2^L - 1</code>. Each range proof
+uses the bits of its value. The proof for <code>v1</code> is needed when <code>s &gt; 0</code>, and
+the proof for <code>v2</code> when <code>a &gt; 0</code>. When the corresponding amount is zero,
+the value equals <code>c</code>, whose range follows from issuance and prior refunds
+(<a href="#act-security" class="auto internal xref">Section 6</a>). The relation therefore has four shapes, selected by
+whether <code>s</code> and <code>a</code> are zero; a group marked with a condition below is
+present exactly when it holds.<a href="#section-4.6.1-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.6.1-2">
+<pre>
+Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n,
+               s, a,
+               Com1[0], ..., Com1[L-1],           (s &gt; 0)
+               Com_c,                             (s = 0)
+               Com2[0], ..., Com2[L-1]):          (a &gt; 0)
+  Witness: e, r2, r3, c, r, kstar, rn,
+           b1[0], ..., b1[L-1],
+           s1[0], ..., s1[L-1],
+           u1[0], ..., u1[L-1],                   (s &gt; 0)
+           rc,                                    (s = 0)
+           b2[0], ..., b2[L-1],
+           s2[0], ..., s2[L-1],
+           u2[0], ..., u2[L-1]                    (a &gt; 0)
+  Equations:
+    A_bar = -e * A_prime + r2 * B_bar
+    H1_prime = r3 * B_bar - c * H1 - r * H3
+    K_n = kstar * H2 + rn * H3
+    for j in 0, ..., L-1:                         (s &gt; 0)
+      Com1[j] = b1[j] * H1 + s1[j] * H3
+      Com1[j] = b1[j] * Com1[j] + u1[j] * H3
+    s * H1 + sum_j 2^j * Com1[j]
+      = c * H1 + sum_j 2^j * s1[j] * H3           (s &gt; 0)
+    Com_c = c * H1 + rc * H3                      (s = 0)
+    for j in 0, ..., L-1:                         (a &gt; 0)
+      Com2[j] = b2[j] * H1 + s2[j] * H3
+      Com2[j] = b2[j] * Com2[j] + u2[j] * H3
+    -a * H1 + sum_j 2^j * Com2[j]
+      = c * H1 + sum_j 2^j * s2[j] * H3           (a &gt; 0)
+</pre><a href="#section-4.6.1-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6.1-3">The first equation states that <code>A_prime</code> is a rerandomization of a
+signature under <code>skM</code>, since the verifier computes <code>A_bar = skM * A_prime</code>.
+The second opens the signed encoding to the hidden balance <code>c</code> and blinding
+factor <code>r</code>, relative to the public <code>H1_prime</code>, which fixes the nullifier
+<code>k</code> and the context. The third opens <code>K_n</code> to the next nullifier and so
+shows that <code>K_n</code> has no <code>H1</code> component, which would otherwise raise the
+balance the refund signs.<a href="#section-4.6.1-3" class="pilcrow">¶</a></p>
+<p id="section-4.6.1-4">Each pair of bit equations is the <code>Bit</code> relation of
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, with <code>u[j] = (1 - b[j]) * s[j]</code> for an honest
+prover. The two sum equations tie the
+committed bits to the balance: the left-hand side of the first opens under
+<code>H1</code> to <code>s + v1</code>, so <code>c = s + v1</code> with <code>0 &lt;= v1 &lt; 2^L</code>; the second gives
+<code>c + a = v2 &lt; 2^L</code>. When <code>s = 0</code>, <code>Com_c</code> opens to <code>c</code> directly. The
+equations share the witness <code>c</code>. The witness scalars are supplied in the
+order listed.<a href="#section-4.6.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-prove-spend">
+<section id="section-4.6.2">
+          <h4 id="name-spend-proof-generation">
+<a href="#section-4.6.2" class="section-number selfRef">4.6.2. </a><a href="#name-spend-proof-generation" class="section-name selfRef">Spend Proof Generation</a>
+          </h4>
+<p id="section-4.6.2-1">The Client rerandomizes its signature, commits to the next nullifier and
+to the remainder and, when there is a top-up, to the topped-up balance,
+and proves the spend relation.<a href="#section-4.6.2-1" class="pilcrow">¶</a></p>
+<div class="breakable lang-python sourcecode" id="section-4.6.2-2">
+<pre>
+def ProveSpend(
+    credential: Credential,
+    ctx_cred: bytes,
+    s: int,
+    a: int,
+    ctx_spend: bytes,
+) -&gt; tuple[ClientSpendState, SpendMessage]:
+    k, c, r, A, e = credential
+
+    if not (0 &lt;= s &lt; 2**L and 0 &lt;= a &lt; 2**L):
+        raise AmountError
+    if s &gt; c or c + a &gt;= 2**L:
+        raise AmountError
+    v1 = c - s
+    v2 = c + a
+
+    ctx = CreateContextScalar(ctx_cred)
+
+    # Four fixed scalars, then L for the bits of the remainder or
+    # one for its commitment, then L for the bits of the topped-up
+    # balance.
+    n = 4 + (L if s &gt; 0 else 1) + (L if a &gt; 0 else 0)
+    derived = G.DeriveScalars(random(Nseed), b"ProveSpend", n)
+    (r1, r2, kstar, rn) = derived[:4]
+    next_scalar = 4
+
+    # Rerandomize the signature.
+    B_msg = B + G.scalar(c) * H1 + k * H2 + r * H3 + ctx * H4
+    A_prime = (r1 * r2) * A
+    B_bar = r1 * B_msg
+    r3 = G.ScalarInverse(r1)
+    A_bar = r2 * B_bar - e * A_prime
+
+    # Commit to the next Credential's nullifier.
+    K_n = kstar * H2 + rn * H3
+
+    Com1: list[Element] = []
+    Com_c: Element | None = None
+    Com2: list[Element] = []
+    witness = [e, r2, r3, G.scalar(c), r, kstar, rn]
+
+    # Commit to the remainder: bitwise when it must be shown to be
+    # nonnegative, in one commitment when it is the balance itself.
+    if s &gt; 0:
+        b1 = Bits(v1)
+        s1 = []
+        r_star = rn
+        for j in range(L):
+            s1.append(derived[next_scalar + j])
+            Com1.append(b1[j] * H1 + s1[j] * H3)
+            r_star = r_star + G.scalar(2**j) * s1[j]
+        u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(L)]
+        witness += b1 + s1 + u1
+        next_scalar = next_scalar + L
+    else:
+        rc = derived[next_scalar]
+        Com_c = G.scalar(c) * H1 + rc * H3
+        r_star = rn + rc
+        witness += [rc]
+        next_scalar = next_scalar + 1
+
+    # Commit to the topped-up balance when there is a top-up.
+    if a &gt; 0:
+        b2 = Bits(v2)
+        s2 = []
+        for j in range(L):
+            s2.append(derived[next_scalar + j])
+            Com2.append(b2[j] * H1 + s2[j] * H3)
+        u2 = [(G.scalar(1) - b2[j]) * s2[j] for j in range(L)]
+        witness += b2 + s2 + u2
+
+    H1_prime = B + k * H2 + ctx * H4
+    relation = SpendRelation(
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+    )
+    pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
+
+    # The commitment the refund will sign, opened by the new
+    # Credential's secrets; the Moderator recomputes it from `proof`.
+    K_prime = G.scalar(v1) * H1 + kstar * H2 + r_star * H3
+
+    state = ClientSpendState(kstar, r_star, v1, s, a, K_prime)
+    proof = SpendMessage(
+        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
+    )
+
+    return state, proof
+</pre><a href="#section-4.6.2-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6.2-3"><code>A_bar</code> is not sent: the Moderator computes it as <code>skM * A_prime</code>. The
+values <code>kstar</code> and <code>r_star</code> are the nullifier and blinding factor of the
+Credential the refund will produce. They open <code>K_prime</code>, which equals
+<code>K_n + V1</code> with <code>V1</code> the balance commitment of <code>BalanceCommitment</code>
+below; the Moderator recomputes it from <code>proof</code> and signs it in
+<code>IssueRefund</code>, and the Client keeps it in <code>state</code> to check the refund.<a href="#section-4.6.2-3" class="pilcrow">¶</a></p>
+<p id="section-4.6.2-4"><code>ProveSpend</code> consumes the Credential: an implementation <span class="bcp14">MUST NOT</span> allow a
+second call on the same Credential value. The Client <span class="bcp14">MUST</span> treat the
+Credential as spent, and <span class="bcp14">MUST</span> have stored <code>state</code> durably, no later than
+the moment <code>proof</code> becomes observable outside the Client; the refund is
+unusable without the state, and a second proof from the same Credential
+reveals the same nullifier (<a href="#act-security" class="auto internal xref">Section 6</a>). <code>state</code> holds everything
+<code>FinalizeRefund</code> needs. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> additionally requires retaining
+<code>proof</code> for refund recovery.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-verify-spend">
+<section id="section-4.6.3">
+          <h4 id="name-spend-verification">
+<a href="#section-4.6.3" class="section-number selfRef">4.6.3. </a><a href="#name-spend-verification" class="section-name selfRef">Spend Verification</a>
+          </h4>
+<p id="section-4.6.3-1">The Moderator checks the spend proof under its own key and contexts.<a href="#section-4.6.3-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6.3-2">
+<pre>
+def VerifySpend(
+    skM: Scalar,
+    ctx_cred: bytes,
+    ctx_spend: bytes,
+    proof: SpendMessage,
+) -&gt; None:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if not (0 &lt;= s &lt; 2**L and 0 &lt;= a &lt; 2**L):
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    A_bar = skM * A_prime
+    H1_prime = B + k * H2 + ctx * H4
+
+    relation = SpendRelation(
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+    )
+    if not Verify(Tag(b"Spend", [ctx_spend]), relation, pok):
+        raise VerifyError
+</pre><a href="#section-4.6.3-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6.3-3">The shape of <code>proof</code> is fixed by <code>s</code> and <code>a</code> (<a href="#act-wire" class="auto internal xref">Section 4.7</a>): <code>Com1</code> is
+present exactly when <code>s &gt; 0</code>, <code>Com_c</code> exactly when <code>s = 0</code>, and <code>Com2</code>
+exactly when <code>a &gt; 0</code>; a message of any other shape is rejected at
+deserialization. The amount checks of <a href="#act-amounts" class="auto internal xref">Section 4.3</a> precede
+verification (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.6.3-3" class="pilcrow">¶</a></p>
+<p id="section-4.6.3-4"><code>VerifySpend</code> does not check whether <code>k</code> has been seen before, nor whether
+the Moderator is willing to grant the top-up <code>a</code>. The Moderator <span class="bcp14">MUST</span> do
+both, and <span class="bcp14">MUST</span> record <code>k</code> atomically with verification and with the
+issuance of the refund (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-4.6.3-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-refund">
+<section id="section-4.6.4">
+          <h4 id="name-refund-issuance">
+<a href="#section-4.6.4" class="section-number selfRef">4.6.4. </a><a href="#name-refund-issuance" class="section-name selfRef">Refund Issuance</a>
+          </h4>
+<p id="section-4.6.4-1">After a successful <code>VerifySpend</code>, the Moderator signs the remainder plus
+its chosen return amount, proving the <code>Signature</code> relation under the
+<code>Refund</code> tag.<a href="#section-4.6.4-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6.4-2">
+<pre>
+def BalanceCommitment(proof: SpendMessage) -&gt; Element:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if s &gt; 0:
+        V1 = G.Identity()
+        for j in range(L):
+            V1 = V1 + G.scalar(2**j) * Com1[j]
+    else:
+        if Com_c is None:
+            raise VerifyError
+        V1 = Com_c
+
+    return K_n + V1
+
+
+def IssueRefund(
+    skM: Scalar, ctx_cred: bytes, proof: SpendMessage, t: int
+) -&gt; RefundMessage:
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+
+    if not 0 &lt;= t &lt; 2**L or t &gt; s + a:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    K_prime = BalanceCommitment(proof)
+    X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
+
+    e = SigningExponent(skM, b"Refund", X_A)
+    x = e + skM
+    A = G.ScalarInverse(x) * X_A
+    X_G = G.ScalarMultGen(x)
+
+    tag = Tag(b"Refund", [])
+    pok = Prove(tag, SignatureRelation(A, X_A, X_G), [x])
+
+    return RefundMessage(A, e, t, pok)
+</pre><a href="#section-4.6.4-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6.4-3">The comparison <code>t &lt;= s + a</code> is between integers (<a href="#act-amounts" class="auto internal xref">Section 4.3</a>). This
+bound keeps the new balance below <code>2^L</code> without a range proof over the
+refund (<a href="#act-security" class="auto internal xref">Section 6</a>). The Moderator places the new balance anywhere in
+<code>[c - s, c + a]</code> without learning where in that interval it falls.<a href="#section-4.6.4-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-finalize-refund">
+<section id="section-4.6.5">
+          <h4 id="name-refund-finalization">
+<a href="#section-4.6.5" class="section-number selfRef">4.6.5. </a><a href="#name-refund-finalization" class="section-name selfRef">Refund Finalization</a>
+          </h4>
+<p id="section-4.6.5-1">The Client checks the refund and assembles its new Credential.<a href="#section-4.6.5-1" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-4.6.5-2">
+<pre>
+def FinalizeRefund(
+    pkM: Element,
+    ctx_cred: bytes,
+    state: ClientSpendState,
+    refund: RefundMessage,
+) -&gt; Credential:
+    kstar, r_star, v1, s, a, K_prime = state
+    A, e, t, pok = refund
+
+    if not 0 &lt;= t &lt; 2**L or t &gt; s + a or v1 + t &gt;= 2**L:
+        raise AmountError
+
+    ctx = CreateContextScalar(ctx_cred)
+    X_A = B + K_prime + G.scalar(t) * H1 + ctx * H4
+    X_G = G.ScalarMultGen(e) + pkM
+
+    tag = Tag(b"Refund", [])
+    if not Verify(tag, SignatureRelation(A, X_A, X_G), pok):
+        raise VerifyError
+
+    return Credential(kstar, v1 + t, r_star, A, e)
+</pre><a href="#section-4.6.5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-4.6.5-3">A refund issued for a different spend signs a different <code>K_prime</code> and
+fails verification. <code>FinalizeRefund</code> consumes <code>state</code>: a Client <span class="bcp14">MUST NOT</span>
+finalize one spend state against two refunds, since the two Credentials
+would share the nullifier <code>kstar</code>. The Client <span class="bcp14">MUST NOT</span> spend the consumed
+Credential again, whether or not the refund arrives. A Client that has
+sent a spend proof and not received a valid refund keeps <code>state</code> and <span class="bcp14">MAY</span>
+ask the Moderator for the refund again; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> describes how, and
+the Moderator recognizes the request by the recorded nullifier <code>k</code>. The
+Moderator can answer with the refund it issued, which requires storing
+it with the nullifier, or run <code>IssueRefund</code> again. The latter produces a
+second signature under a different exponent; this is harmless, because
+every refund of one spend carries the nullifier <code>kstar</code>, so at most one
+of them can ever be spent (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.6.5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-wire">
+<section id="section-4.7">
+        <h3 id="name-encodings">
+<a href="#section-4.7" class="section-number selfRef">4.7. </a><a href="#name-encodings" class="section-name selfRef">Encodings</a>
+        </h3>
+<p id="section-4.7-1">This section gives the encoding of the four messages exchanged and of the
+Credential the Client stores. <code>Element</code> and <code>Scalar</code> are the fixed-length
+encodings of <code>SerializeElement</code> and <code>SerializeScalar</code>, of <code>Ne</code> and <code>Ns</code>
+bytes. A recipient <span class="bcp14">MUST</span> deserialize every received <code>Element</code> and <code>Scalar</code>
+and <span class="bcp14">MUST</span> raise a <code>DeserializeError</code> if deserialization fails, which in
+particular rejects the identity element. Amounts are <code>uint64</code> values,
+checked against <code>2^L</code> as <a href="#act-amounts" class="auto internal xref">Section 4.3</a> requires.<a href="#section-4.7-1" class="pilcrow">¶</a></p>
+<p id="section-4.7-2">Every <code>pok</code> field is a compact NARG string (<a href="#act-proofs" class="auto internal xref">Section 4.4</a>) of
+<code>(Nw + 1) * Ns</code> bytes, where <code>Nw</code> is the number of witness scalars of its
+relation: <code>2</code> for the request, <code>1</code> for the response and the refund, and
+for the spend<a href="#section-4.7-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-4.7-3">
+<pre>
+  Nw = 7 + (3 * L if s &gt; 0 else 1) + (3 * L if a &gt; 0 else 0)
+</pre><a href="#section-4.7-3" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-4">A recipient <span class="bcp14">MUST</span> reject a message whose <code>pok</code> has any other length, and
+<span class="bcp14">MUST</span> reject a <code>SpendMessage</code> whose shape does not match its <code>s</code> and <code>a</code>.
+Rejecting the identity element at deserialization keeps every relation of
+this document valid (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.5" class="relref">Section 3.5</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>).<a href="#section-4.7-4" class="pilcrow">¶</a></p>
+<p id="section-4.7-5">The Client opens issuance with its commitment:<a href="#section-4.7-5" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.7-6">
+<pre>
+struct {
+  Element K;
+  opaque pok[3 * Ns];
+} IssueRequestMessage;
+</pre><a href="#section-4.7-6" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-7">The Moderator answers with the signature and the balance it chose:<a href="#section-4.7-7" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.7-8">
+<pre>
+struct {
+  Element A;
+  Scalar e;
+  uint64 c;
+  opaque pok[2 * Ns];
+} IssueResponseMessage;
+</pre><a href="#section-4.7-8" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-9">The Client spends with a proof whose shape follows its two amounts. The
+<code>select</code> clauses distinguish a zero amount from a nonzero one:<a href="#section-4.7-9" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.7-10">
+<pre>
+struct {
+  Scalar k;
+  uint64 s;
+  uint64 a;
+  Element A_prime;
+  Element B_bar;
+  Element K_n;
+  select (s) {
+    case 0:  Element Com_c;
+    default: Element Com1[L * Ne];
+  };
+  select (a) {
+    case 0:  struct {};
+    default: Element Com2[L * Ne];
+  };
+  opaque pok[(Nw + 1) * Ns];
+} SpendMessage;
+</pre><a href="#section-4.7-10" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-11">The Moderator answers a valid spend with the refund:<a href="#section-4.7-11" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.7-12">
+<pre>
+struct {
+  Element A;
+  Scalar e;
+  uint64 t;
+  opaque pok[2 * Ns];
+} RefundMessage;
+</pre><a href="#section-4.7-12" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-13">Neither context appears in these messages; both are inputs held by each party
+(<a href="#act-context" class="auto internal xref">Section 4.2</a>, <a href="#act-spending" class="auto internal xref">Section 4.6</a>). The Credential is held by the Client
+and never sent:<a href="#section-4.7-13" class="pilcrow">¶</a></p>
+<div class="lang-tls-presentation sourcecode" id="section-4.7-14">
+<pre>
+struct {
+  Scalar k;
+  uint64 c;
+  Scalar r;
+  Element A;
+  Scalar e;
+} Credential;
+</pre><a href="#section-4.7-14" class="pilcrow">¶</a>
+</div>
+<p id="section-4.7-15">With <code>Ne = 33</code> and <code>Ns = 32</code>, the request is <code>129</code> bytes and the response
+and refund are <code>137</code> bytes each. The spend message is <code>129 * L + 403</code>
+bytes for an ordinary spend (<code>s &gt; 0</code>, <code>a = 0</code>), <code>129 * L + 468</code> for a pure
+top-up (<code>s = 0</code>, <code>a &gt; 0</code>), <code>258 * L + 403</code> when both amounts are nonzero,
+and <code>468</code> bytes for a refresh (<code>s = a = 0</code>). The spend message dominates
+and is linear in <code>L</code>; <a href="#act-config" class="auto internal xref">Section 4.1</a> asks deployments to keep <code>L</code> small
+for this reason.<a href="#section-4.7-15" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="ciphersuites">
+<section id="section-5">
+      <h2 id="name-ciphersuites">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-ciphersuites" class="section-name selfRef">Ciphersuites</a>
+      </h2>
+<p id="section-5-1">The Credential scheme is specified for the P-256 ciphersuite below. A
+ciphersuite fixes the group, hash functions, encodings, and domain separation
+tags. Both parties agree on the ciphersuite as specified in <a href="#act-config" class="auto internal xref">Section 4.1</a>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2"><code>ctx_proto</code> is as computed in <a href="#act-config" class="auto internal xref">Section 4.1</a>. The seed length, that of the
+random input to every derivation, is <code>Nseed = 48</code> bytes.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">For the Credential scheme, the P-256 ciphersuite sets <code>MAX_BIT_LENGTH = 64</code>,
+which allows amounts to be carried as <code>uint64</code> values and keeps <code>2^(L+1)</code>
+far below the group order (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-5-3" class="pilcrow">¶</a></p>
+<p id="section-5-4">ACTv1 is specified against the <code>-03</code> revisions of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> and
+<span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>. A later revision that changes the NARG string or its
+derivation <span class="bcp14">MUST</span> be adopted under a new ciphersuite identifier, and so a new
+<code>ctx_proto</code>; <code>ACTv1-P256-SHA256</code> then never denotes two transcript
+formats.<a href="#section-5-4" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5-5.1">
+          <p id="section-5-5.1.1"><strong>TODO.</strong> Revisit once <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> and <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span> are stable, and
+move the pin to <code>-04</code> when it is published.<a href="#section-5-5.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<div id="actp-256-sha-256">
+<section id="section-5.1">
+        <h3 id="name-actp-256-sha-256">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-actp-256-sha-256" class="section-name selfRef">ACT(P-256, SHA-256)</a>
+        </h3>
+<p id="section-5.1-1">This ciphersuite uses P-256 (secp256r1) for the group and
+SHA-256 for the hash function. The value of the ciphersuite
+identifier is <code>b"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
+algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. ACT uses
+<code>Ne = 33</code>, <code>Ns = 32</code>, and <code>Nseed = 48</code>. Instantiate every hash with the
+ACT <code>ctx_proto</code> of <a href="#act-config" class="auto internal xref">Section 4.1</a>, including the explicit DSTs of
+<code>G.DeriveScalars</code>, <code>G.ExpandScalars</code>, <code>G.DeriveNonces</code>, and
+<code>G.DeriveKeyPair</code>. The group-element permutation of Rollatini is not used.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="randomness">
+<section id="section-5.2">
+        <h3 id="name-randomness">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
+        </h3>
+<p id="section-5.2-1">Every random value in this document is drawn with <code>random</code> and consumed in
+inputs of <code>Nseed</code> bytes, by <code>G.DeriveScalars</code> (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>), by
+<code>G.DeriveKeyPair</code> (<a href="#keygen" class="auto internal xref">Section 3.4</a>) for a key, or, for the values listed below, by
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>); no scalar is sampled directly.
+Implementations <span class="bcp14">MUST</span> draw with a cryptographically secure random number
+generator and <span class="bcp14">MUST NOT</span> reuse randomness across derivations. Randomness is as
+sensitive as the values derived from it, and the constant-time requirement
+of <a href="#act-security" class="auto internal xref">Section 6</a> covers both.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">The following values <span class="bcp14">MUST</span> be derived with <code>G.DeriveNonces</code>, with the inputs
+stated where they are used; drawing them directly is not conformant:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.2-3.1">
+            <p id="section-5.2-3.1.1">the Moderator's signing exponent <code>e</code> in <code>IssueResponse</code> and
+<code>IssueRefund</code>, through <code>SigningExponent</code> (<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>);<a href="#section-5.2-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.2-3.2">
+            <p id="section-5.2-3.2.1">every nonce of a <code>ProveCompact</code> prover of the Credential scheme,
+through <code>ProverNonces</code> (<a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>).<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-5.2-4">The Client's <code>k</code>, <code>r</code>, <code>r1</code>, <code>r2</code>, <code>kstar</code>, <code>rn</code>, <code>rc</code>, <code>s1</code>, and <code>s2</code> are
+derived with <code>G.DeriveScalars</code> from randomness alone; a repetition among them
+harms only that Client. The signing exponent and the prover nonces are also
+derived from a secret, because a repeated signing exponent, or a prover nonce
+repeated under a different challenge, can compromise <code>skM</code> or reveal a
+witness scalar (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-5.2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="act-security">
+<section id="section-6">
+      <h2 id="name-security-considerations">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-6-1">The Credential scheme is a keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>
+over the pairing-free BBS-style signature of <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> as analysed by <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>,
+with the balance, the nullifier, the blinding factor, and the context scalar
+as the signed attributes. Because the Moderator is both issuer and verifier
+and there is no pairing, the scheme is an algebraic MAC in the sense of
+<span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span>, of the shape introduced as <code>MAC_BB</code> by <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlParallel" id="section-6-2">
+        <dt id="section-6-2.1">Assumptions:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-2.2">
+          <p id="section-6-2.2.1">Credit conservation rests on the q-SDH assumption in <code>G</code>, for the
+unforgeability of the signature <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>; on no party knowing a nontrivial
+linear relation among <code>B</code>, <code>H1</code>, <code>H2</code>, <code>H3</code>, and <code>H4</code>, which the
+hash-to-curve derivation of <a href="#act-generators" class="auto internal xref">Section 4.1.1</a> provides in the random
+oracle model; and on the random oracle model for <code>HashToGroup</code>,
+<code>HashToScalar</code>, and the Fiat-Shamir transform of <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>, with the
+special soundness of the relations of <a href="#act-proofs" class="auto internal xref">Section 4.4</a>. The reduction is
+expected to follow that of <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span> in the algebraic group model with a
+programmable random oracle: the keyed-verification oracle is answered
+from the adversary's algebraic representations, since <code>skM * B</code>,
+<code>skM * H_i</code>, and <code>skM * A_j</code> are all computable by the reduction, and the
+derived signing exponents are programmed. <span>[<a href="#BBDT16" class="cite xref">BBDT16</a>]</span> covers the
+keyed-verification setting for the underlying MAC.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-6-3.1">
+          <p id="section-6-3.1.1"><strong>TODO.</strong> Write out the credit-conservation reduction and the statistical
+unlinkability argument for the idealized scheme, together with bounds
+for the concrete scalar and nonce derivations in the random oracle model.
+Analyze unlinkability against quantum random-oracle queries.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<span class="break"></span><dl class="dlParallel" id="section-6-4">
+        <dt id="section-6-4.1">Credit conservation:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.2">
+          <p id="section-6-4.2.1">Fix a Moderator key, a credential context, and a balance width <code>L</code>. For
+any sequence of presentations the Moderator accepts, with amounts <code>s_i</code>
+and return amounts <code>t_i</code>, and any set of issuances with balances <code>c_j</code>,<a href="#section-6-4.2.1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6-4.2.2">
+<pre>
+sum_i s_i &lt;= sum_j c_j + sum_i t_i
+</pre><a href="#section-6-4.2.2" class="pilcrow">¶</a>
+</div>
+<p id="section-6-4.2.3">except with negligible probability, for an adversary controlling every
+Client, provided the nullifier store of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> rejects a repeated
+nullifier. The right-hand side is under the Moderator's control. The
+property rests on the following:<a href="#section-6-4.2.3" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-6-4.2.4.1">
+              <p id="section-6-4.2.4.1.1">an accepted spend proof yields, by special soundness, a signature under
+<code>skM</code> on <code>(c, k, r, ctx)</code>;<a href="#section-6-4.2.4.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-4.2.4.2">
+              <p id="section-6-4.2.4.2.1">every such signature was produced by <code>IssueResponse</code> or <code>IssueRefund</code>,
+whose signing oracles are constrained by the proofs they verify, or
+q-SDH is broken;<a href="#section-6-4.2.4.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-4.2.4.3">
+              <p id="section-6-4.2.4.3.1">the sum equations of <a href="#act-spend-relation" class="auto internal xref">Section 4.6.1</a> hold over the integers
+("Amount validation" below), so the refund Credential has balance exactly
+<code>c - s + t</code>; and<a href="#section-6-4.2.4.3.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-6-4.2.4.4">
+              <p id="section-6-4.2.4.4.1">a recorded nullifier is never counted twice.<a href="#section-6-4.2.4.4.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.3">Unlinkability:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.4">
+          <p id="section-6-4.4.1">The intended property is that a spend hides which issuance or refund
+produced its Credential, and the balance beyond the public amounts and
+predicates, from a Moderator that sees every message and holds <code>skM</code>.
+The idealized argument uses independent uniform blinding scalars and
+prover nonces: the commitments <code>K</code>, <code>K_n</code>, and the bit commitments are
+hiding <span>[<a href="#Pedersen91" class="cite xref">Pedersen91</a>]</span>, the pair <code>(A_prime, B_bar)</code> rerandomizes the
+signature <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, and the proofs are statistically zero-knowledge in
+the random oracle model (<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.5" class="relref">Section 7.5</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>). This idealized
+argument does not rely on the hardness of discrete logarithms.<a href="#section-6-4.4.1" class="pilcrow">¶</a></p>
+<p id="section-6-4.4.2">For the specified hash-derived scalars and nonces, the intended
+statistical guarantee is in the random oracle model, against adversaries
+with unbounded computation and a bounded number of classical oracle
+queries. The proof strategy replaces the derived vectors by independent
+random scalars, with a loss accounting for scalar-reduction bias,
+collisions, and queries to secret derivation inputs (Section 4.2 of
+<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>). Concrete bounds for this replacement and its composition
+with the proofs remain to be established. The public amounts <code>s</code>, <code>a</code>,
+and <code>t</code>, and the configuration, determine which Credentials could have
+produced a presentation; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> constrains these amounts, and
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> states the anonymity-set requirements.<a href="#section-6-4.4.2" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.5">Quantum adversaries:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.6">
+          <p id="section-6-4.6.1">A quantum computer capable of solving discrete logarithms in <code>G</code> can
+recover <code>skM</code> from <code>pkM</code> and forge Credentials. The unlinkability of
+recorded transcripts under the specified hash-derived randomness
+requires an analysis in the quantum random oracle model. This analysis
+remains open for this construction.<a href="#section-6-4.6.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.7">Amount validation:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.8">
+          <p id="section-6-4.8.1">The spend relation constrains <code>c</code>, <code>s</code>, <code>a</code>, <code>v1</code>, and <code>v2</code> only modulo
+<code>p</code>: the bit equations show that <code>v1</code> and <code>v2</code> lie in <code>[0, 2^L)</code> as
+integers, while <code>c = s + v1</code> and <code>c + a = v2</code> hold in the scalar field.
+For these to hold over the integers, <code>c</code>, <code>s</code>, and <code>a</code> must be small.
+<code>c</code> is small by induction: <code>IssueResponse</code> rejects <code>c &gt;= 2^L</code>, and a
+refund produces <code>v1 + t &lt;= c + a</code>, which is <code>c</code> without a top-up and was
+proved below <code>2^L</code> with one. <code>s</code> and <code>a</code> are small only if the Moderator
+checks them, so <code>VerifySpend</code> <span class="bcp14">MUST</span> raise <code>AmountError</code> on either being
+<code>&gt;= 2^L</code> before verifying the proof. With those checks and
+<code>2^(L+1) &lt;= p</code>, which <code>MAX_BIT_LENGTH = 64</code> guarantees, neither relation
+can wrap. The same reasoning requires <code>t &lt;= s + a</code> in <code>IssueRefund</code>, which
+keeps every balance below <code>2^L</code> without a range proof over the refund.<a href="#section-6-4.8.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.9">Randomness reuse:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.10">
+          <p id="section-6-4.10.1">A repeated nonce in the <code>IssueResponse</code> or <code>Refund</code> proof reveals <code>skM</code>,
+and a repeated signing exponent <code>e</code> under one context lets a Client
+holding two Credentials with that exponent forge Credentials at any
+balance below <code>2^L</code>, each with a fresh nullifier, which the nullifier
+store cannot detect. Both values are therefore derived with
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the key and the operation
+(<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>, <a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>), so that a rolled back
+or snapshotted random source reproduces an earlier response instead of
+yielding a second one. An implementation that draws either value
+directly <span class="bcp14">MUST</span> treat every repetition as a compromise of <code>skM</code>.<a href="#section-6-4.10.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.11">Identity elements:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.12">
+          <p id="section-6-4.12.1">Deserialization rejects the identity element (<a href="#act-wire" class="auto internal xref">Section 4.7</a>), and the
+verifier of <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> rejects an instance that contains one. The check
+is soundness-critical for <code>A_prime</code>: were it the identity, <code>A_bar</code> would
+be too, the first spend equation would hold with <code>r2 = 0</code>, and the second
+would let a prover present <code>B_bar</code> as a blinding of any message of its
+choosing, at any balance, without holding a signature. An implementation
+whose group library accepts an encoding of the identity must perform the
+rejection itself.<a href="#section-6-4.12.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.13">Nullifier store:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.14">
+          <p id="section-6-4.14.1">The scheme itself does not prevent a second spend of a Credential; the
+Moderator's record of seen nullifiers does. The Moderator <span class="bcp14">MUST</span> check the
+nullifier of a spend against that record and add it to the record
+atomically with verifying the proof and issuing the refund, so that a
+spend is either fully processed or not at all. Losing the record
+re-admits every Credential spent while it was in effect; the record
+covers at least the lifetime of the credential context it was recorded
+under (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.15">Single use of Credentials and states:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.16">
+          <p id="section-6-4.16.1">A Client <span class="bcp14">MUST</span> treat a Credential as spent, and <span class="bcp14">MUST</span> have stored the
+returned state durably, no later than the moment the spend proof
+becomes observable outside the Client, and <span class="bcp14">MUST NOT</span> run <code>ProveSpend</code> on
+it again, whether or not the refund arrives. An implementation <span class="bcp14">MUST</span>
+have <code>ProveSpend</code> consume the Credential value, <code>FinalizeIssue</code>
+consume the issuance state, and <code>FinalizeRefund</code> consume the spend
+state, so that no process can use any of them twice; a Credential or
+state restored from a
+backup after use is the wallet's responsibility. A second spend of the
+same Credential presents the same nullifier, which the Moderator
+rejects, and links the two presentations to each other; one issuance
+state finalized against two responses, or one spend state against two
+refunds, yields Credentials that share a nullifier, of which at most
+one can ever be spent. A Client that loses the spend state after the
+Moderator has recorded the nullifier loses the balance.<a href="#section-6-4.16.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.17">Constant time:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.18">
+          <p id="section-6-4.18.1"><code>Bits</code>, every operation on the witness of the spend relation, and every
+operation on the Client's randomness and the scalars derived from it <span class="bcp14">MUST</span> be
+implemented in constant time with respect to those secrets
+(<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.6" class="relref">Section 7.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>). The bit equations are linear in the bits, so
+nothing is selected by a bit's value. On
+the Moderator, <code>skM * A_prime</code> in <code>VerifySpend</code> and the inversion of
+<code>e + skM</code> and the multiplications by <code>x</code> in <code>IssueResponse</code> and
+<code>IssueRefund</code> operate on the signing key with inputs the Client chooses,
+and <span class="bcp14">MUST</span> be constant time with respect to <code>skM</code>; <code>A_bar</code> then enters the
+verification through a group element rather than a scalar, which
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-7.6" class="relref">Section 7.6</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> addresses for keyed-verification credentials.<a href="#section-6-4.18.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.19">Derived prover nonces:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.20">
+          <p id="section-6-4.20.1"><code>ProverNonces</code> derives the nonces of a proof together with
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the witness, the
+session, the relation, and <code>Nseed</code> bytes of fresh randomness. Its security
+analysis must establish that the nonce vector is indistinguishable from
+fresh uniform randomness to parties without the witness, as required by
+<span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03#section-8.4.2" class="relref">Section 8.4.2</a> of [<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span>. This requires bounds on oracle queries
+and collisions, as well as the accumulated scalar-reduction bias of
+<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>. If the random source fails independently of the
+witness, the argument additionally requires sufficient entropy in the
+witness that is unknown to the adversary.<a href="#section-6-4.20.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.21">Verification key secrecy:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.22">
+          <p id="section-6-4.22.1"><code>VerifySpend</code> requires <code>skM</code>, so a Credential can be verified only by the
+Moderator that issued it. A Moderator that shares <code>skM</code> with another party
+lets that party issue Credentials in its name.<a href="#section-6-4.22.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.23">Context granularity:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.24">
+          <p id="section-6-4.24.1">The credential context is visible at every spend through the fact that the
+proof verifies under it, and so partitions Clients into the set sharing its
+value. It <span class="bcp14">MUST</span> be
+coarse: every Client issued under a given context <span class="bcp14">MUST</span> derive the
+byte-identical <code>ctx_cred</code>. The spend context does not partition Clients,
+since it binds a single presentation to a single challenge.<a href="#section-6-4.24.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.25">Balance width:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.26">
+          <p id="section-6-4.26.1"><code>L</code> is public and identical for all Clients of a Moderator, and fixed for
+the lifetime of a key and context (<a href="#act-config" class="auto internal xref">Section 4.1</a>). A Moderator that used
+different values of <code>L</code> for different Clients would partition them by the
+length of their spend proofs, and one that changed <code>L</code> under a key and
+context with outstanding Credentials would invalidate the balance
+invariant of the conservation argument.<a href="#section-6-4.26.1" class="pilcrow">¶</a></p>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-6-4.27">System requirements:</dt>
+        <dd style="margin-left: 1.5em" id="section-6-4.28">
+          <p id="section-6-4.28.1">The requirements on deployments are those of "Nullifier store", "Context
+granularity", and "Single use of Credentials and states" above, consistent
+configuration across Clients (<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>), and the randomness requirements
+of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-6-4.28.1" class="pilcrow">¶</a></p>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="iana">
+<section id="section-7">
+      <h2 id="name-iana-considerations">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-7-1">This document has no IANA actions. The ACT credential type is registered by
+<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-7-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="sec-combined-references">
+<section id="section-8">
+      <h2 id="name-references">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-references" class="section-name selfRef">References</a>
+      </h2>
+<div id="sec-normative-references">
+<section id="section-8.1">
+        <h3 id="name-normative-references">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
+        </h3>
+<dl class="references">
+<dt id="ARCH">[ARCH]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="FIAT-SHAMIR">[FIAT-SHAMIR]</dt>
+        <dd>
+<span class="refAuthor">Orrù, M.</span>, <span class="refTitle">"Fiat-Shamir Transformation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-fiat-shamir-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="PROTOCOLS">[PROTOCOLS]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC2119">[RFC2119]</dt>
+        <dd>
+<span class="refAuthor">Bradner, S.</span>, <span class="refTitle">"Key words for use in RFCs to Indicate Requirement Levels"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 2119</span>, <span class="seriesInfo">DOI 10.17487/RFC2119</span>, <time datetime="1997-03" class="refDate">March 1997</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc2119">https://www.rfc-editor.org/rfc/rfc2119</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="RFC8174">[RFC8174]</dt>
+        <dd>
+<span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="ROLLATINI">[ROLLATINI]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">D. I. Mohan</span>, <span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-authors-mole-rollatini</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="SIGMA">[SIGMA]</dt>
+      <dd>
+<span class="refAuthor">Orrù, M.</span> and <span class="refAuthor">C. Yun</span>, <span class="refTitle">"Sigma Proofs for Linear Relations"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-sigma-protocols-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="sec-informative-references">
+<section id="section-8.2">
+        <h3 id="name-informative-references">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
+        </h3>
+<dl class="references">
+<dt id="BBDT16">[BBDT16]</dt>
+        <dd>
+<span class="refAuthor">Barki, A.</span>, <span class="refAuthor">Brunet, S.</span>, <span class="refAuthor">Desmoulins, N.</span>, and <span class="refAuthor">J. Traore</span>, <span class="refTitle">"Improved Algebraic MACs and Practical Keyed-Verification Anonymous Credentials"</span>, <span class="seriesInfo">SAC 2016</span>, <time datetime="2016" class="refDate">2016</time>, <span>&lt;<a href="https://crypto.orange-labs.fr/acg/publication/infoPublication.php?id=225">https://crypto.orange-labs.fr/acg/publication/infoPublication.php?id=225</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="BBS">[BBS]</dt>
+        <dd>
+<span class="refAuthor">Boneh, D.</span>, <span class="refAuthor">Boyen, X.</span>, and <span class="refAuthor">H. Shacham</span>, <span class="refTitle">"Short Group Signatures"</span>, <span class="seriesInfo">CRYPTO 2004</span>, <time datetime="2004" class="refDate">2004</time>, <span>&lt;<a href="https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf">https://crypto.stanford.edu/~dabo/pubs/papers/groupsigs.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="HASH2CURVE">[HASH2CURVE]</dt>
+        <dd>
+<span class="refAuthor">Faz-Hernandez, A.</span>, <span class="refAuthor">Scott, S.</span>, <span class="refAuthor">Sullivan, N.</span>, <span class="refAuthor">Wahby, R. S.</span>, and <span class="refAuthor">C. A. Wood</span>, <span class="refTitle">"Hashing to Elliptic Curves"</span>, <span class="seriesInfo">RFC 9380</span>, <span class="seriesInfo">DOI 10.17487/RFC9380</span>, <time datetime="2023-08" class="refDate">August 2023</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9380">https://www.rfc-editor.org/rfc/rfc9380</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="KVAC">[KVAC]</dt>
+        <dd>
+<span class="refAuthor">Chase, M.</span>, <span class="refAuthor">Meiklejohn, S.</span>, and <span class="refAuthor">G. Zaverucha</span>, <span class="refTitle">"Algebraic MACs and Keyed-Verification Anonymous Credentials"</span>, <span class="seriesInfo">CCS 2014</span>, <time datetime="2014" class="refDate">2014</time>, <span>&lt;<a href="https://eprint.iacr.org/2013/516">https://eprint.iacr.org/2013/516</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="Pedersen91">[Pedersen91]</dt>
+        <dd>
+<span class="refAuthor">Pedersen, T. P.</span>, <span class="refTitle">"Non-Interactive and Information-Theoretic Secure Verifiable Secret Sharing"</span>, <span class="seriesInfo">CRYPTO 1991</span>, <time datetime="1991" class="refDate">1991</time>, <span>&lt;<a href="https://doi.org/10.1007/3-540-46766-1_9">https://doi.org/10.1007/3-540-46766-1_9</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="TZ23">[TZ23]</dt>
+      <dd>
+<span class="refAuthor">Tessaro, S.</span> and <span class="refAuthor">C. Zhu</span>, <span class="refTitle">"Revisiting BBS Signatures"</span>, <span class="seriesInfo">EUROCRYPT 2023</span>, <time datetime="2023" class="refDate">2023</time>, <span>&lt;<a href="https://eprint.iacr.org/2023/275">https://eprint.iacr.org/2023/275</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+</dl>
+</section>
+</div>
+</section>
+</div>
+<div id="act-test-vectors">
+<section id="appendix-A">
+      <h2 id="name-test-vectors">
+<a href="#appendix-A" class="section-number selfRef">Appendix A. </a><a href="#name-test-vectors" class="section-name selfRef">Test Vectors</a>
+      </h2>
+<p id="appendix-A-1">The vectors below cover the Credential scheme under the <code>P256-SHA256</code>
+ciphersuite at <code>L = 4</code>: the generators of <a href="#act-generators" class="auto internal xref">Section 4.1.1</a>,
+<code>CreateContextScalar</code>, one key pair, one issuance, and a chain of four
+spends with their refunds, one per shape of <a href="#act-spend-relation" class="auto internal xref">Section 4.6.1</a>. Byte
+strings are in hexadecimal, wrapped at 64 digits with the continuation
+lines indented; amounts and <code>L</code> are decimal.<a href="#appendix-A-1" class="pilcrow">¶</a></p>
+<p id="appendix-A-2">Every algorithm is a deterministic function of the bytes it draws from
+<code>random</code>. Each <code>rand</code> entry is the concatenation of every <code>random</code> call
+the algorithm makes, in the order made, including those of
+<code>SigningExponent</code> and <code>ProverNonces</code>; an implementation
+replays a vector by serving those bytes in place of <code>random</code>. The order
+is: for <code>G.GenerateKeyPair</code>, the key seed; for <code>IssueRequest</code>, the
+<code>Nseed</code> bytes of <code>k</code> and <code>r</code>, then the prover's <code>Nseed</code> bytes; for
+<code>IssueResponse</code> and <code>IssueRefund</code>, the <code>Nseed</code> bytes of <code>e</code>, then the
+prover's <code>Nseed</code> bytes; for <code>ProveSpend</code>, the <code>Nseed</code> bytes of its
+scalars, then the prover's <code>Nseed</code> bytes. The <code>state</code> entries
+are the <code>ClientIssuanceState</code> <code>(k, r, K)</code> as
+<code>SerializeScalar(k) || SerializeScalar(r) || SerializeElement(K)</code>, and
+the <code>ClientSpendState</code> <code>(kstar, r_star, v1, s, a, K_prime)</code> as
+<code>SerializeScalar(kstar) || SerializeScalar(r_star) || I2OSP(v1, 8) ||
+I2OSP(s, 8) || I2OSP(a, 8) || SerializeElement(K_prime)</code>. Every message
+and <code>credential</code> entry is the
+encoding of <a href="#act-wire" class="auto internal xref">Section 4.7</a>, and the spend context of every spend is
+<code>ctx_spend</code>.<a href="#appendix-A-2" class="pilcrow">¶</a></p>
+<div id="act-tv-suite">
+<section id="appendix-A.1">
+        <h3 id="name-ciphersuite">
+<a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-ciphersuite" class="section-name selfRef">Ciphersuite</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.1-1">
+<pre>
+suite.identifier = 503235362d534841323536
+suite.ctx_proto = 41435476312d503235362d534841323536
+suite.L = 4
+suite.H1 =
+    03c16cd46e4807f2e52d460f03b5e8e11bffee91d9c8bd7e1225c384eaf39cd1
+    ac
+suite.H2 =
+    0282697cb8474f49d091da0ac43c72353809a1999fea49a00a37037163279932
+    7b
+suite.H3 =
+    02597d0ba6b076b6c829b7253943ee3c4a796df35cc38bb6bce03e5398b14f02
+    dd
+suite.H4 =
+    02328e1b98965b32bb63af661190c98042ff24bf23c0fb1d5c6c7b38a3006bcd
+    80
+suite.ctx_cred =
+    4143542d746573742d766563746f72732d636f6e74657874
+suite.ctx =
+    d1dda6b4b7a3ea5a1159fdde5652ead672730fed9941ca17f3a41220ca379b9a
+</pre><a href="#appendix-A.1-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-key">
+<section id="appendix-A.2">
+        <h3 id="name-key-pair">
+<a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-key-pair" class="section-name selfRef">Key Pair</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.2-1">
+<pre>
+key.rand =
+    6b04e6141f669f915de1d7f0ed8b50405bf6fff65b3ef4a63b6610586ddc5e62
+    b22c98437bb5746647de22933c80f522
+key.skM =
+    6a998a9bd63b4efcd641c1e0e13e4dd6035f1ce748a6aa1461885e0454c928e1
+key.pkM =
+    03513bbb46b2af7f4ed5304505528b96345064e50917e098630286c89383da72
+    22
+</pre><a href="#appendix-A.2-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-issue">
+<section id="appendix-A.3">
+        <h3 id="name-issuance-2">
+<a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-issuance-2" class="section-name selfRef">Issuance</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.3-1">
+<pre>
+issue.request.rand =
+    fba90a5829478c7590e20f1a6911d2b4f5a9a50bd4485c309c94fedad95f1f79
+    0e0bc9994cd3c165d19b78a7e328de6e2c4f77e3aa99f8050f4a0c7d4b52a219
+    4d33a5ea903a54a02a807cd6cdb7c269c2712669bbe6f5dfb13495eea30b7da9
+issue.request.state =
+    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+    6db698dc0ab0a626f2047331981742f4504932ef191ced0db687982bd5813eef
+    02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
+    63
+issue.request.message =
+    02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
+    63a204de1dd76434170a6b1c0a07c3836307c53a17011b1f899f1bd6c58712ac
+    86a4699524580fe3d4d305a96c18162b692adcecfd2c0ed4dbb04ce4aef93212
+    1b5c845702018bf287c839f24ee7cd6a3f43494249fd82f78bed467e1d6ab94b
+    3a
+issue.response.c = 10
+issue.response.rand =
+    549a65b32ec23bbd0434f3787a143ef286df7fcc1a4afa990c0497780450f987
+    a98919981c0f9481c4eb6ee73b79569a2ea0fc45c81480ed4451367947c1cc19
+    ee957b16356a0ae63d6c83fbd9d757e69fa8138ada38975479fd20c98160eb78
+issue.response.message =
+    0219c7ca1c950892496809a235512c49773a31a35520647b92ee8a25c76f9aae
+    68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58593a93883e7c9030
+    89000000000000000a229f0198688717aad558b8fb63fb983570067b333cec52
+    cdebfa26c0ee95cfe98d094fc061ecb10259a0fb576e39907f9ed97438cb414e
+    c162a58a26f51332a5
+issue.credential =
+    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+    000000000000000a6db698dc0ab0a626f2047331981742f4504932ef191ced0d
+    b687982bd5813eef0219c7ca1c950892496809a235512c49773a31a35520647b
+    92ee8a25c76f9aae68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58
+    593a93883e7c903089
+</pre><a href="#appendix-A.3-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-spend1">
+<section id="appendix-A.4">
+        <h3 id="name-spend-1-ordinary-spend-s-3-">
+<a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-spend-1-ordinary-spend-s-3-" class="section-name selfRef">Spend 1: ordinary spend (<code>s = 3</code>, <code>a = 0</code>)</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.4-1">
+<pre>
+spend1.s = 3
+spend1.a = 0
+spend1.ctx_spend =
+    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
+    74
+spend1.rand =
+    b429f745895b193f227dbad7fd1798339020f1ebb88b5e0429485e01bc34f6db
+    93c846f8766d5ec446946ef0d9c6a44873a0ef46a50e37eacf061d40d7440e34
+    516d54ee586c67dbb8fd0b7e931fb60a1731d3867e50bbaa1a7422f352070618
+spend1.state =
+    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+    7d3f72f13d19b53838e0bf3d1bb80965d00a926d09f4e5250e9a03a2ff2d68fe
+    000000000000000700000000000000030000000000000000021b48762b09e181
+    9e8f8070a9e07926ec5d319b005462376c027a71c231fe08ad
+spend1.message =
+    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+    00000000000000030000000000000000037462d06d0e1857691e39027fb94ba9
+    87ee4d626b73957ef2577f4f7f80afdd8f031fd0f1ae300ef6086d3d1badbe53
+    fdc73af5a3a7c3c7e94d31dfc3e200f1b14c034b324fe0ceaf20d9c14192a366
+    9dde3854b90cbde819714214408c2173927e0d02e0976db98ca955ed1b86f1e6
+    f5be405c855fd65b3c6648f26851324d0cd17d5502d9013827da0c05338a3319
+    760b4d1d6804380d6f45614e70053a7808f4fa66ae02e2f88017a6fa3c10ff1c
+    9616a4b5db3837b0c9642f43b8ede8af8942e9a8a6bb02143dcd3e4c15cdd475
+    a94dc06eed156efed163051862ad7016ea1b90d4a646f70f0ed26f89cc5d5ddd
+    b31df72cb8f49bd18a124a3ab793195c1bf893ed8cef724bb9ddb8525fb38e29
+    edde5788ccd60c17eeefd03e6554fd67f11df8f3ea45b9879f7d64a0523f83f2
+    b0c4536000606d9af46c4d093ac729c2b393347bd99681d97a849e426b88e1d4
+    5671e86a12c4e512e1fa0c765e9258de12701fe28ea3517a4d244ff490b1b288
+    c991b614cbaf26afd0ef945d92bceeb7dc00ee45d861c60b4c5f7e41739e0a35
+    99d4ba252a3927ad9fedcf24f9ee28b7fd5bad9b571d2a125bf2fdce68e34338
+    40a2821eb9170d1a2b706d2fb32f66d11812be3e16a2b2b14ec9ebcde6deace5
+    cff6277742a95be0afeb2101e1a1c35291ea831df7d89f9b021459a7be6aecb6
+    b86e7c863632fa02e38377c538df55e7a70a25f30c1081f4ec083c4fb1ac012c
+    02eca834aa4f744750c1be793e3decc51e5d896e6a3bfa8eeaed28618f7415bb
+    bf370a059c04b3440f2a627d4b33c6216b97d17826ca4caf2cdd532b868eb482
+    3145e86454e0664ba54656ffbe9d52dcab4b7f5651c8b9ef06a00b13b7ef7bf0
+    71c3308101f1835d3cbd965f5a884386d59f2d0b0940ad174ab04f55668a34ea
+    818e2d624bade6b2c0c4eb8df108559045ffd53820556ed90c3a8cf18c3ef9b3
+    b6ea2bda67f2898170c5ea2d0a4ea878c1b48c36f7144fcbceab9e32026234d1
+    2a9c286586affae56499fca51f115fc956d79d2acb1e1889616bbdca3c37e907
+    77d0b7d822d9b235c5b75d1a14b7c3132960963d12cbcc24ffc0c534a426960e
+    ade06b1eb7f19de8c807e90f3b9ca7db2e9a928dac497f9488754ae394c727a6
+    87ae8f52db082f22254a52dd078da391a81e069a2de6d42012f9d58734aded52
+    57b52339941e3fb3a6af833ef96444b4f643a18a774c81
+spend1.refund.t = 1
+spend1.refund.rand =
+    6e51457124402a73bb25609f1647ee9589b57e96c8bb852d18ed16dc8b9c00f9
+    79aa90e88908d06ea7ee259a2067e8981aa128ca2c16d17c0b0b145464a18fbb
+    c8c98bdcc8a5541494a93478aece76eb306943b6dcca8781fbc382b4e7801c6d
+spend1.refund.message =
+    02cdeb0b833d8d51bf0cb8b00d145e4dc7e771355ce9489a316d53630482dea1
+    9a15a70756d3d9459b8f1708ee05b828fa7fa7e3cd5fd0b5d975599fd7585b3e
+    050000000000000001063d7d32e384dd8ddf4df240017d730bdd899018d0b031
+    13decf535d5b852b6811a648eaa0d20fc871f9b1d8699e1c34b9e7e0c3a5f03a
+    f27d5765a0f029ef2e
+spend1.credential =
+    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+    00000000000000087d3f72f13d19b53838e0bf3d1bb80965d00a926d09f4e525
+    0e9a03a2ff2d68fe02cdeb0b833d8d51bf0cb8b00d145e4dc7e771355ce9489a
+    316d53630482dea19a15a70756d3d9459b8f1708ee05b828fa7fa7e3cd5fd0b5
+    d975599fd7585b3e05
+</pre><a href="#appendix-A.4-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-spend2">
+<section id="appendix-A.5">
+        <h3 id="name-spend-2-refresh-s-0-a-0">
+<a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-spend-2-refresh-s-0-a-0" class="section-name selfRef">Spend 2: refresh (<code>s = 0</code>, <code>a = 0</code>)</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.5-1">
+<pre>
+spend2.s = 0
+spend2.a = 0
+spend2.ctx_spend =
+    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
+    74
+spend2.rand =
+    5df6aa3f75855db9c6eb9130e5fe4c7ea4173f47f405a3457518d227d0b83b1d
+    342ecfe0498cdb99911dbee6f1c2dd66adf61aba8249bc8b66dbeab6351dbe28
+    20ec0bec6a0fca3e98ae91f7d3ac00833552cda8198d8a585552c63b1b04a7f9
+spend2.state =
+    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+    5d634dda9fc8375ac6d2daa51cc50aca954fa420078c204349e1889a77d8b746
+    00000000000000080000000000000000000000000000000002396aab2696270d
+    5a81eefd48c992ed28d97873ab3685270a96f5ffee33bee181
+spend2.message =
+    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+    00000000000000000000000000000000020f3a120dfacfc6382df58f9481f2bd
+    24bd055d52604ea6c6580361939568e67202cb4def6ef93e55331eecb156a000
+    c6c2756bebcf9814130d424882a4f8446e9302ea09ac5c4013a19262e8479449
+    232c4b8da8769a34a13e01bf14175454ce2e4f0271058492ebfcf5032a715308
+    0bf06e4523f1566d331eb662e9009c304e8dd5676062c3cbf8ca74f17e8305f0
+    7d44df3d5592de1691bb0c4d21c0e22ee78b88b0bbb95e2dd3a377690936d37d
+    b9d6e5580d97f98ef31b02897cd1c105313f254bd28f0c7204ad6e7ed19195e3
+    ccd2024818ad3aa6c53efe2139e104baf007fcd5fd74ea7286a59533fd92afc6
+    4ea401d7ab71fad46f74c922911051e5e7ae974b1eafc973e9368ad25970c9d5
+    0b659343ca90b2f42ce4b3b4e667db05fce51db8f54ed5fce348c6989d0cdbd8
+    31a2342c9fcb3c25b7ceb2cc392931ea25c112648fd6e410d9cbef089c6361bc
+    1c61218d3a271f868f209be43ca5550d49c154b28962602ef3577fd8d99e6a95
+    ea84dfcc09f92097df972fe8e73edf2a50b60a5a77537045f1ea74c31281117c
+    6f893cb1c9a7650f5fe87fb3b36537954d53a72f
+spend2.refund.t = 0
+spend2.refund.rand =
+    8ab63a8b3af08128540a7dd8c6b84b892a3f0b2d6c3120b8ea53b7f40044860b
+    33cb6e9930b235d1ac9a7c06261a2b26bba151899bb31a45a2988c425a2637fa
+    4e1a0d285364f8fa0cf0e0610feda3d4b9980d16bd3da29447ab44b49e3f4713
+spend2.refund.message =
+    02e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c553478dcdc94576686
+    8e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c12459afeeb16baffc85
+    3c0000000000000000eab936b5c1e13c20f73a1ecacbc286f2ac7afd4f748844
+    66435e2c12ed1da13a9a90d61edd767a5be2c6d00796b231311dc58e9e53208c
+    ddbdae9f0db8440f96
+spend2.credential =
+    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+    00000000000000085d634dda9fc8375ac6d2daa51cc50aca954fa420078c2043
+    49e1889a77d8b74602e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c55
+    3478dcdc945766868e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c124
+    59afeeb16baffc853c
+</pre><a href="#appendix-A.5-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-spend3">
+<section id="appendix-A.6">
+        <h3 id="name-spend-3-pure-top-up-s-0-a-2">
+<a href="#appendix-A.6" class="section-number selfRef">A.6. </a><a href="#name-spend-3-pure-top-up-s-0-a-2" class="section-name selfRef">Spend 3: pure top-up (<code>s = 0</code>, <code>a = 2</code>)</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.6-1">
+<pre>
+spend3.s = 0
+spend3.a = 2
+spend3.ctx_spend =
+    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
+    74
+spend3.rand =
+    cf496508c825bc711aac384f4620152a8d3fc3a2d1943dfcb9cf2eb9fdc410c6
+    f6dfbef97a289fc6550c72f79daef1e54f5cd0132ead59cf513fedf1fc5a05aa
+    a0255b3f53c1ed12fbb96bf52197b059d609431451b117381a5a06bd4be53ee4
+spend3.state =
+    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+    f613b07592172ebf8c4e04a6d3b6651b9d17eb9bc333fb7caa5da9087d7fad90
+    00000000000000080000000000000000000000000000000202aa041fce3f3996
+    aae6eb6a309ebf8965085ad5d5a156c48c4520a9397822706d
+spend3.message =
+    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+    0000000000000000000000000000000202f4e02b51f9f89f1fab195e19148e57
+    94e508de92a21d3fdb5b171877a44024bf02a085171bcf8e6bf704798b88161c
+    a627e9d027a5ac2865cc4a0404ac1c0fc45e02b9ab938fea505dc8d1b61bfacc
+    d5332c589877769039c6f5b10602195b9f90dc03024debc8dac8db5b33197d3d
+    3828b963f1bd1d58d2987cd61f685b3fd9e3ef820384ddb7f290db8504819611
+    b720725aa557e90a2aab55e587387c9d13b2f50eee034c0ebe46aa9d656f9a5e
+    93d9442055a50fd37ab2740d57225258019603d94c0a02c58a6127b75421a586
+    cc55c715a86500b9193a2fb790c4c18a19140091ecae67022d3313dbaeb918eb
+    0ae6748a81b15a03729aebe5b073fca48b428e538679563548b001de14ba58e1
+    9509bf0aefa58ccb9b39020b1b8a271bd10d454d81988c043cf6722e5de70014
+    087a10f9b38add90ba019b03548dce10a72cff85ab21e59382a64587b03f6941
+    83a01e2170f94ed111832ae488a11caf632df7cfbcb17a6440d5275716fd5e35
+    aa83a9b600e15e9bec055e225a6a8c17e91d1b40a4f406c92aa3093403f727e8
+    c3f802f59c71365a67b228e381c4e57a1030da09c815a35b33f859085aa0e792
+    f48498a2eee20e49ff5edf5b9b943041c9c6d098f446f39aa0bda166f8a46a42
+    3ceff7f8e31a7a5cddb007b8a3cb24413b16a3d9c2e6875a71855cb8bf8fcd5a
+    48c0fadf22e85a84ffff0d5a6c9ebb7874c09e4996d79dd77a643f08d8fbd8eb
+    d427b47be8baf4b6cb422a56838aec0d81e671d9b001e715e88ceace47411c5f
+    0e52de97f8e9df4a19c23a127622d572e7e4bcf5758ad063fb7998ff60d6c1e1
+    9bfcc3aafb51ec8874eb8b37fdf14ee5fa564a2d6b7e0c5f3a208888bb731cda
+    01dcdecfa612cd997eec9362c45e371e9680467a67c988276c3e9c18aa6ff1a6
+    f6412ede66ab687eb54836fbc9174d2384522cbcb5e1df86343fd53762eeadf8
+    ceb8cba8f2c8d61b45dae74abe67f47e43c0bf60068b7919c51182dbb5d3abfd
+    0465576597ed5c26dae97edc00e6497cf82fd8a5c19b1e168285a3345d1ff8b9
+    ff6173171049b51cef0fd7dbc5df1c706f3b8bd237ba6a2526e7d66f03240c57
+    669e5628871ba4db195cde6a7a0709956b916f35be611137c17a38f1359b7901
+    0ec91cc167fec971410504897fca0654ec47796fbb8bdb0829086aa6dcbea84c
+    8ea162140fb1bde384133db4a6d9f6f296cd26f9639728e37eb1cdaece28a166
+    0db110dbc2cfa50f9a6d658e20ae358bde696d403bd1b2405b9edb89fec57042
+    c5b8337403b4ca941ba2bc8a0dc1f4202a7c476afc8c11ee
+spend3.refund.t = 2
+spend3.refund.rand =
+    951a4f39b3225c1929b35820269ac76d585baf0dbb927cd59f35addd001762b8
+    ca25145e7c4159cb30f4cadac6b2f274a710f8916b01e7aa657125ac036e074c
+    8dda6de23ecbfa7dba2bb3f490655c25fef2bfc2f3786596045b68563feeb24d
+spend3.refund.message =
+    02e6956a32ae6001a3494c29c233e0f7bae689202070064d0ac112820177b2e3
+    f8aae51d4331b1568f1c254e635e9409a6a5c41b8e667f83b63531ea51e0652d
+    e00000000000000002dfdc81080741a6a136bea1e6b2dd08f2f14538205d8d3a
+    524af77e4f43b317cc599fd8d86ac41d3a04d3c8fc3bfbed53c196f3a9ef46db
+    4ba968e925730a2a65
+spend3.credential =
+    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+    000000000000000af613b07592172ebf8c4e04a6d3b6651b9d17eb9bc333fb7c
+    aa5da9087d7fad9002e6956a32ae6001a3494c29c233e0f7bae689202070064d
+    0ac112820177b2e3f8aae51d4331b1568f1c254e635e9409a6a5c41b8e667f83
+    b63531ea51e0652de0
+</pre><a href="#appendix-A.6-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+<div id="act-tv-spend4">
+<section id="appendix-A.7">
+        <h3 id="name-spend-4-spend-with-top-up-s">
+<a href="#appendix-A.7" class="section-number selfRef">A.7. </a><a href="#name-spend-4-spend-with-top-up-s" class="section-name selfRef">Spend 4: spend with top-up (<code>s = 3</code>, <code>a = 2</code>)</a>
+        </h3>
+<div class="alignLeft art-text artwork" id="appendix-A.7-1">
+<pre>
+spend4.s = 3
+spend4.a = 2
+spend4.ctx_spend =
+    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
+    74
+spend4.rand =
+    a0197dc7f5d2128dceb0e4ac42a172d763b6d625df1d4bfcf61fd5fbfe7e222e
+    35144cbb058151ff0eba61a90575de984665140d18c49d11df66f7b77bc618b9
+    60599627a6606376365da00272f43dfe020306d04c39a7dd3c60a26a23830521
+spend4.state =
+    a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
+    2aed566e0458743e56bc78cfcbb597fb6548edb58bfd1df4d23bcc91e37e9059
+    00000000000000070000000000000003000000000000000202b7e2b124c51e90
+    d9859cbc2c0141f985b4b78dce5270de619bd72c064e89d671
+spend4.message =
+    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+    0000000000000003000000000000000203219e95d338ab57ed4c64f9b77a984f
+    f22d3bcecb4527dae610ad8d51275d2f2302db780d64911e69336569f5148ce4
+    60c09e8256dd3041ee634e1598b27df4de2802f1be336d8979887881554c386c
+    7cc0951b7f38572d1febd542a1b0145fb374c003359a94092b8d9c5b05e0818a
+    574f76c84bd9bf7d999d5d2a8e10a4fec59282460317b52c87074a03790419d6
+    ee5f92f6187c7d20c00341f76f7f43bc7705c0d92502f93967ce41252702b13e
+    2f53b8e13c5b90a4cb340ad22e0c43e5d4bf45cf82530316f790b968ec4a5444
+    e2153fb03ddda25a1383ba4160543fd6454352137f1174035f6b382e4f8c1c6d
+    36470ae5c51e5809a99889fa5e56f80317dbe18abb189a80023381e2c53663e8
+    377643875a49b4e8850b007de25c9a398f67e1765d0aa1123e02f5099dca8b8c
+    0470a2ed14997c6e717b87c74b42126231b74d8a43cda3253611039847a9942f
+    983ed8986a7fd1c22c733db052ccb944f6243a2339f761a220aea2a1eecd4bba
+    2c7a96a6a8c2c9de796a079057ab7c1a5b2694a604efbe48f7236bbb11eb2e4f
+    4a83f66203dfc0c0227a697988e32be213823f9f9e720e48c5cfd457553ceacb
+    71611f7a1d6e11579c36ec5fda7bd5e923ee0e59b3aa6597823ab77097619620
+    daf1bfe2781040c6a5b8a2c2f27ab361588dc9c3bfc86247a8e071e682ea424a
+    e2f9492b7774a7bb579b4d17f990e12f8823233ae7b21654c0156293849fa06a
+    7b7b72bb1b6692ff1de900447123d71259884f6f3712beae11972c4ef6ba155f
+    ba2e9efa2298fb6648b992c42b5e42cc2d47ac9f911399819f97133ea88a1ded
+    a907a5f97c369519a616e9f336a3e71a3fa1dce6b9e43b5bf565e162e0183415
+    68519e8c2d7bf6ceb8061c2a75fed702702bb58821b2ae7c9cf4ae60da2751cf
+    f40ebbbc94380f9cd00f33086508fe8ba7f840f3591fb81b16dfefaad1daf093
+    0b63f12db65d1b356935a54b4476336e904178ea5041a49d0deab0b9c24e671a
+    3c84d7f43e0e3880208735e1b895eaf97d341253c1564ea212bc8be2476872ce
+    1df5228bdd0c2dc066807620812c7d63200a20b936141296c8e9253663717ab4
+    a3e51df2fd6147b487ae2c3796ec7305b7e4b9b0ac30d122eb429bde31610400
+    e8228bad372f46a15465141d04a83f6bf111cac924b6bdd5e1dd0b5845ba5896
+    b57020db13405fc6bf27de97ea65be1182b507c9ce94f4f26b849d261bef2b7e
+    b0284dd5ffb9a2a737179b5a78c633111d3e1e55ba1d4f410a6dcce7b4576ac9
+    faf7425bb9b46399978d8fa940b92cf6fcedb34bab2bb5c829aa4be203805da6
+    ce7d4e8aca04591982ef71276ee0dcb82003e0296c3ece58ed3f135e204770ba
+    226f01a05426f6d3339b7eb3f41c80178aa9dbf365ac27c6c2154fb26a003e54
+    f8e64fa7508308593a325ba797f9103152d0562d9ae24c61d570fc9fed280f94
+    b0762dc00e9013829023b58d48e7dbff636935a07cbae61b794f152dd2b96d80
+    e258b97d49a9036b5eac8fc23514af5298c2c212a1c1db124f56685a70d6cd14
+    f082f40a78e61971ecce5d68b4e3db1e527bae3c0465f507dc07727b7521ffef
+    60d9eec3c7b39e09c0244f4ec495719aa2640e16ec4f33d0003fb51c46109fbd
+    ba55c42d75184b5723e7bf9ea7c3f9772200b7710b7f7fb6bbfc2f98b481d97d
+    c9a3b0986c9fa899a160c882e39008e57485bfa7c94463c7c10642391a25b5d0
+    808d4001a03f4366b113d12547b8e701b04f5d4643f27af39b41a0f81d114b08
+    a75f3f0b9ca677ad69ae73aed92cb8fdeb7ca53c55a3a638b77672e8952237e9
+    19618a91313537462ebd8a813d32bcdb340c537b31f7b687f40910d2506b6202
+    2adec98b6f20bc2868eaf1d8d2fe3255e56a8cc105a3b3cbd33cdde81bc00b07
+    2012a0a9ec66507d91e4aa38ebbe132e1149602cdebfe257cc1f7c
+spend4.refund.t = 5
+spend4.refund.rand =
+    752dc7ce9c6fb3e70d8c88a6bb1e1fa40b7956619b9571519feac0eae54c5cfa
+    e117914953d8c1f88b0035512fa223b8a67174046422dffb4a899546001bc936
+    82a8720ccd9fecd89f8e7b97f5ff29b951e586a5319626dd779b3fe45013dec5
+spend4.refund.message =
+    02e40b0e6dd647996a9bad5602291ad325fc3b8bfedec9cfdbeef8235c688847
+    9d844369d43ef409a7a049c4fc4d76f5463a41c79550d31b4872efa2318a1530
+    400000000000000005f166402a7854a65baeb2cda7c12003caec31088897a3eb
+    efbb0f81dc8deecbb7d401f696b0d66f224bbb8855ff213463c7ae93c663c00d
+    62076bd3adce0e8d2e
+spend4.credential =
+    a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
+    000000000000000c2aed566e0458743e56bc78cfcbb597fb6548edb58bfd1df4
+    d23bcc91e37e905902e40b0e6dd647996a9bad5602291ad325fc3b8bfedec9cf
+    dbeef8235c6888479d844369d43ef409a7a049c4fc4d76f5463a41c79550d31b
+    4872efa2318a153040
+</pre><a href="#appendix-A.7-1" class="pilcrow">¶</a>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="acknowledgments">
+<section id="appendix-B">
+      <h2 id="name-acknowledgments">
+<a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
+      </h2>
+<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-C">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Samuel Schlesinger</span></div>
+<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:sgschlesinger@gmail.com" class="email">sgschlesinger@gmail.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Jonathan Katz</span></div>
+<div dir="auto" class="left"><span class="org">Google LLC</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:jkcrypto@google.com" class="email">jkcrypto@google.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Armando Faz-Hernandez</span></div>
+<div dir="auto" class="left"><span class="org">Cloudflare, Inc.</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:armfazh@cloudflare.com" class="email">armfazh@cloudflare.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Deep Inder Mohan</span></div>
+<div dir="auto" class="left"><span class="org">Georgia Institute of Technology</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:dmohan@gatech.edu" class="email">dmohan@gatech.edu</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
