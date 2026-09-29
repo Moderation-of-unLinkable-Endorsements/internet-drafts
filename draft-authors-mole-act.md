@@ -170,8 +170,8 @@ contexts. This document treats those contexts as opaque byte strings.
 > ({{act-context}}), how `L` is published with the key ({{act-config}}),
 > the lifetime of the nullifier store and the policy bounding `t`
 > ({{act-security}}), and how a Client obtains a refund again after a
-> lost response ({{act-finalize-refund}}). Until then, those references
-> name requirements on that profile rather than text it contains.
+> lost response ({{act-finalize-refund}}). Until then, these references
+> state requirements the profile must meet.
 
 # Conventions and Definitions
 
@@ -352,15 +352,13 @@ of a spend proof and the cost of producing and verifying it grow linearly in
 largest balance. The Moderator publishes `L` together with its public key
 ({{PROTOCOLS}}); a Client MUST use the published value.
 
-`L` is fixed for the lifetime of a key and credential context. The invariant
-that every balance the Moderator has signed lies below `2^L`, on which
-{{act-security}} relies, is argued by induction over issuances and refunds
-under one value of `L`, and does not survive a change of `L` under a key and
-context that still have outstanding Credentials. A Moderator that changes `L`
-MUST do so together with the credential context or the key. Deployments are
-RECOMMENDED to fold `L` into the credential context, for instance by
-appending `I2OSP(L, 1)` to it, so that a change of `L` is a change of context
-by construction.
+`L` is fixed for the lifetime of a key and credential context.
+{{act-security}} shows by induction over issuances and refunds that every
+balance the Moderator has signed lies below `2^L`, assuming one value of `L`
+per key and context. A Moderator that changes `L` MUST also change the
+credential context or the key. Deployments are RECOMMENDED to include `L` in
+the credential context, for instance by appending `I2OSP(L, 1)` to it, so
+that changing `L` changes the context.
 
 ### Generators {#act-generators}
 
@@ -411,11 +409,9 @@ def CreateContextScalar(ctx_cred: bytes) -> Scalar:
     )
 ~~~
 
-The context is never carried on the wire. It is an input to every algorithm
-of this section that computes or checks a signature, supplied by the party
-running it, so that a spend verifies only under the context the Credential
-was issued under: a Moderator states the context it accepts and learns whether
-the Credential was issued under it, rather than being told by the Client. A
+The context is never carried on the wire. Each party supplies it to every
+algorithm of this section that computes or checks a signature, so a spend
+verifies only under the context the Credential was issued under. A
 Client keeps its own copy of the context for as long as it holds the
 Credential. A Credential presented under a context other than the one it
 was issued under fails verification; the mismatch is not otherwise
@@ -456,10 +452,10 @@ without overflow.
 Each proof of this document is a compact NARG string
 ({{Section 5.5 of SIGMA}}) for a linear relation declared where it is
 used, in the notation of {{Section 3.4 of SIGMA}}, with `G` the generator
-`B` of {{ciphersuites}}. The batchable form would add one element per
-equation, which for the spend relation is most of the message, and the
-Moderator verifies each spend atomically with recording its nullifier,
-which precludes batch verification.
+`B` of {{ciphersuites}}. Compact proofs are used because a batchable proof
+adds one element per equation, most of the message for the spend relation,
+and a Moderator verifies each spend on its own, atomically with recording
+its nullifier.
 
 The ciphersuite is `sigma-proofs_Shake128_P256` of
 {{Section 8 of SIGMA}}. Its group is the group of {{ciphersuites}}
@@ -849,8 +845,8 @@ signature under `skM`, since the verifier computes `A_bar = skM * A_prime`.
 The second opens the signed message to the hidden balance `c` and blinding
 factor `r`, relative to the public `H1_prime`, which fixes the nullifier
 `k` and the context. The third opens `K_n` to the next nullifier and so
-shows that `K_n` has no `H1` component; one would raise the balance the
-refund signs.
+shows that `K_n` has no `H1` component, which would otherwise raise the
+balance the refund signs.
 
 Each pair of bit equations is the `Bit` relation of
 {{Section 3.4 of SIGMA}}, with `u[j] = (1 - b[j]) * s[j]` for an honest
@@ -1301,14 +1297,18 @@ Credit conservation:
 
   except with negligible probability, for an adversary controlling every
   Client, provided the nullifier store of {{PROTOCOLS}} rejects a repeated
-  nullifier. The right-hand side is what the Moderator controls. The
-  property follows from four facts: an accepted spend proof yields, by
-  special soundness, a signature under `skM` on `(c, k, r, ctx)`; every such
-  signature was produced by `IssueResponse` or `IssueRefund`, whose signing
-  oracles are constrained by the proofs they verify, or q-SDH is broken; the
-  sum equations of {{act-spend-relation}} hold over the integers ("Amount
-  validation" below), so the refund Credential has balance exactly
-  `c - s + t`; and a recorded nullifier is never counted twice.
+  nullifier. The right-hand side is under the Moderator's control. The
+  property rests on the following:
+
+  * an accepted spend proof yields, by special soundness, a signature under
+    `skM` on `(c, k, r, ctx)`;
+  * every such signature was produced by `IssueResponse` or `IssueRefund`,
+    whose signing oracles are constrained by the proofs they verify, or
+    q-SDH is broken;
+  * the sum equations of {{act-spend-relation}} hold over the integers
+    ("Amount validation" below), so the refund Credential has balance exactly
+    `c - s + t`; and
+  * a recorded nullifier is never counted twice.
 
 Unlinkability:
 : A spend reveals nothing about which issuance or refund produced the
@@ -1382,8 +1382,8 @@ Single use of Credentials and states:
   it again, whether or not the refund arrives. An implementation MUST
   have `ProveSpend` consume the Credential value, `FinalizeIssue`
   consume the issuance state, and `FinalizeRefund` consume the spend
-  state, so that a second use of any of them within a process is
-  impossible by construction; a Credential or state restored from a
+  state, so that no process can use any of them twice; a Credential or
+  state restored from a
   backup after use is the wallet's responsibility. A second spend of the
   same Credential presents the same nullifier, which the Moderator
   rejects, and links the two presentations to each other; one issuance
@@ -1440,12 +1440,10 @@ Balance width:
   invariant of the conservation argument.
 
 System requirements:
-: Deployments must provide an atomic and durable nullifier store
-  ({{PROTOCOLS}}), consistent configuration across Clients ({{ARCH}}),
-  and coarse credential contexts. Privacy relies on the randomness
-  requirements of {{randomness}}. Clients must use each Credential and
-  each issuance or spend state only once, including across backups and
-  restores.
+: The requirements on deployments are those of "Nullifier store", "Context
+  granularity", and "Single use of Credentials and states" above, consistent
+  configuration across Clients ({{ARCH}}), and the randomness requirements
+  of {{randomness}}.
 
 # IANA Considerations {#iana}
 
