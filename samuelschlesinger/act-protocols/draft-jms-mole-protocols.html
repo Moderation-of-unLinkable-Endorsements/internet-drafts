@@ -1789,8 +1789,8 @@ configuration metadata are outside that claim.<a href="#section-4.4.2-4" class="
 <a href="#challenge-binding" class="auto internal xref">Section 4.1</a> and calls
 <code>Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)</code>.
 The ordered <code>anchor_set</code> comes from Moderator configuration; <code>index</code> selects
-the Anchor that issued the Endorsement. The Client rejects a set containing
-fewer than two keys or one that omits its Anchor.<a href="#section-4.4.3-1" class="pilcrow">¶</a></p>
+the Anchor that issued the Endorsement. The Client rejects a set that omits
+its Anchor.<a href="#section-4.4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.4.3-2"><code>FinalizeRedeem</code> checks that the issuance epoch and Moderator Challenge are
 accepted, decodes the payload, and calls
 <code>VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red, challenge_digest)</code>.

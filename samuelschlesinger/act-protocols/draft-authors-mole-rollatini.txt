@@ -124,6 +124,7 @@ Table of Contents
      A.4.  Issuance
      A.5.  Redemption Against 2 Anchors
      A.6.  Redemption Against 5 Anchors
+     A.7.  Redemption Against 1 Anchor
    Acknowledgments
    Authors' Addresses
 
@@ -1669,7 +1670,7 @@ Table of Contents
        openings: Sequence[Scalar],
    ) -> bool:
        n = len(anchor_set)
-       if n < 2:
+       if n == 0:
            return False
 
        Y = Statements(anchor_set, X_hat)
@@ -1707,8 +1708,8 @@ Table of Contents
 
    VerifyIssuer returns false rather than raising an error, as Verify
    (Section 5.5) does.  Its checks on the lengths of commitment_keys and
-   openings repeat what deserialization enforces (Section 6.5), and n <
-   2 means the Moderator is misconfigured (Section 6.4).  It also
+   openings repeat what deserialization enforces (Section 6.5), and an
+   empty Anchor Set means the Moderator is misconfigured.  It also
    rejects a branch commitment equal to the identity element, which
    SerializeElement cannot encode and which a Client can produce on its
    own branch by answering response = -proof_challenge * delta.  An
@@ -1752,8 +1753,6 @@ Table of Contents
        (c, s, y, t, nf) = endorsement
        n = len(anchor_set)
 
-       if n < 2:
-           raise VerifyError
        if not 0 <= index < n:
            raise ValueError("index is outside the Anchor Set")
 
@@ -1785,11 +1784,6 @@ Table of Contents
            commitment_keys,
            openings,
        )
-
-   In order to keep the Anchor anonymous, the Client MUST NOT redeem
-   against an Anchor Set of fewer than two keys.  Refusing also keeps
-   the depth q of the tree at least one, so a redemption always carries
-   at least one commitment key.
 
    delta MUST be freshly derived for every redemption, and MUST NOT be
    derived from the Endorsement or from any other value a Client reuses.
@@ -1852,12 +1846,10 @@ Table of Contents
    anyway.  [PROTOCOLS] places these checks, and the check that ctx_iss
    is current, at the Moderator.
 
-   A Moderator MUST NOT offer an Anchor Set of one key: with n = 1 the
-   tree has depth zero, the proof carries no commitment key, and what
-   remains is a plain proof of knowledge of delta for the single key,
-   which identifies the Anchor.  VerifyIssuer rejects that case, but a
-   Moderator configured this way has lost issuer hiding before any proof
-   is checked; see Section 8.
+   An Anchor Set of one key gives a tree of depth zero: the redemption
+   carries no commitment keys or openings, and the issuer-hiding proof
+   is a proof of knowledge of delta for that key.  The redemption then
+   names its Anchor, as the Anchor Set itself does; see Section 8.
 
 6.5.  Encodings
 
@@ -2080,32 +2072,33 @@ Table of Contents
 
    Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
       Set_, so the set is the anonymity set, and a redemption against a
-      single-key set would name the Anchor outright (Section 6.4); a
-      Client MUST refuse such a set rather than rely on the Moderator to
-      avoid offering one (Section 6.3).  More generally a Moderator that
-      offers different Anchor Sets to different Clients partitions them,
-      and one that reorders the set between Clients does the same; the
-      set and its order MUST be the same for every Client offered a
-      given ctx_iss.  See [ARCH] for how set size interacts with Anchor
-      diversity.
+      set of one key names its Anchor (Section 6.4); blindness still
+      keeps it unlinkable to the session that produced the Endorsement.
+      A Moderator that offers different Anchor Sets to different Clients
+      partitions them, and one that reorders the set between Clients
+      does the same; the set and its order MUST be the same for every
+      Client offered a given ctx_iss.  See [ARCH] for how set size
+      interacts with Anchor diversity.
 
    Proof size and cost:  The proof is logarithmic in the size of the
       Anchor Set: two scalars, plus one element and one scalar for each
       of the q levels of the tree (Section 6.5), but computation is
-      linear in n.  Both the prover and the verifier evaluate all n
-      branch commitments.  The verifier builds one tree, of n - 1 node
-      commitments; the prover builds the tree of its first move and
-      then, in VecEquivocate, an old and a new tree, 3 * (n - 1) node
-      commitments in all, of which the old tree repeats the first and
-      can be kept from it.  Each party performs a number of scalar
-      multiplications linear in n, so a large Anchor Set is cheap in
-      bandwidth and not in CPU, which reverses the tradeoff of the
-      linear disjunction [CDS94] for bandwidth but not for work;
-      [FFKLLS26] notes the same for its own instantiations.  For
-      deployments, the linear disjunction is smaller for Anchor Sets of
-      three keys or fewer, and since the depth q = Depth(n) is ceil(log2
-      n), an Anchor Set of 2^q + 1 keys costs a whole extra level while
-      adding one Anchor to the anonymity set.
+      linear in n.  The prover and the verifier each evaluate all n
+      branch commitments and build a tree of n - 1 node commitments over
+      them.  The tree of the prover's first move, which is also the old
+      tree of VecEquivocate, has empty leaves off the binding path, so
+      at most three of its node commitments at each level are distinct.
+      The node commitments of a level share randomness * B and P(Q), and
+      the branch commitments share proof_challenge * X_hat + response *
+      B, terms an implementation computes once.  Each party performs a
+      number of scalar multiplications linear in n, so a large Anchor
+      Set is cheap in bandwidth and not in CPU, which reverses the
+      tradeoff of the linear disjunction [CDS94] for bandwidth but not
+      for work; [FFKLLS26] notes the same for its own instantiations.
+      For deployments, the linear disjunction is smaller for Anchor Sets
+      of three keys or fewer, and since the depth q = Depth(n) is
+      ceil(log2 n), an Anchor Set of 2^q + 1 keys costs a whole extra
+      level while adding one Anchor to the anonymity set.
 
    Constant-time proving:  ProveIssuer treats one leaf, and one side of
       each node on the path to it, differently from the others, and that
@@ -2117,7 +2110,10 @@ Table of Contents
       empty values at every other leaf; both commitment passes visit
       every node of the tree.  That placement and the later equivocation
       MUST avoid observable secret-dependent branches and memory
-      accesses.
+      accesses.  The number of distinct node commitments at a level of
+      the first move depends on index, so an implementation that
+      computes each only once MUST compute the same number at every
+      level for every index.
 
       Commitment key generation uses the balanced walk of
       Section 6.2.3.1.  Its iteration count is determined by the
@@ -2314,10 +2310,10 @@ Appendix A.  Test Vectors
 
    The vectors below cover the ciphersuite of Section 7:
    G.DeriveScalars, the permutation P, a key pair, one issuance, and
-   redemptions of the resulting Endorsement against an Anchor Set of two
-   keys and against one of five.  Byte strings are in hexadecimal,
-   wrapped at 64 digits with the continuation lines indented; integers
-   are decimal.
+   redemptions of the resulting Endorsement against Anchor Sets of two
+   keys, of five, and of one.  Byte strings are in hexadecimal, wrapped
+   at 64 digits with the continuation lines indented; integers are
+   decimal.
 
    Every algorithm is a deterministic function of the bytes it draws
    from random. derive.rand is the rand argument of G.DeriveScalars;
@@ -2511,6 +2507,34 @@ A.6.  Redemption Against 5 Anchors
        2d4ed09b6953ca70b01528cb72445664fba5751cc51a6457c58c16c969968bb0
        ba96268b0fc9fe90
    redeem5.nf =
+       6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+
+A.7.  Redemption Against 1 Anchor
+
+   redeem1.index = 0
+   redeem1.anchor_set =
+       0207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40cd3ca0
+       0e
+   redeem1.challenge_digest =
+       526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
+       20646967657374
+   redeem1.rand =
+       90cf8609cd2fdc49bb67cf32c55f99cecdf59fb1b4137a44a7c88b50d91ecf88
+       f64d1e70c99867855538672f291ea7a2842f202b5db7e00657488f1414c1eee5
+       530c92c852c672d5b466fd3d68746761bbd7986f9f76b4bb6eb8023dfeda72a9
+   redeem1.delta =
+       67f4005bd42493a6c791c29f76d0b6c077e788c1832dda758a27d457c3ed0b42
+   redeem1.message =
+       03214bec395a1eee012e3272af93eb9b7df12f55e122421f72e660c71e5b11df
+       ffeaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c1
+       1699dc586b3ec18cda657c0ac4d4e4dc7a41f5dd1f566d82a41b19594e7eae33
+       704ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f3
+       5b5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd
+       8a6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc8
+       75c85384d2a2f07d6d2f6f419d00a29b448002d76011aac9f8a4500019af6a33
+       bb64d1c5bd8cce45d18c3bc208b3a54be023e59023ad4a62aadcfe7d47e34e05
+       e10000
+   redeem1.nf =
        6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
 
 Acknowledgments
