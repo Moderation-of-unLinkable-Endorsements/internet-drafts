@@ -2162,20 +2162,21 @@ Anchor Set size:
 Proof size and cost:
 : The proof is logarithmic in the size of the Anchor Set: two scalars, plus one
   element and one scalar for each of the `q` levels of the tree
-  ({{redemption-wire}}), but computation is linear in `n`. Both the prover and
-  the verifier
-  evaluate all `n` branch commitments. The verifier builds one tree, of `n - 1`
-  node commitments; the prover builds the tree of its first move and then,
-  in `VecEquivocate`, an old and a new tree, `3 * (n - 1)` node commitments in
-  all, of which the old tree repeats the first and can be kept from it. Each
-  party performs a number of scalar multiplications linear in `n`, so a large
-  Anchor Set is cheap in bandwidth and not in CPU, which reverses the tradeoff
-  of the linear disjunction {{CDS94}} for bandwidth but not for work;
-  {{FFKLLS26}} notes the same for its own instantiations. For deployments,
-  the linear disjunction is smaller for Anchor Sets of three
-  keys or fewer, and since the depth `q = Depth(n)` is `ceil(log2 n)`, an
-  Anchor Set of `2^q + 1` keys costs a whole extra level while adding one
-  Anchor to the anonymity set.
+  ({{redemption-wire}}), but computation is linear in `n`. The prover and the
+  verifier each evaluate all `n` branch commitments and build a tree of
+  `n - 1` node commitments over them. The tree of the prover's first move,
+  which is also the old tree of `VecEquivocate`, has empty leaves off the
+  binding path, so at most three of its node commitments at each level are
+  distinct. The node commitments of a level share `randomness * B` and
+  `P(Q)`, and the branch commitments share `proof_challenge * X_hat +
+  response * B`, terms an implementation computes once. Each party performs
+  a number of scalar multiplications linear in `n`, so a large Anchor Set is
+  cheap in bandwidth and not in CPU, which reverses the tradeoff of the
+  linear disjunction {{CDS94}} for bandwidth but not for work; {{FFKLLS26}}
+  notes the same for its own instantiations. For deployments, the linear
+  disjunction is smaller for Anchor Sets of three keys or fewer, and since
+  the depth `q = Depth(n)` is `ceil(log2 n)`, an Anchor Set of `2^q + 1` keys
+  costs a whole extra level while adding one Anchor to the anonymity set.
 
 Constant-time proving:
 : `ProveIssuer` treats one leaf, and one side of each node on the path to it,
@@ -2186,7 +2187,10 @@ Constant-time proving:
   move places the real branch commitment at `index` and empty values at every
   other leaf; both commitment passes visit every node of the tree. That
   placement and the later equivocation MUST avoid observable secret-dependent
-  branches and memory accesses.
+  branches and memory accesses. The number of distinct node commitments at a
+  level of the first move depends on `index`, so an implementation that
+  computes each only once MUST compute the same number at every level for
+  every `index`.
 
 : Commitment key generation uses the balanced walk of {{permutation-pair}}.
   Its iteration count is determined by the published commitment key, and
