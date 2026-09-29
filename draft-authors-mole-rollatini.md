@@ -2307,7 +2307,7 @@ SerializeScalar(c)`. `issue.Z` is `CreateContextBase(ctx_iss)`, and
 `key.P_pkA` is `P(pkA)`. Every message and `endorsement` entry is an encoding
 of {{wire}} or {{redemption-wire}}, and the commit and challenge messages
 carry `issue.session_id`. The keys of each Anchor Set other than `key.pkA`
-were generated for the vectors. Both redemptions present the same
+were generated for the vectors. Every redemption presents the same
 Endorsement, which a Moderator would accept only once; each `nf` entry is the
 output of `VerifyRedemption`.
 
