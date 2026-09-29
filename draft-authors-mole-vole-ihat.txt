@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 1 April 2027                                         Cloudflare
-                                                       28 September 2026
+Expires: 2 April 2027                                         Cloudflare
+                                                       29 September 2026
 
 
                                 Moussaka
@@ -14,14 +14,14 @@ Expires: 1 April 2027                                         Cloudflare
 
 Abstract
 
-   This document specifies Moussaka, a candidate post-quantum variant of
-   the Issuer-Hiding Anonymous Token (IHAT) protocol.  Moussaka is based
-   on the UOV digital signature scheme and the VOLE-in-the-Head proof
-   system (a component of the FAEST signature scheme).  The anchor
-   issues a token by signing a commitment to the client's state; to
-   redeem a token, the client proves knowledge of the opening of this
-   commitment and a signature produced by some anchor trusted by the
-   moderator.  The commitment is instantiated with Keccak-p[800,12].
+   This document specifies Moussaka, a candidate post-quantum Issuer-
+   Hiding Anonymous Token (IHAT).  Moussaka is based on the UOV digital
+   signature scheme and the VOLE-in-the-Head proof system (a component
+   of the FAEST signature scheme).  The anchor issues a token by signing
+   a commitment to the client's state; to redeem a token, the client
+   proves knowledge of the opening of this commitment and a signature
+   produced by some anchor trusted by the moderator.  The commitment is
+   instantiated with Keccak-p[800,12].
 
 About This Document
 
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 1 April 2027.
+   This Internet-Draft will expire on 2 April 2027.
 
 Copyright Notice
 
@@ -98,32 +98,33 @@ Table of Contents
       not yet undergone significant security analysis.  It's not yet
       suitable for real world applications.  Implement at your own risk.
 
-   The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
-   redeem a token with a Moderator without revealing which Anchor issued
-   the token.  Instead, the client proves the token was issued by some
-   Anchor in the Anchor Set trusted by the Moderator.  IHAT is also
-   designed to be post-issuance unlinkable, meaning the redemption of a
-   token cannot be linked to its issuance.
+   Rollatini [ROLLATINI], an Issuer-Hiding Anonymous Token, allows a
+   Client to redeem a token with a Moderator without revealing which
+   Anchor issued the token.  Instead, the client proves the token was
+   issued by some Anchor in the Anchor Set trusted by the Moderator.
+   Rollatini is also designed to be post-issuance unlinkable, meaning
+   the redemption of a token cannot be linked to its issuance.
 
-   IHAT meets these privacy goals unconditionally, meaning regardless of
-   its computational resources, no attacker can learn which Anchor
-   issued a token or to which Client it was issued.  On the other hand,
-   it is well known that a quantum attacker can forge tokens by
-   recovering the Anchor's secret key from its public key.
+   Rollatini meets these privacy goals unconditionally, meaning
+   regardless of its computational resources, no attacker can learn
+   which Anchor issued a token or to which Client it was issued.  On the
+   other hand, it is well known that a quantum attacker can forge tokens
+   by recovering the Anchor's secret key from its public key.
 
-   This document specifies Moussaka, a variant of IHAT that is plausibly
-   fully post-quantum secure.  Similar to [VOLE-ACT], its design is
-   based on the PoMFRIT blind signature scheme [PoMFRIT], which combines
-   a post-quantum signature scheme with a suitable zero-knowledge proof
-   system and commitment scheme.  Specifically, the signer signs a
-   commitment to the message, and the verifier checks a zero-knowledge
-   proof-of-knowledge of the signature and the opening of the
-   commitment.  Moussaka extends this paradigm in the natural way:
+   This document specifies Moussaka, an Issuer-Hiding Anonymous Token
+   that is plausibly fully post-quantum secure.  Similar to [VOLE-ACT],
+   its design is based on the PoMFRIT blind signature scheme [PoMFRIT],
+   which combines a post-quantum signature scheme with a suitable zero-
+   knowledge proof system and commitment scheme.  Specifically, the
+   signer signs a commitment to the message, and the verifier checks a
+   zero-knowledge proof-of-knowledge of the signature and the opening of
+   the commitment.  Moussaka extends this paradigm in the natural way:
    rather than prove knowledge of a signature under the public key of a
    particular Anchor, the Client proves knowledge of a signature under
    some public key in the Anchor Set.
 
-   Moussaka has significantly higher bandwidth cost compared to IHAT:
+   Moussaka has significantly higher bandwidth cost compared to
+   Rollatini:
 
    1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
        parameter set [UOV]);
@@ -143,7 +144,7 @@ Table of Contents
       more invasive techniques from [PoMFRIT], Algorithm 2.
 
    On the other hand, Moussaka is round optimal: only two moves are
-   required for issuance, whereas IHAT requires three.
+   required for issuance, whereas Rollatini requires three.
 
    The remainder of this document is structured as follows.  Section 2
    defines some conventions and notation.  Section 3 provides a high-
@@ -154,14 +155,14 @@ Table of Contents
    Finally, Section 6 enumerates some security considerations for
    implementers and adopters.
 
-      TODO(cjpatton) Resolve gaps with [IHAT]:
+      TODO(cjpatton) Resolve gaps with [ROLLATINI]:
 
       1.  The protocol wants to bind the challenge that triggered
           redemption to the redemption process so that the Client and
           Moderator confirm agreement.  This is a 32-byte
           challenge_digest.  Since this value isn't determined until
           redemption time, we can't include it in the commitment.  The
-          most natural solution is analogous to IHAT: include
+          most natural solution is analogous to Rollatini: include
           challenge_digest in the VOLEitH transcript.  This is mildly
           invasive, but shouldn't be too bad to support.  PoMFRIT does a
           similar thing with the public key.
@@ -207,12 +208,12 @@ Table of Contents
 
    Issuance binds a token to an issuance context ctx_iss agreed upon by
    the Client, Anchor, and Moderator, and a redemption context ctx_red
-   agreed upon by the Client and Moderator [IHAT].  The protocol commits
-   to both contexts during issuance: the Anchor verifies the ctx_iss
-   binding during issuance, and the Moderator verifies both the ctx_iss
-   and ctx_red binding during redemption.  Note that Moussaka constrains
-   how these values are chosen compared to [IHAT]; see Section 5.2 for
-   details.
+   agreed upon by the Client and Moderator [ROLLATINI].  The protocol
+   commits to both contexts during issuance: the Anchor verifies the
+   ctx_iss binding during issuance, and the Moderator verifies both the
+   ctx_iss and ctx_red binding during redemption.  Note that Moussaka
+   constrains how these values are chosen compared to [ROLLATINI]; see
+   Section 5.2 for details.
 
    The issuance protocol is as follows:
 
@@ -338,13 +339,13 @@ Table of Contents
    The layout of state is chosen so that the entire commitment is
    computed with a single application of the permutation.  The zero
    padding is sized so that state is always 100 bytes.  This layout also
-   constrains the lengths of the inputs relative to [IHAT]: nf_len is 24
-   bytes, whereas [IHAT] uses a 32-byte nullifier, and ctx_len is 16
-   bytes, whereas [IHAT] allows the contexts to be arbitrary byte
-   strings.
+   constrains the lengths of the inputs relative to [ROLLATINI]: nf_len
+   is 24 bytes, whereas [ROLLATINI] uses a 32-byte nullifier, and
+   ctx_len is 16 bytes, whereas [ROLLATINI] allows the contexts to be
+   arbitrary byte strings.
 
       TODO(cjpatton) Consider bumping the nullifier length to 32 to
-      match [IHAT] and guidelines for choosing the context strings.
+      match [ROLLATINI] and guidelines for choosing the context strings.
       Honestly, truncating a hash to 16 bytes is not terrible.
       (Likewise for Ratatouille.)
 
@@ -624,10 +625,6 @@ Table of Contents
               Output Functions", FIPS PUB 202, August 2015,
               <https://doi.org/10.6028/NIST.FIPS.202>.
 
-   [IHAT]     "Issuer-Hiding Anonymous Tokens (IHAT)", n.d.,
-              <https://moderation-of-unlinkable-endorsements.github.io/
-              internet-drafts/draft-authors-mole-ihat.html>.
-
    [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
               Kannwischer, "MAYO: Practical Post-Quantum Signatures from
               Oil-and-Vinegar Maps", NIST PQC Additional Digital
@@ -642,6 +639,11 @@ Table of Contents
    [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [ROLLATINI]
+              "Rollatini: An Issuer-Hiding Anonymous Token", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-rollatini.html>.
 
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
