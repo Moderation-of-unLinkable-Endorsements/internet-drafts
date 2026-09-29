@@ -5,9 +5,9 @@ these routines check lengths, canonical encodings, and amount bounds; the
 algorithms check the proofs.
 """
 
-from ihat.ciphersuite import DeserializeError
-from ihat.ciphersuite import P256Element as Element
-from ihat.ciphersuite import P256Scalar as Scalar
+from rollatini.ciphersuite import DeserializeError
+from rollatini.ciphersuite import P256Element as Element
+from rollatini.ciphersuite import P256Scalar as Scalar
 
 from . import protocol as act
 

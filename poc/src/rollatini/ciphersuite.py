@@ -1,4 +1,4 @@
-"""The IHAT(P-256, SHA-256) ciphersuite."""
+"""The Rollatini(P-256, SHA-256) ciphersuite."""
 
 from __future__ import annotations
 
@@ -10,6 +10,10 @@ from Cryptodome.PublicKey import ECC
 from Cryptodome.PublicKey.ECC import EccPoint
 
 from .common import I2OSP, Nseed, U16Prefixed, random
+
+
+Nh = 32
+s_in_bytes = 64
 
 
 FIELD_MODULUS = 0xFFFFFFFF00000001000000000000000000000000FFFFFFFFFFFFFFFFFFFFFFFF
@@ -81,7 +85,7 @@ class Scalar(Generic[Suite]):
 
 
 class P256SHA256:
-    """Phantom type identifying the IHAT(P-256, SHA-256) ciphersuite."""
+    """Phantom type identifying the Rollatini(P-256, SHA-256) ciphersuite."""
 
 
 class P256Scalar(Scalar[P256SHA256]):
@@ -94,6 +98,10 @@ def _sha256(data: bytes) -> bytes:
 
 def _xor(left: bytes, right: bytes) -> bytes:
     return bytes(a ^ b for a, b in zip(left, right, strict=True))
+
+
+def PadToBlock(value: bytes) -> bytes:
+    return value + bytes(-len(value) % s_in_bytes)
 
 
 def PermuteBytes(buf: bytearray) -> bytearray:
@@ -246,41 +254,65 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         uniform = expand_message_xmd(value, dst, 48)
         return P256Scalar(int.from_bytes(uniform, "big") % ORDER)
 
-    def DeriveScalar(self, seed: bytes, info: bytes) -> P256Scalar:
+    def DeriveScalars(
+        self, rand: bytes, info: bytes, count: int
+    ) -> list[P256Scalar]:
+        if len(rand) != Nseed:
+            raise ValueError(f"rand must be exactly {Nseed} bytes")
+        key = expand_message_xmd(
+            rand + U16Prefixed(info),
+            b"DeriveScalars-" + self.ctx_proto,
+            Nh,
+        )
+        return self.ExpandScalars(key, count)
+
+    def ExpandScalars(self, key: bytes, count: int) -> list[P256Scalar]:
+        scalars = []
+        for i in range(count):
+            s = self.HashToScalar(
+                key + I2OSP(i, 4), DST=b"ExpandScalars-" + self.ctx_proto
+            )
+            if s.isZero():
+                raise DeriveError
+            scalars.append(s)
+        return scalars
+
+    def DeriveNonces(
+        self,
+        secret: bytes,
+        label: bytes,
+        instance: bytes,
+        rand: bytes,
+        count: int,
+    ) -> list[P256Scalar]:
+        if len(rand) != Nseed:
+            raise ValueError(f"rand must be exactly {Nseed} bytes")
+        derive_nonce_input = (
+            PadToBlock(rand)
+            + PadToBlock(I2OSP(len(secret), 4) + secret)
+            + U16Prefixed(label)
+            + I2OSP(len(instance), 4)
+            + instance
+        )
+        key = expand_message_xmd(
+            derive_nonce_input, b"DeriveNonces-" + self.ctx_proto, Nh
+        )
+        return self.ExpandScalars(key, count)
+
+    def DeriveKeyPair(
+        self, seed: bytes, info: bytes
+    ) -> tuple[P256Scalar, P256Element]:
         if len(seed) != Nseed:
             raise ValueError(f"seed must be exactly {Nseed} bytes")
         derive_input = seed + U16Prefixed(info)
         for counter in range(256):
-            s = self.HashToScalar(
+            skA = self.HashToScalar(
                 derive_input + I2OSP(counter, 1),
-                DST=b"DeriveScalar-" + self.ctx_proto,
+                DST=b"DeriveKeyPair-" + self.ctx_proto,
             )
-            if not s.isZero():
-                return s
+            if not skA.isZero():
+                return (skA, self.ScalarMultGen(skA))
         raise DeriveError
-
-    def DeriveNonce(
-        self, secret: bytes, label: bytes, instance: bytes, aux: bytes
-    ) -> P256Scalar:
-        if len(aux) != Nseed:
-            raise ValueError(f"aux must be exactly {Nseed} bytes")
-        derive_nonce_input = (
-            U16Prefixed(label)
-            + I2OSP(len(secret), 4)
-            + secret
-            + I2OSP(len(instance), 4)
-            + instance
-            + U16Prefixed(aux)
-        )
-        seed = expand_message_xmd(
-            derive_nonce_input, b"DeriveNonce-" + self.ctx_proto, Nseed
-        )
-        return self.DeriveScalar(seed, label)
-
-    def DeriveKeyPair(self, seed: bytes, info: bytes) -> tuple[P256Scalar, P256Element]:
-        skA = self.DeriveScalar(seed, info)
-        pkA = self.ScalarMultGen(skA)
-        return (skA, pkA)
 
     def GenerateKeyPair(self) -> tuple[P256Scalar, P256Element]:
         seed = random(Nseed)

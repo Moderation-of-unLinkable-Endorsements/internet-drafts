@@ -1,7 +1,7 @@
 import pytest
 
-import ihat.protocol as protocol
-from ihat.protocol import (
+import rollatini.protocol as protocol
+from rollatini.protocol import (
     Challenge,
     Commit,
     Endorsement,
@@ -17,7 +17,7 @@ from ihat.protocol import (
     VecCommit,
 )
 
-from ihat.common import random
+from rollatini.common import random
 
 def _issue(ctx_iss=b"epoch-1", ctx_red=b"moderator-1"):
     skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
@@ -83,18 +83,16 @@ def test_commit_step_runs_without_raising(monkeypatch):
 
 @pytest.mark.parametrize("bind_left", [False, True])
 def test_generate_step_preserves_key_and_trapdoor(bind_left):
-    seed = bytes(range(protocol.Nseed))
-    secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+    secret = protocol.Scalar(12345)
     T = secret * protocol.B
     expected = protocol.G.Pinv(T) if bind_left else T
-    assert protocol.GenerateStep(bind_left, seed) == (expected, secret)
+    assert protocol.GenerateStep(bind_left, secret) == expected
 
 
 @pytest.mark.parametrize("bind_left", ["left", "right", None, 0, 1])
 def test_generate_step_rejects_non_boolean_direction(bind_left):
     with pytest.raises(ValueError, match="bind_left must be a boolean"):
-        seed = random(protocol.Nseed)
-        protocol.GenerateStep(bind_left, seed)
+        protocol.GenerateStep(bind_left, protocol.Scalar(12345))
 
 
 def test_equivocate_step_runs_without_raising():
@@ -142,7 +140,7 @@ def test_prove_issuer_runs_without_raising(monkeypatch):
         b"epoch-1",
         b"moderator-1",
         b"challenge-digest",
-        bytes(3 * protocol.Nseed),
+        bytes(protocol.Nseed),
     )
 
 
@@ -250,9 +248,9 @@ def test_prove_issuer_rejects_bad_index_and_randomness_length():
     )
 
     with pytest.raises(ValueError, match="index"):
-        ProveIssuer(*args[:1], 2, *args[2:], bytes(3 * protocol.Nseed))
+        ProveIssuer(*args[:1], 2, *args[2:], bytes(protocol.Nseed))
     with pytest.raises(ValueError, match="randomness"):
-        ProveIssuer(*args, bytes(3 * protocol.Nseed - 1))
+        ProveIssuer(*args, bytes(protocol.Nseed - 1))
 
 
 def test_redeem_rejects_bad_index():
@@ -275,10 +273,10 @@ def test_vector_commitment_comprehensive():
         while 2**q < i:
             q += 1
         for j in range(0, i):
-            keys, trapdoor = GenerateVecBind(q, j, random(q * 48))
-            comm, opening = CommitValAtPlace(
-                keys, i, j, b"Bob", random(q * 48)
-            )
+            trapdoor = protocol.G.DeriveScalars(random(48), b"test", q)
+            opening = protocol.G.DeriveScalars(random(48), b"test", q)
+            keys = GenerateVecBind(j, trapdoor)
+            comm = CommitValAtPlace(keys, i, j, b"Bob", opening)
             V = [random(32) for i in range(0, i)]
             V[j] = b"Bob"
             newopen = VecEquivocateFromZero(keys, trapdoor, opening, V, j)
@@ -315,10 +313,9 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         calls.append(length)
         return bytes(i % 256 for i in range(length))
 
-    def previous_generate_step(bind_left, seed):
-        secret = protocol.G.DeriveScalar(seed, b"GenerateStep")
+    def previous_generate_step(bind_left, secret):
         T = secret * protocol.B
-        return (protocol.G.Pinv(T) if bind_left else T, secret)
+        return protocol.G.Pinv(T) if bind_left else T
 
     monkeypatch.setattr(protocol, "random", fixed_random)
     for index in range(size):
@@ -333,9 +330,160 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         with monkeypatch.context() as previous:
             previous.setattr(protocol, "GenerateStep", previous_generate_step)
             assert redemption == protocol.Redeem(*args)
-        q = (size - 1).bit_length()
-        assert calls == [(2 * q + 2) * protocol.Nseed] * 2
+        assert calls == [2 * protocol.Nseed] * 2
         assert protocol.VerifyRedemption(
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
         ) == endorsement.nf
 
+
+
+def test_depth():
+    for n in range(1, 130):
+        assert protocol.Depth(n) == (n - 1).bit_length()
+
+
+def _tampered_redemptions(anchor_set, index, redemption):
+    G = protocol.G
+    one = protocol.Scalar(1)
+    shown = redemption.shown
+    keys = list(redemption.commitment_keys)
+    openings = list(redemption.openings)
+    others = [a for i, a in enumerate(anchor_set) if i != index]
+    ok = (b"epoch-1", b"moderator-1", b"digest")
+    if len(anchor_set) > 1:
+        yield "reordered anchor set", anchor_set[::-1], redemption, ok
+    yield "anchor removed", others + [G.Generator()], redemption, ok
+    yield "other ctx_iss", anchor_set, redemption, (b"epoch-2",) + ok[1:]
+    yield "other ctx_red", anchor_set, redemption, (ok[0], b"moderator-2", ok[2])
+    yield "other challenge_digest", anchor_set, redemption, ok[:2] + (b"x",)
+    for name, changed in [
+        ("X_hat", redemption._replace(X_hat=redemption.X_hat + G.Generator())),
+        ("c", redemption._replace(shown=shown._replace(c=shown.c + one))),
+        ("s_hat", redemption._replace(shown=shown._replace(s=shown.s + one))),
+        ("y", redemption._replace(shown=shown._replace(y=shown.y + one))),
+        ("t", redemption._replace(shown=shown._replace(t=shown.t + one))),
+        ("nf", redemption._replace(shown=shown._replace(nf=bytes(32)))),
+        ("proof_challenge", redemption._replace(
+            proof_challenge=redemption.proof_challenge + one)),
+        ("response", redemption._replace(response=redemption.response + one)),
+    ]:
+        yield name, anchor_set, changed, ok
+    for j in range(len(keys)):
+        swapped = keys[:j] + [keys[j] + G.Generator()] + keys[j + 1 :]
+        yield f"key {j}", anchor_set, redemption._replace(
+            commitment_keys=swapped), ok
+        shifted = openings[:j] + [openings[j] + one] + openings[j + 1 :]
+        yield f"opening {j}", anchor_set, redemption._replace(
+            openings=shifted), ok
+    if len(keys) > 1:
+        yield "keys reversed", anchor_set, redemption._replace(
+            commitment_keys=keys[::-1]), ok
+    if keys:
+        yield "key dropped", anchor_set, redemption._replace(
+            commitment_keys=keys[1:]), ok
+    yield "key added", anchor_set, redemption._replace(
+        commitment_keys=keys + [G.Generator()]), ok
+
+
+@pytest.mark.parametrize(
+    "size, index", [(1, 0), (2, 0), (3, 2), (5, 1), (5, 4), (8, 3)]
+)
+def test_redemption_rejects_tampering(size, index):
+    _, pkA, endorsement = _issue()
+    anchor_set = [
+        protocol.G.ScalarMultGen(protocol.Scalar(1000 + i)) for i in range(size)
+    ]
+    anchor_set[index] = pkA
+    redemption = protocol.Redeem(
+        anchor_set, index, endorsement, b"epoch-1", b"moderator-1", b"digest"
+    )
+    for name, anchors, tampered, (ctx_iss, ctx_red, digest) in (
+        _tampered_redemptions(anchor_set, index, redemption)
+    ):
+        try:
+            protocol.VerifyRedemption(anchors, tampered, ctx_iss, ctx_red, digest)
+        except VerifyError:
+            continue
+        pytest.fail(f"accepted a tampered redemption: {name}")
+
+
+def test_verify_rejects_identity_commitment():
+    # A Client that knows the discrete logarithm x of the key it presents
+    # reaches A = identity with s = c * y * x.
+    G = protocol.G
+    (x,) = G.DeriveScalars(bytes(48), b"x", 1)
+    c, y, t = protocol.Scalar(5), protocol.Scalar(7), protocol.Scalar(9)
+    shown = Endorsement(c, c * y * x, y, t, bytes(32))
+    assert not Verify(x * protocol.B, shown, b"epoch-1", b"moderator-1")
+
+    anchor_set = [G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
+    redemption = protocol.Redemption(
+        x * protocol.B, shown, protocol.Scalar(1), protocol.Scalar(1),
+        [anchor_set[0]], [protocol.Scalar(1)],
+    )
+    with pytest.raises(VerifyError):
+        protocol.VerifyRedemption(
+            anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
+        )
+
+
+def test_verify_issuer_rejects_identity_branch_commitment():
+    # With X_hat = pkA, Y[0] is the identity, and a zero response makes the
+    # branch commitment of that branch the identity too.
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))]
+    args = (anchor_set, pkA, endorsement, b"epoch-1", b"moderator-1", b"d")
+    assert Verify(pkA, endorsement, b"epoch-1", b"moderator-1")
+    assert not protocol.VerifyIssuer(
+        *args, protocol.Scalar(1), protocol.Scalar(0),
+        [pkA], [protocol.Scalar(1)],
+    )
+    redemption = protocol.Redemption(
+        pkA, endorsement, protocol.Scalar(1), protocol.Scalar(0),
+        [pkA], [protocol.Scalar(1)],
+    )
+    with pytest.raises(VerifyError):
+        protocol.VerifyRedemption(
+            anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
+        )
+
+
+def test_partly_repeated_randomness_gives_a_fresh_first_move():
+    # Two proofs of one statement whose randomness differs only in its last
+    # byte share no value of the first move, so neither delta nor a trapdoor
+    # can be solved for from the two responses.
+    _, pkA, endorsement = _issue()
+    anchor_set = [protocol.G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
+    anchor_set.append(pkA)
+    delta = protocol.Scalar(77)
+    X_hat = pkA + delta * protocol.B
+    rand = bytes(range(protocol.Nseed))
+    changed = rand[:-1] + bytes([rand[-1] ^ 1])
+    args = (anchor_set, 2, delta, X_hat, endorsement, b"i", b"r", b"d")
+    (c1, z1, keys1, openings1) = ProveIssuer(*args, rand)
+    (c2, z2, keys2, openings2) = ProveIssuer(*args, changed)
+    assert c1 != c2
+    assert z1 - z2 != (c2 - c1) * delta
+    assert all(k1 != k2 for k1, k2 in zip(keys1, keys2, strict=True))
+    assert all(
+        o1 != o2 for o1, o2 in zip(openings1, openings2, strict=True)
+    )
+
+
+def test_a_repeated_key_at_another_position_gives_a_fresh_first_move():
+    # With one key at two positions, redeeming at either with the same
+    # randomness must not reuse r under a different challenge.
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2)), pkA]
+    delta = protocol.Scalar(77)
+    X_hat = pkA + delta * protocol.B
+    rand = bytes(range(protocol.Nseed))
+    (c0, z0, _, _), (c2, z2, _, _) = [
+        ProveIssuer(
+            anchor_set, index, delta, X_hat, endorsement, b"i", b"r", b"d",
+            rand,
+        )
+        for index in (0, 2)
+    ]
+    assert c0 != c2
+    assert z0 - z2 != (c2 - c0) * delta

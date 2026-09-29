@@ -8,9 +8,8 @@ them and compares against the draft, so the vectors are reproducible from
 this module alone.
 """
 
-from hashlib import shake_128
-
-from ihat import common
+from rollatini import common
+from rollatini.vectors import Source, block, entry
 
 from . import protocol as act, wire
 
@@ -26,45 +25,9 @@ FLOWS = [
 ]
 
 
-class Source:
-    """Serves `random` from a fixed stream and logs what was consumed."""
-
-    def __init__(self) -> None:
-        self.stream = shake_128(b"ACTv1-P256-SHA256 test vectors").digest(
-            1 << 16
-        )
-        self.position = 0
-        self.consumed = b""
-
-    def __call__(self, count: int | None = None) -> bytes:
-        assert count is not None
-        chunk = self.stream[self.position : self.position + count]
-        self.position += count
-        self.consumed += chunk
-        return chunk
-
-    def rand(self) -> bytes:
-        consumed, self.consumed = self.consumed, b""
-        return consumed
-
-
-def entry(key: str, value: bytes | int) -> str:
-    if isinstance(value, int):
-        return f"{key} = {value}\n"
-    digits = value.hex()
-    if len(digits) <= 64 - len(key) - 3:
-        return f"{key} = {digits}\n"
-    lines = [digits[i : i + 64] for i in range(0, len(digits), 64)]
-    return f"{key} =\n" + "".join(f"    {line}\n" for line in lines)
-
-
-def block(entries: str) -> str:
-    return "~~~\n" + entries + "~~~\n"
-
-
 def render() -> str:
     saved_L, saved_random = act.L, common.secrets.token_bytes
-    act.L, source = L, Source()
+    act.L, source = L, Source(b"ACTv1-P256-SHA256 test vectors")
     setattr(common.secrets, "token_bytes", source)
     try:
         return _render(source)

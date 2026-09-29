@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from ihat.ciphersuite import P256Element as Element
-from ihat.protocol import VerifyError
+from rollatini.ciphersuite import P256Element as Element
+from rollatini.protocol import VerifyError
 
 from .sigma import LinearRelation, Statement
 

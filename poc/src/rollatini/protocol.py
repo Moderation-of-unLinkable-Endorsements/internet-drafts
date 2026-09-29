@@ -1,4 +1,4 @@
-"""IHAT algorithms transcribed from draft-authors-mole-ihat.md."""
+"""Rollatini algorithms transcribed from draft-authors-mole-rollatini.md."""
 
 from __future__ import annotations
 
@@ -83,10 +83,8 @@ def Message(nf: bytes, ctx_red: bytes) -> bytes:
 def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     Z = CreateContextBase(ctx_iss)
 
-    rand = random(3 * Nseed)
-    a = G.DeriveScalar(Seed(rand, 0), b"a")
-    t = G.DeriveScalar(Seed(rand, 1), b"t")
-    y = G.DeriveScalar(Seed(rand, 2), b"y")
+    rand = random(Nseed)
+    (a, t, y) = G.DeriveScalars(rand, b"Commit", 3)
 
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
@@ -105,14 +103,11 @@ def Challenge(
 
     (A, C) = commitment
 
-    rand = random(Nn + 4 * Nseed)
+    rand = random(Nn + Nseed)
     nf = rand[:Nn]
-    seeds = rand[Nn:]
-
-    r1 = G.DeriveScalar(Seed(seeds, 0), b"r1")
-    r2 = G.DeriveScalar(Seed(seeds, 1), b"r2")
-    gamma1 = G.DeriveScalar(Seed(seeds, 2), b"gamma1")
-    gamma2 = G.DeriveScalar(Seed(seeds, 3), b"gamma2")
+    (r1, r2, gamma1, gamma2) = G.DeriveScalars(
+        rand[Nn:], b"Challenge", 4
+    )
 
     m = Message(nf, ctx_red)
     gamma = gamma1 * G.ScalarInverse(gamma2)
@@ -215,6 +210,8 @@ def Verify(
 
     C = G.ScalarMultGen(t) + y * Z
     A = G.ScalarMultGen(s) - (c * y) * pkA
+    if A.isIdentity() or C.isIdentity():
+        return False
     commitment = Commitment(A, C)
 
     return c == ComputeChallenge(ctx_iss, commitment, m)
@@ -231,15 +228,8 @@ def BranchCommitment(
 def Statements(
     anchor_set: Sequence[Element],
     X_hat: Element,
-) -> tuple[list[Element], int]:
-    n = len(anchor_set)
-    q = 0
-    while 2**q < n:
-        q += 1
-
-    Y = [X_hat - pkA for pkA in anchor_set]
-
-    return (Y, q)
+) -> list[Element]:
+    return [X_hat - pkA for pkA in anchor_set]
 
 
 def CommitStep(
@@ -256,13 +246,10 @@ def CommitStep(
     return G.SerializeElement(C)
 
 
-def GenerateStep(
-    bind_left: bool, seed: bytes
-) -> tuple[Element, Scalar]:
-    secret = G.DeriveScalar(seed, b"GenerateStep")
+def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
     T = secret * B
     (Q, _) = G.PermutationPair(T, bind_left)
-    return (Q, secret)
+    return Q
 
 
 def EquivocateStep(
@@ -289,6 +276,13 @@ def VecCommit(
         V_prime.append(V[-1])
 
     return VecCommit(V_prime, Qi[1:], rands[1:])
+
+
+def Depth(n: int) -> int:
+    q = 0
+    while 2**q < n:
+        q += 1
+    return q
 
 
 def ProofStatement(
@@ -353,18 +347,13 @@ def ComputeProofChallenge(
 
 
 def GenerateVecBind(
-    q: int, index: int, rand: bytes
-) -> tuple[list[Element], list[Scalar]]:
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    index: int, trapdoors: Sequence[Scalar]
+) -> list[Element]:
     commitment_keys = []
-    trapdoors = []
-    for j in range(q):
+    for j in range(len(trapdoors)):
         bind_left = ((index >> j) & 1) == 0
-        (Q, secret) = GenerateStep(bind_left, Seed(rand, j))
-        commitment_keys.append(Q)
-        trapdoors.append(secret)
-    return (commitment_keys, trapdoors)
+        commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+    return commitment_keys
 
 
 def CommitValAtPlace(
@@ -372,17 +361,11 @@ def CommitValAtPlace(
     n: int,
     index: int,
     value: bytes,
-    rand: bytes,
-) -> tuple[bytes, list[Scalar]]:
-    q = len(commitment_keys)
-    if len(rand) != q * Nseed:
-        raise ValueError(f"rand must be exactly {q * Nseed} bytes")
+    openings: Sequence[Scalar],
+) -> bytes:
     V = [b"" for _ in range(n)]
     V[index] = value
-    rands = [
-        G.DeriveScalar(Seed(rand, j), b"opening") for j in range(q)
-    ]
-    return (VecCommit(V, commitment_keys, rands), rands)
+    return VecCommit(V, commitment_keys, openings)
 
 
 def VecEquivocate(
@@ -458,10 +441,11 @@ def ProveIssuer(
     challenge_digest: bytes,
     rand: bytes,
 ) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(len(anchor_set))
     if not 0 <= index < len(anchor_set):
         raise ValueError("index is outside the Anchor Set")
-    if len(rand) != (2 * q + 1) * Nseed:
+    if len(rand) != Nseed:
         raise ValueError("invalid issuer proof randomness length")
 
     instance = ProofStatement(
@@ -472,21 +456,26 @@ def ProveIssuer(
         ctx_red,
         challenge_digest,
     )
-    r = G.DeriveNonce(
-        G.SerializeScalar(delta), b"r", instance, Seed(rand, 0)
+    derived = G.DeriveNonces(
+        G.SerializeScalar(delta) + I2OSP(index, 2),
+        b"ProveIssuer",
+        instance,
+        rand,
+        2 * q + 1,
     )
+    r = derived[0]
+    trapdoors = derived[1 : q + 1]
+    first_openings = derived[q + 1 :]
     A = B * r
 
-    (commitment_keys, trapdoors) = GenerateVecBind(
-        q, index, rand[Nseed : (q + 1) * Nseed]
-    )
+    commitment_keys = GenerateVecBind(index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
-    (root, first_openings) = CommitValAtPlace(
+    root = CommitValAtPlace(
         commitment_keys,
         len(Y),
         index,
         G.SerializeElement(A),
-        rand[(q + 1) * Nseed :],
+        first_openings,
     )
 
     proof_challenge = ComputeProofChallenge(
@@ -526,10 +515,11 @@ def VerifyIssuer(
     openings: Sequence[Scalar],
 ) -> bool:
     n = len(anchor_set)
-    if n < 2:
+    if n == 0:
         return False
 
-    (Y, q) = Statements(anchor_set, X_hat)
+    Y = Statements(anchor_set, X_hat)
+    q = Depth(n)
     if len(commitment_keys) != q:
         return False
     if len(openings) != q:
@@ -538,6 +528,8 @@ def VerifyIssuer(
     T = []
     for i in range(n):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
+        if commitment.isIdentity():
+            return False
         T.append(G.SerializeElement(commitment))
 
     root = VecCommit(T, commitment_keys, openings)
@@ -565,14 +557,11 @@ def Redeem(
     (c, s, y, t, nf) = endorsement
     n = len(anchor_set)
 
-    if n < 2:
-        raise VerifyError
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
-    (Y, q) = Statements(anchor_set, G.Identity())
-    rand = random((2 * q + 2) * Nseed)
-    delta = G.DeriveScalar(Seed(rand, 0), b"delta")
+    rand = random(2 * Nseed)
+    (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta", 1)
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
@@ -587,7 +576,7 @@ def Redeem(
         ctx_iss,
         ctx_red,
         challenge_digest,
-        rand[Nseed:],
+        Seed(rand, 1),
     )
 
     return Redemption(

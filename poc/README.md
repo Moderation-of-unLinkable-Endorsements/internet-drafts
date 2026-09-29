@@ -1,6 +1,6 @@
 # Reference implementation
 
-Python reference implementations of IHAT and ACT. ACT's proofs run on the
+Python reference implementations of Rollatini and ACT. ACT's proofs run on the
 CFRG reference implementation of the Sigma Protocols and Fiat-Shamir drafts,
 which is a Git submodule. Initialize it from the repository root:
 
@@ -15,6 +15,7 @@ python3 -m venv .venv
 .venv/bin/pip install -e '.[test]'
 .venv/bin/python -m act.demo
 .venv/bin/python -m act.vectors
+.venv/bin/python -m rollatini.vectors
 .venv/bin/pytest
 .venv/bin/mypy
 .venv/bin/pyflakes src tests
@@ -22,15 +23,18 @@ python3 -m venv .venv
 ```
 
 The demo issues a Credential and runs the four spend shapes with their
-refunds, encoding every message on the way. `act.vectors` prints the
-draft's Test Vectors section; a test regenerates it and compares.
+refunds, encoding every message on the way. `act.vectors` and
+`rollatini.vectors` print the Test Vectors sections of the two drafts; tests
+regenerate them and compare.
 
 The algorithms in `src/act/protocol.py` match the draft's Python snippets;
 tests check that they stay in sync. `src/act/statements.py` compiles the
 draft's `Relation` blocks, `src/act/sigma.py` runs them on the pinned CFRG
-code, and `src/act/wire.py` holds the message encodings. ACT shares IHAT's
+code, and `src/act/wire.py` holds the message encodings, as
+`src/rollatini/wire.py` does for Rollatini. ACT shares Rollatini's
 group and derivation code. Each group instance carries its own protocol context and provides
-`G.DeriveScalar`, `G.DeriveKeyPair`, and `G.GenerateKeyPair`. Both schemes
+`G.DeriveScalars`, `G.DeriveNonces`, `G.DeriveKeyPair`, and
+`G.GenerateKeyPair`. Both schemes
 use the common `Seed` helper and 48-byte seeds.
 Group values carry an invariant ciphersuite type parameter, allowing static
 checkers to reject scalars and elements from a different ciphersuite.
@@ -38,7 +42,7 @@ checkers to reject scalars and elements from a different ciphersuite.
 This is a specification demo, not production cryptography. The Python code
 is not constant-time and does not securely erase secrets.
 
-IHAT's commitment key generation walks the public edge from `Q` to `P(Q)`
+Rollatini's commitment key generation walks the public edge from `Q` to `P(Q)`
 in either direction, evaluating both byte-permutation directions at every
 step. Tests check that the operation schedule agrees for both orientations
 of the same edge and that existing proof outputs are preserved. These are

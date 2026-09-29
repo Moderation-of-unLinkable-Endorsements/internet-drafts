@@ -30,9 +30,9 @@ author:
     email: chrispatton+ietf@gmail.com
 
 normative:
-  IHAT:
-    title: Issuer-Hiding Anonymous Tokens (IHAT)
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat.html
+  ROLLATINI:
+    title: "Rollatini: An Issuer-Hiding Anonymous Token"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
 
   VOLE-ACT:
     title: "TODO I-D.draft-authors-mole-vole-act"
@@ -181,8 +181,8 @@ informative:
 
 --- abstract
 
-This document specifies Moussaka, a candidate post-quantum variant of the
-Issuer-Hiding Anonymous Token (IHAT) protocol. Moussaka is based on the UOV
+This document specifies Moussaka, a candidate post-quantum Issuer-Hiding
+Anonymous Token (IHAT). Moussaka is based on the UOV
 digital signature scheme and the VOLE-in-the-Head proof system (a component of
 the FAEST signature scheme). The anchor issues a token by signing a commitment
 to the client's state; to redeem a token, the client proves knowledge of the
@@ -197,30 +197,30 @@ the moderator. The commitment is instantiated with `Keccak-p[800,12]`.
 > undergone significant security analysis. It's not yet suitable for real world
 > applications. Implement at your own risk.
 
-The Issuer-Hiding Anonymous Token {{IHAT}} protocol allows a Client to redeem a
-token with a Moderator without revealing which Anchor issued the token.
-Instead, the client proves the token was issued by some Anchor in the Anchor
-Set trusted by the Moderator. IHAT is also designed to be post-issuance
+Rollatini {{ROLLATINI}}, an Issuer-Hiding Anonymous Token, allows a Client to
+redeem a token with a Moderator without revealing which Anchor issued the
+token. Instead, the client proves the token was issued by some Anchor in the
+Anchor Set trusted by the Moderator. Rollatini is also designed to be post-issuance
 unlinkable, meaning the redemption of a token cannot be linked to its issuance.
 
-IHAT meets these privacy goals unconditionally, meaning regardless of its
+Rollatini meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.
 
-This document specifies Moussaka, a variant of IHAT that is plausibly fully
-post-quantum secure. Similar to {{VOLE-ACT}}, its design is based on the
-PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a post-quantum
-signature scheme with a suitable zero-knowledge proof system and commitment
-scheme. Specifically, the signer signs a commitment to the message, and the
-verifier checks a zero-knowledge proof-of-knowledge of the signature and the
-opening of the commitment. Moussaka extends this paradigm in the natural way:
-rather than prove knowledge of a signature under the public key of a particular
-Anchor, the Client proves knowledge of a signature under some public key in the
-Anchor Set.
+This document specifies Moussaka, an Issuer-Hiding Anonymous Token that is
+plausibly fully post-quantum secure. Similar to {{VOLE-ACT}}, its design is
+based on the PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a
+post-quantum signature scheme with a suitable zero-knowledge proof system and
+commitment scheme. Specifically, the signer signs a commitment to the message,
+and the verifier checks a zero-knowledge proof-of-knowledge of the signature and
+the opening of the commitment. Moussaka extends this paradigm in the natural
+way: rather than prove knowledge of a signature under the public key of a
+particular Anchor, the Client proves knowledge of a signature under some public
+key in the Anchor Set.
 
-Moussaka has significantly higher bandwidth cost compared to IHAT:
+Moussaka has significantly higher bandwidth cost compared to Rollatini:
 
 1. each Anchor public key is 42.6KB (this corresponds to the uov-Ip parameter
    set {{UOV}});
@@ -239,7 +239,7 @@ Moussaka has significantly higher bandwidth cost compared to IHAT:
 > from {{PoMFRIT}}, Algorithm 2.
 
 On the other hand, Moussaka is round optimal: only two moves are required for
-issuance, whereas IHAT requires three.
+issuance, whereas Rollatini requires three.
 
 The remainder of this document is structured as follows. {{conventions}}
 defines some conventions and notation. {{overview}} provides a high-level
@@ -249,15 +249,15 @@ provides normative references for their specifications. {{protocol}} specifies
 the protocol in full detail. Finally, {{security}} enumerates some security
 considerations for implementers and adopters.
 
-> TODO(cjpatton) Resolve gaps with {{IHAT}}:
+> TODO(cjpatton) Resolve gaps with {{ROLLATINI}}:
 >
 > 1. The protocol wants to bind the challenge that triggered redemption to the
 >    redemption process so that the Client and Moderator confirm agreement.
 >    This is a 32-byte `challenge_digest`. Since this value isn't determined
 >    until redemption time, we can't include it in the commitment. The most
->    natural solution is analogous to IHAT: include `challenge_digest` in the
->    VOLEitH transcript. This is mildly invasive, but shouldn't be too bad to
->    support. PoMFRIT does a similar thing with the public key.
+>    natural solution is analogous to Rollatini: include `challenge_digest` in
+>    the VOLEitH transcript. This is mildly invasive, but shouldn't be too bad
+>    to support. PoMFRIT does a similar thing with the public key.
 >
 > 2. The APIs are a bit misaligned. This is unavoidable to some extent for
 >    issuance, since our protocol is 2 moves and theirs is 3, but it should be
@@ -294,11 +294,11 @@ for `P` that can be used to efficiently sample signatures for a given target.
 
 Issuance binds a token to an issuance context `ctx_iss` agreed upon by the
 Client, Anchor, and Moderator, and a redemption context `ctx_red` agreed upon
-by the Client and Moderator {{IHAT}}. The protocol commits to both contexts
+by the Client and Moderator {{ROLLATINI}}. The protocol commits to both contexts
 during issuance: the Anchor verifies the `ctx_iss` binding during issuance, and
 the Moderator verifies both the `ctx_iss` and `ctx_red` binding during
 redemption. Note that Moussaka constrains how these values are chosen compared
-to {{IHAT}}; see {{commitment}} for details.
+to {{ROLLATINI}}; see {{commitment}} for details.
 
 The issuance protocol is as follows:
 
@@ -421,12 +421,12 @@ Com(nf, ctx_iss, ctx_red, r):
 The layout of `state` is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 `state` is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to {{IHAT}}: `nf_len` is 24 bytes, whereas {{IHAT}} uses a
-32-byte nullifier, and `ctx_len` is 16 bytes, whereas {{IHAT}} allows the
-contexts to be arbitrary byte strings.
+inputs relative to {{ROLLATINI}}: `nf_len` is 24 bytes, whereas {{ROLLATINI}}
+uses a 32-byte nullifier, and `ctx_len` is 16 bytes, whereas {{ROLLATINI}}
+allows the contexts to be arbitrary byte strings.
 
 > TODO(cjpatton) Consider bumping the nullifier length to `32` to match
-> {{IHAT}} and guidelines for choosing the context strings. Honestly,
+> {{ROLLATINI}} and guidelines for choosing the context strings. Honestly,
 > truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)
 
 ## Issuance

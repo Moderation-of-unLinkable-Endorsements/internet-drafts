@@ -1,7 +1,7 @@
 import pytest
 
 from act import protocol as act, wire
-from ihat.protocol import VerifyError
+from rollatini.protocol import VerifyError
 
 
 @pytest.mark.parametrize(
