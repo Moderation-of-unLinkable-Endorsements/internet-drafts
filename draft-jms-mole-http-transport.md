@@ -41,7 +41,6 @@ normative:
   PROTOCOLS: #I-D.draft-jms-mole-protocols
     title: MoLE Protocols
     target: https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/
-  URI: RFC3986
   TLS13: RFC8446
 
 informative:
@@ -256,41 +255,16 @@ struct {
 
 * `challenge` which contains a base64url `CredentialChallenge` value, encoded per {{BASE64}}
 
-The `challenge` field carries the `Challenge` structure of the named
-credential type, defined in {{PROTOCOLS}}.
+The `challenge` field carries exactly the type-specific challenge defined
+for the named credential type in {{PROTOCOLS}}. The Moderator endpoint for
+Redeem & Issue comes from configuration ({{configuration}}), not from the
+challenge.
 
-#### Example refinement
-
-The following structures are example refinements of `CredentialChallenge`.
-
-~~~tls-presentation
-struct {
-  opaque moderator_uri<1..2^16-1>; // URI of the moderator
-  opaque presentation_context<V>;
-} MoleCredentialChallenge;
-
-struct {
-  opaque policy_context<V>; // Moderator-generated policy identifier
-  opaque request_context<V>; // binding value, analogous to
-                             // redemption_context in RFC 9577
-} MolePresentationContext;
-~~~
-
-The `moderator_uri` field contains a URI (defined by {{URI}}). It names the
-endpoint where the Client runs Redeem & Issue if it holds no Credential.
-
-In `MolePresentationContext`, `policy_context` identifies the Moderator
-policy and accepted Anchor set used for this resource. Different resources
-MAY use different policy contexts while sharing the same Moderator. The
-value MUST be non-empty.
-
-The `request_context` field binds the presentation to a request, session,
-or time window. A non-empty value affects credential caching and replay
-handling.
-
-TODO(thibault):
-1. decide exact construction rules for request_context. maybe it should
-include policy_context.
+A field that binds a presentation to a request, such as the ACT
+`request_context` of {{PROTOCOLS}}, is constructed by the Moderator and
+opaque to the Client, which uses the received challenge octets as the
+credential type specifies. This document defines no canonicalization of
+HTTP requests.
 
 ~~~
 WWW-Authenticate: Mole challenge="<credential-challenge>",
