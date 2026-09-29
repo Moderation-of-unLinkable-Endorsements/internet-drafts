@@ -860,7 +860,7 @@ carry the registered `uint16` type as specified in {{common}}.
 |:----------------|:------------------------------|:---------------|
 | 0x0000          | Reserved                      | this document  |
 | 0x0001          | No Endorsement Required       | {{no-endorsement-required}} |
-| 0x0002          | Rollatini                          | {{rollatini}}       |
+| 0x0002          | Rollatini                     | {{rollatini}}  |
 | 0x0003          | Longfellow                    | {{longfellow}} |
 | 0xFF00 - 0xFFFF | Reserved for testing          | this document  |
 {: #endorsement-types title="Candidate MoLE Endorsement Type Values"}
