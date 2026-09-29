@@ -159,9 +159,9 @@ Table of Contents
    generators, and balance width L are globals fixed by the ACT
    configuration (Section 4.1).  Shared group methods from [ROLLATINI]
    use the ACT group instance G, which stores ctx_proto and applies ACT
-   domain separation.  The shared Seed helper uses the same Nseed = 48
-   for both schemes.  Public byte-string inputs retain the length bounds
-   specified by the operation that uses them.
+   domain separation.  Both schemes use Nseed = 48.  Public byte-string
+   inputs retain the length bounds specified by the operation that uses
+   them.
 
 3.  Preliminaries
 
@@ -202,19 +202,19 @@ Table of Contents
 
 3.3.  Deriving Scalars
 
-   Use G.DeriveScalars(rand: bytes, info: bytes) -> list[Scalar] from
-   Section 4.2 of [ROLLATINI], using the ACT group instance initialized
-   with ctx_proto.  It rejects input whose length is not a positive
-   multiple of Nseed with ValueError, and raises DeriveError in the
-   negligible event that a derived scalar is zero.  ACT applies the
-   following requirements to this shared algorithm.
+   Use G.DeriveScalars(rand: bytes, info: bytes, count: int) ->
+   list[Scalar] from Section 4.2 of [ROLLATINI], using the ACT group
+   instance initialized with ctx_proto.  It rejects rand whose length is
+   not Nseed with ValueError, and raises DeriveError in the negligible
+   event that a derived scalar is zero.  ACT applies the following
+   requirements to this shared algorithm.
 
-   rand MUST be output of random, Nseed bytes for each scalar derived
-   from it, and MUST NOT be used for more than one derivation.  An
-   algorithm derives all of its scalars with one call, under an info
-   string that names it.  Each derived scalar is within about 2^-128 of
-   uniform (Section 4.2 of [ROLLATINI]); the unlinkability argument of
-   Section 6 relies on this.  See Section 5.2.
+   rand MUST be Nseed bytes of output of random and MUST NOT be used for
+   more than one derivation.  An algorithm derives all of its scalars
+   with one call, under an info string that names it.  In the random
+   oracle model, each derived scalar is within about 2^-128 of uniform
+   (Section 4.2 of [ROLLATINI]); the unlinkability argument of Section 6
+   relies on this.  See Section 5.2.
 
 3.4.  Key Generation
 
@@ -466,7 +466,8 @@ Table of Contents
                b"".join(G.SerializeScalar(w) for w in witness),
                b"nonce",
                session_id + I2OSP(len(instance), 4) + instance,
-               random(len(witness) * Nseed),
+               random(Nseed),
+               len(witness),
            )
            self.count = 0
 
@@ -564,7 +565,7 @@ Table of Contents
            G.SerializeElement(X_A)
        )
        (e,) = G.DeriveNonces(
-           G.SerializeScalar(skM), b"e", instance, random(Nseed)
+           G.SerializeScalar(skM), b"e", instance, random(Nseed), 1
        )
        if (e + skM).isZero():
            raise DeriveError
@@ -588,8 +589,8 @@ Table of Contents
    def IssueRequest() -> (
        tuple[ClientIssuanceState, IssueRequestMessage]
    ):
-       rand = random(2 * Nseed)
-       (k, r) = G.DeriveScalars(rand, b"IssueRequest")
+       rand = random(Nseed)
+       (k, r) = G.DeriveScalars(rand, b"IssueRequest", 2)
 
        K = k * H2 + r * H3
 
@@ -820,11 +821,11 @@ Table of Contents
 
        ctx = CreateContextScalar(ctx_cred)
 
-       # One seed per scalar: four fixed ones, then L for the bits of
-       # the remainder or one for its commitment, then L for the bits
-       # of the topped-up balance.
+       # Four fixed scalars, then L for the bits of the remainder or
+       # one for its commitment, then L for the bits of the topped-up
+       # balance.
        n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
-       derived = G.DeriveScalars(random(n * Nseed), b"ProveSpend")
+       derived = G.DeriveScalars(random(Nseed), b"ProveSpend", n)
        (r1, r2, kstar, rn) = derived[:4]
        next_scalar = 4
 
@@ -1124,10 +1125,8 @@ Table of Contents
    separation tags.  Both parties agree on the ciphersuite as specified
    in Section 4.1.
 
-   ctx_proto is as computed in Section 4.1.  The seed length is Nseed =
-   Ns + 16 = 48 bytes.  The 16 bytes in excess of Ns make a derived
-   scalar statistically close to uniform (Section 3.3), as in the field-
-   element reduction of [HASH2CURVE].
+   ctx_proto is as computed in Section 4.1.  The seed length, that of
+   the random input to every derivation, is Nseed = 48 bytes.
 
    For the Credential scheme, the P-256 ciphersuite sets MAX_BIT_LENGTH
    = 64, which allows amounts to be carried as uint64 values and keeps
@@ -1152,15 +1151,15 @@ Table of Contents
    algorithms, and canonical encodings of Section 7.1 of [ROLLATINI].
    ACT uses Ne = 33, Ns = 32, and Nseed = 48.  Instantiate every hash
    with the ACT ctx_proto of Section 4.1, including the explicit DSTs of
-   G.DeriveScalars, G.SeedsToScalars, G.DeriveNonces, and
+   G.DeriveScalars, G.ExpandScalars, G.DeriveNonces, and
    G.DeriveKeyPair.  The group-element permutation of Rollatini is not
    used.
 
 5.2.  Randomness
 
-   Every random value in this document is drawn with random and
-   consumed, Nseed bytes per scalar, by G.DeriveScalars (Section 3.3),
-   by G.DeriveKeyPair (Section 3.4) for a key, or, for the values listed
+   Every random value in this document is drawn with random and consumed
+   in inputs of Nseed bytes, by G.DeriveScalars (Section 3.3), by
+   G.DeriveKeyPair (Section 3.4) for a key, or, for the values listed
    below, by G.DeriveNonces (Section 4.3 of [ROLLATINI]); no scalar is
    sampled directly.  Implementations MUST draw with a cryptographically
    secure random number generator and MUST NOT reuse randomness across
@@ -1244,16 +1243,18 @@ Table of Contents
       are hiding [Pedersen91]; the pair (A_prime, B_bar) is a uniform
       rerandomization of the signature [TZ23]; and the proofs are
       statistically zero-knowledge (Section 7.5 of [SIGMA]).  These hold
-      for uniform blinding factors and nonces, and those of this
-      document are each within about 2^-128 of uniform (Section 3.3,
-      "Derived prover nonces" below).  None of this relies on the
-      hardness of discrete logarithms, so transcripts recorded today
-      reveal nothing to a future quantum computer.  Such an attacker
-      can, however, recover skM from pkM and forge Credentials, so
-      credit conservation does not hold against it.  The public amounts
-      s, a, and t, and the configuration, determine which Credentials
-      could have produced a presentation; t is the Moderator's choice,
-      so [PROTOCOLS] constrains it as it constrains s, and [ARCH] states
+      for uniform blinding factors and nonces, and in the random oracle
+      model those of this document are each within about 2^-128 of
+      uniform (Section 3.3, "Derived prover nonces" below).  None of
+      this relies on the hardness of discrete logarithms, so transcripts
+      recorded today reveal nothing to a future quantum computer, which
+      would need about 2^128 evaluations of the hash function to find a
+      secret input of a derivation by search.  Such an attacker can,
+      however, recover skM from pkM and forge Credentials, so credit
+      conservation does not hold against it.  The public amounts s, a,
+      and t, and the configuration, determine which Credentials could
+      have produced a presentation; t is the Moderator's choice, so
+      [PROTOCOLS] constrains it as it constrains s, and [ARCH] states
       the anonymity-set requirements.
 
    Amount validation:  The spend relation constrains c, s, a, v1, and v2
@@ -1334,16 +1335,16 @@ Table of Contents
 
    Derived prover nonces:  ProverNonces derives the nonces of a proof
       together with G.DeriveNonces (Section 4.3 of [ROLLATINI]) from the
-      witness, the relation, and Nseed bytes of fresh randomness per
-      nonce.  With a working random source each nonce is within about
-      2^-128 of uniform, and the proofs are statistically zero-
-      knowledge.  With a failed one the nonces remain pseudorandom
-      functions of the witness and change with any part of rand or the
-      relation, as Section 4.3 of [ROLLATINI] states, so no nonce is
-      reused under a different challenge.  ProveCompact then remains
-      zero-knowledge against a party without the witness (Section 8.4.2
-      of [FIAT-SHAMIR]), provided the blinding scalars in the witness
-      carry entropy that party lacks.
+      witness, the relation, and Nseed bytes of fresh randomness.  With
+      a working random source each nonce is within about 2^-128 of
+      uniform in the random oracle model, and the proofs are
+      statistically zero-knowledge.  With a failed one the nonces remain
+      hash outputs on an input that contains the witness and change with
+      any part of rand or the relation, as Section 4.3 of [ROLLATINI]
+      states, so no nonce is reused under a different challenge.
+      ProveCompact then remains zero-knowledge against a party without
+      the witness (Section 8.4.2 of [FIAT-SHAMIR]), provided the
+      blinding scalars in the witness carry entropy that party lacks.
 
    Verification key secrecy:  VerifySpend requires skM, so a Credential
       can be verified only by the Moderator that issued it.  A Moderator
@@ -1391,12 +1392,6 @@ Table of Contents
               Internet-Draft, draft-irtf-cfrg-fiat-shamir-03, 16 August
               2026, <https://datatracker.ietf.org/doc/html/draft-irtf-
               cfrg-fiat-shamir-03>.
-
-   [HASH2CURVE]
-              Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
-              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
-              DOI 10.17487/RFC9380, August 2023,
-              <https://www.rfc-editor.org/rfc/rfc9380>.
 
    [PROTOCOLS]
               Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
@@ -1466,18 +1461,17 @@ Appendix A.  Test Vectors
    call the algorithm makes, in the order made, including those of
    SigningExponent and ProverNonces; an implementation replays a vector
    by serving those bytes in place of random.  The order is: for
-   G.GenerateKeyPair, the key seed; for IssueRequest, the 2 * Nseed
-   bytes of k and r, then the prover's 2 * Nseed bytes; for
-   IssueResponse and IssueRefund, the Nseed bytes of e, then the
-   prover's Nseed bytes; for ProveSpend, the n * Nseed bytes of its
-   scalars, then the prover's Nw * Nseed bytes.  The state entries are
-   the ClientIssuanceState (k, r, K) as SerializeScalar(k) ||
-   SerializeScalar(r) || SerializeElement(K), and the ClientSpendState
-   (kstar, r_star, v1, s, a, K_prime) as SerializeScalar(kstar) ||
-   SerializeScalar(r_star) || I2OSP(v1, 8) || I2OSP(s, 8) || I2OSP(a,
-   8) || SerializeElement(K_prime).  Every message and credential entry
-   is the encoding of Section 4.7, and the spend context of every spend
-   is ctx_spend.
+   G.GenerateKeyPair, the key seed; for IssueRequest, the Nseed bytes of
+   k and r, then the prover's Nseed bytes; for IssueResponse and
+   IssueRefund, the Nseed bytes of e, then the prover's Nseed bytes; for
+   ProveSpend, the Nseed bytes of its scalars, then the prover's Nseed
+   bytes.  The state entries are the ClientIssuanceState (k, r, K) as
+   SerializeScalar(k) || SerializeScalar(r) || SerializeElement(K), and
+   the ClientSpendState (kstar, r_star, v1, s, a, K_prime) as
+   SerializeScalar(kstar) || SerializeScalar(r_star) || I2OSP(v1, 8) ||
+   I2OSP(s, 8) || I2OSP(a, 8) || SerializeElement(K_prime).  Every
+   message and credential entry is the encoding of Section 4.7, and the
+   spend context of every spend is ctx_spend.
 
 A.1.  Ciphersuite
 
@@ -1518,37 +1512,34 @@ A.3.  Issuance
        fba90a5829478c7590e20f1a6911d2b4f5a9a50bd4485c309c94fedad95f1f79
        0e0bc9994cd3c165d19b78a7e328de6e2c4f77e3aa99f8050f4a0c7d4b52a219
        4d33a5ea903a54a02a807cd6cdb7c269c2712669bbe6f5dfb13495eea30b7da9
+   issue.request.state =
+       45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+       6db698dc0ab0a626f2047331981742f4504932ef191ced0db687982bd5813eef
+       02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
+       63
+   issue.request.message =
+       02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
+       63a204de1dd76434170a6b1c0a07c3836307c53a17011b1f899f1bd6c58712ac
+       86a4699524580fe3d4d305a96c18162b692adcecfd2c0ed4dbb04ce4aef93212
+       1b5c845702018bf287c839f24ee7cd6a3f43494249fd82f78bed467e1d6ab94b
+       3a
+   issue.response.c = 10
+   issue.response.rand =
        549a65b32ec23bbd0434f3787a143ef286df7fcc1a4afa990c0497780450f987
        a98919981c0f9481c4eb6ee73b79569a2ea0fc45c81480ed4451367947c1cc19
        ee957b16356a0ae63d6c83fbd9d757e69fa8138ada38975479fd20c98160eb78
-   issue.request.state =
-       52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
-       8345050c5401a4872f5f5e829bbc4bb357342f962579b9806cda0a1b17d3b40e
-       02c57734702e7261396219028ab900ae23fc36ba4764874f36b27d74902a4ff3
-       e3
-   issue.request.message =
-       02c57734702e7261396219028ab900ae23fc36ba4764874f36b27d74902a4ff3
-       e368d87bb8f303dd70c65a2322dfa7940c897be51ccb015dee887fb62554e732
-       f76f952bdb52e4e202546b709a0cd33d70d199ac700b712ffd0a43fea9c46c8d
-       5b2e73af80f23f504d1d1bc3a91110498142ec05d769acdb767f402879e67ae4
-       41
-   issue.response.c = 10
-   issue.response.rand =
-       b429f745895b193f227dbad7fd1798339020f1ebb88b5e0429485e01bc34f6db
-       93c846f8766d5ec446946ef0d9c6a44873a0ef46a50e37eacf061d40d7440e34
-       516d54ee586c67dbb8fd0b7e931fb60a1731d3867e50bbaa1a7422f352070618
    issue.response.message =
-       0387a0108b62c709fdb1059a7134ede5cdf2c3a921b3ffd3eaa59e1e20b201c6
-       5c92f3993be7e0f336ac91ab5c5bbed2ec9010ea42230197c992ef2a060a3a6b
-       95000000000000000acdc3702711779cad01648f1e5b5791ea4a43d11b27c568
-       723b2e18d1e2455d7e549a3b8e74e2ee75240eb42d87dd3c91a9b5ab165c3401
-       db95d4b740a5afa9da
+       0219c7ca1c950892496809a235512c49773a31a35520647b92ee8a25c76f9aae
+       68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58593a93883e7c9030
+       89000000000000000a229f0198688717aad558b8fb63fb983570067b333cec52
+       cdebfa26c0ee95cfe98d094fc061ecb10259a0fb576e39907f9ed97438cb414e
+       c162a58a26f51332a5
    issue.credential =
-       52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
-       000000000000000a8345050c5401a4872f5f5e829bbc4bb357342f962579b980
-       6cda0a1b17d3b40e0387a0108b62c709fdb1059a7134ede5cdf2c3a921b3ffd3
-       eaa59e1e20b201c65c92f3993be7e0f336ac91ab5c5bbed2ec9010ea42230197
-       c992ef2a060a3a6b95
+       45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+       000000000000000a6db698dc0ab0a626f2047331981742f4504932ef191ced0d
+       b687982bd5813eef0219c7ca1c950892496809a235512c49773a31a35520647b
+       92ee8a25c76f9aae68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58
+       593a93883e7c903089
 
 A.4.  Spend 1: ordinary spend (s = 3, a = 0)
 
@@ -1558,99 +1549,61 @@ A.4.  Spend 1: ordinary spend (s = 3, a = 0)
        4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
        74
    spend1.rand =
+       b429f745895b193f227dbad7fd1798339020f1ebb88b5e0429485e01bc34f6db
+       93c846f8766d5ec446946ef0d9c6a44873a0ef46a50e37eacf061d40d7440e34
+       516d54ee586c67dbb8fd0b7e931fb60a1731d3867e50bbaa1a7422f352070618
+   spend1.state =
+       ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+       7d3f72f13d19b53838e0bf3d1bb80965d00a926d09f4e5250e9a03a2ff2d68fe
+       000000000000000700000000000000030000000000000000021b48762b09e181
+       9e8f8070a9e07926ec5d319b005462376c027a71c231fe08ad
+   spend1.message =
+       45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
+       00000000000000030000000000000000037462d06d0e1857691e39027fb94ba9
+       87ee4d626b73957ef2577f4f7f80afdd8f031fd0f1ae300ef6086d3d1badbe53
+       fdc73af5a3a7c3c7e94d31dfc3e200f1b14c034b324fe0ceaf20d9c14192a366
+       9dde3854b90cbde819714214408c2173927e0d02e0976db98ca955ed1b86f1e6
+       f5be405c855fd65b3c6648f26851324d0cd17d5502d9013827da0c05338a3319
+       760b4d1d6804380d6f45614e70053a7808f4fa66ae02e2f88017a6fa3c10ff1c
+       9616a4b5db3837b0c9642f43b8ede8af8942e9a8a6bb02143dcd3e4c15cdd475
+       a94dc06eed156efed163051862ad7016ea1b90d4a646f70f0ed26f89cc5d5ddd
+       b31df72cb8f49bd18a124a3ab793195c1bf893ed8cef724bb9ddb8525fb38e29
+       edde5788ccd60c17eeefd03e6554fd67f11df8f3ea45b9879f7d64a0523f83f2
+       b0c4536000606d9af46c4d093ac729c2b393347bd99681d97a849e426b88e1d4
+       5671e86a12c4e512e1fa0c765e9258de12701fe28ea3517a4d244ff490b1b288
+       c991b614cbaf26afd0ef945d92bceeb7dc00ee45d861c60b4c5f7e41739e0a35
+       99d4ba252a3927ad9fedcf24f9ee28b7fd5bad9b571d2a125bf2fdce68e34338
+       40a2821eb9170d1a2b706d2fb32f66d11812be3e16a2b2b14ec9ebcde6deace5
+       cff6277742a95be0afeb2101e1a1c35291ea831df7d89f9b021459a7be6aecb6
+       b86e7c863632fa02e38377c538df55e7a70a25f30c1081f4ec083c4fb1ac012c
+       02eca834aa4f744750c1be793e3decc51e5d896e6a3bfa8eeaed28618f7415bb
+       bf370a059c04b3440f2a627d4b33c6216b97d17826ca4caf2cdd532b868eb482
+       3145e86454e0664ba54656ffbe9d52dcab4b7f5651c8b9ef06a00b13b7ef7bf0
+       71c3308101f1835d3cbd965f5a884386d59f2d0b0940ad174ab04f55668a34ea
+       818e2d624bade6b2c0c4eb8df108559045ffd53820556ed90c3a8cf18c3ef9b3
+       b6ea2bda67f2898170c5ea2d0a4ea878c1b48c36f7144fcbceab9e32026234d1
+       2a9c286586affae56499fca51f115fc956d79d2acb1e1889616bbdca3c37e907
+       77d0b7d822d9b235c5b75d1a14b7c3132960963d12cbcc24ffc0c534a426960e
+       ade06b1eb7f19de8c807e90f3b9ca7db2e9a928dac497f9488754ae394c727a6
+       87ae8f52db082f22254a52dd078da391a81e069a2de6d42012f9d58734aded52
+       57b52339941e3fb3a6af833ef96444b4f643a18a774c81
+   spend1.refund.t = 1
+   spend1.refund.rand =
        6e51457124402a73bb25609f1647ee9589b57e96c8bb852d18ed16dc8b9c00f9
        79aa90e88908d06ea7ee259a2067e8981aa128ca2c16d17c0b0b145464a18fbb
        c8c98bdcc8a5541494a93478aece76eb306943b6dcca8781fbc382b4e7801c6d
-       5df6aa3f75855db9c6eb9130e5fe4c7ea4173f47f405a3457518d227d0b83b1d
-       342ecfe0498cdb99911dbee6f1c2dd66adf61aba8249bc8b66dbeab6351dbe28
-       20ec0bec6a0fca3e98ae91f7d3ac00833552cda8198d8a585552c63b1b04a7f9
-       8ab63a8b3af08128540a7dd8c6b84b892a3f0b2d6c3120b8ea53b7f40044860b
-       33cb6e9930b235d1ac9a7c06261a2b26bba151899bb31a45a2988c425a2637fa
-       4e1a0d285364f8fa0cf0e0610feda3d4b9980d16bd3da29447ab44b49e3f4713
-       cf496508c825bc711aac384f4620152a8d3fc3a2d1943dfcb9cf2eb9fdc410c6
-       f6dfbef97a289fc6550c72f79daef1e54f5cd0132ead59cf513fedf1fc5a05aa
-       a0255b3f53c1ed12fbb96bf52197b059d609431451b117381a5a06bd4be53ee4
-       951a4f39b3225c1929b35820269ac76d585baf0dbb927cd59f35addd001762b8
-       ca25145e7c4159cb30f4cadac6b2f274a710f8916b01e7aa657125ac036e074c
-       8dda6de23ecbfa7dba2bb3f490655c25fef2bfc2f3786596045b68563feeb24d
-       a0197dc7f5d2128dceb0e4ac42a172d763b6d625df1d4bfcf61fd5fbfe7e222e
-       35144cbb058151ff0eba61a90575de984665140d18c49d11df66f7b77bc618b9
-       60599627a6606376365da00272f43dfe020306d04c39a7dd3c60a26a23830521
-       752dc7ce9c6fb3e70d8c88a6bb1e1fa40b7956619b9571519feac0eae54c5cfa
-       e117914953d8c1f88b0035512fa223b8a67174046422dffb4a899546001bc936
-       82a8720ccd9fecd89f8e7b97f5ff29b951e586a5319626dd779b3fe45013dec5
-       746fe0855edc6def239f89c67a1162e92da595c546f36ead93913f269664d959
-       649a06cea9b0f1bd032e4af78eab61f02da2d3d7748d5670e2a6837a63b998a3
-       b622944724c22449ae74bbb0271b97a4d2c466ce18481872b420da7f043f2fcf
-       abc6e2119289f2d1bc93aadbf09b866d8f44558634afea20cbbf9eef1c34eca5
-       591647990b5eb8a15eae624b4c032f18e299c3864d187dc2511ac020bcd3ac1c
-       c32139a1cfad2218dff90826cf96f983d3a72d8ad09a7bd06e0286535d7ee13b
-       a38d6b3d0042b3a08b2f5b7660d828758d145de84f58d169949632e3309284ab
-       7f45b334bb186759c8b0a15ec324422bd9b42bad851fe39aadc603c3a4e7061b
-       a59eb6489f0d22941ff4061949b7645143bacb73c28a66182b096b9b1d5e30d5
-       e9c277878aad6f5caea62a412d5aaceb1a4d99f2a976e0f7fa081beb61f98a02
-       fd85771af1b21d03226de3078ede303754fe2a76c6a0b8bcc70c48b8c4a4fa34
-       5bacda0f34c2a2c2be1ab00f663febd847ba119bec3af40d43818406ac1c4f99
-       e105a65cc312d673dc2af35c0299b8266af3ca1f398af6ea7b7161960a5571f8
-       e3c4ddb248afc0a8c34ea3ef6d705bcecf5fb8aedea611cef7bcf05c89c977f6
-       00148e6b43e3e5924c14a6e839452bd779ae72657aa1f2af4d8cfec061921f3f
-       2e1015dfae3c34babf5fbaab402826b12129021d537ad519e33d834445f73281
-       4215b7686bcdbd739cbd20c4ce7a776b2f43612a2999a36707c410a9f54673ff
-       5fd0a13732c2b98c7d6b95de1c0075523afe47821331481606973a7e7cd55386
-       6feafbde527e545759589059254213af26c663410aed38f2d2f6d887e776e1b4
-       0a200a21f71f9ef8936fc6f4cbb45045
-   spend1.state =
-       b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
-       491a080c46c6b5ffb25eaaa17e4f408ab289e896311f2e16810e907ac46cc371
-       00000000000000070000000000000003000000000000000003c832cc65dec9f4
-       88e59be20af29c29ff1d78b19a4b28799bbe9e3f0498b4fba3
-   spend1.message =
-       52f3c5ceb204a85b3a98d47eed9bf1cb86ae14561524a330f889e216e28b61b7
-       0000000000000003000000000000000002502f9c9fb37e8997f6f0a18bc190e0
-       a645610cc7f2a6b61f2613b2beb722eace02b0953b71299fd93afdd45543995d
-       a57880d6e7e436c0dd1e67155803a8f2654e02f0616ad673e60b30ae93033e29
-       8da9f560e15daa84b4638f1a9f431bbc01257a02570e0714720a0a66ac6d5a78
-       481432a9afdbc51511d6b3dd26ca9d23d6dbb8c8022d139dcd299b9dddeee924
-       80c4a8398a75b243934adf7ccad7d405921139e32e035957b11c228231c5fc58
-       116032251115bd2dfe3f42e78f79cddd38337afc87b702c0bf522c60ad02494f
-       ad564a3b7c276064fc441223b3a8436014414ee9f7b4fad3f7f1650e136d9984
-       214f41501751bb6c90ca2d49f246e64096059875578272e8a3d10a0b7a614b91
-       ee8c16d765ea433344d8a37ae640bbfc7945fc59bfe6086903a296729cbd5315
-       db7874eba7a474fc788cdc3b8fa994b38755722b577aff3dcc7822057dd0f95c
-       c442f7ce8e6c3763b0ce456150be5d4cb29a84f691359c24daa02f08df23ea65
-       ed91b03648f9048e65885a4dbf70fbb8fde02fe29cc8eb8599be741b510a3ed4
-       554f9e18114ae42ebca0e00b3f19b8d83e8e6dadca07c286c6b238c560141424
-       4fffd614c7b1710c5ca811e37389157a36b43bd9c78e87c10641b8cbb662ae82
-       4300a93c2e88d0872dbeddf1d9aba5dc0bd56120b836b3e559e4784c2f2b2ba4
-       ccc3eeac700a0e39638fb5193078df3fd7625403c431b45151acfbb1eceefb76
-       7eebe103a3a5807196eb140ca4abef4709d6ad270d97f935e43d5b25190cedd2
-       b59e9e8d1ed5c29526462673609eb39e94e7cb9061991199593cd36494f6b445
-       fccf6f6ffa3f3a4a589ea523f94bd6d1b5bb986a9256f76b15980465854e25af
-       8e85c7772c322ad12289174e0e39fa32d30f28505904275c663e9465aedb2a70
-       6769368fb3505931359f073ffaecce3d2a060d7851c0b580307b0aa2e28a4eba
-       8d555c642ab743e23d9630449c0f3b89b7ff488f2c6068955f0508a219a0767c
-       e86520a848e4bdca416703ce05e223fbb2d335af9322346a8c21cc48951cd109
-       1ff18f088f9393e4f9fac066298cd1dadf9757afcdf4fcbb53d8116d3d2c79ac
-       dbd1e4c52ce1ead186ef34aff71fb69b8bfc46128f421e8fefe02a20f78cc9a3
-       9f3b6b5c3d4551c2cfffcb2ce2c1f5d4fb66f346a7e6d07ac24b5181f0a2ac12
-       97f4b6fa430b6c3ce6180a1fcdb73c36277ef42793ed78
-   spend1.refund.t = 1
-   spend1.refund.rand =
-       d0d4df4841caccbc18ff93ded09078976a3cb986f376d910ec2d033fea1cd0b5
-       fd5edf4b0cee435e2af14b8f987e66c55ca601fa35bdf956572c2cf5d59f457a
-       0da9024b59468d25626b72e92fdce7e9e9eec22fcbad3491280989a561a42da6
    spend1.refund.message =
-       03d07adb9b8928f5bb8eddcee483dc6a068e01ee689cf1ade2a02bf19eb111c3
-       c4637cdeba2fe8a9c604504ab3933a3c83f727e8481d57929a286b21897878c3
-       d100000000000000018d4b80116b1fd61fa4b44cf5a04cba17774870dda6f926
-       c4078d48c478c570e6e4c8fdad84f9ec8bc45f668c71f8bd1bc30716d505e92e
-       f8d670967b54316981
+       02cdeb0b833d8d51bf0cb8b00d145e4dc7e771355ce9489a316d53630482dea1
+       9a15a70756d3d9459b8f1708ee05b828fa7fa7e3cd5fd0b5d975599fd7585b3e
+       050000000000000001063d7d32e384dd8ddf4df240017d730bdd899018d0b031
+       13decf535d5b852b6811a648eaa0d20fc871f9b1d8699e1c34b9e7e0c3a5f03a
+       f27d5765a0f029ef2e
    spend1.credential =
-       b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
-       0000000000000008491a080c46c6b5ffb25eaaa17e4f408ab289e896311f2e16
-       810e907ac46cc37103d07adb9b8928f5bb8eddcee483dc6a068e01ee689cf1ad
-       e2a02bf19eb111c3c4637cdeba2fe8a9c604504ab3933a3c83f727e8481d5792
-       9a286b21897878c3d1
+       ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+       00000000000000087d3f72f13d19b53838e0bf3d1bb80965d00a926d09f4e525
+       0e9a03a2ff2d68fe02cdeb0b833d8d51bf0cb8b00d145e4dc7e771355ce9489a
+       316d53630482dea19a15a70756d3d9459b8f1708ee05b828fa7fa7e3cd5fd0b5
+       d975599fd7585b3e05
 
 A.5.  Spend 2: refresh (s = 0, a = 0)
 
@@ -1660,64 +1613,47 @@ A.5.  Spend 2: refresh (s = 0, a = 0)
        4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
        74
    spend2.rand =
-       862a5884515e374af418aa15d050758cb759e3d2aaf9e3aa3cd223239ccfe666
-       c22ee29f5d7646d9e64c057d8a80d0942fa388f1090df4284e81d15284f25880
-       24416909cfe3dcd528f00c4f34fb5ea2fe7e1c250b59fa5874e0ccd9e3ab6cf1
-       d9f51d6239d946ed4f86c7c53d4b98e5025355b544a96c6b40ec9cf06c2030dc
-       174462996c5f4398633ef8bb4a352384bad6216e16570ace2e4219fdad60b1aa
-       8c9966552343acab6df9c4f5a94193cc9f8097c2bf3cb75b2d2d9e4d992740f7
-       96a12b2dbf7d31cdc46f873936ddfbb06463803f220f8b4481c97b56051b0b67
-       63be469316c2a24cda44ea9cae97e706eee44564180234fd63b167712f46b8c9
-       86a8131ed2806cef6297c20560042355ef6e0955172bf264fa56cbbd1cb92612
-       3ef34abf93de52b4b53673afff0a6b7d4f7f7488242f7f758f1b437d5efd41b9
-       ec249013dd197f7cd6ec0a3aff65fac5ed2c59fb5f973b4458c25387a69ccab2
-       5ff1fc8b71db15757c928dbbcea7db10d9a83841bd10aa0c96571b60fe64f113
-       8aab7a7239d097119bddfbda82ed30189512f8995239941c1753b41a441e4890
-       c5c8a420f0827ead8b4d7320da0f94872a392d0c3df3f1e688e43ac0cd776669
-       55be9c1188634ca3da1393fe912e8321220a3a780d6f1d877bba3acd3b7a1a6b
-       db563170e3621e1a39d47e9e3ff922eb7ea46c49d7463ef24153821ee8105f2b
-       4208790d80ef9a3e592068fd8e82c7dcb6aad9fe1dc6922e1b9b4ffd01f01b9a
-       4d429c7778bb32c15aa2e406c16cd9e2ad23ebfe74c28bfa073a38e9f18be169
-       e6f88c119d7f98025372912d5fbb4ef1328690385ba6c69230eb7222af491f46
-       df25f5d5967d6181ac93f6ab5f0581fe
+       5df6aa3f75855db9c6eb9130e5fe4c7ea4173f47f405a3457518d227d0b83b1d
+       342ecfe0498cdb99911dbee6f1c2dd66adf61aba8249bc8b66dbeab6351dbe28
+       20ec0bec6a0fca3e98ae91f7d3ac00833552cda8198d8a585552c63b1b04a7f9
    spend2.state =
-       83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
-       6ad38fb128750a61467d48bf9529bf80524a5e0b8632bbeee939703a3c2037a0
-       000000000000000800000000000000000000000000000000027d8362f8009f48
-       5425593deb0f9db8deb23e1acf6b6107eda3a9e1e77463c360
+       fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+       5d634dda9fc8375ac6d2daa51cc50aca954fa420078c204349e1889a77d8b746
+       00000000000000080000000000000000000000000000000002396aab2696270d
+       5a81eefd48c992ed28d97873ab3685270a96f5ffee33bee181
    spend2.message =
-       b60f1769f4f529c86f4064213d4f997299dc7e4ea0a650fea02efa29df98b1b0
-       0000000000000000000000000000000003e8a75a952561578924033713ffa5c7
-       a5d3292def03bb40b9d8f80fe7a704d5d702334d018425203c12cfed9737abbc
-       1cc105944a1379e72c6ba979af96e4174b76037f15d92dff223548aa9dfb452f
-       cd804603f841ad5388ee1b09808218a16b92ac02323e9623d8e513de657a7f7b
-       d9c1a07a95bf538f1426904f9cfda0a7c0e0234a24aca6ef4eb44bbe46b34910
-       d75b711f7f669b32b28d0c9b2d513bcf6a629ae85494e269c51d4451a667516a
-       5ea2ee763488e5a21d817164dc3014519ce6f05b7ce3f7710c4e07dd6d44c32b
-       f26908d2caccf8fb5c1830afc305d33bb9b84fa915d5f8bfd32f861ab621bb45
-       6a84fb33b5bc3ee7239d5060a0382bebca867ebf737dcd1c5497f3a8916c1042
-       373b22213fed3951f08657a9d1b45ffae872400bc07836deed3e68cf86bb73ed
-       3670e342c6729aecf3e30290a3067f6e8f29b59f77c2ba7381171a71e928bd1d
-       97a6b7a9b753f03bb88ae5fae6dacc13c074d6c8857894f866cd4e7e3b34b383
-       dfd8fa7f0060ddda7cfd7261bd9f8897ebe90c34e6a531eedaf38c9336de1fc6
-       6186bc3e9eaa057aa62a33653f431ecad0d6f45f
+       ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
+       00000000000000000000000000000000020f3a120dfacfc6382df58f9481f2bd
+       24bd055d52604ea6c6580361939568e67202cb4def6ef93e55331eecb156a000
+       c6c2756bebcf9814130d424882a4f8446e9302ea09ac5c4013a19262e8479449
+       232c4b8da8769a34a13e01bf14175454ce2e4f0271058492ebfcf5032a715308
+       0bf06e4523f1566d331eb662e9009c304e8dd5676062c3cbf8ca74f17e8305f0
+       7d44df3d5592de1691bb0c4d21c0e22ee78b88b0bbb95e2dd3a377690936d37d
+       b9d6e5580d97f98ef31b02897cd1c105313f254bd28f0c7204ad6e7ed19195e3
+       ccd2024818ad3aa6c53efe2139e104baf007fcd5fd74ea7286a59533fd92afc6
+       4ea401d7ab71fad46f74c922911051e5e7ae974b1eafc973e9368ad25970c9d5
+       0b659343ca90b2f42ce4b3b4e667db05fce51db8f54ed5fce348c6989d0cdbd8
+       31a2342c9fcb3c25b7ceb2cc392931ea25c112648fd6e410d9cbef089c6361bc
+       1c61218d3a271f868f209be43ca5550d49c154b28962602ef3577fd8d99e6a95
+       ea84dfcc09f92097df972fe8e73edf2a50b60a5a77537045f1ea74c31281117c
+       6f893cb1c9a7650f5fe87fb3b36537954d53a72f
    spend2.refund.t = 0
    spend2.refund.rand =
-       95b4caea533d53f0792b7032eaa799459ce759de2e53720cc977c96647659efe
-       a09b16bcd8d252ddb54e6d634b504804f60f932babe6e1da4505806962a93d2f
-       0a451bc180e762813ca3e255ed2c8bd816f9d2954e6189a1777eb675fcf35ebc
+       8ab63a8b3af08128540a7dd8c6b84b892a3f0b2d6c3120b8ea53b7f40044860b
+       33cb6e9930b235d1ac9a7c06261a2b26bba151899bb31a45a2988c425a2637fa
+       4e1a0d285364f8fa0cf0e0610feda3d4b9980d16bd3da29447ab44b49e3f4713
    spend2.refund.message =
-       03f43eb44d7bb89d71a8b45243a292ab048cd454412d0786afffd5bdf93e2e4f
-       1a93ff246cad8d55cdb0259225be306b15bca37bcb93c473a91876f6441d64ea
-       da000000000000000058d2d746a2534760207dae0aadf73dc55899747d85bbe1
-       a6fcf804e90c69d9ebffdeeced9e150e495f220b1817eb4d13dca7c2ae50117c
-       da2c9b002573257275
+       02e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c553478dcdc94576686
+       8e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c12459afeeb16baffc85
+       3c0000000000000000eab936b5c1e13c20f73a1ecacbc286f2ac7afd4f748844
+       66435e2c12ed1da13a9a90d61edd767a5be2c6d00796b231311dc58e9e53208c
+       ddbdae9f0db8440f96
    spend2.credential =
-       83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
-       00000000000000086ad38fb128750a61467d48bf9529bf80524a5e0b8632bbee
-       e939703a3c2037a003f43eb44d7bb89d71a8b45243a292ab048cd454412d0786
-       afffd5bdf93e2e4f1a93ff246cad8d55cdb0259225be306b15bca37bcb93c473
-       a91876f6441d64eada
+       fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+       00000000000000085d634dda9fc8375ac6d2daa51cc50aca954fa420078c2043
+       49e1889a77d8b74602e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c55
+       3478dcdc945766868e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c124
+       59afeeb16baffc853c
 
 A.6.  Spend 3: pure top-up (s = 0, a = 2)
 
@@ -1727,104 +1663,63 @@ A.6.  Spend 3: pure top-up (s = 0, a = 2)
        4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
        74
    spend3.rand =
-       4dad8dab420ac33ff0c76282d8812e0355708066d257233647efd0db0c04ce63
-       01e93145b19783f428a5a7db291966174eec172883bddcd777c1ddebce8f07c5
-       dcccb44cb4546e7ba79ab2fa244d63095ee241e7d6b7ec0a1e03a7ba7f683a0f
-       542be108b6d1f96b39225d381dc2eb47557f7b376a2c4bbddb6e5b188a67592c
-       b2341f551efb3ea7c9abfcc1826ec7963ee6ed4f075c233279a2d6d5693e4a53
-       9d1dc063ee9a1a7993d6dfb0bd17ea800cbead18efa42ae92a64a3ab40bea8e5
-       e8b264f1426ed6493df5e7af4e288216386f476cb1be9467bd7d5c1967d11e70
-       e0b52bb7e1e1576945b20dcf1035c3842a44a48498cbcefa88a66e1ae294b715
-       6b50a6a87c494adf8dd4ed8849c5327510a5011bf982e93d5b31404dadb213ce
-       2d83b7c9c386cfb9cc193c6ec41a8f7de5fac829399bc90a213974067da2e5a0
-       34ef5c24f3b593706b91032d0b293832738a0b0474d0fc14f69d76fe33e82414
-       169b56b1cd7628a7907feb3adbad5687898829145cd13de01ab914258c957627
-       45e7ca2130d8984a19fa95bed51450060f2f670f20632a932f8adf0068e39c95
-       86b4a5e051b4646170c2abd036aa4033d757d10d09a457d519a9c1617915061e
-       77c2904a355eff3bf5602a360abae9646fe1bbc699fc455714dd7dcd21830b0b
-       847ae69950384f970419e6faea0c58ddc60c68aeaebcef693cd40dbfa75529a1
-       4cd75fecd13fd751a2e9bda82f8ad4233461a69df5bd99aad7156f9aa8c62b8b
-       bd1b7dff885c062b010ef9753c6fd7c149c25c5d1b5ae77ef509913dbcfbc653
-       bc4feb5b644523efe4938af6e67611e6682eb751aa11a43a295b1525f9af5729
-       6bf8d4f55ed2fb1c38debf13f358dfa46af42cf494f258240a18992ea508abbb
-       92c3ea9976f2347147dc44700423d1d3d43f1e67fe997a3af036ae01651c5d92
-       d4e9b45c40c1694f3ac89a2b2f5db70230623c39be05676130686f072ec1c4f1
-       4311884b5f42f0797998d5d08235fafd80d5cb693820888b40e0082e6d52327e
-       52a2f062e10f58b9308b041023596ccee794322aec769b4761107539bdba8172
-       4b16ff40aece31b27629901333569e824b1a5286b6fc6b468dca0b071c9b1aa6
-       9861d3511c70ca8d32f13b90451000d79160b366bd3fc9eb977f1deacb62aee8
-       09cb13e96b46a44a47c809d5a941bf3bbb02f2523698fd0ac24b2a93da86ca6c
-       133f46b1c237c30e480a0394d09c179d21830f3e73572c9ca85466f9ded7ac2b
-       b84769db76584505068edf838e602c3b71da1296b351dc77ab1a2ef9cba59f48
-       3583e5129a239270e8c131db79d26986a7e422d023529ecae19c3f531a90c7bb
-       ab20350abd5c54ae824b56fac3f31f8439bc7c362dcfe81c6d12a59a91ec2e85
-       906aee6ec0b1483b393eca374db4f3af1aa455637a369984661da29bd50c8e92
-       713e794b77b7582d362225c1d1e051eebc61c19a47984b72631ed6dec7507826
-       53c52688c9d28d7bd93cb61b16558c325a0616ce57e9ba9fdccc3b0d9c71a25d
-       3031ae4b137340877fb04ea074f38fcbe2a5a467c39346b814e4fd4d54e4084e
-       bb843908260ecac22be4b0295b83f69368a4e7017fd4901d51a62e80a7827a19
-       7e98fb1bc326f554a37d9a2d985f35a924a7d4674bc7851b2eb6052f11abd939
-       f7a6e4ec5143ede75e76b8667987ccbfd54f6c7db44abfe0d49b342c2e0b0851
-       370892de406f390b7cf2197409969292103d787be384dd2a1ad959b6efb3cb75
-       4cbf852c3f5f546be11f4a43c92db548370a2a4dae605ea0b3338c62d8101245
-       0dd25d2a653837ff990de334f82cdcee354d5ccd250f7367a19a1a7376d5e994
-       37822d0cccac981b25ff286eaa8a3caf255991a57100caa3797aad091bbfbac6
-       d648214355259f6489a5e4d4e2348775e1aa9b2b5d0b17fc29845b3a06a2f978
-       6ac03e67f7fbcd77d48eb569476340eb
+       cf496508c825bc711aac384f4620152a8d3fc3a2d1943dfcb9cf2eb9fdc410c6
+       f6dfbef97a289fc6550c72f79daef1e54f5cd0132ead59cf513fedf1fc5a05aa
+       a0255b3f53c1ed12fbb96bf52197b059d609431451b117381a5a06bd4be53ee4
    spend3.state =
-       1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
-       a821e7b5185df5fd500ca48e3dc6ef36202a44b310c62d7a1e302fb377b228dd
-       00000000000000080000000000000000000000000000000203c6d651f9b93f50
-       dfe8e62ce107ee8a199f21d84008ed38999217e21d77c45675
+       be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+       f613b07592172ebf8c4e04a6d3b6651b9d17eb9bc333fb7caa5da9087d7fad90
+       00000000000000080000000000000000000000000000000202aa041fce3f3996
+       aae6eb6a309ebf8965085ad5d5a156c48c4520a9397822706d
    spend3.message =
-       83ba7643f261f83fb56fe3d70a03236cda2170fa779c93d78565fc39320a05b9
-       0000000000000000000000000000000202aa2db83b35953ec853c96fa50e4878
-       ce3b83ad22be968f10694c08dce24d9f6102c1ec108964543768374bdbdc75fa
-       e4e67f466290951be408c7fb39517c3bc49d0293bcaa8356e89f999250c38fbe
-       9a3e0497685dfffdaf98b85e90a105c9c0f83a0225d6a448a6fbbb08dde6a6d6
-       10d8544c426396cee2efd5346b4881903eae423902b4c98fbebbee063b4f3ddb
-       06e276b311574641b4a7189009dcd72461be4509fb030cb5eb6fd0d05e1e6f86
-       1e0cd1f78a75d41f05c38288a98bd68df3cfb128ed25027da15363577ea082ea
-       09ef6d0a0bb2884f6d8c448ac2df20f18c3948347fbc52021f70d27d2ab81cfa
-       b8837f73152d20cfa32ef29581ab939dd2194556a5ea97f535adee9478851851
-       0da0ee41884728a37f5de00f0af9445186db1081ff0502fa3f282968a8d1116a
-       495868cf4676dd87165b484288f0babb6ab242d5a070067d36af7417a94c2fc2
-       09f1213280a18e63d1f680dc591a321b591735d79b88e46e77433274d0a076e3
-       87f6476856e8f61f86fa7d015bee44cca64d3ca3b63787598a495e5ad8f1596d
-       bd82befdf938abb67e73b042a2b1057d5c6b5dba30d1a484c41de02fb29f61d7
-       a3b3b4176880067b1b087e67d8e110c3cc6980438739f7d90d797fc82713dd8d
-       6c808eb07dd6b7a866dbb14a29b9343784236667c03b5b4b2785cabb59c134ce
-       ed3a4af52e8bef8df239bd971e2772c4c1cf913b33021bc89bc01966b1f26321
-       2a5d8b423b55273f4b7152350a6127988ee9d7c9368f3b0f2cb793859db98777
-       20c7b3d2808b8412363ffe86c49f79829d541ea5e57664c197c3487c20d23029
-       f650c2c0b9871a92a84aa1976631ff8adcbeb91564b4324220d180a1b6fcf63c
-       7d69dfa3bb5c08ea1aa965125e499b7f9e38dbf526d04becca3825c1279e59c0
-       1e6da1b8d1574e7767dc983ca3219fbdba0237ac264c232f65c1ac200ff1afe8
-       80b36a6404e5774eae6b8a7856734cef002f2225d62e0e9ddb96436e793f6eb4
-       94cfbe42e1d7c57959639e2442dfdc01a7a932b8382c25cae84e2d67674cf767
-       6bbf651430b223735af3f1beba945e81cee10d15d0355cb1b5760bd0ed418f09
-       0bb8b2bba698e3c66854bc67e96af002f008d2914cb3856568604b69934ac9ed
-       a4585dd28ec10791d5df38cc3c185c6cf927a05d2f7f1582bbf2866037dba2ce
-       7897ccb91dbccb62fc096b839f12bfcc891787ff8afbece87b8e280960f9311e
-       4e91bce4374dfdca3d2777d20e2d0c5fdc591a02b710b078c9e21f34ee3be643
-       b4a7e7c473e0c3e17f897724ae2029c9c87b46f0d525a74f
+       fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
+       0000000000000000000000000000000202f4e02b51f9f89f1fab195e19148e57
+       94e508de92a21d3fdb5b171877a44024bf02a085171bcf8e6bf704798b88161c
+       a627e9d027a5ac2865cc4a0404ac1c0fc45e02b9ab938fea505dc8d1b61bfacc
+       d5332c589877769039c6f5b10602195b9f90dc03024debc8dac8db5b33197d3d
+       3828b963f1bd1d58d2987cd61f685b3fd9e3ef820384ddb7f290db8504819611
+       b720725aa557e90a2aab55e587387c9d13b2f50eee034c0ebe46aa9d656f9a5e
+       93d9442055a50fd37ab2740d57225258019603d94c0a02c58a6127b75421a586
+       cc55c715a86500b9193a2fb790c4c18a19140091ecae67022d3313dbaeb918eb
+       0ae6748a81b15a03729aebe5b073fca48b428e538679563548b001de14ba58e1
+       9509bf0aefa58ccb9b39020b1b8a271bd10d454d81988c043cf6722e5de70014
+       087a10f9b38add90ba019b03548dce10a72cff85ab21e59382a64587b03f6941
+       83a01e2170f94ed111832ae488a11caf632df7cfbcb17a6440d5275716fd5e35
+       aa83a9b600e15e9bec055e225a6a8c17e91d1b40a4f406c92aa3093403f727e8
+       c3f802f59c71365a67b228e381c4e57a1030da09c815a35b33f859085aa0e792
+       f48498a2eee20e49ff5edf5b9b943041c9c6d098f446f39aa0bda166f8a46a42
+       3ceff7f8e31a7a5cddb007b8a3cb24413b16a3d9c2e6875a71855cb8bf8fcd5a
+       48c0fadf22e85a84ffff0d5a6c9ebb7874c09e4996d79dd77a643f08d8fbd8eb
+       d427b47be8baf4b6cb422a56838aec0d81e671d9b001e715e88ceace47411c5f
+       0e52de97f8e9df4a19c23a127622d572e7e4bcf5758ad063fb7998ff60d6c1e1
+       9bfcc3aafb51ec8874eb8b37fdf14ee5fa564a2d6b7e0c5f3a208888bb731cda
+       01dcdecfa612cd997eec9362c45e371e9680467a67c988276c3e9c18aa6ff1a6
+       f6412ede66ab687eb54836fbc9174d2384522cbcb5e1df86343fd53762eeadf8
+       ceb8cba8f2c8d61b45dae74abe67f47e43c0bf60068b7919c51182dbb5d3abfd
+       0465576597ed5c26dae97edc00e6497cf82fd8a5c19b1e168285a3345d1ff8b9
+       ff6173171049b51cef0fd7dbc5df1c706f3b8bd237ba6a2526e7d66f03240c57
+       669e5628871ba4db195cde6a7a0709956b916f35be611137c17a38f1359b7901
+       0ec91cc167fec971410504897fca0654ec47796fbb8bdb0829086aa6dcbea84c
+       8ea162140fb1bde384133db4a6d9f6f296cd26f9639728e37eb1cdaece28a166
+       0db110dbc2cfa50f9a6d658e20ae358bde696d403bd1b2405b9edb89fec57042
+       c5b8337403b4ca941ba2bc8a0dc1f4202a7c476afc8c11ee
    spend3.refund.t = 2
    spend3.refund.rand =
-       912d9992f195bfceea672989d47a02927822088f1470d8b0e9a8de1df4c028d8
-       3c56fcdbee9108de7049551bc192dfaeeb02eee83b4f3e326c1ea261a0ac24ad
-       f3dba144d9ee0d2d8df7c977aeaddfa73d01412a0eefb0a7926774193aa80f12
+       951a4f39b3225c1929b35820269ac76d585baf0dbb927cd59f35addd001762b8
+       ca25145e7c4159cb30f4cadac6b2f274a710f8916b01e7aa657125ac036e074c
+       8dda6de23ecbfa7dba2bb3f490655c25fef2bfc2f3786596045b68563feeb24d
    spend3.refund.message =
-       037278382de8d95b9104c2c423818fa38287c1ed9d030237264818de1e4ee9c2
-       9b8d0b95df0001c822e1628d7bec7b23490d973c049f5af596b3aecb4e54baca
-       050000000000000002da70ab90d7a2a112dbc9211598ffb4ec1ffbc650022de9
-       23bb80372958986e0543105c0ec763d33db4b427be3bbde9c604a5a77bd9e112
-       da5a929c188a3a3e9b
+       02e6956a32ae6001a3494c29c233e0f7bae689202070064d0ac112820177b2e3
+       f8aae51d4331b1568f1c254e635e9409a6a5c41b8e667f83b63531ea51e0652d
+       e00000000000000002dfdc81080741a6a136bea1e6b2dd08f2f14538205d8d3a
+       524af77e4f43b317cc599fd8d86ac41d3a04d3c8fc3bfbed53c196f3a9ef46db
+       4ba968e925730a2a65
    spend3.credential =
-       1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
-       000000000000000aa821e7b5185df5fd500ca48e3dc6ef36202a44b310c62d7a
-       1e302fb377b228dd037278382de8d95b9104c2c423818fa38287c1ed9d030237
-       264818de1e4ee9c29b8d0b95df0001c822e1628d7bec7b23490d973c049f5af5
-       96b3aecb4e54baca05
+       be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+       000000000000000af613b07592172ebf8c4e04a6d3b6651b9d17eb9bc333fb7c
+       aa5da9087d7fad9002e6956a32ae6001a3494c29c233e0f7bae689202070064d
+       0ac112820177b2e3f8aae51d4331b1568f1c254e635e9409a6a5c41b8e667f83
+       b63531ea51e0652de0
 
 A.7.  Spend 4: spend with top-up (s = 3, a = 2)
 
@@ -1834,139 +1729,77 @@ A.7.  Spend 4: spend with top-up (s = 3, a = 2)
        4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
        74
    spend4.rand =
-       778836d5538a27b3d35ea505d95784e8afd6e8a5c13eac89dc46f1751401aa77
-       7f2c8899e0233877883c6659ff628a6178b54bfd8541c9bd5ab8247bcddb7568
-       db9f02f4de5495efb4d40da8245bafb0ff356f4b5a53b7e9ea0cdef3c08f5871
-       bf4049e9498bc8fa87e6c73a0dfd25178bd017ea592fd7f215337748197d3116
-       90210b25cb83d9ad872d129dfb3d58959fd5ff5801ed8b9ab3bc79b42e5cf208
-       89d338aa1829c0705ed329b71fd393fccfe87e1b3f82e0e600f0ab134ba28aaf
-       8d8d5a25d18e1a21f803eb71dc9b189334ff35c46ba2cde89312bdd7326578c7
-       1d9b10e4dd118e65ddf92f0eb90a0fdcb461503f3e159fa6908c65dd155feefc
-       afb0e27de7687af7d26e7a36125aa223e0bd25c13985c804fcef2fee65f5099e
-       95bca02001e353485868991cac8411ddd5f50639750b31057e7f21b650dc9c9e
-       0918635219899b585caa36840ed388913fed240aa721aa8efef8a74277cce20e
-       2d6cbb572706f7008c11329b6c1a15b8314555662fdcaf24305076dfa2fab1a7
-       ed8a933c3da1e456e3b2b8a8647ac3e750852d32b830157c9a23ef47690b0cf1
-       32d89f02217c8c71e5bf95bb4eceaec6c1c192c63f5d7dc0530a61fa70604fb0
-       2fe2149f2cdf50ea9715e646ffc6ed65bff628caf3ed04f6a316c2722bb9798e
-       3a340eda69f19e2c9773e7b1277c4569bcb56b1296d9ce3419c37b380cdd3135
-       a364e2ed0268815855cf3f68980b14aa82faca814c9b637177506135355250cf
-       601dc4df206b86b3f9119e019bd86842b64864b23470de35a8e866dea2e58e52
-       95ac65993a4a4d2f677d9978e872faef02e05e5135eeb11c9b8f9551c8738008
-       205a6230f5ef15463469e0cf19907a0c0f37b8b928f63334c3187c59527f19ea
-       5a6373216a00ea28483ec8fed7c07ddeaf1894443b5ea5950d426d0dcb1bb956
-       115c0b41913f24a727bfe461b87827a29e57bc2e69a6f2ae0687d509a467572c
-       856ca6f11147e543511089f313068ab009c5e3fe6a31d685d07120f3be434f84
-       a5e7549f5a1e4fdb3ea1a4eb7044604c057e35e71b624ab2578e3706ba07f99c
-       11329ad44d1d575e059f19feccffcf87a294058171a0be41f1f99dee7e6830eb
-       334661ed59f2e4823381c09e95023b1dfa0add2989a562577dbba3d54e804b0f
-       b5d078555225a889b05ba5302bc2699b2c05d42090d1933239ea631a9b5c35c2
-       5f1d9d4b865462b4fc5046816ca34e5eed2724672cced8bf7c8758f3b380d567
-       7d409ebb6bbd5b1d9a78c3879059caa4506bfe23dc739c1cbeb5aab6a7c6b4a2
-       b3c643fabd91197ca0b3af79b4e3367ab9f1b842b45c1ac2a1c735b7a1a644ed
-       b652a2c6bb45fe56a24cd0e65c5d333523d138b15300280b6e2752699f9848b4
-       2fb9304efb8e31cb8630878491326899e6d310d9784fbb7eeb281993db119b1b
-       7e61a162a6615a775c3d666474f6eb9e033843362c0bff081c1a631fd5bfb347
-       a6bf8a8f5df512d133e7f4f5de61f3204fb76b77218d00c0261f9e186c8d8c26
-       9046b07101f958dab43a5938bb98842a1908ca5eb70cc142a853eaa42e57ef9e
-       04d5fadf38960c97d191db2ebf949d0349d34187fd3bd4707de1eb422c3aa571
-       451fc5282d6b01f99999b830726ada857a0884fdb4a47d3f8f4ae94dcb7ec9ad
-       62b2ada6c19fa8c3b6ef26e796216884c2838cbe6b024f50c66a3b98b2cd45d4
-       441355b0512ba70a6a773a529278c9a03647e3cae2830fe1b72d1d786eb2c86d
-       0e2cc217364d6690b11057ba092e48115a99a33c7d5893e101e448a8bf30f2ed
-       a759f45c45a65d2c4848bf3bc99e7db4a7ee69e974f29ca4ec18e60d36bf2a32
-       fb8698963c874baa740fea303a5e9661bf325d53685054ed82347d121127d17d
-       e4eb15379c845e13400b29e0610b8ef1bde950f286409e43ad34e29ef9b427a6
-       3625390f32d480ba2e1e6d8efda86971d615dc1453d9a275b6bffdd1df6c6bf9
-       3a5ae484b1a3de609f1b7750469d2954303e862b32be7e144041d869a8c2c038
-       0608d2265a4510ce862b4edb79cd63296ae4a06f26fac09ff508e6f61db3070b
-       63d95f8a122e898b39d521a35558b000c6249ba4ff9e4c1152addf2fb250c30d
-       f6d2acbc656584986e36415ee76e8d2ce728335b8a44161d8ffd1abac5906957
-       3c539bf82ca3dc338d01d66f09ba728859e47ab87d74ba8b0d9e4e752870d35c
-       bab6f27f354072363fe7a65fb03dda490df3697b309e19dd7dc7654848911f0c
-       4fad948308974fee98eac97f238e3567dd472e645cca2b755dda0cecf715ad67
-       32508004c4e6f64f34e622fdf35277abd29740bbe73ee451b9b5485cfd1a1543
-       3141ca653e4cf9b7f4234657a8bb7aea0d067433eacedc18a49892c5381d5021
-       2be3add4c9d23f662b24c57acb32f509a714b9185433be1a4401985647a827c5
-       85e6aaaa35211ac03fcc8c545b2da744cbbbfda72c2453ebf5eebdaf7480d663
-       fbd822f8f040481b90fc5cbc2c716a880f78a4d4e3ab79113e5d6106fa345955
-       6dabec445d3a1924c831878e03c8068e81bd9ec63b17433104e1cb1d0d379f79
-       1b5c11a6d3615941bc6ab089348d8f267cec6d559a2be7983eeeeb8db6ab2c64
-       3122ff437aa135b0f5d28f0cd18807f302a475858d533fcf0ae57f50142c54c4
-       6dcb61e22b6aa702b55287e4e0e543a7e4df8468a5b36805e6e56eb99a1b866e
-       baff7f081564ab3a31d2017ff4c277b71dfaefe915f678a06a9c007e7fb2ee4a
-       a25cc500f2a0f3f9041c0caa60d937da17b32d0ff0598ccf40fee34f8c89fc73
-       ceb570b9062fb457a935b1fdf7c182d30d7ecc5f2ba654b1c5048ef79191f4ed
-       0d5e4fa662ca3050fb757bbd15d6040d569c4106c014cd45a815f609f8174583
-       90b8461cb97570cb46d717ab190ad4ca
+       a0197dc7f5d2128dceb0e4ac42a172d763b6d625df1d4bfcf61fd5fbfe7e222e
+       35144cbb058151ff0eba61a90575de984665140d18c49d11df66f7b77bc618b9
+       60599627a6606376365da00272f43dfe020306d04c39a7dd3c60a26a23830521
    spend4.state =
-       6c511dfb1615e12295c9007b7f9932b6ea8355c4d17c28ccd0a5928a99c08fc2
-       911f8b7fc9f04ab3fafbb23e8f0381966b6820c2d9e7f23a8c1d5cf76c6a4f9b
-       000000000000000700000000000000030000000000000002025bdb3f39a5c58a
-       b0cb727759b63f2e3a38ce85097be2e23737f25e7fc245d365
+       a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
+       2aed566e0458743e56bc78cfcbb597fb6548edb58bfd1df4d23bcc91e37e9059
+       00000000000000070000000000000003000000000000000202b7e2b124c51e90
+       d9859cbc2c0141f985b4b78dce5270de619bd72c064e89d671
    spend4.message =
-       1ccf890438a7baa7e7bb2e468bf23915042f70a309cad594f7b36a0e1dbb5654
-       0000000000000003000000000000000202c4423a2c8ce8ef1a53d38af6d11d16
-       32dad565358cf3d884e7239a8677a3f80802be6463fdf8b2a1012326495aa6e0
-       1b9e6567988c645abab8f84ae51b8ad5774203ca1de2fa4f7f16046c401d5471
-       f2d92c45ed00ad09fa08bdf786c895d431cc32023f8338cc9cd498e8a5b929ca
-       3b1ce49b5a70c76d56cbfc07d84f7d290bccbad303cbf47b280ac31b8f2002ed
-       951ca5a34c02dafe1cb0e268aed03fb1a2f661e6b503c1d19dd08fe15fd455f1
-       553dceace2b91effb0b9d2a7c709840308d03732dd99020e7dbb4d07fbc91878
-       3f6dd35048310944536eaf874279880e94d8f0ae57418a02eb77521e226e6560
-       5da28c1285330228be129f3736532d68471d42b62362d54402b248f28efa105c
-       c98aa0999211341ff14090302a585456575e24880cc8728bde028880ee051463
-       24930251e7055dd780b59125b4da2ce05de5b40cc531d73057f502c4031e49f7
-       a7b03e006f21c0cf747cd3dc46a562de017e5847e081719c61b670b112c6de75
-       14e5696686e3d6396994deee0df798163b7c4375119a1bc0843a72096dc8b042
-       8ca3560ae6e689875efd2834c998844c978c60bdb9640babee547adf45521658
-       63ab772cfe43e46362632fa5b8b346c9e58e2f088c61c00b81a12eb50c316b58
-       bb6e9d9fee029b463fcfdf3ea6fc00188e87b31d8e846ac4c0e26287bd402971
-       957ab0441d21b63b64dd7b90cc5f27ae4c6eafe855869cc6943a6b5c3c44aadc
-       0bf71e2acbdb02e45db8092f1a96a152c8845a97f9bea5e9c6ec0326e27c9220
-       06f9cd5f0f92e12cf4bcc1d44ebea0de7a18735ddf604b795c36b9cb68cc4428
-       67f3e268497f8786964734879bb3a8191e56b7e051bdd6d47e912cf79abd1390
-       89fe2638fabe34128315612ebf8e3cc4925bce0e99f8dfae9845e5327ab88be6
-       a08b3df0bfa2f9881c24080966621bfce8d4d6af43a81ce0800088e0b2fdd97e
-       ffea10fc23d531e837e829da1c730b24b999b3af5a8e50ae1b92299ed59442ff
-       701bc07ba536667f6276a106734b6fb02e9509edc8394e0512a52b96c3a189ff
-       689461cd569484d72b5670ddaba81dc8e42fa6d13d926b7f872d9d376c3cc035
-       86d77b4d5f02dd38bbbacdd9d657c03d14c49c5859a3ba39962518d82778a78d
-       a2e5099290435e3379170c2336e7e372d17d839db3700d83409d07c9caa4e7f7
-       4a2983a1f24c0597faba83b5e63e26f7f73c26c0cb4dd1ba4c5d45a7dddb0c86
-       af00f156f3d5101da42e84bc2a6b82cb75284fe26d4f1e5dcee0b78600f00d31
-       1c0c3af33de19a48f7c15bee6c6260c901b2e485593dd07e9ee0b2c88d84b779
-       2c6b56543370cb2639ea0158162f3d0e9a90522c590053262c4afd312f1c2a99
-       62e46c7718075d555b5f692802d02850093a6e0ba6c0f4376c6cc38426be7632
-       fc6518aa74135796fbb817a60089ba074ce33caae3d5eecbf911ad4d4387e41f
-       240bdff570ed9df19c0f86ca9e4dae575cec1ac1f4e642e9c07477d964942e69
-       b50fea023bd1b284c1a43cc3b507bf873b6fdb0fd1e706ed08ec5df5f326ac0a
-       4672a293bd90d141cfc3efb28d6c2ef86f395ed706ffe5d7f51f6ae878272eaa
-       2f0c0d9013290e57655c2257fb78ed9860138ac83ea01a9e9d8f80da7196e872
-       1cc98e8ebf46de9c4f138cbbf819b1c78797b9a159c7491075f6bab224e14e7f
-       5e7581ddf319a1196a749f3f211a1d795576c1147d3c3f4f54a1e531b1b05bb7
-       b156ad221c1cdfef28753e8548b1b2c0eae986d81bdbb1bbbbb14552378243d4
-       e00fe6168e1d8e96044f1cf236158505406fa9c3da33aeac820f71a0728f7117
-       be7fa07bf24f5035c1e6631c4d90d6048e40bed1a0d751f725dbe2499e82c924
-       dbff5f6df8855424821f88cbe8fdd27f7e74f540cd97faa8e1c340fff576eeaf
-       0c5512e403c5340c5f2d58f1a7a4e45aeba081b9b4e71e28b7eaab
+       be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
+       0000000000000003000000000000000203219e95d338ab57ed4c64f9b77a984f
+       f22d3bcecb4527dae610ad8d51275d2f2302db780d64911e69336569f5148ce4
+       60c09e8256dd3041ee634e1598b27df4de2802f1be336d8979887881554c386c
+       7cc0951b7f38572d1febd542a1b0145fb374c003359a94092b8d9c5b05e0818a
+       574f76c84bd9bf7d999d5d2a8e10a4fec59282460317b52c87074a03790419d6
+       ee5f92f6187c7d20c00341f76f7f43bc7705c0d92502f93967ce41252702b13e
+       2f53b8e13c5b90a4cb340ad22e0c43e5d4bf45cf82530316f790b968ec4a5444
+       e2153fb03ddda25a1383ba4160543fd6454352137f1174035f6b382e4f8c1c6d
+       36470ae5c51e5809a99889fa5e56f80317dbe18abb189a80023381e2c53663e8
+       377643875a49b4e8850b007de25c9a398f67e1765d0aa1123e02f5099dca8b8c
+       0470a2ed14997c6e717b87c74b42126231b74d8a43cda3253611039847a9942f
+       983ed8986a7fd1c22c733db052ccb944f6243a2339f761a220aea2a1eecd4bba
+       2c7a96a6a8c2c9de796a079057ab7c1a5b2694a604efbe48f7236bbb11eb2e4f
+       4a83f66203dfc0c0227a697988e32be213823f9f9e720e48c5cfd457553ceacb
+       71611f7a1d6e11579c36ec5fda7bd5e923ee0e59b3aa6597823ab77097619620
+       daf1bfe2781040c6a5b8a2c2f27ab361588dc9c3bfc86247a8e071e682ea424a
+       e2f9492b7774a7bb579b4d17f990e12f8823233ae7b21654c0156293849fa06a
+       7b7b72bb1b6692ff1de900447123d71259884f6f3712beae11972c4ef6ba155f
+       ba2e9efa2298fb6648b992c42b5e42cc2d47ac9f911399819f97133ea88a1ded
+       a907a5f97c369519a616e9f336a3e71a3fa1dce6b9e43b5bf565e162e0183415
+       68519e8c2d7bf6ceb8061c2a75fed702702bb58821b2ae7c9cf4ae60da2751cf
+       f40ebbbc94380f9cd00f33086508fe8ba7f840f3591fb81b16dfefaad1daf093
+       0b63f12db65d1b356935a54b4476336e904178ea5041a49d0deab0b9c24e671a
+       3c84d7f43e0e3880208735e1b895eaf97d341253c1564ea212bc8be2476872ce
+       1df5228bdd0c2dc066807620812c7d63200a20b936141296c8e9253663717ab4
+       a3e51df2fd6147b487ae2c3796ec7305b7e4b9b0ac30d122eb429bde31610400
+       e8228bad372f46a15465141d04a83f6bf111cac924b6bdd5e1dd0b5845ba5896
+       b57020db13405fc6bf27de97ea65be1182b507c9ce94f4f26b849d261bef2b7e
+       b0284dd5ffb9a2a737179b5a78c633111d3e1e55ba1d4f410a6dcce7b4576ac9
+       faf7425bb9b46399978d8fa940b92cf6fcedb34bab2bb5c829aa4be203805da6
+       ce7d4e8aca04591982ef71276ee0dcb82003e0296c3ece58ed3f135e204770ba
+       226f01a05426f6d3339b7eb3f41c80178aa9dbf365ac27c6c2154fb26a003e54
+       f8e64fa7508308593a325ba797f9103152d0562d9ae24c61d570fc9fed280f94
+       b0762dc00e9013829023b58d48e7dbff636935a07cbae61b794f152dd2b96d80
+       e258b97d49a9036b5eac8fc23514af5298c2c212a1c1db124f56685a70d6cd14
+       f082f40a78e61971ecce5d68b4e3db1e527bae3c0465f507dc07727b7521ffef
+       60d9eec3c7b39e09c0244f4ec495719aa2640e16ec4f33d0003fb51c46109fbd
+       ba55c42d75184b5723e7bf9ea7c3f9772200b7710b7f7fb6bbfc2f98b481d97d
+       c9a3b0986c9fa899a160c882e39008e57485bfa7c94463c7c10642391a25b5d0
+       808d4001a03f4366b113d12547b8e701b04f5d4643f27af39b41a0f81d114b08
+       a75f3f0b9ca677ad69ae73aed92cb8fdeb7ca53c55a3a638b77672e8952237e9
+       19618a91313537462ebd8a813d32bcdb340c537b31f7b687f40910d2506b6202
+       2adec98b6f20bc2868eaf1d8d2fe3255e56a8cc105a3b3cbd33cdde81bc00b07
+       2012a0a9ec66507d91e4aa38ebbe132e1149602cdebfe257cc1f7c
    spend4.refund.t = 5
    spend4.refund.rand =
-       15792e979eb42697338162856cb1eb2ead6eb2fdfca1ac6c998271398ea79aed
-       f8c644173a51e3a3f5368e85b5b8543b19fc6d42d2ab5130dbd46e0dc8d8f43b
-       34ed1514cb7272e7ae2e4981bcfd1072c13dc21d3905e5055216fad0c6feefc4
+       752dc7ce9c6fb3e70d8c88a6bb1e1fa40b7956619b9571519feac0eae54c5cfa
+       e117914953d8c1f88b0035512fa223b8a67174046422dffb4a899546001bc936
+       82a8720ccd9fecd89f8e7b97f5ff29b951e586a5319626dd779b3fe45013dec5
    spend4.refund.message =
-       0302dbc52a39d9b292c27158d5d6d226dac6eb51a7d0f0f72914f3793589577f
-       31da41ce9717953c932de3a6e370a6c49dcc6ec3daac95e065b4d17d329cd807
-       150000000000000005ba37881fc654fc2ba48492982f0d5828ae54d9efa953e5
-       cbe7ef163e9291fb76dbf34bb932ebac868d68800d896f5584cd0c2f1339eb0d
-       72c62bb60dc98e97c6
+       02e40b0e6dd647996a9bad5602291ad325fc3b8bfedec9cfdbeef8235c688847
+       9d844369d43ef409a7a049c4fc4d76f5463a41c79550d31b4872efa2318a1530
+       400000000000000005f166402a7854a65baeb2cda7c12003caec31088897a3eb
+       efbb0f81dc8deecbb7d401f696b0d66f224bbb8855ff213463c7ae93c663c00d
+       62076bd3adce0e8d2e
    spend4.credential =
-       6c511dfb1615e12295c9007b7f9932b6ea8355c4d17c28ccd0a5928a99c08fc2
-       000000000000000c911f8b7fc9f04ab3fafbb23e8f0381966b6820c2d9e7f23a
-       8c1d5cf76c6a4f9b0302dbc52a39d9b292c27158d5d6d226dac6eb51a7d0f0f7
-       2914f3793589577f31da41ce9717953c932de3a6e370a6c49dcc6ec3daac95e0
-       65b4d17d329cd80715
+       a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
+       000000000000000c2aed566e0458743e56bc78cfcbb597fb6548edb58bfd1df4
+       d23bcc91e37e905902e40b0e6dd647996a9bad5602291ad325fc3b8bfedec9cf
+       dbeef8235c6888479d844369d43ef409a7a049c4fc4d76f5463a41c79550d31b
+       4872efa2318a153040
 
 Acknowledgments
 
