@@ -1223,6 +1223,9 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3.2.3">
                     <p id="section-toc.1-1.6.2.3.2.3.1"><a href="#section-6.3.3" class="auto internal xref">6.3.3</a>.  <a href="#name-moderator-client-update" class="internal xref">Moderator -&gt; Client - Update</a></p>
 </li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3.2.4">
+                    <p id="section-toc.1-1.6.2.3.2.4.1"><a href="#section-6.3.4" class="auto internal xref">6.3.4</a>.  <a href="#name-act-responses" class="internal xref">ACT Responses</a></p>
+</li>
                 </ul>
 </li>
             </ul>
@@ -1410,9 +1413,15 @@ running the HTTP authentication flows. Configuration includes endpoint URLs,
 supported protocol types, public key material, and the Anchor set associated
 with each Moderator policy. Its contents and format are defined in the Key
 Rotation and Discovery section of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Clients <span class="bcp14">MUST</span> retain the authenticated association between each Moderator,
+its Redeem &amp; Issue endpoint, and the policies and credential configurations
+it serves. Cached Credentials <span class="bcp14">MUST</span> identify this configuration so that the
+Client can select the endpoint when it needs to obtain a Credential. A
+Client that retains a presentation for recovery <span class="bcp14">MUST</span> also retain the HTTP
+request needed to resend it to its original destination.<a href="#section-5-2" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="error-handling">
+<div id="http-errors">
 <section id="section-6">
       <h2 id="name-error-handling">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-error-handling" class="section-name selfRef">Error Handling</a>
@@ -1424,8 +1433,9 @@ or avoid other friction. In such deployments, Clients <span class="bcp14">SHOULD
 greasing rules of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <p id="section-6-2">A <code>401</code> response with a <code>WWW-Authenticate: Mole</code> challenge means that the
 Moderator requires MoLE, or another acceptable authentication scheme,
-before serving the resource. A <code>403</code> response means that the Moderator
-understood the presented MoLE material but did not accept it under policy.<a href="#section-6-2" class="pilcrow">¶</a></p>
+before serving the resource. A <code>403</code> response means that policy forbids
+the request. <a href="#act-responses" class="auto internal xref">Section 6.3.4</a> specifies the status codes and credential
+headers for ACT exchanges.<a href="#section-6-2" class="pilcrow">¶</a></p>
 <div id="endorsement">
 <section id="section-6.1">
         <h3 id="name-endorsement">
@@ -1629,22 +1639,115 @@ credential type, defined in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOC
 credential material from the Moderator. The parameter distinguishes them,
 <code>response</code> for issuance and <code>update</code> after a presentation.<a href="#section-6.3.3-4" class="pilcrow">¶</a></p>
 <p id="section-6.3.3-5">The Moderator <span class="bcp14">MUST</span> send <code>Mole-Credential</code> with the <code>update</code> parameter
-after a presentation. It sets the update when the Credential remains
-usable after presentation. It marks the update as absent to intentionally
-consume the Credential. Clients <span class="bcp14">MUST</span> follow the Credential type semantics
-for reuse after an omitted update.<a href="#section-6.3.3-5" class="pilcrow">¶</a></p>
+after accepting a presentation. For <code>ACCEPTED_WITH_UPDATE</code>, the optional
+update is present and carries the credential type's <code>Update</code>. For
+<code>ACCEPTED_NO_UPDATE</code>, the optional update is absent. The Client <span class="bcp14">MUST</span> process
+this header even when the protected operation returns an error status.<a href="#section-6.3.3-5" class="pilcrow">¶</a></p>
+<p id="section-6.3.3-6">An absent optional update records the Moderator's decision to consume the
+Credential without a replacement. A missing header supplies no such
+decision; Clients <span class="bcp14">MUST</span> apply the credential type's recovery rules and
+single-use requirements.<a href="#section-6.3.3-6" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6.3.3-6.1">
-              <p id="section-6.3.3-6.1.1"><code>update</code> which contains a base64url OptionalCredentialUpdate value, encoded per <span>[<a href="#BASE64" class="cite xref">BASE64</a>]</span><a href="#section-6.3.3-6.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6.3.3-7.1">
+              <p id="section-6.3.3-7.1.1"><code>update</code> which contains a base64url OptionalCredentialUpdate value, encoded per <span>[<a href="#BASE64" class="cite xref">BASE64</a>]</span><a href="#section-6.3.3-7.1.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<div class="alignLeft art-text artwork" id="section-6.3.3-7">
+<div class="alignLeft art-text artwork" id="section-6.3.3-8">
 <pre>
 Mole-Credential: update="&lt;optional-credential-update&gt;"
-</pre><a href="#section-6.3.3-7" class="pilcrow">¶</a>
+</pre><a href="#section-6.3.3-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.3.3-8">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
-Credentials, or state that Credentials of that type are not cacheable.<a href="#section-6.3.3-8" class="pilcrow">¶</a></p>
+<p id="section-6.3.3-9">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
+Credentials, or state that Credentials of that type are not cacheable.<a href="#section-6.3.3-9" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="act-responses">
+<section id="section-6.3.4">
+          <h4 id="name-act-responses">
+<a href="#section-6.3.4" class="section-number selfRef">6.3.4. </a><a href="#name-act-responses" class="section-name selfRef">ACT Responses</a>
+          </h4>
+<p id="section-6.3.4-1">For credential type <code>0x0001</code>, the Moderator <span class="bcp14">MUST</span> use the following response
+rules. The issuance rows apply to Redeem &amp; Issue, and the presentation rows
+apply to Presentation and Update, as specified in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-6.3.4-1" class="pilcrow">¶</a></p>
+<span id="name-act-http-responses"></span><div id="tab-act-responses">
+<table class="center" id="table-1">
+            <caption>
+<a href="#table-1" class="selfRef">Table 1</a>:
+<a href="#name-act-http-responses" class="selfRef">ACT HTTP responses</a>
+            </caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Outcome</th>
+                <th class="text-left" rowspan="1" colspan="1">HTTP status</th>
+                <th class="text-left" rowspan="1" colspan="1">Mole-Credential</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Malformed request encoding</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>400</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Omitted</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Missing, expired, or invalid authentication</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>401</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Omitted</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Rejection by policy before acceptance</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>403</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Omitted</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Successful issuance</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>200</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>response</code> with the <code>CredentialResponse</code>
+</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Newly accepted presentation</td>
+                <td class="text-left" rowspan="1" colspan="1">Protected operation's status</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>update</code> with the recorded result</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">Recovery of an accepted presentation's result</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>409</code>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <code>update</code> with the recorded result</td>
+              </tr>
+            </tbody>
+          </table>
+</div>
+<p id="section-6.3.4-3">A <code>401</code> response <span class="bcp14">MUST</span> include a <code>WWW-Authenticate: Mole</code> challenge for the
+required exchange. Invalid authentication includes an unknown or retired
+key, an unaccepted credential context, a failed proof, or a repeated
+nullifier for which recovery is unavailable. A recoverable byte-identical
+presentation is handled by the recovery row.<a href="#section-6.3.4-3" class="pilcrow">¶</a></p>
+<p id="section-6.3.4-4">Acceptance of an ACT presentation is the commit of its nullifier-store
+transaction. A response sent after that commit <span class="bcp14">MUST</span> carry the recorded
+update, including when the protected operation fails with a <code>4xx</code> or <code>5xx</code>
+status. The update is present for a refund and absent for a recorded
+<code>NoUpdate</code> decision. Rejecting a presentation <span class="bcp14">MUST NOT</span> create a nullifier
+record or carry a credential update.<a href="#section-6.3.4-4" class="pilcrow">¶</a></p>
+<p id="section-6.3.4-5">A recovery response uses <code>409</code> (Conflict, <span><a href="https://rfc-editor.org/rfc/rfc9110#section-15.5.10" class="relref">Section 15.5.10</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>)
+because the presentation has
+already been accepted. It carries only the recorded credential result and
+<span class="bcp14">MUST NOT</span> authorize another attempt of the protected operation.
+Application-specific recovery determines the outcome of the earlier
+operation. The Client finalizes a recovered refund under the same rules as
+a refund received with the original response.<a href="#section-6.3.4-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

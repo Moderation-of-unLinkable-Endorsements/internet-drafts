@@ -681,15 +681,16 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    Credential type: 0x0001.
 
-   An ACT Credential, specified in [ACT], carries a hidden _balance_, a
-   number of credits.  The Moderator issues a Credential with an initial
-   balance of its choosing.  A presentation _spends_ a public amount s,
-   proving that the balance covers it, and may accept a _top-up_ of at
-   most a that the challenge offers.  In the same exchange the Moderator
-   issues a _refund_, a fresh Credential whose balance is the remainder
-   plus a return amount t of its choosing, with 0 <= t <= s + a.  The
-   Moderator learns s, a, t, and a single-use nullifier, and not the
-   balance.
+   An ACT Credential, specified in [ACT], carries a hidden _balance_ c,
+   a number of credits.  The Moderator issues a Credential with an
+   initial balance of its choosing.  A presentation _spends_ a public
+   amount s, proving that the balance covers it, and may accept a _top-
+   up_ of at most a that the challenge offers.  In the same exchange the
+   Moderator issues a _refund_ message with a return amount t of its
+   choosing, with 0 <= t <= s + a.  The Client finalizes this message
+   into a fresh Credential with balance c - s + t.  The presentation
+   reveals s, a, and a single-use nullifier; the balance is hidden
+   beyond the public amounts and predicates (Section 7.1).
 
    A Credential is invalid once spent, and its replacement exists only
    once the Moderator has answered, so one Credential supports one
@@ -732,13 +733,16 @@ FinalizeUpdate(presentation_state, update, configuration)
                                   Table 1
 
    The Client's presentation_state is the ClientSpendState of [ACT], the
-   pkM, credential_context, and L stored with the spent Credential, and
-   the octets of the PresentationAndUpdate it sent, which it needs to
-   recover a lost refund (Section 5.2.5).  ProcessPresentation returns
-   ACCEPTED_WITH_UPDATE with a refund, and ACCEPTED_NO_UPDATE when the
-   Moderator declines to refund.  For a retry answered from a record
-   (Section 5.2.5), it returns the recorded result, which carries the
-   Update only and does not authorize the protected operation.
+   pkM, credential_context, L, and Moderator identity and endpoint
+   stored with the spent Credential, and the PresentationAndUpdate
+   octets with the HTTP request information needed to resend them to
+   their original destination (Section 5.2.5).  ProcessPresentation
+   returns ACCEPTED_WITH_UPDATE with a refund, and ACCEPTED_NO_UPDATE
+   when the Moderator declines to refund.  For a retry answered from a
+   record (Section 5.2.5), it returns the recorded result, which carries
+   the Update only and does not authorize the protected operation.  The
+   ACT response rules in [HTTP-TRANSPORT] define the HTTP status and
+   Mole-Credential header for each outcome.
 
 5.2.1.  Configuration
 
@@ -758,8 +762,9 @@ FinalizeUpdate(presentation_state, update, configuration)
       most 2^16 - 2 bytes that names the epoch or policy that
       Credentials under the key are valid for.
 
-   Result Retention Period  How long the Moderator keeps the result of
-      each presentation (Section 5.2.5).
+   Result Retention Period  The recovery interval after acceptance of a
+      presentation.  Recovery ends earlier if its key or credential
+      context is retired (Section 5.2.5).
 
    The credential context of [ACT] is
 
@@ -822,10 +827,10 @@ FinalizeUpdate(presentation_state, update, configuration)
    and a malformed request does not cost the Client its Endorsement.
 
    The Client runs FinalizeIssue(pkM, ctx_cred, state, response) and
-   stores the resulting Credential with pkM, credential_context, L, and
-   the identity of the Moderator.  If finalization fails, the Client
-   MUST discard the state, SHOULD refresh its configuration, and MAY run
-   Redeem & Issue again.
+   stores the resulting Credential with pkM, credential_context, L, the
+   identity of the Moderator, and its configured Redeem & Issue
+   endpoint.  If finalization fails, the Client MUST discard the state,
+   SHOULD refresh its configuration, and MAY run Redeem & Issue again.
 
 5.2.3.  Presentation and Update
 
@@ -921,19 +926,19 @@ FinalizeUpdate(presentation_state, update, configuration)
    read public state and the nullifier store, step 3 is one atomic
    transaction on the nullifier store, and step 4 lies outside it.
 
-   1.  It looks up (key_id, spend.k) in the nullifier store.  If a
-       record exists and holds the SHA-256 digest of the received
-       PresentationAndUpdate octets, the Moderator answers from the
-       record (Section 5.2.5), even if the challenge has expired or the
-       key or context has been retired.  A record with a different
-       digest, or whose result has been deleted, causes the presentation
-       to be rejected.  Only an unrecorded nullifier proceeds to step 2.
+   1.  It checks that key_id names an active key, then looks up (key_id,
+       spend.k) in the nullifier store.  If a record exists, the
+       Moderator answers from it only if it holds the SHA-256 digest of
+       the received PresentationAndUpdate octets, its result is still
+       retained, and its credential context is still accepted for that
+       key (Section 5.2.5).  The challenge may have expired.  A record
+       that fails any of these checks causes the presentation to be
+       rejected.  Only an unrecorded nullifier proceeds to step 2.
 
-   2.  It checks that key_id names an active key, determines the
-       challenge (Section 5.2.3.1), and checks that its
-       credential_context is accepted for that key and that spend.s and
-       spend.a equal its s and a.  It rejects the presentation if any
-       check fails.
+   2.  It determines the challenge (Section 5.2.3.1), and checks that
+       its credential_context is accepted for that key and that spend.s
+       and spend.a equal its s and a.  It rejects the presentation if
+       any check fails.
 
    3.  As one atomic transaction, it checks again that the key and
        context are accepted, runs VerifySpend(skM, ctx_cred, ctx_spend,
@@ -947,10 +952,11 @@ FinalizeUpdate(presentation_state, update, configuration)
        at most one commits.  If any step fails, the transaction is
        rolled back and no refund is returned.
 
-   4.  It attempts the protected operation and returns the result as the
-       Update: the refund, or, for NoUpdate, an absent update
-       ([HTTP-TRANSPORT]), which leaves the Client without a
-       replacement.
+   4.  It attempts the protected operation.  Its HTTP response carries
+       the recorded credential result as an Update: the refund, or, for
+       NoUpdate, an absent update, which leaves the Client without a
+       replacement.  The Moderator MUST include this result even when
+       the protected operation fails ([HTTP-TRANSPORT]).
 
    Spending credits authorizes one attempt of the protected operation.
    A failure after step 3 can charge the Client without completing step
@@ -994,15 +1000,16 @@ FinalizeUpdate(presentation_state, update, configuration)
    Spent:  The Client has run ProveSpend, and the Credential is invalid
       whether or not the presentation is sent or answered ([ACT]).
       Besides the spend state that [ACT] requires it to store, the
-      Client MUST durably store the presentation octets before the
-      presentation leaves it.
+      Client MUST durably store the presentation octets and the HTTP
+      request needed to resend them before the presentation leaves it.
 
    A valid refund returns the Client to Usable.  A Credential chain is
    therefore serialized: one presentation at a time, each waiting for
-   the Moderator's answer to the previous one.  A Client MAY hold
-   several independent Credentials for one Moderator, for instance under
-   two contexts during a rollover; each is its own chain, and different
-   chains can present concurrently.
+   the Moderator's answer to the previous one.  When a Client learns
+   that a key or credential context has been retired, it MUST discard
+   the Credentials and pending spend states under that key or context.
+   It obtains a Credential under the current configuration through
+   Redeem & Issue.
 
 5.2.5.  Lost Refunds
 
@@ -1011,13 +1018,15 @@ FinalizeUpdate(presentation_state, update, configuration)
    the result.  The Client cannot then finalize, and the spent
    Credential cannot be reused.
 
-   A Moderator MUST keep each result, and the key its record names, for
-   the result retention period it publishes (Section 5.2.1), counted
-   from the commit of step 3, even if it retires the key or context
-   meanwhile.  A Client missing an Update MAY resend the byte-identical
-   PresentationAndUpdate.  Step 1 of Section 5.2.3.2 answers it before
-   any challenge check, so an expired challenge does not prevent
-   recovery:
+   A Moderator MUST keep each result until the earlier of the end of its
+   published result retention period (Section 5.2.1), counted from the
+   commit of step 3, and retirement of the key or credential context.
+   It MUST delete the result when this interval ends.  A Client missing
+   an Update MAY resend the byte-identical PresentationAndUpdate during
+   the interval.  Step 1 of Section 5.2.3.2 checks the record and the
+   continued acceptance of its key and credential context before
+   returning a result.  Recovery remains available after the
+   presentation's challenge expires:
 
    *  For a recorded Refund(t), the Moderator returns the refund it
       stored, or runs IssueRefund(skM, ctx_cred, spend, t) again with
@@ -1028,12 +1037,14 @@ FinalizeUpdate(presentation_state, update, configuration)
    *  For a recorded NoUpdate, the Moderator returns an absent update.
 
    The Moderator MUST NOT authorize another operation for a recorded
-   nullifier, and MUST NOT change a recorded decision.
+   nullifier, and MUST NOT change a recorded decision.  It returns the
+   recovered result with HTTP status 409 as specified in
+   [HTTP-TRANSPORT].
 
-   After the result retention period, a retry is rejected, and the
-   Client MUST discard the spend state.  To continue, it runs Redeem &
-   Issue.  Deleting a result MUST NOT delete its nullifier while the
-   credential context is accepted (Section 6).
+   Once recovery ends, a retry is rejected, and the Client MUST discard
+   the spend state.  To continue, it runs Redeem & Issue.  The Moderator
+   MUST retain the nullifier after deleting its result for as long as
+   the key and credential context are accepted (Section 6).
 
 5.2.6.  Limitations
 

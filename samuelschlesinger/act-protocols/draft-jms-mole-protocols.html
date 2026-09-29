@@ -2132,14 +2132,16 @@ replay protection before returning an accepted result.<a href="#section-5.1-3" c
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-anonymous-credit-tokens-act" class="section-name selfRef">Anonymous Credit Tokens (ACT)</a>
         </h3>
 <p id="section-5.2-1">Credential type: 0x0001.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
-<p id="section-5.2-2">An ACT Credential, specified in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>, carries a hidden <em>balance</em>, a number
-of credits. The Moderator issues a Credential with an initial balance of its
-choosing. A presentation <em>spends</em> a public amount <code>s</code>, proving that the
-balance covers it, and may accept a <em>top-up</em> of at most <code>a</code> that the
-challenge offers. In the same exchange the Moderator issues a <em>refund</em>, a
-fresh Credential whose balance is the remainder plus a return amount <code>t</code> of
-its choosing, with <code>0 &lt;= t &lt;= s + a</code>. The Moderator learns <code>s</code>, <code>a</code>, <code>t</code>, and
-a single-use nullifier, and not the balance.<a href="#section-5.2-2" class="pilcrow">¶</a></p>
+<p id="section-5.2-2">An ACT Credential, specified in <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>, carries a hidden <em>balance</em> <code>c</code>, a
+number of credits. The Moderator issues a Credential with an initial
+balance of its choosing. A presentation <em>spends</em> a public amount <code>s</code>,
+proving that the balance covers it, and may accept a <em>top-up</em> of at most
+<code>a</code> that the challenge offers. In the same exchange the Moderator issues a <em>refund</em>
+message with a return amount <code>t</code> of its choosing, with <code>0 &lt;= t &lt;= s + a</code>.
+The Client finalizes this message into a fresh Credential with balance
+<code>c - s + t</code>. The presentation reveals <code>s</code>, <code>a</code>, and a single-use nullifier;
+the balance is hidden beyond the public amounts and predicates
+(<a href="#privacy-act" class="auto internal xref">Section 7.1</a>).<a href="#section-5.2-2" class="pilcrow">¶</a></p>
 <p id="section-5.2-3">A Credential is invalid once spent, and its replacement exists only once the
 Moderator has answered, so one Credential supports one presentation in flight
 at a time. This gives the Moderator:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
@@ -2220,13 +2222,16 @@ the Moderator's assessment of the request, subject to <a href="#privacy-act" cla
           </tbody>
         </table>
 <p id="section-5.2-7">The Client's <code>presentation_state</code> is the <code>ClientSpendState</code> of <span>[<a href="#ACT" class="cite xref">ACT</a>]</span>, the
-<code>pkM</code>, <code>credential_context</code>, and <code>L</code> stored with the spent Credential, and
-the octets of the <code>PresentationAndUpdate</code> it sent, which it needs to recover
-a lost refund (<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>). <code>ProcessPresentation</code> returns
+<code>pkM</code>, <code>credential_context</code>, <code>L</code>, and Moderator identity and endpoint stored
+with the spent Credential, and the <code>PresentationAndUpdate</code> octets with the
+HTTP request information needed to resend them to their original
+destination (<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>). <code>ProcessPresentation</code> returns
 <code>ACCEPTED_WITH_UPDATE</code> with a refund, and <code>ACCEPTED_NO_UPDATE</code> when the
 Moderator declines to refund. For a retry answered from a record
 (<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>), it returns the recorded result, which carries the
-Update only and does not authorize the protected operation.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+Update only and does not authorize the protected operation.
+The ACT response rules in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> define the HTTP status and
+<code>Mole-Credential</code> header for each outcome.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
 <div id="act-configuration">
 <section id="section-5.2.1">
           <h4 id="name-configuration-3">
@@ -2260,7 +2265,8 @@ for.<a href="#section-5.2.1-2.8.1" class="pilcrow">¶</a></p>
             <dd class="break"></dd>
 <dt id="section-5.2.1-2.9">Result Retention Period</dt>
             <dd style="margin-left: 1.5em" id="section-5.2.1-2.10">
-              <p id="section-5.2.1-2.10.1">How long the Moderator keeps the result of each presentation
+              <p id="section-5.2.1-2.10.1">The recovery interval after acceptance of a presentation. Recovery ends
+earlier if its key or credential context is retired
 (<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>).<a href="#section-5.2.1-2.10.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
@@ -2335,10 +2341,10 @@ transaction is rolled back and nothing is recorded.<a href="#section-5.2.2-5.4.1
 <p id="section-5.2.2-6">The Endorsement is therefore consumed only together with a response, and a
 malformed request does not cost the Client its Endorsement.<a href="#section-5.2.2-6" class="pilcrow">¶</a></p>
 <p id="section-5.2.2-7">The Client runs <code>FinalizeIssue(pkM, ctx_cred, state, response)</code> and stores
-the resulting Credential with <code>pkM</code>, <code>credential_context</code>, <code>L</code>, and the
-identity of the Moderator. If finalization fails, the Client <span class="bcp14">MUST</span> discard
-the state, <span class="bcp14">SHOULD</span> refresh its configuration, and <span class="bcp14">MAY</span> run Redeem &amp; Issue
-again.<a href="#section-5.2.2-7" class="pilcrow">¶</a></p>
+the resulting Credential with <code>pkM</code>, <code>credential_context</code>, <code>L</code>, the
+identity of the Moderator, and its configured Redeem &amp; Issue endpoint.
+If finalization fails, the Client <span class="bcp14">MUST</span> discard the state, <span class="bcp14">SHOULD</span> refresh
+its configuration, and <span class="bcp14">MAY</span> run Redeem &amp; Issue again.<a href="#section-5.2.2-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-present">
@@ -2452,19 +2458,20 @@ state and the nullifier store, step 3 is one atomic transaction on the
 nullifier store, and step 4 lies outside it.<a href="#section-5.2.3.2-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.2.3.2-6">
 <li id="section-5.2.3.2-6.1">
-                <p id="section-5.2.3.2-6.1.1">It looks up <code>(key_id, spend.k)</code> in the nullifier store. If a record
-exists and holds the SHA-256 digest of the received
-<code>PresentationAndUpdate</code> octets, the Moderator answers from the record
-(<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>), even if the challenge has expired or the key or
-context has been retired. A record with a different digest, or whose
-result has been deleted, causes the presentation to be rejected. Only an
-unrecorded nullifier proceeds to step 2.<a href="#section-5.2.3.2-6.1.1" class="pilcrow">¶</a></p>
+                <p id="section-5.2.3.2-6.1.1">It checks that <code>key_id</code> names an active key, then looks up
+<code>(key_id, spend.k)</code> in the nullifier store. If a record exists, the
+Moderator answers from it only if it holds the SHA-256 digest of the
+received <code>PresentationAndUpdate</code> octets, its result is still retained,
+and its credential context is still accepted for that key
+(<a href="#act-missing-refund" class="auto internal xref">Section 5.2.5</a>). The challenge may have expired. A record that
+fails any of these checks causes the presentation to be rejected. Only
+an unrecorded nullifier proceeds to step 2.<a href="#section-5.2.3.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-5.2.3.2-6.2">
-                <p id="section-5.2.3.2-6.2.1">It checks that <code>key_id</code> names an active key, determines the challenge
-(<a href="#act-challenge-binding" class="auto internal xref">Section 5.2.3.1</a>), and checks that its <code>credential_context</code> is
-accepted for that key and that <code>spend.s</code> and <code>spend.a</code> equal its <code>s</code> and
-<code>a</code>. It rejects the presentation if any check fails.<a href="#section-5.2.3.2-6.2.1" class="pilcrow">¶</a></p>
+                <p id="section-5.2.3.2-6.2.1">It determines the challenge (<a href="#act-challenge-binding" class="auto internal xref">Section 5.2.3.1</a>), and checks
+that its <code>credential_context</code> is accepted for that key and that
+<code>spend.s</code> and <code>spend.a</code> equal its <code>s</code> and <code>a</code>. It rejects the presentation
+if any check fails.<a href="#section-5.2.3.2-6.2.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-5.2.3.2-6.3">
                 <p id="section-5.2.3.2-6.3.1">As one atomic transaction, it checks again that the key and context are
@@ -2480,9 +2487,11 @@ presentations at most one commits. If any step fails, the transaction is
 rolled back and no refund is returned.<a href="#section-5.2.3.2-6.3.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-5.2.3.2-6.4">
-                <p id="section-5.2.3.2-6.4.1">It attempts the protected operation and returns the result as the
-<code>Update</code>: the refund, or, for <code>NoUpdate</code>, an absent update
-(<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>), which leaves the Client without a replacement.<a href="#section-5.2.3.2-6.4.1" class="pilcrow">¶</a></p>
+                <p id="section-5.2.3.2-6.4.1">It attempts the protected operation. Its HTTP response carries the
+recorded credential result as an <code>Update</code>: the refund, or, for
+<code>NoUpdate</code>, an absent update, which leaves the Client without a
+replacement. The Moderator <span class="bcp14">MUST</span> include this result even when the
+protected operation fails (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>).<a href="#section-5.2.3.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 <p id="section-5.2.3.2-7">Spending credits authorizes one attempt of the protected operation. A
@@ -2581,15 +2590,17 @@ describes.<a href="#section-5.2.4-3.2.1" class="pilcrow">¶</a></p>
               <p id="section-5.2.4-3.4.1">The Client has run <code>ProveSpend</code>, and the Credential is invalid whether or
 not the presentation is sent or answered (<span>[<a href="#ACT" class="cite xref">ACT</a>]</span>). Besides the spend state
 that <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> requires it to store, the Client <span class="bcp14">MUST</span> durably store the
-presentation octets before the presentation leaves it.<a href="#section-5.2.4-3.4.1" class="pilcrow">¶</a></p>
+presentation octets and the HTTP request needed to resend them before
+the presentation leaves it.<a href="#section-5.2.4-3.4.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
 <p id="section-5.2.4-4">A valid refund returns the Client to Usable. A Credential chain is therefore
 serialized: one presentation at a time, each waiting for the Moderator's
-answer to the previous one. A Client <span class="bcp14">MAY</span> hold several independent Credentials
-for one Moderator, for instance under two contexts during a rollover; each is
-its own chain, and different chains can present concurrently.<a href="#section-5.2.4-4" class="pilcrow">¶</a></p>
+answer to the previous one. When a Client learns that a key or credential
+context has been retired, it <span class="bcp14">MUST</span> discard the Credentials and pending spend
+states under that key or context. It obtains a Credential under the current
+configuration through Redeem &amp; Issue.<a href="#section-5.2.4-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-missing-refund">
@@ -2600,12 +2611,14 @@ its own chain, and different chains can present concurrently.<a href="#section-5
 <p id="section-5.2.5-1">A presentation may be sent and its response lost, or the Moderator may fail
 between committing step 3 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> and returning the result. The
 Client cannot then finalize, and the spent Credential cannot be reused.<a href="#section-5.2.5-1" class="pilcrow">¶</a></p>
-<p id="section-5.2.5-2">A Moderator <span class="bcp14">MUST</span> keep each result, and the key its record names, for the
-result retention period it publishes (<a href="#act-configuration" class="auto internal xref">Section 5.2.1</a>), counted from
-the commit of step 3, even if it retires the key or context meanwhile. A
-Client missing an <code>Update</code> <span class="bcp14">MAY</span> resend the byte-identical
-<code>PresentationAndUpdate</code>. Step 1 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> answers it before any
-challenge check, so an expired challenge does not prevent recovery:<a href="#section-5.2.5-2" class="pilcrow">¶</a></p>
+<p id="section-5.2.5-2">A Moderator <span class="bcp14">MUST</span> keep each result until the earlier of the end of its
+published result retention period (<a href="#act-configuration" class="auto internal xref">Section 5.2.1</a>), counted from
+the commit of step 3, and retirement of the key or credential context.
+It <span class="bcp14">MUST</span> delete the result when this interval ends. A Client missing an
+<code>Update</code> <span class="bcp14">MAY</span> resend the byte-identical <code>PresentationAndUpdate</code> during the
+interval. Step 1 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> checks the record and the continued
+acceptance of its key and credential context before returning a result.
+Recovery remains available after the presentation's challenge expires:<a href="#section-5.2.5-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-5.2.5-3.1">
               <p id="section-5.2.5-3.1.1">For a recorded <code>Refund(t)</code>, the Moderator returns the refund it stored, or
@@ -2618,11 +2631,12 @@ refund of one spend shares the nullifier <code>kstar</code> (<span>[<a href="#AC
 </li>
           </ul>
 <p id="section-5.2.5-4">The Moderator <span class="bcp14">MUST NOT</span> authorize another operation for a recorded nullifier,
-and <span class="bcp14">MUST NOT</span> change a recorded decision.<a href="#section-5.2.5-4" class="pilcrow">¶</a></p>
-<p id="section-5.2.5-5">After the result retention period, a retry is rejected, and the Client <span class="bcp14">MUST</span>
-discard the spend state. To continue, it runs Redeem &amp; Issue.
-Deleting a result <span class="bcp14">MUST NOT</span> delete its nullifier while the credential context
-is accepted (<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-5.2.5-5" class="pilcrow">¶</a></p>
+and <span class="bcp14">MUST NOT</span> change a recorded decision. It returns the recovered result
+with HTTP status <code>409</code> as specified in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.<a href="#section-5.2.5-4" class="pilcrow">¶</a></p>
+<p id="section-5.2.5-5">Once recovery ends, a retry is rejected, and the Client <span class="bcp14">MUST</span> discard the
+spend state. To continue, it runs Redeem &amp; Issue. The Moderator <span class="bcp14">MUST</span> retain
+the nullifier after deleting its result for as long as the key and
+credential context are accepted (<a href="#key-rotation" class="auto internal xref">Section 6</a>).<a href="#section-5.2.5-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-limitations">
