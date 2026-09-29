@@ -60,6 +60,7 @@ normative:
   FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-03
 
 informative:
+  HASH2CURVE: RFC9380
   Pedersen91:
     title: "Non-Interactive and Information-Theoretic Secure Verifiable Secret Sharing"
     target: https://doi.org/10.1007/3-540-46766-1_9
@@ -237,13 +238,16 @@ shared algorithm.
 
 `rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
 more than one derivation. An algorithm derives all of its scalars with one
-call, under an `info` string that names it. In the random oracle model,
-conditioned on the adversary not querying the secret derivation inputs,
-each derived scalar has statistical distance at most `2^-128` from
-uniform over the nonzero scalars (Section 4.2 of {{ROLLATINI}}). This bound
-comes from reducing `Ns + 16` bytes to a scalar and accumulates over the
-derived values. {{act-security}} discusses the oracle-query bounds needed
-for unlinkability. See {{randomness}}.
+call, under an `info` string that names it. See {{randomness}}.
+
+The hash-to-scalar method reduces an `Ns + 16`-byte string modulo `p`.
+For a uniformly random string of this length, the resulting scalar has
+statistical distance at most `2^-128` from uniform over the nonzero scalars,
+conditioned on the result being nonzero. The 16-byte margin follows the
+hash-to-field method for a 128-bit security target
+({{Section 5 of HASH2CURVE}}). {{act-security}} describes the random-oracle
+analysis needed to apply this sampling bound to the derived scalar and
+nonce vectors.
 
 ## Key Generation {#keygen}
 
@@ -269,9 +273,10 @@ In the same exchange the Moderator issues a *refund*: a message containing
 a signature, a public return amount `t`, and a proof of correct signing.
 The Client combines this message with its saved spend state to finalize a
 fresh Credential with balance `c - s + t`. Every spend declares a public
-*top-up allowance* `a`, set to zero when no top-up is allowed. The Moderator
-chooses `t` with `0 <= t <= s + a`, so the balance increases exactly when
-`t > s`, by at most `a`.
+*top-up allowance* `a`. When no top-up is allowed, the spend sets `a = 0`.
+The Moderator chooses `t` with `0 <= t <= s + a`, so the balance increases
+exactly when `t > s`, by at most `a`. With `a = 0`, the return amount is
+at most `s`.
 
 A presentation hides its Credential's balance beyond the public amounts
 and the predicates they establish. It is intended to be unlinkable to the
@@ -423,8 +428,8 @@ Credential. A Credential presented under a context other than the one it
 was issued under fails verification; the mismatch is not otherwise
 signalled.
 
-Credential contexts MUST define coarse groups of Clients that share each
-context value; see {{act-security}}.
+The set of Clients sharing a credential context MUST be coarse; see
+{{act-security}}.
 
 ## Amounts {#act-amounts}
 
@@ -669,8 +674,7 @@ The Moderator checks the request, chooses the balance `c`, and signs the
 encoding `X_A = B + c * H1 + ctx * H4 + K` as `A = X_A / (e + skM)`. It
 proves that `A` is such a signature under `pkM` without revealing `skM`,
 with the witness `x = e + skM` and `X_G = x * B`, which the Client
-computes as `e * B + pkM`. The relation uses SIGMA's reserved `G` for `B`
-({{act-proofs}}):
+computes as `e * B + pkM`:
 
 ~~~
 Relation Signature(A, X_A, X_G):
@@ -1330,18 +1334,20 @@ Unlinkability:
   prover nonces: the commitments `K`, `K_n`, and the bit commitments are
   hiding {{Pedersen91}}, the pair `(A_prime, B_bar)` rerandomizes the
   signature {{TZ23}}, and the proofs are statistically zero-knowledge in
-  the random oracle model ({{Section 7.5 of SIGMA}}).
+  the random oracle model ({{Section 7.5 of SIGMA}}). This idealized
+  argument does not rely on the hardness of discrete logarithms.
 
-  The specified scalar and nonce derivations expand secret hash outputs.
-  Their unlinkability argument requires replacing the derived vectors by
-  independent random scalars, with a loss accounting for scalar-reduction
-  bias, collisions, and the adversary's queries to secret derivation inputs
-  (Section 4.2 of {{ROLLATINI}}). Concrete bounds for this replacement and
-  its composition with the proofs remain to be established. The public
-  amounts `s`, `a`, and `t`, and the configuration, determine which
-  Credentials could have produced a presentation; {{PROTOCOLS}}
-  constrains these amounts, and {{ARCH}} states the anonymity-set
-  requirements.
+  For the specified hash-derived scalars and nonces, the intended
+  statistical guarantee is in the random oracle model, against adversaries
+  with unbounded computation and a bounded number of classical oracle
+  queries. The proof strategy replaces the derived vectors by independent
+  random scalars, with a loss accounting for scalar-reduction bias,
+  collisions, and queries to secret derivation inputs (Section 4.2 of
+  {{ROLLATINI}}). Concrete bounds for this replacement and its composition
+  with the proofs remain to be established. The public amounts `s`, `a`,
+  and `t`, and the configuration, determine which Credentials could have
+  produced a presentation; {{PROTOCOLS}} constrains these amounts, and
+  {{ARCH}} states the anonymity-set requirements.
 
 Quantum adversaries:
 : A quantum computer capable of solving discrete logarithms in `G` can
