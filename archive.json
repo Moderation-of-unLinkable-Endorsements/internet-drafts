@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-27T04:24:54.682193+00:00",
+  "timestamp": "2026-09-29T04:55:47.487467+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -7764,7 +7764,7 @@
       ],
       "body": "this puts ACT in its own draft and lines it up with the IHAT Python interfaces. shared definitions now point to IHAT, and the model and key helpers live in `poc/` too.\n\nstacked on #70. the later branches fill in the proofs and the rest of the demo.\n\nOne small point: I am using the word \"signed\" here instead of \"authenticated\". I just think it is more intuitive for readers, and when we shift to VOLEitH it will be an actual signature.\n",
       "createdAt": "2026-09-09T16:02:01Z",
-      "updatedAt": "2026-09-24T15:06:25Z",
+      "updatedAt": "2026-09-28T16:06:26Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "samuelschlesinger/act-draft-split",
       "baseRefOid": "d756dfc87a56a5e9813a9ac62f291310c40c6c22",
@@ -8095,6 +8095,19 @@
               "updatedAt": "2026-09-18T20:40:26Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPl9Xxg",
+          "commit": {
+            "abbreviatedOid": "90d1a15"
+          },
+          "author": "jkatz2",
+          "authorAssociation": "NONE",
+          "state": "CHANGES_REQUESTED",
+          "body": "",
+          "createdAt": "2026-09-28T16:06:26Z",
+          "updatedAt": "2026-09-28T16:06:26Z",
+          "comments": []
         }
       ]
     },
@@ -9728,20 +9741,225 @@
       "id": "PR_kwDOSX6krs8AAAABFNRLQQ",
       "title": "ACTs",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/78",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Adds ACTs and a reference implementation in python.",
       "createdAt": "2026-09-26T02:23:57Z",
-      "updatedAt": "2026-09-26T02:23:57Z",
+      "updatedAt": "2026-09-28T05:25:06Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "9fe1ee2b041dca8b45a8b2a6374b8569a7ad160c",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/act-sigma",
       "headRefOid": "831964bcd7bbac8637f6fdcd389953ca963001ca",
+      "closedAt": "2026-09-28T05:25:06Z",
+      "mergedAt": "2026-09-28T05:25:06Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "a658b2b0c43cc76f59ceae2552a2eebd4633e55e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPesNdw",
+          "commit": {
+            "abbreviatedOid": "831964b"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-28T03:51:56Z",
+          "updatedAt": "2026-09-28T03:51:56Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 79,
+      "id": "PR_kwDOSX6krs8AAAABFcEWJg",
+      "title": "ACT Followups",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/79",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Various fixes following up on the original ACT PR. The test vector changes come from the client state ergonomics improvements.",
+      "createdAt": "2026-09-28T06:09:37Z",
+      "updatedAt": "2026-09-28T15:34:57Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "a658b2b0c43cc76f59ceae2552a2eebd4633e55e",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/fixes",
+      "headRefOid": "d00085f1af56ee4add0d71bc949108b234192776",
+      "closedAt": "2026-09-28T15:34:57Z",
+      "mergedAt": "2026-09-28T15:34:57Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "74444bc13679514c8168b6c5f524b795762f0182"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPljoSQ",
+          "commit": {
+            "abbreviatedOid": "d00085f"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-28T15:32:44Z",
+          "updatedAt": "2026-09-28T15:32:44Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 80,
+      "id": "PR_kwDOSX6krs8AAAABFjb_4w",
+      "title": "Balance IHAT permutation walks during commitment key generation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/80",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "commitment key generation currently calls `Pinv` only when binding left. always calling it would still expose which edge was walked through the iteration count.\r\n\r\nthis walks backwards from `P(Q)` for left binding and forwards from `Q` for right binding, evaluating both one-step byte permutations on every iteration and selecting with the binding bit. for a fixed public `Q`, both orientations have the same validity results and operation schedule. final point decoding happens in the public order `(Q, P(Q))`.\r\n\r\nthe draft and reference code agree, including an exception-free encoding-validity test. the draft explains the timing argument and required constant-time primitives, and replaces the conflicting ciphersuite permutation description with a reference to the specified algorithm. keys, randomness consumption, proof transcripts, and wire encodings are preserved.",
+      "createdAt": "2026-09-28T18:24:25Z",
+      "updatedAt": "2026-09-28T20:41:00Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "74444bc13679514c8168b6c5f524b795762f0182",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "codex/ihat-balanced-permutation-walk",
+      "headRefOid": "233ed56865adc9d675f55dfaac6293d38cabc848",
+      "closedAt": "2026-09-28T20:41:00Z",
+      "mergedAt": "2026-09-28T20:41:00Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "12a0578faf91e9697f6dad7a0fdfa7824f489db7"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@wbl here is one idea",
+          "createdAt": "2026-09-28T18:29:20Z",
+          "updatedAt": "2026-09-28T18:29:20Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPotRGA",
+          "commit": {
+            "abbreviatedOid": "233ed56"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "This works and is way cleaner than I thought it would be. Let's do it.",
+          "createdAt": "2026-09-28T20:32:58Z",
+          "updatedAt": "2026-09-28T20:32:58Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 81,
+      "id": "PR_kwDOSX6krs8AAAABFm7syA",
+      "title": "Finish Rollatini (formerly IHAT)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/81",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This gets Rollatini, the construction we used to call IHAT, to a complete first draft.\n\n- Fixes from a review pass: identity-element handling, message encodings, and more tests\n- A new scalar derivation: derived scalars are statistically uniform again, and a failing random source can't make a proof reuse a nonce. This also changes ACT and its test vectors\n- Test vectors for Rollatini\n- Rename: IHAT now names the property, and Rollatini is our P-256 scheme\n- Plainer wording in both drafts\n\nact-rs has been updated to the new ACT derivation and matches the vectors.\n\nCloses #71, closes #73.\n",
+      "createdAt": "2026-09-29T01:28:41Z",
+      "updatedAt": "2026-09-29T04:23:44Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "12a0578faf91e9697f6dad7a0fdfa7824f489db7",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/ihat-quality",
+      "headRefOid": "59dc01596bac737e5dd966182ea284881e4ae89b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPr3jQw",
+          "commit": {
+            "abbreviatedOid": "59dc015"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "There is just one bit I am seriously confused by, namely the permutation applied in Scalar generation",
+          "createdAt": "2026-09-29T04:09:01Z",
+          "updatedAt": "2026-09-29T04:23:44Z",
+          "comments": [
+            {
+              "originalPosition": 77,
+              "body": "I don't understand what this function is doing: why the permutation before making the scalar?",
+              "createdAt": "2026-09-29T04:09:01Z",
+              "updatedAt": "2026-09-29T04:23:44Z"
+            },
+            {
+              "originalPosition": 232,
+              "body": "I have no idea why this is happening",
+              "createdAt": "2026-09-29T04:11:32Z",
+              "updatedAt": "2026-09-29T04:23:44Z"
+            },
+            {
+              "originalPosition": 724,
+              "body": "@jkatz2 I think this ought to be fine, but are you aware of anything more on point for inbalanced networks.",
+              "createdAt": "2026-09-29T04:18:32Z",
+              "updatedAt": "2026-09-29T04:23:44Z"
+            },
+            {
+              "originalPosition": 878,
+              "body": "We will need to drop this condition (and add test vectors for it).",
+              "createdAt": "2026-09-29T04:19:10Z",
+              "updatedAt": "2026-09-29T04:23:44Z"
+            },
+            {
+              "originalPosition": 1166,
+              "body": "It's cacheable, see https://github.com/wbl/issuer-hiding-experiments/blob/main/vecom/commit.go#L299 and the initial computation smaller https://github.com/wbl/issuer-hiding-experiments/blob/main/vecom/commit.go#L252, but that's for another pass",
+              "createdAt": "2026-09-29T04:22:26Z",
+              "updatedAt": "2026-09-29T04:23:44Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 82,
+      "id": "PR_kwDOSX6krs8AAAABFn9yzQ",
+      "title": "Add the ACT profile to PROTOCOLS",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/82",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Stacked on #81.\r\n\r\nThis writes out the ACT credential profile in PROTOCOLS:\r\n\r\n- Configuration, key ids, and the credential context (`ctx_cred = credential_context || I2OSP(L, 1)`)\r\n- How the abstract credential API maps onto ACT, using ACT's encodings\r\n- Challenge binding (`ctx_spend = SHA-256(CredentialChallenge)`), with policy-scoped and request-bound profiles\r\n- Spending with an atomic nullifier store, and recovery of lost refunds\r\n- ACT privacy and security considerations\r\n\r\nIt also drops ACT's \"profile not written yet\" TODO and PROTOCOLS' \"mapping undefined\" editor note. In HTTP-TRANSPORT, the example challenge structures give way to ACT's typed challenge. That answers #33 for ACT, with `request_context` built by the Moderator and opaque to the Client, and leaves the general question open.\r\n",
+      "createdAt": "2026-09-29T04:10:11Z",
+      "updatedAt": "2026-09-29T04:13:42Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "samuelschlesinger/ihat-quality",
+      "baseRefOid": "59dc01596bac737e5dd966182ea284881e4ae89b",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-protocols",
+      "headRefOid": "6194b8d31a9d4a88747a0cdc6883adc295c99a5d",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
