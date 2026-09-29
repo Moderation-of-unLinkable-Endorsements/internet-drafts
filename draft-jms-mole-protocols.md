@@ -391,8 +391,8 @@ The type-specific `Redemption` payload is the encoding of `Redemption` in
 {{challenge-binding}} and calls
 `Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)`.
 The ordered `anchor_set` comes from Moderator configuration; `index` selects
-the Anchor that issued the Endorsement. The Client rejects a set containing
-fewer than two keys or one that omits its Anchor.
+the Anchor that issued the Endorsement. The Client rejects a set that omits
+its Anchor.
 
 `FinalizeRedeem` checks that the issuance epoch and Moderator Challenge are
 accepted, decodes the payload, and calls

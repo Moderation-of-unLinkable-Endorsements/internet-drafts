@@ -1738,7 +1738,7 @@ def VerifyIssuer(
     openings: Sequence[Scalar],
 ) -> bool:
     n = len(anchor_set)
-    if n < 2:
+    if n == 0:
         return False
 
     Y = Statements(anchor_set, X_hat)
@@ -1776,8 +1776,8 @@ over. Neither the branch commitments nor the interior nodes are transmitted.
 
 `VerifyIssuer` returns `false` rather than raising an error, as `Verify`
 ({{verify}}) does. Its checks on the lengths of `commitment_keys` and
-`openings` repeat what deserialization enforces ({{redemption-wire}}), and
-`n < 2` means the Moderator is misconfigured ({{verify-redemption}}). It also
+`openings` repeat what deserialization enforces ({{redemption-wire}}), and an
+empty Anchor Set means the Moderator is misconfigured. It also
 rejects a branch commitment equal to the identity element, which
 `SerializeElement` cannot encode and which a Client can produce on its own
 branch by answering `response = -proof_challenge * delta`. An interior node
@@ -1821,8 +1821,6 @@ def Redeem(
     (c, s, y, t, nf) = endorsement
     n = len(anchor_set)
 
-    if n < 2:
-        raise VerifyError
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 
@@ -1855,10 +1853,6 @@ def Redeem(
         openings,
     )
 ~~~
-
-In order to keep the Anchor anonymous, the Client MUST NOT redeem against an
-Anchor Set of fewer than two keys. Refusing also keeps the depth `q` of the
-tree at least one, so a redemption always carries at least one commitment key.
 
 `delta` MUST be freshly derived for every redemption, and MUST NOT be derived
 from the Endorsement or from any other value a Client reuses. It hides the
@@ -1921,11 +1915,10 @@ the issuance context, since an Endorsement issued under a different `ctx_iss`
 does not verify anyway. {{PROTOCOLS}} places these checks, and the check that
 `ctx_iss` is current, at the Moderator.
 
-A Moderator MUST NOT offer an Anchor Set of one key: with `n = 1` the tree has
-depth zero, the proof carries no commitment key, and what remains is a plain
-proof of knowledge of `delta` for the single key, which identifies the Anchor.
-`VerifyIssuer` rejects that case, but a Moderator configured this way has lost
-issuer hiding before any proof is checked; see {{security-considerations}}.
+An Anchor Set of one key gives a tree of depth zero: the redemption carries
+no commitment keys or openings, and the issuer-hiding proof is a proof of
+knowledge of `delta` for that key. The redemption then names its Anchor, as
+the Anchor Set itself does; see {{security-considerations}}.
 
 ## Encodings {#redemption-wire}
 
@@ -2150,14 +2143,13 @@ Partially binding commitments:
 
 Anchor Set size:
 : Issuer hiding hides the Anchor *within the Anchor Set*, so the set is the
-  anonymity set, and a redemption against a single-key set would name the
-  Anchor outright ({{verify-redemption}}); a Client MUST refuse such a set
-  rather than rely on the Moderator to avoid offering one ({{redeem}}).
-  More generally a Moderator that offers different Anchor
-  Sets to different Clients partitions them, and one that reorders the set
-  between Clients does the same; the set and its order MUST be the same for
-  every Client offered a given `ctx_iss`. See {{ARCH}} for how set size
-  interacts with Anchor diversity.
+  anonymity set, and a redemption against a set of one key names its Anchor
+  ({{verify-redemption}}); blindness still keeps it unlinkable to the session
+  that produced the Endorsement. A Moderator that offers different Anchor Sets
+  to different Clients partitions them, and one that reorders the set between
+  Clients does the same; the set and its order MUST be the same for every
+  Client offered a given `ctx_iss`. See {{ARCH}} for how set size interacts
+  with Anchor diversity.
 
 Proof size and cost:
 : The proof is logarithmic in the size of the Anchor Set: two scalars, plus one
@@ -2292,8 +2284,8 @@ specified here is registered by {{PROTOCOLS}}.
 
 The vectors below cover the ciphersuite of {{ciphersuites}}: `G.DeriveScalars`,
 the permutation `P`, a key pair, one issuance, and redemptions of the
-resulting Endorsement against an Anchor Set of two keys and against one of
-five. Byte strings are in hexadecimal, wrapped at 64 digits with the
+resulting Endorsement against Anchor Sets of two keys, of five, and of
+one. Byte strings are in hexadecimal, wrapped at 64 digits with the
 continuation lines indented; integers are decimal.
 
 Every algorithm is a deterministic function of the bytes it draws from
@@ -2499,6 +2491,36 @@ redeem5.message =
     2d4ed09b6953ca70b01528cb72445664fba5751cc51a6457c58c16c969968bb0
     ba96268b0fc9fe90
 redeem5.nf =
+    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+~~~
+
+## Redemption Against 1 Anchor {#rollatini-tv-redeem1}
+
+~~~
+redeem1.index = 0
+redeem1.anchor_set =
+    0207d9a1a0c740524509607c03439dac623c23d19c90edc5f0852dfd40cd3ca0
+    0e
+redeem1.challenge_digest =
+    526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
+    20646967657374
+redeem1.rand =
+    90cf8609cd2fdc49bb67cf32c55f99cecdf59fb1b4137a44a7c88b50d91ecf88
+    f64d1e70c99867855538672f291ea7a2842f202b5db7e00657488f1414c1eee5
+    530c92c852c672d5b466fd3d68746761bbd7986f9f76b4bb6eb8023dfeda72a9
+redeem1.delta =
+    67f4005bd42493a6c791c29f76d0b6c077e788c1832dda758a27d457c3ed0b42
+redeem1.message =
+    03214bec395a1eee012e3272af93eb9b7df12f55e122421f72e660c71e5b11df
+    ffeaab15c4134d441f0376cddbb0604c26d568eda06f6b363df74d3d1d8242c1
+    1699dc586b3ec18cda657c0ac4d4e4dc7a41f5dd1f566d82a41b19594e7eae33
+    704ee4eded251de609fa102613266598d308deb7ffc830ae2bb5e542a0cde6f3
+    5b5a3af444eeeb52f44660c490815f43820f779c7131c85bb1c689f121f63ffd
+    8a6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc8
+    75c85384d2a2f07d6d2f6f419d00a29b448002d76011aac9f8a4500019af6a33
+    bb64d1c5bd8cce45d18c3bc208b3a54be023e59023ad4a62aadcfe7d47e34e05
+    e10000
+redeem1.nf =
     6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
 ~~~
 

@@ -351,7 +351,8 @@ def _tampered_redemptions(anchor_set, index, redemption):
     openings = list(redemption.openings)
     others = [a for i, a in enumerate(anchor_set) if i != index]
     ok = (b"epoch-1", b"moderator-1", b"digest")
-    yield "reordered anchor set", anchor_set[::-1], redemption, ok
+    if len(anchor_set) > 1:
+        yield "reordered anchor set", anchor_set[::-1], redemption, ok
     yield "anchor removed", others + [G.Generator()], redemption, ok
     yield "other ctx_iss", anchor_set, redemption, (b"epoch-2",) + ok[1:]
     yield "other ctx_red", anchor_set, redemption, (ok[0], b"moderator-2", ok[2])
@@ -378,11 +379,16 @@ def _tampered_redemptions(anchor_set, index, redemption):
     if len(keys) > 1:
         yield "keys reversed", anchor_set, redemption._replace(
             commitment_keys=keys[::-1]), ok
-    yield "key dropped", anchor_set, redemption._replace(
-        commitment_keys=keys[1:]), ok
+    if keys:
+        yield "key dropped", anchor_set, redemption._replace(
+            commitment_keys=keys[1:]), ok
+    yield "key added", anchor_set, redemption._replace(
+        commitment_keys=keys + [G.Generator()]), ok
 
 
-@pytest.mark.parametrize("size, index", [(2, 0), (3, 2), (5, 1), (5, 4), (8, 3)])
+@pytest.mark.parametrize(
+    "size, index", [(1, 0), (2, 0), (3, 2), (5, 1), (5, 4), (8, 3)]
+)
 def test_redemption_rejects_tampering(size, index):
     _, pkA, endorsement = _issue()
     anchor_set = [

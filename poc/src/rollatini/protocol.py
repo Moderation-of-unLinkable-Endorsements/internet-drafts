@@ -512,7 +512,7 @@ def VerifyIssuer(
     openings: Sequence[Scalar],
 ) -> bool:
     n = len(anchor_set)
-    if n < 2:
+    if n == 0:
         return False
 
     Y = Statements(anchor_set, X_hat)
@@ -554,8 +554,6 @@ def Redeem(
     (c, s, y, t, nf) = endorsement
     n = len(anchor_set)
 
-    if n < 2:
-        raise VerifyError
     if not 0 <= index < n:
         raise ValueError("index is outside the Anchor Set")
 

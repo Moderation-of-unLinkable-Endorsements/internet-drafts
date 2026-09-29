@@ -18,7 +18,7 @@ CTX_RED = b"Rollatini test vectors redemption context"
 SESSION_ID = b"Rollatini test vectors session"
 CHALLENGE_DIGEST = b"Rollatini test vectors challenge digest"
 # Anchor Set sizes and the position of the issuing Anchor in each.
-REDEMPTIONS = [(2, 1), (5, 3)]
+REDEMPTIONS = [(2, 1), (5, 3), (1, 0)]
 
 
 class Source:
@@ -164,7 +164,7 @@ def _render(source: Source) -> str:
             anchor_set, redemption, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         entries += entry(key + ".nf", nf)
-        title = f"Redemption Against {n} Anchors"
+        title = f"Redemption Against {n} Anchor{'s' if n > 1 else ''}"
         out += f"\n## {title} {{#rollatini-tv-{key}}}\n\n" + block(entries)
     return out
 

@@ -54,7 +54,7 @@ def test_message_sizes():
     ]
 
 
-@pytest.mark.parametrize("size", [2, 3, 5, 8, 9])
+@pytest.mark.parametrize("size", [1, 2, 3, 5, 8, 9])
 def test_redemption_round_trip(size):
     anchor_set, redemption, encoded = _redemption(size)
     q = protocol.Depth(size)
