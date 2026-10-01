@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-09-29T04:55:47.487467+00:00",
+  "timestamp": "2026-10-01T04:54:22.051238+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -685,7 +685,7 @@
       "id": "I_kwDOSX6krs8AAAABRQmHew",
       "title": "ihat: Use the same hash function for the permuation as for the rest of the scheme",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/71",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [
@@ -696,8 +696,8 @@
       ],
       "body": "\n\nSee https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/68#discussion_r4008394388 for details.\n            ",
       "createdAt": "2026-09-14T18:43:53Z",
-      "updatedAt": "2026-09-20T19:27:13Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-29T11:03:44Z",
+      "closedAt": "2026-09-29T11:03:44Z",
       "comments": [
         {
           "author": "wbl",
@@ -731,15 +731,15 @@
       "id": "I_kwDOSX6krs8AAAABSQQfnQ",
       "title": "ihat: rename to Rollatini",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/73",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "IHAT is functionality that Rollatini and other schemes instantiate. We might want to make the drafts reflect this.",
       "createdAt": "2026-09-20T19:27:52Z",
-      "updatedAt": "2026-09-24T22:29:50Z",
-      "closedAt": null,
+      "updatedAt": "2026-09-29T11:03:45Z",
+      "closedAt": "2026-09-29T11:03:45Z",
       "comments": [
         {
           "author": "cjpatton",
@@ -9875,24 +9875,26 @@
       "id": "PR_kwDOSX6krs8AAAABFm7syA",
       "title": "Finish Rollatini (formerly IHAT)",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/81",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This gets Rollatini, the construction we used to call IHAT, to a complete first draft.\n\n- Fixes from a review pass: identity-element handling, message encodings, and more tests\n- A new scalar derivation: derived scalars are statistically uniform again, and a failing random source can't make a proof reuse a nonce. This also changes ACT and its test vectors\n- Test vectors for Rollatini\n- Rename: IHAT now names the property, and Rollatini is our P-256 scheme\n- Plainer wording in both drafts\n\nact-rs has been updated to the new ACT derivation and matches the vectors.\n\nCloses #71, closes #73.\n",
       "createdAt": "2026-09-29T01:28:41Z",
-      "updatedAt": "2026-09-29T04:23:44Z",
+      "updatedAt": "2026-09-29T11:03:43Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "12a0578faf91e9697f6dad7a0fdfa7824f489db7",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/ihat-quality",
-      "headRefOid": "59dc01596bac737e5dd966182ea284881e4ae89b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "03d3069fd0a4080b8c3d7ba026f63178796adfe8",
+      "closedAt": "2026-09-29T11:03:43Z",
+      "mergedAt": "2026-09-29T11:03:43Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "e70a20dbbb74e6a6a19151bdcae4706c5f2a6f32"
+      },
       "comments": [],
       "reviews": [
         {
@@ -9938,6 +9940,66 @@
               "updatedAt": "2026-09-29T04:23:44Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPsKTnA",
+          "commit": {
+            "abbreviatedOid": "59dc015"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-29T05:02:42Z",
+          "updatedAt": "2026-09-29T05:02:42Z",
+          "comments": [
+            {
+              "originalPosition": 77,
+              "body": "The idea is that we have to avoid a bad RNG causing you to repeat a nonce under a new challenge, while simultaneously ensuring we have statistical randomness when we have a good RNG. I thought this keyed permutation lets you have both.",
+              "createdAt": "2026-09-29T05:02:42Z",
+              "updatedAt": "2026-09-29T05:05:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPsMFGw",
+          "commit": {
+            "abbreviatedOid": "59dc015"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-29T05:07:28Z",
+          "updatedAt": "2026-09-29T05:07:29Z",
+          "comments": [
+            {
+              "originalPosition": 77,
+              "body": "Why not invoke a hash function? I think that would be a more usual choice ala https://github.com/cfrg/draft-irtf-cfrg-det-sigs-with-noise and simplify the code",
+              "createdAt": "2026-09-29T05:07:28Z",
+              "updatedAt": "2026-09-29T05:07:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPsOxtg",
+          "commit": {
+            "abbreviatedOid": "59dc015"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-09-29T05:14:21Z",
+          "updatedAt": "2026-09-29T05:14:22Z",
+          "comments": [
+            {
+              "originalPosition": 77,
+              "body": "Will do.",
+              "createdAt": "2026-09-29T05:14:22Z",
+              "updatedAt": "2026-09-29T05:14:36Z"
+            }
+          ]
         }
       ]
     },
@@ -9946,26 +10008,103 @@
       "id": "PR_kwDOSX6krs8AAAABFn9yzQ",
       "title": "Add the ACT profile to PROTOCOLS",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/82",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Stacked on #81.\r\n\r\nThis writes out the ACT credential profile in PROTOCOLS:\r\n\r\n- Configuration, key ids, and the credential context (`ctx_cred = credential_context || I2OSP(L, 1)`)\r\n- How the abstract credential API maps onto ACT, using ACT's encodings\r\n- Challenge binding (`ctx_spend = SHA-256(CredentialChallenge)`), with policy-scoped and request-bound profiles\r\n- Spending with an atomic nullifier store, and recovery of lost refunds\r\n- ACT privacy and security considerations\r\n\r\nIt also drops ACT's \"profile not written yet\" TODO and PROTOCOLS' \"mapping undefined\" editor note. In HTTP-TRANSPORT, the example challenge structures give way to ACT's typed challenge. That answers #33 for ACT, with `request_context` built by the Moderator and opaque to the Client, and leaves the general question open.\r\n",
       "createdAt": "2026-09-29T04:10:11Z",
-      "updatedAt": "2026-09-29T04:13:42Z",
+      "updatedAt": "2026-09-29T18:11:34Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
-      "baseRefName": "samuelschlesinger/ihat-quality",
-      "baseRefOid": "59dc01596bac737e5dd966182ea284881e4ae89b",
+      "baseRefName": "main",
+      "baseRefOid": "e70a20dbbb74e6a6a19151bdcae4706c5f2a6f32",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/act-protocols",
-      "headRefOid": "6194b8d31a9d4a88747a0cdc6883adc295c99a5d",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "2aec1259bccdeb1fea02389c1e1bca0ec34c2bc7",
+      "closedAt": "2026-09-29T18:11:34Z",
+      "mergedAt": "2026-09-29T18:11:34Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "6f726ba28bddee5666ee0f3a328f8c2620575403"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABPz6leg",
+          "commit": {
+            "abbreviatedOid": "626b691"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Generally really nice to see. There are likely some refactor down the line, but that's a good first basis. The way its worded and structured will be quite handy for the implementation",
+          "createdAt": "2026-09-29T17:18:51Z",
+          "updatedAt": "2026-09-29T17:27:54Z",
+          "comments": [
+            {
+              "originalPosition": 402,
+              "body": "nits: this seems to contradict the \"discard once context ends\". I also feel we can simply discard for now, preventing retention and duplicating/tripling the number of credentials seems to make privacy easier to analyse",
+              "createdAt": "2026-09-29T17:18:51Z",
+              "updatedAt": "2026-09-29T17:27:54Z"
+            },
+            {
+              "originalPosition": 33,
+              "body": "this would have to be stored somewhere still. it probably does not have to hold the PR, but that's something that a client would need to store afaik",
+              "createdAt": "2026-09-29T17:21:53Z",
+              "updatedAt": "2026-09-29T17:27:54Z"
+            },
+            {
+              "originalPosition": 91,
+              "body": "TODO: which status codes are returned, when is Mole-Credential returned",
+              "createdAt": "2026-09-29T17:26:50Z",
+              "updatedAt": "2026-09-29T17:27:54Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 84,
+      "id": "PR_kwDOSX6krs8AAAABFwN1rA",
+      "title": "Clarify ACT randomness and balance guarantees",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/84",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The ACT draft gives a scalar-reduction bias bound without explaining the sampling margin. Cite RFC 9380's 128-bit target and distinguish that bound from the analysis of the derived scalar and nonce vectors. State the intended statistical unlinkability model explicitly, with unbounded computation and bounded classical random-oracle queries; retain the open proof bounds and quantum analysis.\r\n\r\nMake the zero top-up refund bound explicit, adopt the simpler credential-context wording, and use the existing generator-alias definition without repeating it beside the signature relation. These are prose changes; the algorithms and encodings are unchanged.",
+      "createdAt": "2026-09-29T18:34:45Z",
+      "updatedAt": "2026-09-29T20:25:28Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6f726ba28bddee5666ee0f3a328f8c2620575403",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "codex/jon-review-followup",
+      "headRefOid": "db8d38cf977330c605aa51f43a667dd59bd520eb",
+      "closedAt": "2026-09-29T20:25:28Z",
+      "mergedAt": "2026-09-29T20:25:28Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "8bfdf4996f73e4e605d5bb9b31b33f72aceac566"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABP1oF_w",
+          "commit": {
+            "abbreviatedOid": "db8d38c"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-09-29T20:11:15Z",
+          "updatedAt": "2026-09-29T20:11:15Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
