@@ -1003,7 +1003,7 @@ GenerateParameters():
 ~~~~
 
 Each quadratic map has quadratic, linear, and constant components. The
-coefficients are sampled sequentially from one domain-separated stream. The
+coefficients are sampled sequentially from a `SHAKE128` stream. The
 linear terms prevent generic scaling of nonzero openings. The constant terms
 remove the shared zero fixed point: for the specified derivation, `G(0)` is
 nonzero. Without the constant terms, a malicious Client can choose `r = 0`
