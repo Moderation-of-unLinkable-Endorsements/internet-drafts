@@ -993,16 +993,22 @@ GenerateParameters():
     5.    M_i := bytesIntoUpper(stream.next(u_com))
     6.    // linear part
     7.    l_i := stream.next(n_com)
-    8.    // inhomogeneous quadratic map F_q^{n_com} -> F_q
-    9.    Q_i(x) := x^T*M_i*x + l_i*x
-    10. F := (Q_0, ..., Q_{k-1})
-    11. G := (Q_k, ..., Q_{m_uov-1})
-    12. return (F, G)
+    8.    // constant part
+    9.    a_i := stream.next(1)[0]
+    10.   // affine quadratic map F_q^{n_com} -> F_q
+    11.   Q_i(x) := x^T*M_i*x + l_i*x + a_i
+    12. F := (Q_0, ..., Q_{k-1})
+    13. G := (Q_k, ..., Q_{m_uov-1})
+    14. return (F, G)
 ~~~~
 
-Each quadratic map has a quadratic component and a linear component. The linear
-terms are essential: a purely homogeneous map (`l_i = 0`) has `F(0) = G(0) = 0`
-and is scaling-covariant (`Q_i(a x) = a^2 Q_i(x)`), which admits a forgery.
+Each quadratic map has quadratic, linear, and constant components. The
+coefficients are sampled sequentially from one domain-separated stream. The
+linear terms prevent generic scaling of nonzero openings. The constant terms
+remove the shared zero fixed point: for the specified derivation, `G(0)` is
+nonzero. Without the constant terms, a malicious Client can choose `r = 0`
+and exploit the homogeneity of the UOV public map to forge tokens, as described
+in {{mq-zero-opening-forgery}}.
 
 ### Commitment {#mq-com}
 
@@ -1063,15 +1069,63 @@ nf_len + ctx_len + L` hold the refund encoding `<x>_L`.
 
 # Security Considerations {#security}
 
+## MQ zero-opening scaling forgery {#mq-zero-opening-forgery}
+
+An earlier version of Ratatouille-MQ omitted the constant coefficients `a_i`
+from `Q_i`. The linear coefficients prevent scaling at a generic opening, but
+they do not help at the Client-controlled opening `r = 0`, where the earlier
+maps had `F(0) = G(0) = 0`.
+
+For example, take an all-zero issuance context and an initial balance of one.
+A malicious Client can choose a nonzero `nf` and `r = 0`, obtaining `s` such
+that
+
+~~~
+P(s) = Tag(Com(nf, 0, 1, 0), 0).
+~~~
+
+The UOV public map is homogeneous quadratic, so `P(alpha*s) =
+alpha^2*P(s)`. For any nonzero `beta` in `F_256`, there is a unique `alpha`
+such that `alpha^2 = beta`. In the construction without constant
+coefficients, fieldwise scaling gives
+
+~~~
+P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
+~~~
+
+Here `beta` in the balance position denotes its natural byte value, so its
+two-byte encoding is `0 || beta`. The nullifiers `beta*nf` are distinct. The
+Client therefore knows a true witness for each forged token and can construct
+valid spend proofs without breaking VOLEitH, commitment binding, or UOV
+inversion. One issued one-credit token yields 255 token witnesses whose
+balances sum to 32640.
+
+The constant coefficients prevent this scaling orbit. In particular, the
+binding block at `r = 0` is the nonzero vector `G(0) = (a_k, ...,
+a_{m_uov-1})`. A scaled UOV signature could match another zero-opening token
+only if `beta*G(0) = G(0)`, which forces `beta = 1`.
+
+This correction addresses this specific forgery only. Adding public constants
+is an output translation, so it does not establish the hiding or binding of the
+MQ commitment, the security of the selected parameters, or the security of the
+composition with UOV and VOLEitH.
+
+## Proof status {#proof-status}
+
 > TODO Prove the following claims.
 
-Unlinkability of Ratatouille reduces to the zero-knowledge property of the
-VOLEitH proof system and the hiding property of the commitment.
-One-more-unforgeability reduces to witness-extractability of VOLEitH, binding
-of the commitment, and the one-more-UOV assumption ({{PoMFRIT}}, Definition 8).
-The one-more-UOV assumption is a stronger assumption than standard UOV
-({{UOV}}, Definition 2) that requires some scrutiny before we rely on it too
-heavily.
+A proof of unlinkability would need to reduce to the zero-knowledge property of
+the VOLEitH proof system and the hiding property of the commitment. A proof of
+one-more-unforgeability would need to use witness-extractability of VOLEitH,
+binding of the commitment, and a suitable unforgeability property of UOV. This
+document does not provide either reduction.
+
+In particular, the one-more-preimage assumption in {{PoMFRIT}} is stated for
+random challenge targets. Ratatouille-MQ instead asks the UOV trapdoor to
+invert structured, attacker-influenced targets of the form `Tag(Com(...), x)`.
+Applying the PoMFRIT result therefore requires an additional argument that is
+not given here. Assuming hardness directly for this structured target family
+would be a new, protocol-specific assumption.
 
 > NOTE A few observations we've made so far:
 >
