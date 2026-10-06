@@ -2273,7 +2273,7 @@ GenerateParameters():
 </pre><a href="#section-6.2-8" class="pilcrow">¶</a>
 </div>
 <p id="section-6.2-9">Each quadratic map has quadratic, linear, and constant components. The
-coefficients are sampled sequentially from one domain-separated stream. The
+coefficients are sampled sequentially from a <code>SHAKE128</code> stream. The
 linear terms prevent generic scaling of nonzero openings. The constant terms
 remove the shared zero fixed point: for the specified derivation, <code>G(0)</code> is
 nonzero. Without the constant terms, a malicious Client can choose <code>r = 0</code>
