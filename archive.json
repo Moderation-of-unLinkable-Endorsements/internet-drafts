@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-01T04:54:22.051238+00:00",
+  "timestamp": "2026-10-06T05:32:08.701225+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -722,9 +722,17 @@
       ],
       "body": "This makes it easier to generate reproducible test vectors. See https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/69/changes#r3994560515 for discussion.",
       "createdAt": "2026-09-15T08:31:15Z",
-      "updatedAt": "2026-09-15T08:31:22Z",
+      "updatedAt": "2026-10-05T22:31:22Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Can we close this one now since we generated test vectors? cc @SamuelSchlesinger ",
+          "createdAt": "2026-10-05T22:31:22Z",
+          "updatedAt": "2026-10-05T22:31:22Z"
+        }
+      ]
     },
     {
       "number": 73,
@@ -10105,6 +10113,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 85,
+      "id": "PR_kwDOSX6krs8AAAABG0841Q",
+      "title": "vole-act: fix the MQ zero-opening scaling forgery",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/85",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "the MQ maps had linear terms but no constants, so `r = 0` remained a fixed point. because UOV is homogeneous quadratic, one valid one-credit token could be scaled into 255 valid token witnesses with distinct nullifiers, worth 32,640 credits in total.\n\nthis adds a constant coefficient to every `Q_i`, drawing it from the existing `\"m1\"` SHAKE stream after the quadratic and linear coefficients. the resulting nonzero `G(0)` blocks that scaling orbit.\n\nthis also documents the forgery and clarifies that the patch fixes this specific attack, not the still-open end-to-end security proof for the MQ/UOV/VOLEitH composition.\n\nvalidated with the draft build, 110 reference tests, mypy, pyflakes, pylint, and `git diff --check`.\n",
+      "createdAt": "2026-10-06T02:03:59Z",
+      "updatedAt": "2026-10-06T02:12:18Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8bfdf4996f73e4e605d5bb9b31b33f72aceac566",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/vole-act-mq-constants",
+      "headRefOid": "69da8975933546527e6bad44c7a250e75dcb11bf",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
