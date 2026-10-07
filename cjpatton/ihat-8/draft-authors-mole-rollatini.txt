@@ -11,7 +11,7 @@ Expires: 10 April 2027                               Akamai Technologies
                                                           7 October 2026
 
 
-              Rollatini: An issuer-hiding anonymous token
+              Rollatini: An Issuer-Hiding Anonymous Token
                   draft-authors-mole-rollatini-latest
 
 Abstract
@@ -86,15 +86,15 @@ Table of Contents
      4.3.  Deriving Nonces
      4.4.  Key Generation
      4.5.  Context Binding
-   5.  Issuance of tokens
+   5.  Issuance of Tokens
      5.1.  Anchor Commitment
      5.2.  Client Challenge
      5.3.  Anchor Response
      5.4.  Client Finalization
-     5.5.  Verification of tokens
+     5.5.  Verification of Tokens
      5.6.  Encodings
        5.6.1.  Issuance Messages
-       5.6.2.  Encoding of a token
+       5.6.2.  Encoding of a Token
      5.7.  Session Handling
    6.  Endorsement Redemption
      6.1.  Key Rerandomization
@@ -605,7 +605,7 @@ Table of Contents
    construction provides without breaking any of its cryptographic
    properties; see Section 8.
 
-5.  Issuance of tokens
+5.  Issuance of Tokens
 
    Issuance produces a signature on the message Message(nf, ctx_red)
    relative to the public input ctx_iss.  It consists of four
@@ -631,7 +631,7 @@ Table of Contents
        |                                    |
    token                                    |
 
-           Figure 1: Issuance algorithms and messages for tokens
+           Figure 1: Issuance Algorithms and Messages for Tokens
 
    Commit and Respond are run by the Anchor; Challenge and Finalize are
    run by the Client.  Both parties input the issuance context ctx_iss;
@@ -815,7 +815,7 @@ Table of Contents
    A token consists of the signature (c, s, y, t) together with the
    nullifier; its encoding is given in Section 5.6.2.
 
-5.5.  Verification of tokens
+5.5.  Verification of Tokens
 
    A token is publicly verifiable under the issuing Anchor's public key.
 
@@ -937,7 +937,7 @@ Table of Contents
    session_id does not correspond to one of its open sessions MUST raise
    a SessionError.
 
-5.6.2.  Encoding of a token
+5.6.2.  Encoding of a Token
 
    The output of Finalize is encoded as follows.
 
@@ -1003,7 +1003,7 @@ Table of Contents
                                             ctx_iss, ctx_red,
                                             challenge_digest)
 
-                Figure 2: Endorsement redemption overview
+                Figure 2: Endorsement Redemption Overview
 
    anchor_set is the list of Anchor public keys the Moderator accepts.
    Both parties MUST use the same list in the same order.  A proof
