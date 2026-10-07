@@ -145,6 +145,12 @@ A challenge names a single endorsement or credential type. To offer a
 choice, a server sends multiple `Mole` challenges; the Client picks one it
 supports and MUST ignore challenges whose type it does not recognize.
 
+An Anchor carries an `EndorsementChallenge` in the `endorse` parameter. A
+Moderator carries a `ModeratorChallenge` in the `redeem` parameter and a
+`CredentialChallenge` in the `challenge` parameter. These share an outer
+layout and overlapping type values, so the parameter name, not the octets,
+tells the Client which it holds.
+
 All base64url values in this document are encoded without padding
 ({{BASE64}}).
 
@@ -191,11 +197,11 @@ struct {
 } EndorsementChallenge;
 ~~~
 
-* `challenge` contains a base64url `EndorsementChallenge` value, encoded per
+* `endorse` contains a base64url `EndorsementChallenge` value, encoded per
   {{BASE64}}.
 
 ~~~
-WWW-Authenticate: Mole challenge="<endorsement-challenge>",
+WWW-Authenticate: Mole endorse="<endorsement-challenge>",
                        realm="anchor"
 ~~~
 
@@ -218,7 +224,8 @@ struct {
 } ModeratorChallenge;
 ~~~
 
-* `challenge` which contains a base64url ModeratorChallenge value, encoded per {{BASE64}}
+* `redeem` contains a base64url `ModeratorChallenge` value, encoded per
+  {{BASE64}}.
 
 The `challenge` field carries exactly the TLS encoding of the common
 `RedemptionChallenge` defined in {{PROTOCOLS}}. Anchor material and
@@ -226,14 +233,16 @@ issuance contexts come from authenticated configuration; this challenge
 is never sent to an Anchor.
 
 ~~~
-WWW-Authenticate: Mole challenge="<moderator-challenge>",
+WWW-Authenticate: Mole redeem="<moderator-challenge>",
                        realm="moderator"
 ~~~
 
 ### Client -> Moderator
 
 The Client answers with a `CredentialRequest` ({{PROTOCOLS}}) in the
-`Authorization` header of a request to the Moderator. It carries the
+`Authorization` header of a `POST` request to the Moderator's Redeem &
+Issue endpoint ({{configuration}}), whichever resource sent the `redeem`
+challenge. It carries the
 endorsement redemption, bound to this challenge, together with the
 issuance request.
 
