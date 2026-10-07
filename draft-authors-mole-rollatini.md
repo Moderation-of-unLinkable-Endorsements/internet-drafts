@@ -151,7 +151,7 @@ informative:
 
 --- abstract
 
-This document specifies Rollatini, the cryptographic construction used to
+This document specifies Rollatini, a cryptographic construction used to
 produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
 an Anchor issues to a Client, and that the Client later redeems at a Moderator
 without the Anchor being able to link the redemption to the issuance.
