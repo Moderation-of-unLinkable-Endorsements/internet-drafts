@@ -2033,9 +2033,7 @@ The security of Rollatini is studied in {{FFKLLS26}}. The underlying blind
 signature is that of Tessaro and Zhu {{TESSZHU}}, instantiated with the public
 input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
-under the discrete logarithm assumption. Notably, its concurrent security does
-not rely on the hardness of the ROS problem, which is broken in polynomial time,
-nor on the mROS problem, which admits sub-exponential attacks.
+under the discrete logarithm assumption.
 
 
 Blindness:
@@ -2085,6 +2083,7 @@ One-more unforgeability:
   regardless of how many sessions it has completed under *other* issuance
   contexts {{TESSZHU}}. This is what allows a Moderator to conclude that an
   accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
+  This security guarantee holds even with concurrent sessions.
 
 Unforgeability under rerandomization:
 : Lemma 1 of {{FFKLLS26}} establishes strong key randomizability of {{TESSZHU}}.
