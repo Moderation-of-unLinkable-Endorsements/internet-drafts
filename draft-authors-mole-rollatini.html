@@ -3370,9 +3370,7 @@ algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 signature is that of Tessaro and Zhu <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>, instantiated with the public
 input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
-under the discrete logarithm assumption. Notably, its concurrent security does
-not rely on the hardness of the ROS problem, which is broken in polynomial time,
-nor on the mROS problem, which admits sub-exponential attacks.<a href="#section-8-1" class="pilcrow">¶</a></p>
+under the discrete logarithm assumption.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-8-2">
         <dt id="section-8-2.1">Blindness:</dt>
         <dd style="margin-left: 1.5em" id="section-8-2.2">
@@ -3427,7 +3425,8 @@ Endorsement.<a href="#section-8-2.6.1" class="pilcrow">¶</a></p>
 cannot produce <code>k+1</code> distinct valid Endorsements under that context,
 regardless of how many sessions it has completed under <em>other</em> issuance
 contexts <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>. This is what allows a Moderator to conclude that an
-accepted Endorsement corresponds to exactly one grant by a trusted Anchor.<a href="#section-8-2.8.1" class="pilcrow">¶</a></p>
+accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
+This security guarantee holds even with concurrent sessions.<a href="#section-8-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-2.9">Unforgeability under rerandomization:</dt>
