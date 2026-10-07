@@ -170,14 +170,13 @@ MoLE Endorsements have a number of constraints imposed by the architecture
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
 not meet all of these needs. This document defines such a system, Rollatini,
-an Issuer-Hiding Anonymous Token (IHAT), which is endorsement type `0x0002` in
-{{PROTOCOLS}}.
+an Issuer-Hiding Anonymous Token (IHAT).
 
 The construction is a pairing-free partially blind signature {{TESSZHU}}. An
 Anchor holds a signing key and issues, in three moves, a signature on a
 Client-chosen message that the Anchor never sees. Each Endorsement is also bound
 at issuance time to two contexts. These may be used to limit the validity scope
-of each Endorsement, i.e., when and for whom it may later be used.
+of each Endorsement, i.e., when and for whom it may later be used:
 
 * The issuance context `ctx_iss` is agreed out of band among the Client, the
   Anchor, and the Moderator. `ctx_iss` can encode, for instance, the time
@@ -188,29 +187,21 @@ of each Endorsement, i.e., when and for whom it may later be used.
   Moderator. This may be used to prevent Endorsement reuse across Moderators
   without requiring a synchronized state between them.
 
-## Scope
-
-This document is a work in progress. This revision specifies:
-
-* the prime-order group interface and encodings ({{preliminaries}});
-* the protocol context, scalar derivation, Anchor key generation, and context
-  binding ({{scheme}});
-* the endorsement issuance protocol, that is, the four algorithms `Commit`,
-  `Challenge`, `Respond`, and `Finalize`, along with the wire messages they
-  exchange, and the endorsement verification equation ({{issuance}});
-* endorsement redemption, that is, key rerandomization, the issuer-hiding
-  proof over a Moderator's Anchor Set, whose size is logarithmic in that of the
-  Anchor Set, and the algorithms `Redeem` and `VerifyRedemption`
-  ({{redemption}});
-* one ciphersuite, over P-256, with test vectors ({{test-vectors}}).
-
-The formal security statements and reductions are not yet written, and are
-marked as such in {{security-considerations}}.
-
 {{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
 redemption APIs. It supplies the issuance and redemption contexts; this
 document treats those contexts as opaque byte strings. Configuration
 encodings and discovery remain open work in {{PROTOCOLS}}.
+
+The remainder of this document is organized as follows. After defining
+conventions and cryptographic preliminaries ({{preliminaries}}), we given an
+overview of issuance and specify some functionalities common to issuance and
+redemption {{scheme}}. {{issuance}} specifies the issuance flow, including
+message encodings and session handling. {{redemption}} specifies issuer-hiding
+redemption, including key rerandomization and the proof that the issuing Anchor
+belongs to the Moderator's Anchor Set. {{ciphersuites}} defines the supported
+ciphersuites, and {{security-considerations}} discusses the construction's
+security and deployment considerations. {{iana}} covers IANA considerations, and
+{{test-vectors}} provides test vectors for the ciphersuites defined here.
 
 # Conventions and Definitions
 
