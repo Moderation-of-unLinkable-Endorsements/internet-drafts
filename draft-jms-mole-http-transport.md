@@ -362,8 +362,8 @@ key, an unaccepted credential context, a failed proof, or a repeated
 nullifier for which recovery is unavailable. A recoverable byte-identical
 presentation is handled by the recovery row.
 
-Acceptance of an ACT presentation is the commit of its nullifier-store
-transaction. A response sent after that commit MUST carry the recorded
+Acceptance of an ACT presentation is the recording of its result in the
+nullifier store. A response sent after that recording MUST carry the recorded
 update, including when the protected operation fails with a `4xx` or `5xx`
 status. The update is present for a refund and absent for a recorded
 `NoUpdate` decision. Rejecting a presentation MUST NOT create a nullifier

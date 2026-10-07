@@ -321,9 +321,9 @@ digest of the encoded challenge.
                          proof (includes nullifier k)
                               -------->
 
-                   Check and record proof.k atomically with:
                    VerifySpend(skM, ctx_cred, ctx_spend, proof)
                    refund = IssueRefund(skM, ctx_cred, proof, t)
+                   Record proof.k atomically, failing if present
 
                                refund
                               <--------
@@ -1019,8 +1019,9 @@ verification ({{act-security}}).
 
 `VerifySpend` does not check whether `k` has been seen before, nor whether
 the Moderator is willing to grant the top-up `a`. The Moderator MUST do
-both, and MUST record `k` atomically with verification and with the
-issuance of the refund ({{PROTOCOLS}}).
+both. It MUST record `k` atomically, failing if `k` is already recorded,
+and MUST NOT accept the spend or release a refund unless `k` was recorded
+({{PROTOCOLS}}).
 
 ### Refund Issuance {#act-refund}
 
@@ -1396,9 +1397,8 @@ Nullifier store:
 : The scheme itself does not prevent a second spend of a Credential; the
   Moderator's record of seen nullifiers does. The Moderator MUST check the
   nullifier of a spend against that record and add it to the record
-  atomically with verifying the proof and issuing the refund, so that a
-  spend is either fully processed or not at all. Losing the record
-  re-admits every Credential spent while it was in effect; the record
+  atomically, so that a spend is either fully processed or not at all.
+  Losing the record re-admits every Credential spent while it was in effect; the record
   covers at least the lifetime of the credential context it was recorded
   under ({{PROTOCOLS}}).
 

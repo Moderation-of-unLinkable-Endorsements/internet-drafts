@@ -753,11 +753,12 @@ The Moderator processes a `CredentialRequest` in this order:
    `IssueResponse` does, and rejects the request otherwise.
 3. It validates the accompanying redemption with `FinalizeRedeem`
    ({{endorsement-protocols}}).
-4. It chooses the initial balance `c` under its policy. As one atomic
-   transaction, it inserts the `replay_protection_id` returned by
-   `FinalizeRedeem`, failing if it is present, and runs
-   `IssueResponse(skM, ctx_cred, c, request)`. If either step fails, the
-   transaction is rolled back and nothing is recorded.
+4. It chooses the initial balance `c` under its policy and runs
+   `IssueResponse(skM, ctx_cred, c, request)`. It then records the
+   `replay_protection_id` returned by `FinalizeRedeem`. Recording is atomic
+   and fails if the identifier is already recorded. If any step fails, or
+   it is unknown whether the identifier was recorded, no response is
+   released.
 5. It returns the result in a `CredentialResponse`.
 
 The Endorsement is therefore consumed only together with a response, and a
@@ -865,8 +866,8 @@ is sent: the Moderator issued the Credential and knows its key, so the
 identifier tells it nothing more.
 
 The Moderator processes a presentation as follows. Steps 1 and 2 read public
-state and the nullifier store, step 3 is one atomic transaction on the
-nullifier store, and step 4 lies outside it.
+state and the nullifier store, step 3 ends by atomically recording the
+result, and step 4 follows.
 
 1. It checks that `key_id` names an active key, then looks up
    `(key_id, spend.k)` in the nullifier store. If a record exists, the
@@ -880,17 +881,18 @@ nullifier store, and step 4 lies outside it.
    that its `credential_context` is accepted for that key and that
    `spend.s` and `spend.a` equal its `s` and `a`. It rejects the presentation
    if any check fails.
-3. As one atomic transaction, it checks again that the key and context are
-   accepted, runs `VerifySpend(skM, ctx_cred, ctx_spend, spend)`, decides
-   under its policy
-   whether to refund and, if so, the return amount `t`, runs
-   `IssueRefund(skM, ctx_cred, spend, t)` if it refunds, and inserts a record
-   for `(key_id, spend.k)`. The record holds the *result*: the digest of the
-   presentation octets, `ctx_cred`, and the decision, either `Refund(t)`,
-   optionally with the octets of the `RefundMessage`, or `NoUpdate`. The
-   insertion MUST fail if the record exists by then, so of two racing
-   presentations at most one commits. If any step fails, the transaction is
-   rolled back and no refund is returned.
+3. It runs `VerifySpend(skM, ctx_cred, ctx_spend, spend)`, decides under its
+   policy whether to refund and, if so, the return amount `t`, and runs
+   `IssueRefund(skM, ctx_cred, spend, t)` if it refunds. It then records the
+   *result* under `(key_id, spend.k)`: the digest of the presentation
+   octets, `ctx_cred`, and the decision, either `Refund(t)`, optionally with
+   the octets of the `RefundMessage`, or `NoUpdate`. Recording is atomic and
+   MUST fail if a result is already recorded under that nullifier or if the
+   key or context is no longer accepted, so of two racing presentations at
+   most one is recorded. If any step fails, or it is unknown whether the
+   result was recorded, no refund is released. The Moderator MUST NOT
+   attempt the protected operation unless this request's result was
+   successfully recorded.
 4. It attempts the protected operation. Its HTTP response carries the
    recorded credential result as an `Update`: the refund, or, for
    `NoUpdate`, an absent update, which leaves the Client without a
@@ -901,8 +903,9 @@ Spending credits authorizes one attempt of the protected operation. A
 failure after step 3 can charge the Client without completing step 4; a
 retry recovers the result but does not authorize another attempt. Reliable
 execution needs application-specific recovery, for example a durable outbox
-written in step 3 and a worker that retries the operation idempotently under
-the presentation digest. This document does not specify that recovery.
+written with the step 3 record and a worker that retries the operation
+idempotently under the presentation digest. This document does not specify
+that recovery.
 
 The Client runs `FinalizeRefund(pkM, ctx_cred, state, refund)` and stores
 the resulting Credential in place of the spent one, with the same `pkM`,
@@ -954,12 +957,12 @@ configuration through Redeem & Issue.
 ### Lost Refunds {#act-missing-refund}
 
 A presentation may be sent and its response lost, or the Moderator may fail
-between committing step 3 of {{act-spend}} and returning the result. The
+between recording the result in step 3 of {{act-spend}} and returning it. The
 Client cannot then finalize, and the spent Credential cannot be reused.
 
 A Moderator MUST keep each result until the earlier of the end of its
 published result retention period ({{act-configuration}}), counted from
-the commit of step 3, and retirement of the key or credential context.
+the recording in step 3, and retirement of the key or credential context.
 It MUST delete the result when this interval ends. A Client missing an
 `Update` MAY resend the byte-identical `PresentationAndUpdate` during the
 interval. Step 1 of {{act-spend}} checks the record and the continued
@@ -1123,9 +1126,9 @@ that share the key, the context, and the amounts, so each of these
 partitions Clients:
 
 Keys and contexts:
-: The truncated key identifier limits what a Client reveals at issuance to
-  one byte, and every active key splits the Clients holding Credentials
-  under it. {{ACT}} requires the credential context to be coarse: a
+: The truncated key identifier shortens the encoding, but it still selects
+  one active key, and every active key splits the Clients holding
+  Credentials under it. {{ACT}} requires the credential context to be coarse: a
   per-Client or per-session context makes presentations linkable without
   breaking any cryptographic property.
 
@@ -1190,7 +1193,7 @@ not hide that reuse.
 ## Anonymous Credit Tokens {#security-act}
 
 Nullifier store:
-: Step 3 of {{act-spend}} is the atomic transaction that {{ACT}} requires.
+: Step 3 of {{act-spend}} is the atomic recording that {{ACT}} requires.
   The store MUST be durable: a Moderator that loses it re-admits every
   Credential spent under a context for as long as that context is
   accepted. Nullifiers MAY be partitioned by key and context and discarded
@@ -1206,7 +1209,7 @@ Amounts:
 
 Credential sharing:
 : Copies of one Credential yield one presentation: the first to reach the
-  Moderator commits in step 3, and every other copy is rejected as a
+  Moderator is recorded in step 3, and every other copy is rejected as a
   double spend and is linkable to the first ({{ACT}}).
 
 Recorded results:
