@@ -2328,11 +2328,12 @@ It rejects the request if either check fails.<a href="#section-5.2.2-5.1.1" clas
 (<a href="#endorsement-protocols" class="auto internal xref">Section 4</a>).<a href="#section-5.2.2-5.3.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-5.2.2-5.4">
-              <p id="section-5.2.2-5.4.1">It chooses the initial balance <code>c</code> under its policy. As one atomic
-transaction, it inserts the <code>replay_protection_id</code> returned by
-<code>FinalizeRedeem</code>, failing if it is present, and runs
-<code>IssueResponse(skM, ctx_cred, c, request)</code>. If either step fails, the
-transaction is rolled back and nothing is recorded.<a href="#section-5.2.2-5.4.1" class="pilcrow">¶</a></p>
+              <p id="section-5.2.2-5.4.1">It chooses the initial balance <code>c</code> under its policy and runs
+<code>IssueResponse(skM, ctx_cred, c, request)</code>. It then records the
+<code>replay_protection_id</code> returned by <code>FinalizeRedeem</code>. Recording is atomic
+and fails if the identifier is already recorded. If any step fails, or
+it is unknown whether the identifier was recorded, no response is
+released.<a href="#section-5.2.2-5.4.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-5.2.2-5.5">
               <p id="section-5.2.2-5.5.1">It returns the result in a <code>CredentialResponse</code>.<a href="#section-5.2.2-5.5.1" class="pilcrow">¶</a></p>
@@ -2454,8 +2455,8 @@ struct {
 is sent: the Moderator issued the Credential and knows its key, so the
 identifier tells it nothing more.<a href="#section-5.2.3.2-4" class="pilcrow">¶</a></p>
 <p id="section-5.2.3.2-5">The Moderator processes a presentation as follows. Steps 1 and 2 read public
-state and the nullifier store, step 3 is one atomic transaction on the
-nullifier store, and step 4 lies outside it.<a href="#section-5.2.3.2-5" class="pilcrow">¶</a></p>
+state and the nullifier store, step 3 ends by atomically recording the
+result, and step 4 follows.<a href="#section-5.2.3.2-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-5.2.3.2-6">
 <li id="section-5.2.3.2-6.1">
                 <p id="section-5.2.3.2-6.1.1">It checks that <code>key_id</code> names an active key, then looks up
@@ -2474,17 +2475,18 @@ that its <code>credential_context</code> is accepted for that key and that
 if any check fails.<a href="#section-5.2.3.2-6.2.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-5.2.3.2-6.3">
-                <p id="section-5.2.3.2-6.3.1">As one atomic transaction, it checks again that the key and context are
-accepted, runs <code>VerifySpend(skM, ctx_cred, ctx_spend, spend)</code>, decides
-under its policy
-whether to refund and, if so, the return amount <code>t</code>, runs
-<code>IssueRefund(skM, ctx_cred, spend, t)</code> if it refunds, and inserts a record
-for <code>(key_id, spend.k)</code>. The record holds the <em>result</em>: the digest of the
-presentation octets, <code>ctx_cred</code>, and the decision, either <code>Refund(t)</code>,
-optionally with the octets of the <code>RefundMessage</code>, or <code>NoUpdate</code>. The
-insertion <span class="bcp14">MUST</span> fail if the record exists by then, so of two racing
-presentations at most one commits. If any step fails, the transaction is
-rolled back and no refund is returned.<a href="#section-5.2.3.2-6.3.1" class="pilcrow">¶</a></p>
+                <p id="section-5.2.3.2-6.3.1">It runs <code>VerifySpend(skM, ctx_cred, ctx_spend, spend)</code>, decides under its
+policy whether to refund and, if so, the return amount <code>t</code>, and runs
+<code>IssueRefund(skM, ctx_cred, spend, t)</code> if it refunds. It then records the
+<em>result</em> under <code>(key_id, spend.k)</code>: the digest of the presentation
+octets, <code>ctx_cred</code>, and the decision, either <code>Refund(t)</code>, optionally with
+the octets of the <code>RefundMessage</code>, or <code>NoUpdate</code>. Recording is atomic and
+<span class="bcp14">MUST</span> fail if a result is already recorded under that nullifier or if the
+key or context is no longer accepted, so of two racing presentations at
+most one is recorded. If any step fails, or it is unknown whether the
+result was recorded, no refund is released. The Moderator <span class="bcp14">MUST NOT</span>
+attempt the protected operation unless this request's result was
+successfully recorded.<a href="#section-5.2.3.2-6.3.1" class="pilcrow">¶</a></p>
 </li>
               <li id="section-5.2.3.2-6.4">
                 <p id="section-5.2.3.2-6.4.1">It attempts the protected operation. Its HTTP response carries the
@@ -2498,8 +2500,9 @@ protected operation fails (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HT
 failure after step 3 can charge the Client without completing step 4; a
 retry recovers the result but does not authorize another attempt. Reliable
 execution needs application-specific recovery, for example a durable outbox
-written in step 3 and a worker that retries the operation idempotently under
-the presentation digest. This document does not specify that recovery.<a href="#section-5.2.3.2-7" class="pilcrow">¶</a></p>
+written with the step 3 record and a worker that retries the operation
+idempotently under the presentation digest. This document does not specify
+that recovery.<a href="#section-5.2.3.2-7" class="pilcrow">¶</a></p>
 <p id="section-5.2.3.2-8">The Client runs <code>FinalizeRefund(pkM, ctx_cred, state, refund)</code> and stores
 the resulting Credential in place of the spent one, with the same <code>pkM</code>,
 <code>credential_context</code>, and <code>L</code>. If the refund does not verify, the Client
@@ -2609,11 +2612,11 @@ configuration through Redeem &amp; Issue.<a href="#section-5.2.4-4" class="pilcr
 <a href="#section-5.2.5" class="section-number selfRef">5.2.5. </a><a href="#name-lost-refunds" class="section-name selfRef">Lost Refunds</a>
           </h4>
 <p id="section-5.2.5-1">A presentation may be sent and its response lost, or the Moderator may fail
-between committing step 3 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> and returning the result. The
+between recording the result in step 3 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> and returning it. The
 Client cannot then finalize, and the spent Credential cannot be reused.<a href="#section-5.2.5-1" class="pilcrow">¶</a></p>
 <p id="section-5.2.5-2">A Moderator <span class="bcp14">MUST</span> keep each result until the earlier of the end of its
 published result retention period (<a href="#act-configuration" class="auto internal xref">Section 5.2.1</a>), counted from
-the commit of step 3, and retirement of the key or credential context.
+the recording in step 3, and retirement of the key or credential context.
 It <span class="bcp14">MUST</span> delete the result when this interval ends. A Client missing an
 <code>Update</code> <span class="bcp14">MAY</span> resend the byte-identical <code>PresentationAndUpdate</code> during the
 interval. Step 1 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> checks the record and the continued
@@ -2829,9 +2832,9 @@ partitions Clients:<a href="#section-7.1-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-7.1-2">
           <dt id="section-7.1-2.1">Keys and contexts:</dt>
           <dd style="margin-left: 1.5em" id="section-7.1-2.2">
-            <p id="section-7.1-2.2.1">The truncated key identifier limits what a Client reveals at issuance to
-one byte, and every active key splits the Clients holding Credentials
-under it. <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> requires the credential context to be coarse: a
+            <p id="section-7.1-2.2.1">The truncated key identifier shortens the encoding, but it still selects
+one active key, and every active key splits the Clients holding
+Credentials under it. <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> requires the credential context to be coarse: a
 per-Client or per-session context makes presentations linkable without
 breaking any cryptographic property.<a href="#section-7.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
@@ -2922,7 +2925,7 @@ not hide that reuse.<a href="#section-8-4" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-8.1-1">
           <dt id="section-8.1-1.1">Nullifier store:</dt>
           <dd style="margin-left: 1.5em" id="section-8.1-1.2">
-            <p id="section-8.1-1.2.1">Step 3 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> is the atomic transaction that <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> requires.
+            <p id="section-8.1-1.2.1">Step 3 of <a href="#act-spend" class="auto internal xref">Section 5.2.3.2</a> is the atomic recording that <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> requires.
 The store <span class="bcp14">MUST</span> be durable: a Moderator that loses it re-admits every
 Credential spent under a context for as long as that context is
 accepted. Nullifiers <span class="bcp14">MAY</span> be partitioned by key and context and discarded
@@ -2942,7 +2945,7 @@ needs.<a href="#section-8.1-1.4.1" class="pilcrow">¶</a></p>
 <dt id="section-8.1-1.5">Credential sharing:</dt>
           <dd style="margin-left: 1.5em" id="section-8.1-1.6">
             <p id="section-8.1-1.6.1">Copies of one Credential yield one presentation: the first to reach the
-Moderator commits in step 3, and every other copy is rejected as a
+Moderator is recorded in step 3, and every other copy is rejected as a
 double spend and is linkable to the first (<span>[<a href="#ACT" class="cite xref">ACT</a>]</span>).<a href="#section-8.1-1.6.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>

@@ -296,9 +296,9 @@ Table of Contents
                             proof (includes nullifier k)
                                  -------->
 
-                      Check and record proof.k atomically with:
                       VerifySpend(skM, ctx_cred, ctx_spend, proof)
                       refund = IssueRefund(skM, ctx_cred, proof, t)
+                      Record proof.k atomically, failing if present
 
                                   refund
                                  <--------
@@ -959,8 +959,9 @@ Table of Contents
 
    VerifySpend does not check whether k has been seen before, nor
    whether the Moderator is willing to grant the top-up a.  The
-   Moderator MUST do both, and MUST record k atomically with
-   verification and with the issuance of the refund ([PROTOCOLS]).
+   Moderator MUST do both.  It MUST record k atomically, failing if k is
+   already recorded, and MUST NOT accept the spend or release a refund
+   unless k was recorded ([PROTOCOLS]).
 
 4.6.4.  Refund Issuance
 
@@ -1329,12 +1330,11 @@ Table of Contents
    Nullifier store:  The scheme itself does not prevent a second spend
       of a Credential; the Moderator's record of seen nullifiers does.
       The Moderator MUST check the nullifier of a spend against that
-      record and add it to the record atomically with verifying the
-      proof and issuing the refund, so that a spend is either fully
-      processed or not at all.  Losing the record re-admits every
-      Credential spent while it was in effect; the record covers at
-      least the lifetime of the credential context it was recorded under
-      ([PROTOCOLS]).
+      record and add it to the record atomically, so that a spend is
+      either fully processed or not at all.  Losing the record re-admits
+      every Credential spent while it was in effect; the record covers
+      at least the lifetime of the credential context it was recorded
+      under ([PROTOCOLS]).
 
    Single use of Credentials and states:  A Client MUST treat a
       Credential as spent, and MUST have stored the returned state

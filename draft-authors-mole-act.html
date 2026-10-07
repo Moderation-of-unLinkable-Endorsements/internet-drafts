@@ -1536,9 +1536,9 @@ digest of the encoded challenge.<a href="#section-4-6" class="pilcrow">¶</a></p
                          proof (includes nullifier k)
                               --------&gt;
 
-                   Check and record proof.k atomically with:
                    VerifySpend(skM, ctx_cred, ctx_spend, proof)
                    refund = IssueRefund(skM, ctx_cred, proof, t)
+                   Record proof.k atomically, failing if present
 
                                refund
                               &lt;--------
@@ -2295,8 +2295,9 @@ deserialization. The amount checks of <a href="#act-amounts" class="auto interna
 verification (<a href="#act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.6.3-3" class="pilcrow">¶</a></p>
 <p id="section-4.6.3-4"><code>VerifySpend</code> does not check whether <code>k</code> has been seen before, nor whether
 the Moderator is willing to grant the top-up <code>a</code>. The Moderator <span class="bcp14">MUST</span> do
-both, and <span class="bcp14">MUST</span> record <code>k</code> atomically with verification and with the
-issuance of the refund (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-4.6.3-4" class="pilcrow">¶</a></p>
+both. It <span class="bcp14">MUST</span> record <code>k</code> atomically, failing if <code>k</code> is already recorded,
+and <span class="bcp14">MUST NOT</span> accept the spend or release a refund unless <code>k</code> was recorded
+(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-4.6.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="act-refund">
@@ -2734,9 +2735,8 @@ rejection itself.<a href="#section-6-4.12.1" class="pilcrow">¶</a></p>
           <p id="section-6-4.14.1">The scheme itself does not prevent a second spend of a Credential; the
 Moderator's record of seen nullifiers does. The Moderator <span class="bcp14">MUST</span> check the
 nullifier of a spend against that record and add it to the record
-atomically with verifying the proof and issuing the refund, so that a
-spend is either fully processed or not at all. Losing the record
-re-admits every Credential spent while it was in effect; the record
+atomically, so that a spend is either fully processed or not at all.
+Losing the record re-admits every Credential spent while it was in effect; the record
 covers at least the lifetime of the credential context it was recorded
 under (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
 </dd>

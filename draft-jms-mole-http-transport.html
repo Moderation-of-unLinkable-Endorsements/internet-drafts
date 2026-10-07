@@ -1735,8 +1735,8 @@ required exchange. Invalid authentication includes an unknown or retired
 key, an unaccepted credential context, a failed proof, or a repeated
 nullifier for which recovery is unavailable. A recoverable byte-identical
 presentation is handled by the recovery row.<a href="#section-6.3.4-3" class="pilcrow">¶</a></p>
-<p id="section-6.3.4-4">Acceptance of an ACT presentation is the commit of its nullifier-store
-transaction. A response sent after that commit <span class="bcp14">MUST</span> carry the recorded
+<p id="section-6.3.4-4">Acceptance of an ACT presentation is the recording of its result in the
+nullifier store. A response sent after that recording <span class="bcp14">MUST</span> carry the recorded
 update, including when the protected operation fails with a <code>4xx</code> or <code>5xx</code>
 status. The update is present for a refund and absent for a recorded
 <code>NoUpdate</code> decision. Rejecting a presentation <span class="bcp14">MUST NOT</span> create a nullifier
