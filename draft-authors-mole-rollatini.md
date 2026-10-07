@@ -28,13 +28,9 @@ author:
     organization: Google LLC
     email: sgschlesinger@gmail.com
  -
-    fullname: Jonathan Katz
-    organization: Google LLC
-    email: jkcrypto@google.com
- -
-    fullname: Armando Faz-Hernandez
-    organization: Cloudflare, Inc.
-    email: armfazh@cloudflare.com
+    fullname: Watson Ladd
+    organization: Akamai Technologies
+    email: watsonbladd@gmail.com
  -
     fullname: Deep Inder Mohan
     organization: Georgia Institute of Technology
