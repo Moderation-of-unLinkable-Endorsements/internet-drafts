@@ -1796,9 +1796,9 @@ returned values once they have been used.<a href="#section-4.3-5" class="pilcrow
 <p id="section-4.3-6">The two-stage derivation used here and in <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> avoids the
 output-length limit of a single <code>hash_to_field</code> call using <code>expand_message_xmd</code>.
 XMD produces at most <code>255 * Nh</code> bytes per call, which allows at most 170 scalars
-with SHA-256 and <code>L = 48</code> (see <a href="#ciphersuites" class="auto internal xref">Section 7</a>). Although Rollatini's
-issuer-hiding proof needs fewer scalars, other protocols that share these
-methods need larger vectors.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
+with SHA-256 and <code>L = 48</code> (see <code>Rollatini(P-256, SHA-256)</code> <a href="#ciphersuites" class="auto internal xref">Section 7</a>).
+Although Rollatini's issuer-hiding proof needs fewer scalars, other protocols
+that share these methods need larger vectors.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
