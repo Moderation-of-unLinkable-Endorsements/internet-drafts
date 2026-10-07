@@ -9,13 +9,12 @@
 <meta content="Watson Ladd" name="author">
 <meta content="Deep Inder Mohan" name="author">
 <meta content="
-       This document specifies Rollatini, the cryptographic construction used to
-produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
-an Anchor issues to a Client, and that the Client later redeems at a Moderator
-without the Anchor being able to link the redemption to the issuance. 
-       This document defines the endorsement issuance protocol, built from a
-pairing-free partially blind signature scheme, together with the group,
-encoding, and context-binding rules that both the Anchor and the Client follow. 
+       This document specifies Rollatini, an Issuer-Hiding Anonymous Token (IHAT)
+suitable for instantiating MoLE Endorsements. An Anchor issues a token to a
+Client, and the Client later redeems the token at a Moderator without the Anchor
+being able to link the redemption to the issuance. Rollatini is built from
+widely available cryptographic primitives, including standard, pairing-free
+elliptic curves. 
     " name="description">
 <meta content="xml2rfc 3.34.1" name="generator">
 <meta content="moderation" name="keyword">
@@ -1095,13 +1094,12 @@ svg {
 <h1 id="title">Rollatini: An Issuer-Hiding Anonymous Token</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies Rollatini, the cryptographic construction used to
-produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
-an Anchor issues to a Client, and that the Client later redeems at a Moderator
-without the Anchor being able to link the redemption to the issuance.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">This document defines the endorsement issuance protocol, built from a
-pairing-free partially blind signature scheme, together with the group,
-encoding, and context-binding rules that both the Anchor and the Client follow.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">This document specifies Rollatini, an Issuer-Hiding Anonymous Token (IHAT)
+suitable for instantiating MoLE Endorsements. An Anchor issues a token to a
+Client, and the Client later redeems the token at a Moderator without the Anchor
+being able to link the redemption to the issuance. Rollatini is built from
+widely available cryptographic primitives, including standard, pairing-free
+elliptic curves.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
