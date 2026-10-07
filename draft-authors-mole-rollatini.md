@@ -219,9 +219,10 @@ defined in {{HTTP-TRANSPORT}}: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.
 
-The following functions, types, and notation are used throughout this
-document. The Python snippets are excerpts from the reference implementation.
-They use `bytes` for byte strings, `int` for integers, and `Sequence` for a
+Algorithms are specified in Python and use the following functions, types, and
+notation.
+
+Type `bytes` is used for byte strings, `int` for integers, and `Sequence` for a
 read-only sequence.
 
 For any byte string `x`, `len(x)` denotes its length in bytes.
@@ -249,7 +250,8 @@ unpredictable is derived from its output ({{derive-scalar}}).
 
 `Seed(x, k)` denotes the `k`-th seed in a byte string of concatenated seeds,
 that is `x[k * Nseed:(k + 1) * Nseed]`, with `k` counted from zero.
-{{ciphersuites}} fixes the seed length `Nseed`.
+{{ciphersuites}} fixes the seed length `Nseed`. This function is defined as
+follows:
 
 ~~~python
 def Seed(value: bytes, index: int) -> bytes:
