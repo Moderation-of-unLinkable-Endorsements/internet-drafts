@@ -16,8 +16,8 @@ Expires: 10 April 2027                               Akamai Technologies
 
 Abstract
 
-   This document specifies Rollatini, the cryptographic construction
-   used to produce and consume MoLE Endorsements.  An Endorsement is an
+   This document specifies Rollatini, a cryptographic construction used
+   to produce and consume MoLE Endorsements.  An Endorsement is an
    anonymous token that an Anchor issues to a Client, and that the
    Client later redeems at a Moderator without the Anchor being able to
    link the redemption to the issuance.
@@ -75,7 +75,6 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-     1.1.  Scope
    2.  Conventions and Definitions
    3.  Preliminaries
      3.1.  Prime-Order Group
@@ -135,15 +134,15 @@ Table of Contents
    hide which Anchor issued the Endorsement among the set of Anchors a
    Moderator accepts.  Existing systems do not meet all of these needs.
    This document defines such a system, Rollatini, an Issuer-Hiding
-   Anonymous Token (IHAT), which is endorsement type 0x0002 in
-   [PROTOCOLS].
+   Anonymous Token (IHAT).
 
-   The construction is a pairing-free partially blind signature
-   [TESSZHU].  An Anchor holds a signing key and issues, in three moves,
-   a signature on a Client-chosen message that the Anchor never sees.
-   Each Endorsement is also bound at issuance time to two contexts.
-   These may be used to limit the validity scope of each Endorsement,
-   i.e., when and for whom it may later be used.
+   Rollatini follows the construction described in Section 3.4 of
+   [FFKLLS26], which in turn is based on the pairing-free partially
+   blind signature of [TESSZHU].  An Anchor holds a signing key and
+   issues, in three moves, a signature on a Client-chosen message that
+   the Anchor never sees.  Each Endorsement is also bound at issuance
+   time to two contexts.  These may be used to limit the validity scope
+   of each Endorsement, i.e., when and for whom it may later be used:
 
    *  The issuance context ctx_iss is agreed out of band among the
       Client, the Anchor, and the Moderator. ctx_iss can encode, for
@@ -156,35 +155,23 @@ Table of Contents
       Endorsement reuse across Moderators without requiring a
       synchronized state between them.
 
-1.1.  Scope
-
-   This document is a work in progress.  This revision specifies:
-
-   *  the prime-order group interface and encodings (Section 3);
-
-   *  the protocol context, scalar derivation, Anchor key generation,
-      and context binding (Section 4);
-
-   *  the endorsement issuance protocol, that is, the four algorithms
-      Commit, Challenge, Respond, and Finalize, along with the wire
-      messages they exchange, and the endorsement verification equation
-      (Section 5);
-
-   *  endorsement redemption, that is, key rerandomization, the issuer-
-      hiding proof over a Moderator's Anchor Set, whose size is
-      logarithmic in that of the Anchor Set, and the algorithms Redeem
-      and VerifyRedemption (Section 6);
-
-   *  one ciphersuite, over P-256, with test vectors (Appendix A).
-
-   The formal security statements and reductions are not yet written,
-   and are marked as such in Section 8.
-
    [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
    redemption APIs.  It supplies the issuance and redemption contexts;
    this document treats those contexts as opaque byte strings.
    Configuration encodings and discovery remain open work in
    [PROTOCOLS].
+
+   The remainder of this document is organized as follows.  After
+   defining conventions and cryptographic preliminaries (Section 3), we
+   given an overview of issuance and specify some functionalities common
+   to issuance and redemption Section 4.  Section 5 specifies the
+   issuance flow, including message encodings and session handling.
+   Section 6 specifies issuer-hiding redemption, including key
+   rerandomization and the proof that the issuing Anchor belongs to the
+   Moderator's Anchor Set. Section 7 defines the supported ciphersuites,
+   and Section 8 discusses the construction's security and deployment
+   considerations.  Section 9 covers IANA considerations, and Appendix A
+   provides test vectors for the ciphersuites defined here.
 
 2.  Conventions and Definitions
 
@@ -205,10 +192,11 @@ Table of Contents
    encoding, so its width depends on the length of the contents it
    carries.
 
-   The following functions, types, and notation are used throughout this
-   document.  The Python snippets are excerpts from the reference
-   implementation.  They use bytes for byte strings, int for integers,
-   and Sequence for a read-only sequence.
+   Algorithms are specified in Python and use the following functions,
+   types, and notation.
+
+   Type bytes is used for byte strings, int for integers, and Sequence
+   for a read-only sequence.
 
    For any byte string x, len(x) denotes its length in bytes.
 
@@ -237,7 +225,8 @@ Table of Contents
 
    Seed(x, k) denotes the k-th seed in a byte string of concatenated
    seeds, that is x[k * Nseed:(k + 1) * Nseed], with k counted from
-   zero.  Section 7 fixes the seed length Nseed.
+   zero.  Section 7 fixes the seed length Nseed.  This function is
+   defined as follows:
 
    def Seed(value: bytes, index: int) -> bytes:
        return value[index * Nseed : (index + 1) * Nseed]
@@ -1959,34 +1948,29 @@ Table of Contents
 
 8.  Security Considerations
 
-      *TODO.* This section is a summary of the properties the
-      construction is intended to provide and of the requirements
-      implementations must meet.  Formal statements and the
-      corresponding reductions are not yet written.
-
-   The issuance protocol is the partially blind signature scheme of
-   Tessaro and Zhu [TESSZHU], instantiated with the public input set to
-   the issuance context.  Its security is analysed in the random oracle
-   model, and one-more unforgeability additionally in the algebraic
-   group model under the discrete logarithm assumption.  Notably, its
-   concurrent security does not rely on the hardness of the ROS problem,
-   which is broken in polynomial time, nor on the mROS problem, which
-   admits sub-exponential attacks.
+   The security of Rollatini is studied in [FFKLLS26].  The underlying
+   blind signature is that of Tessaro and Zhu [TESSZHU], instantiated
+   with the public input set to the issuance context.  Security is
+   analysed in the random oracle model, and one-more unforgeability
+   additionally in the algebraic group model under the discrete
+   logarithm assumption.  Notably, its concurrent security does not rely
+   on the hardness of the ROS problem, which is broken in polynomial
+   time, nor on the mROS problem, which admits sub-exponential attacks.
 
    Blindness:  All the Anchor receives in a session is the blinded
       challenge c * gamma2.  With uniform blinding factors, the blinded
       challenge is uniformly distributed and independent of the message
-      and of the resulting signature, and the scheme is perfectly blind
-      [TESSZHU].  The blinding factors of this document are derived by
-      hashing ("Derived blinding factors" below), so in the random
-      oracle model the scheme is statistically blind: an Anchor can link
-      an Endorsement to the session that produced it only by evaluating
-      the hash function on one of the secret inputs from which the
-      Client derives its blinding factors (Section 4.2).  Finding one by
-      search takes about 2^256 evaluations, or 2^128 on a quantum
-      computer.  Endorsement grants and redemptions are therefore
-      unlinkable, as [ARCH] requires, even to an attacker who records
-      transcripts for a future quantum computer.
+      and of the resulting signature, and the underlying scheme is
+      perfectly blind [FFKLLS26].  The blinding factors of this document
+      are derived by hashing ("Derived blinding factors" below), so in
+      the random oracle model the scheme is statistically blind: an
+      Anchor can link an Endorsement to the session that produced it
+      only by evaluating the hash function on one of the secret inputs
+      from which the Client derives its blinding factors (Section 4.2).
+      Finding one by search takes about 2^256 evaluations, or 2^128 on a
+      quantum computer.  Endorsement grants and redemptions are
+      therefore unlinkable, as [ARCH] requires, even to an attacker who
+      records transcripts for a future quantum computer.
 
    Derived blinding factors:  Challenge derives its four blinding
       factors with G.DeriveScalars, and Redeem derives delta the same
@@ -2022,45 +2006,41 @@ Table of Contents
       is what allows a Moderator to conclude that an accepted
       Endorsement corresponds to exactly one grant by a trusted Anchor.
 
-   Unforgeability under rerandomization:  Rerandomization is additive
-      and applies only after issuance, so issuance is the unmodified
-      scheme of [TESSZHU] and its unforgeability is intended to carry
-      over directly: a reduction relays the signing oracle verbatim,
-      extracts delta and the branch it belongs to from the issuer-hiding
-      proof, and undoes the public shift to obtain a forgery under the
-      Anchor's own key.  The extraction is the special soundness of the
-      stacking composition (Section 7 of [STACKSIG]): two accepting
-      proofs that share a first move but answer different challenges
-      agree on the branch commitment at the binding position, and the
-      branch proof of Section 6.2.1 then yields delta for that branch's
-      statement.  Nothing in Redeem gives a Client a signature it did
-      not already hold: X_hat and s_hat are computed from values it has,
-      and a Client that could produce an accepted redemption without an
-      Endorsement from some Anchor in anchor_set would yield a forgery.
-      *TODO:* this reduction is stated, not written out, and must
-      account for multiple redemptions in the one-more unforgeability
-      game.
+   Unforgeability under rerandomization:  Lemma 1 of [FFKLLS26]
+      establishes strong key randomizability of [TESSZHU].  Thus,
+      Theorem 1 of [FFKLLS26] reduces issuer-hiding one-more
+      unforgeability to [TESSZHU], provided the issuer-hiding proof is
+      straight-line extractable.
 
-   Issuer hiding:  Up to the statistical distance given below, a
-      redemption reveals nothing about which Anchor in anchor_set issued
-      the Endorsement, so a Moderator, an Anchor, and the two colluding
-      learn only that some key in anchor_set was used.  X_hat and the
-      response of the single branch proof are statistically close to
-      uniform independently of the branch (Section 6.2.1), and the
-      commitment of Section 6.2.2 hides which position it binds: a
-      commitment key is distributed independently of that position, and
-      an opening independently of whether the value it opens to was
-      committed or equivocated.  The stacked composition is therefore
-      witness indistinguishable (appendix and Section 7 of [STACKSIG]).
-      These results assume uniform randomness; in the random oracle
-      model, each of the 2 * q + 2 scalars a redemption derives is
-      within about 2^-128 of uniform ("Derived blinding factors" above),
-      a statistical distance of at most (2 * q + 2) * 2^-128.  Like
-      blindness, issuer hiding therefore holds in that model against an
-      adversary that does not find those inputs, including a quantum
-      computer that records transcripts today.  The _binding_ property
-      of the commitment, not its hiding, rests on the discrete
-      logarithm, which is the direction [ARCH] requires.
+         TODO Appendix C claims straight-line extractability for
+         [SIGMA], but not [STACKSIG].  Decide how to justify this gap.
+         Perhaps we expect a direct proof (rather than composition via
+         Theorem 1) to be possible.
+
+   Issuer hiding:  Theorem 2 of [FFKLLS26] establishes issuer-hiding
+      blindness from perfect blindness of issuance, strong key
+      randomizability, and perfect zero knowledge of the issuer-hiding
+      proof, assuming uniform randomness.  Up to the statistical
+      distance given below, a redemption reveals nothing about which
+      Anchor in anchor_set issued the Endorsement, so a Moderator, an
+      Anchor, and the two colluding learn only that some key in
+      anchor_set was used.  X_hat and the response of the single branch
+      proof are statistically close to uniform independently of the
+      branch (Section 6.2.1), and the commitment of Section 6.2.2 hides
+      which position it binds: a commitment key is distributed
+      independently of that position, and an opening independently of
+      whether the value it opens to was committed or equivocated.  The
+      stacked composition is therefore witness indistinguishable
+      (appendix and Section 7 of [STACKSIG]).  These results assume
+      uniform randomness; in the random oracle model, each of the 2 * q
+      + 2 scalars a redemption derives is within about 2^-128 of uniform
+      ("Derived blinding factors" above), a statistical distance of at
+      most (2 * q + 2) * 2^-128.  Like blindness, issuer hiding
+      therefore holds in that model against an adversary that does not
+      find those inputs, including a quantum computer that records
+      transcripts today.  The _binding_ property of the commitment, not
+      its hiding, rests on the discrete logarithm, which is the
+      direction [ARCH] requires.
 
    Partially binding commitments:  The soundness of the issuer-hiding
       proof rests on two things: the commitment of Section 6.2.2 binding
@@ -2304,9 +2284,9 @@ Table of Contents
               <https://eprint.iacr.org/2015/1069>.
 
    [FFKLLS26] Flamini, A., Friedrichs, K., Katz, J., Ladd, W., Lehmann,
-              A., and M. Sefranek, "Issuer-Hiding BBS-Based Anonymous
-              Credentials without Policy Keys", 2026,
-              <https://eprint.iacr.org/2026/870>.
+              A., and M. Sefranek, "Issuer-Hiding Anonymous Tokens and
+              Credentials from Key-Randomizable Signatures", 5 October
+              2026, <https://eprint.iacr.org/2026/870>.
 
    [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
               Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
