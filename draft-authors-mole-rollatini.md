@@ -497,6 +497,13 @@ and MUST NOT be used for more than one derivation. See {{randomness}}. An A
 derived scalar is zero, and `DeriveError` raised, with negligible probability;
 implementations might choose to panic rather than handle the exception.
 
+The two-stage derivation used here and in {{derive-nonce}} avoids the
+output-length limit of a single `hash_to_field` call using `expand_message_xmd`.
+XMD produces at most `255 * Nh` bytes per call, which allows at most 170 scalars
+with SHA-256 and `L = 48` (see `Rollatini(P-256, SHA-256)` {{ciphersuites}}).
+Although Rollatini's issuer-hiding proof needs fewer scalars, other protocols
+that share these methods need larger vectors.
+
 ## Deriving Nonces {#derive-nonce}
 
 The nonces of a proof of knowledge, and the other secret values of its first
