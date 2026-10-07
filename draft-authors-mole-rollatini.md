@@ -306,13 +306,23 @@ Generator():
 ScalarMultGen(r):
 : Outputs `r * B`, where `B` is the group generator.
 
+HashToGroup(x, DST):
+: Deterministically maps a byte string `x` to an `Element`, using the byte
+  string `DST` as the domain separation tag. The map is specified in
+  {{ciphersuites}}.
+
 HashToGroup(x):
-: Deterministically maps a byte string `x` to an `Element`. Parameterized by a
-  domain separation tag (DST); see {{ciphersuites}}.
+: Equivalent to `HashToGroup(x, DST=b"HashToGroup-" + ctx_proto)` where
+  `ctx_proto` is as defined in {{config}}.
+
+HashToScalar(x, DST):
+: Deterministically maps a byte string `x` to a `Scalar`, using the byte
+  string `DST` as the domain separation tag. The map is specified in
+  {{ciphersuites}}.
 
 HashToScalar(x):
-: Deterministically maps a byte string `x` to a `Scalar`. Parameterized by a
-  DST; see {{ciphersuites}}.
+: Equivalent to `HashToScalar(x, DST=b"HashToScalar-" + ctx_proto)` where
+  `ctx_proto` is as defined in {{config}}.
 
 ScalarInverse(s):
 : Outputs the multiplicative inverse of the nonzero `Scalar` `s` modulo `p`.
@@ -481,24 +491,11 @@ def ExpandScalars(self, key: bytes, count: int) -> list[Scalar]:
     return scalars
 ~~~
 
-`expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the
-hash function of the ciphersuite. Every derived scalar depends on all of
-`rand`, so a change to any part of it changes every scalar, except with
-negligible probability. Modeling the hash function as a random oracle, the
-scalars derived from uniformly random `rand` are independent of an
-adversary's view unless it evaluates the hash function on one of the inputs
-the derivation hashes. Each of those holds at least `Nh` bytes the adversary
-does not know: `rand`, the key, or an intermediate value of
-`expand_message_xmd`. An adversary that evaluates the hash function `Q` times
-therefore hits one with probability about `Q / 2^(8 * Nh)`. Short of that,
-each scalar is within about `2^-128` of uniform over the nonzero scalars,
-since `HashToScalar` reduces 16 bytes more than `Ns` ({{ciphersuites}}), and
-the scalars are jointly within the sum of those distances. A derived scalar is zero, and `DeriveError` raised, with
-probability about `1/p`, which is negligible; implementations might choose
-to panic rather than handle the exception.
-
-`rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
-more than one derivation. See {{randomness}}.
+`expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the hash
+function of the ciphersuite. `rand` MUST be `Nseed` bytes of output of `random`
+and MUST NOT be used for more than one derivation. See {{randomness}}. An A
+derived scalar is zero, and `DeriveError` raised, with negligible probability;
+implementations might choose to panic rather than handle the exception.
 
 ## Deriving Nonces {#derive-nonce}
 
@@ -1972,14 +1969,15 @@ Order():
 Identity(), Generator(), ScalarMultGen(r):
 : As defined in {{NISTCurves}}.
 
-HashToGroup(x):
+HashToGroup(x, DST):
 : Use `hash_to_curve` with suite `P256_XMD:SHA-256_SSWU_RO_` {{HASH2CURVE}} and
-  `DST = "HashToGroup-" + ctx_proto`.
+  input `x`, using the given `DST`.
 
-HashToScalar(x):
-: Use `hash_to_field` from {{HASH2CURVE}} with `L = 48`, `expand_message_xmd`
-  with SHA-256, `DST = "HashToScalar-" + ctx_proto`, and a prime modulus
-  equal to `Order()`.
+HashToScalar(x, DST):
+: Use `hash_to_field` from {{HASH2CURVE}} with `count = 1`, `m = 1`,
+  `L = 48`, `expand_message_xmd` with SHA-256, input `x`, a prime modulus equal
+  to `Order()`, and the given `DST`. Return the single resulting field element
+  as a `Scalar`.
 
 ScalarInverse(s):
 : The multiplicative inverse of `s` modulo `Order()`.
