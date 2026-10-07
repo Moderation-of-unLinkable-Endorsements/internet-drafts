@@ -288,7 +288,7 @@ verifier: Credentials are not publicly verifiable, and only their issuer can
 check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.
 
-For spending, both parties know `s`, the spend amount, `a`, 
+For spending, both parties know `s`, the spend amount, `a`,
 the maximum refund, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
 ({{act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
