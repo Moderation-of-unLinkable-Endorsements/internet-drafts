@@ -177,9 +177,9 @@ interchangeable terms.
 
 Each credential protocol defines the contents of its type-specific
 `CredentialChallenge` body. Endorsement protocols use the common Challenge in
-{{challenge-binding}}. For a new operation, a Moderator MUST retain enough
-state to verify that a response uses a Challenge it issued and that remains
-valid. A credential protocol can return an already accepted result after its
+{{challenge-binding}}. For a new operation, a Moderator MUST be able to
+verify, from retained state or by recomputing the Challenge, that a response
+uses a Challenge it issued and that remains valid. A credential protocol can return an already accepted result after its
 Challenge expires, without authorizing a new operation
 ({{act-missing-refund}}).
 
@@ -256,14 +256,20 @@ The type-specific body of `ModeratorChallenge` is:
 
 ~~~ tls-presentation
 struct {
-  opaque nonce[32];
+  opaque redemption_context[32];
 } RedemptionChallenge;
 ~~~
 
 The structure fields are:
 
-* `nonce` is an unpredictable value that the Moderator MUST NOT reuse within
-  its configured replay protection scope.
+* `redemption_context` scopes the redemption. The Moderator constructs it
+  and the Client uses it as received. It MUST distinguish the Moderator and
+  the policy it issues under, and SHOULD distinguish a time window.
+
+The Client does not send the challenge back. The Moderator either keeps the
+challenges it sends or recomputes `redemption_context` when a request
+arrives, for instance as an authenticated encoding of its origin, policy,
+and time window, trying adjacent windows.
 
 Endorsement protocols compute the following value when creating or verifying
 a redemption:
@@ -283,7 +289,10 @@ The values are defined as follows:
 
 `challenge_digest` enters the Fiat-Shamir transcript in both Rollatini and
 Longfellow, but is not a Longfellow circuit public input. A redemption created
-for one `ModeratorChallenge` does not verify under another.
+for one `ModeratorChallenge` does not verify under another, so a Moderator
+that accepts only the `redemption_context` it constructs rejects a
+redemption made under another Moderator's challenge. This does not stop a
+Moderator that relays another Moderator's challenge to the Client.
 
 The `Challenge` algorithm and `ChallengeMessage` in Rollatini issuance are
 defined by {{ROLLATINI}} and are unrelated to a `ModeratorChallenge`.
@@ -296,29 +305,28 @@ Each endorsement protocol defines these abstract operations:
 RedeemRequest(endorsement, moderator_challenge, configuration)
   -> redemption | INVALID
 FinalizeRedeem(redemption, moderator_challenge, configuration)
-  -> replay_protection_id | INVALID
+  -> replay_protection_ids | INVALID
 ~~~
 
 `RedeemRequest` runs at the Client. `FinalizeRedeem` runs at the Moderator,
-verifies the redemption and Challenge binding, and returns a
-`replay_protection_id` or `INVALID`. Both operations derive
-`challenge_digest` from `moderator_challenge` as specified above. After a
-successful call, the Moderator MUST atomically insert `replay_protection_id`
-in the protocol's configured replay protection scope only if it is absent. If
-it is already present, the Moderator MUST treat the result as `INVALID` and
-MUST NOT issue a Credential for the accompanying `IssuanceRequest`. There is
-no global replay protection service.
+verifies the redemption and Challenge binding, and returns a possibly empty
+set of `replay_protection_ids` or `INVALID`. Both operations derive
+`challenge_digest` from `moderator_challenge` as specified above. The
+Moderator MUST atomically insert every returned identifier in the protocol's
+configured replay protection scope, each only if absent. If any is already
+present, the Moderator MUST treat the result as `INVALID` and MUST NOT issue
+a Credential for the accompanying `IssuanceRequest`. There is no global
+replay protection service.
 
 ## No Endorsement Required {#no-endorsement-required}
 
 Endorsement type 0x0001 indicates that the Moderator does not require an
 Endorsement under its policy. It has no grant. The `endorsement` input and
 `Redemption` are both the distinguished empty value. `RedeemRequest` returns
-that empty value. `FinalizeRedeem` returns `challenge_digest` as its
-`replay_protection_id` when the Moderator's policy permits issuance without an
-Endorsement, and `INVALID` otherwise. This prevents reuse of one Moderator
-Challenge within the configured replay protection scope. This type therefore
-implements the same abstract API as every other endorsement type.
+that empty value. `FinalizeRedeem` returns the empty set when the
+Moderator's policy permits issuance without an Endorsement, and `INVALID`
+otherwise. How often a Client can obtain a Credential this way is up to
+Moderator policy, for instance rate limiting.
 
 ## Rollatini {#rollatini}
 
@@ -402,8 +410,8 @@ its Anchor.
 `FinalizeRedeem` checks that the issuance epoch and Moderator Challenge are
 accepted, decodes the payload, and calls
 `VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red, challenge_digest)`.
-Its returned `nf` is the `replay_protection_id`, scoped to `ctx_iss` in the
-Moderator's store. Any decoding or verification failure returns `INVALID`.
+It returns `{nf}`, scoped to `ctx_iss` in the Moderator's store. Any
+decoding or verification failure returns `INVALID`.
 The common replay protection rules apply before Credential issuance. The
 same `nf` is exposed on repeated redemptions, including across Moderators;
 the scheme does not enforce global single use.
@@ -491,9 +499,9 @@ Longfellow implements the common API in {{endorsement-protocols}}.
 evaluates the circuits, and returns the encoded `Redemption` above.
 `FinalizeRedeem` checks the artifact identifier, verifies the proof and its
 transcript binding, and checks that the configured epoch and
-`verification_time` remain current. It returns the nullifier as
-`replay_protection_id`, or `INVALID` on any failure. Both operations derive
-`challenge_digest` from `moderator_challenge`. The common caller performs the
+`verification_time` remain current. It returns `{nullifier}`, or `INVALID`
+on any failure. Both operations derive `challenge_digest` from
+`moderator_challenge`. The common caller performs the
 atomic replay protection check.
 
 ### Differences from Rollatini
@@ -755,9 +763,9 @@ The Moderator processes a `CredentialRequest` in this order:
    ({{endorsement-protocols}}).
 4. It chooses the initial balance `c` under its policy and runs
    `IssueResponse(skM, ctx_cred, c, request)`. It then records the
-   `replay_protection_id` returned by `FinalizeRedeem`. Recording is atomic
-   and fails if the identifier is already recorded. If any step fails, or
-   it is unknown whether the identifier was recorded, no response is
+   `replay_protection_ids` returned by `FinalizeRedeem`. Recording is atomic
+   and fails if any identifier is already recorded. If any step fails, or
+   it is unknown whether the identifiers were recorded, no response is
    released.
 5. It returns the result in a `CredentialResponse`.
 
@@ -1405,10 +1413,10 @@ EndorsementRequest { 0x0002, "" }
 The Client finalizes the `ResponseMessage` into an Endorsement. It then obtains
 a `ModeratorChallenge` from the Moderator, computes its digest, and sends an
 HTTP request with a `CredentialRequest` containing the Rollatini `Redemption`
-and a Privacy Pass `TokenRequest`:
+and a Privacy Pass `TokenRequest` to its Redeem & Issue endpoint:
 
 ~~~
-GET /resource HTTP/1.1
+POST /issue HTTP/1.1
 Host: moderator.example
 Authorization: Mole credential-request="<credential-request>"
 ~~~
