@@ -154,17 +154,12 @@ requirements. The MoLE protocols use ACT as a Credential scheme.
 
 # Introduction
 
-MoLE Credentials carry per-Client state that a Moderator tests and updates at
-each presentation without learning it, and without being able to link
-presentations to each other or to issuance. Anonymous Credit Tokens (ACTs)
-provide a numeric balance as this state ({{credential-scheme}}).
-
-The Moderator is both the issuer and the verifier. A Client obtains an initial
-Credential, spends credits, and finalizes a fresh Credential that replaces
-the spent Credential. {{PROTOCOLS}} maps these operations to the MoLE
-credential APIs, specifies when issuance is authorized, and supplies the
-credential and spend contexts. This document treats those contexts as
-opaque byte strings.
+Applications such as MoLE require an updateable state managed by a
+client but authenticated by a server, with stringent requirements on
+unlinkability of updates and tests. Anonymous Credit Tokens provides
+such functionality: a Client holds a balance that is authenticated via
+signature issued by a Moderator, and can be told to update the balance
+in a verifiable manner.
 
 # Conventions and Definitions
 
@@ -188,7 +183,10 @@ specified by the operation that uses them.
 
 # Preliminaries {#preliminaries}
 
-The construction has three dependencies:
+This document contains executable Python code to specify much of the
+protocol.
+
+ACT uses three three dependencies:
 
 Group:
 : A prime-order group implementing the interface in {{group}}. {{ciphersuites}}
@@ -259,11 +257,11 @@ pkM)` because the Moderator is the issuer. The Moderator publishes
 
 # The Credential Scheme {#credential-scheme}
 
-A MoLE Credential is an Anonymous Credit Token (ACT). It is a
+An Anonymous Credit Token is a
 keyed-verification anonymous credential {{KVAC}} over a privately
 verifiable, pairing-free BBS-style signature {{BBS}} {{TZ23}}, whose
 hidden state is a *balance* `c`: a nonnegative integer number of credits.
-A Moderator issues a Credential with an initial balance of its choosing,
+An Moderator issues a Credential with an initial balance of its choosing,
 and the Client later *spends* from it. A spend reveals a public amount `s`
 and proves, in zero knowledge, that the Credential holds at least `s`
 credits. It also reveals a nullifier, which the Moderator checks against
@@ -284,17 +282,14 @@ issuance or refund that produced that Credential and to other
 presentations, subject to the assumptions and anonymity-set requirements
 of {{act-security}}.
 
-This is the credential type `0x0001` of {{PROTOCOLS}}. In the vocabulary of
-{{ARCH}}, a spend is a *Presentation* whose *Predicate* is "the balance is at
-least `s`", and the refund message is the *Update*.
-
 The scheme is a two-party protocol between a Client and a Moderator. The
 Moderator holds a key pair `(skM, pkM)` and is both the issuer and the
 verifier: Credentials are not publicly verifiable, and only their issuer can
 check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.
 
-For spending, both parties also have `s`, `a`, and a *spend context*
+For spending, both parties know `s`, the spend amount, `a`, 
+the maximum refund, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
 ({{act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
 digest of the encoded challenge.
@@ -825,7 +820,7 @@ whether `s` and `a` are zero; a group marked with a condition below is
 present exactly when it holds.
 
 ~~~
-Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n,
+Relation Spend(A_prime, B_bar, A_bar, H1_prime, K_n,
                s, a,
                Com1[0], ..., Com1[L-1],           (s > 0)
                Com_c,                             (s = 0)
@@ -1217,16 +1212,11 @@ for this reason.
 
 # Ciphersuites {#ciphersuites}
 
-The Credential scheme is specified for the P-256 ciphersuite below. A
-ciphersuite fixes the group, hash functions, encodings, and domain separation
-tags. Both parties agree on the ciphersuite as specified in {{act-config}}.
+A ciphersuite fixes the group, hash functions, encodings, and domain separation
+tags. Both parties MUST agree on the ciphersuite as specified in {{act-config}}.
 
 `ctx_proto` is as computed in {{act-config}}. The seed length, that of the
 random input to every derivation, is `Nseed = 48` bytes.
-
-For the Credential scheme, the P-256 ciphersuite sets `MAX_BIT_LENGTH = 64`,
-which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
-far below the group order ({{act-security}}).
 
 ACTv1 is specified against the `-03` revisions of {{SIGMA}} and
 {{FIAT-SHAMIR}}. A later revision that changes the NARG string or its
@@ -1248,7 +1238,12 @@ algorithms, and canonical encodings of Section 7.1 of {{ROLLATINI}}. ACT uses
 `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
 ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
 `G.DeriveScalars`, `G.ExpandScalars`, `G.DeriveNonces`, and
-`G.DeriveKeyPair`. The group-element permutation of Rollatini is not used.
+`G.DeriveKeyPair`.
+
+For this ciphersuite `MAX_BIT_LENGTH = 64`,
+which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
+far below the group order ({{act-security}}).
+
 
 ## Randomness {#randomness}
 
@@ -1338,21 +1333,21 @@ Unlinkability:
   the random oracle model ({{Section 7.5 of SIGMA}}). This idealized
   argument does not rely on the hardness of discrete logarithms.
 
-  For the specified hash-derived scalars and nonces, the intended
-  statistical guarantee is in the random oracle model, against adversaries
-  with unbounded computation and a bounded number of classical oracle
-  queries. The proof strategy replaces the derived vectors by independent
-  random scalars, with a loss accounting for scalar-reduction bias,
+  For the specified hash-derived scalars and nonces, we are assuming
+  the security of Hash based pseudorandom generators in addition.  The
+  proof strategy replaces the derived vectors by independent random
+  scalars, with a loss accounting for scalar-reduction bias,
   collisions, and queries to secret derivation inputs (Section 4.2 of
-  {{ROLLATINI}}). Concrete bounds for this replacement and its composition
-  with the proofs remain to be established. The public amounts `s`, `a`,
-  and `t`, and the configuration, determine which Credentials could have
-  produced a presentation; {{PROTOCOLS}} constrains these amounts, and
-  {{ARCH}} states the anonymity-set requirements.
+  {{ROLLATINI}}). Concrete bounds for this replacement and its
+  composition with the proofs remain to be established. The public
+  amounts `s`, `a`, and `t`, and the configuration, determine which
+  Credentials could have produced a presentation; {{PROTOCOLS}}
+  constrains these amounts, and {{ARCH}} states the anonymity-set
+  requirements.
 
 Quantum adversaries:
 : A quantum computer capable of solving discrete logarithms in `G` can
-  recover `skM` from `pkM` and forge Credentials. The unlinkability of
+  recover `skM` from `pkM` and forge tokens. The unlinkability of
   recorded transcripts under the specified hash-derived randomness
   requires an analysis in the quantum random oracle model. This analysis
   remains open for this construction.
@@ -1394,13 +1389,12 @@ Identity elements:
   rejection itself.
 
 Nullifier store:
-: The scheme itself does not prevent a second spend of a Credential; the
-  Moderator's record of seen nullifiers does. The Moderator MUST check the
-  nullifier of a spend against that record and add it to the record
-  atomically, so that a spend is either fully processed or not at all.
-  Losing the record re-admits every Credential spent while it was in effect; the record
-  covers at least the lifetime of the credential context it was recorded
-  under ({{PROTOCOLS}}).
+:  The Moderator MUST check the nullifier of a spend against a
+  permanent record and add it to the record atomically, so that a
+  spend is either fully processed or not at all.  Losing the record
+  re-admits every Credential spent while it was in effect; the record
+  covers at least the lifetime of the credential context it was
+  recorded under ({{PROTOCOLS}}).
 
 Single use of Credentials and states:
 : A Client MUST treat a Credential as spent, and MUST have stored the
