@@ -1734,6 +1734,12 @@ function of the ciphersuite. <code>rand</code> <span class="bcp14">MUST</span> b
 and <span class="bcp14">MUST NOT</span> be used for more than one derivation. See <a href="#randomness" class="auto internal xref">Section 7.2</a>. An A
 derived scalar is zero, and <code>DeriveError</code> raised, with negligible probability;
 implementations might choose to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+<p id="section-4.2-6">The two-stage derivation used here and in <a href="#derive-nonce" class="auto internal xref">Section 4.3</a> avoids the
+output-length limit of a single <code>hash_to_field</code> call using <code>expand_message_xmd</code>.
+XMD produces at most <code>255 * Nh</code> bytes per call, which allows at most 170 scalars
+with SHA-256 and <code>L = 48</code> (see <code>Rollatini(P-256, SHA-256)</code> <a href="#ciphersuites" class="auto internal xref">Section 7</a>).
+Although Rollatini's issuer-hiding proof needs fewer scalars, other protocols
+that share these methods need larger vectors.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-nonce">
@@ -1793,12 +1799,6 @@ operation reproduces the same proof. Every <code>instance</code> in this documen
 unambiguous encoding, with its variable-length parts length-prefixed.
 Implementations <span class="bcp14">MUST</span> wipe <code>secret</code>, <code>derive_nonce_input</code>, <code>key</code>, and the
 returned values once they have been used.<a href="#section-4.3-5" class="pilcrow">¶</a></p>
-<p id="section-4.3-6">The two-stage derivation used here and in <a href="#derive-scalar" class="auto internal xref">Section 4.2</a> avoids the
-output-length limit of a single <code>hash_to_field</code> call using <code>expand_message_xmd</code>.
-XMD produces at most <code>255 * Nh</code> bytes per call, which allows at most 170 scalars
-with SHA-256 and <code>L = 48</code> (see <code>Rollatini(P-256, SHA-256)</code> <a href="#ciphersuites" class="auto internal xref">Section 7</a>).
-Although Rollatini's issuer-hiding proof needs fewer scalars, other protocols
-that share these methods need larger vectors.<a href="#section-4.3-6" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
