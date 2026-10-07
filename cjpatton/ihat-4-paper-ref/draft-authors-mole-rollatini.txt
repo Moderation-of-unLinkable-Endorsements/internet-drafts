@@ -163,7 +163,8 @@ Table of Contents
 
    The remainder of this document is organized as follows.  After
    defining conventions and cryptographic preliminaries (Section 3), we
-   given an overview of Rollatini in Section 4.  Section 5 specifies the
+   given an overview of issuance and specify some functionalities common
+   to issuance and redemption Section 4.  Section 5 specifies the
    issuance flow, including message encodings and session handling.
    Section 6 specifies issuer-hiding redemption, including key
    rerandomization and the proof that the issuing Anchor belongs to the
@@ -191,11 +192,10 @@ Table of Contents
    encoding, so its width depends on the length of the contents it
    carries.
 
-   Algorithms are specified in Python and use the following functions,
-   types, and notation.
-
-   Type bytes is used for byte strings, int for integers, and Sequence
-   for a read-only sequence.
+   The following functions, types, and notation are used throughout this
+   document.  The Python snippets are excerpts from the reference
+   implementation.  They use bytes for byte strings, int for integers,
+   and Sequence for a read-only sequence.
 
    For any byte string x, len(x) denotes its length in bytes.
 
@@ -224,8 +224,7 @@ Table of Contents
 
    Seed(x, k) denotes the k-th seed in a byte string of concatenated
    seeds, that is x[k * Nseed:(k + 1) * Nseed], with k counted from
-   zero.  Section 7 fixes the seed length Nseed.  This function is
-   defined as follows:
+   zero.  Section 7 fixes the seed length Nseed.
 
    def Seed(value: bytes, index: int) -> bytes:
        return value[index * Nseed : (index + 1) * Nseed]

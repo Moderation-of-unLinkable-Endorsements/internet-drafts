@@ -1374,14 +1374,14 @@ document treats those contexts as opaque byte strings. Configuration
 encodings and discovery remain open work in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <p id="section-1-5">The remainder of this document is organized as follows. After defining
 conventions and cryptographic preliminaries (<a href="#preliminaries" class="auto internal xref">Section 3</a>), we given an
-overview of Rollatini in <a href="#scheme" class="auto internal xref">Section 4</a>. <a href="#issuance" class="auto internal xref">Section 5</a> specifies the issuance flow,
-including message encodings and session handling. <a href="#redemption" class="auto internal xref">Section 6</a> specifies
-issuer-hiding redemption, including key rerandomization and the proof that the
-issuing Anchor belongs to the Moderator's Anchor Set. <a href="#ciphersuites" class="auto internal xref">Section 7</a> defines
-the supported ciphersuites, and <a href="#security-considerations" class="auto internal xref">Section 8</a> discusses the
-construction's security and deployment considerations. <a href="#iana" class="auto internal xref">Section 9</a> covers IANA
-considerations, and <a href="#test-vectors" class="auto internal xref">Appendix A</a> provides test vectors for the ciphersuites
-defined here.<a href="#section-1-5" class="pilcrow">¶</a></p>
+overview of issuance and specify some functionalities common to issuance and
+redemption <a href="#scheme" class="auto internal xref">Section 4</a>. <a href="#issuance" class="auto internal xref">Section 5</a> specifies the issuance flow, including
+message encodings and session handling. <a href="#redemption" class="auto internal xref">Section 6</a> specifies issuer-hiding
+redemption, including key rerandomization and the proof that the issuing Anchor
+belongs to the Moderator's Anchor Set. <a href="#ciphersuites" class="auto internal xref">Section 7</a> defines the supported
+ciphersuites, and <a href="#security-considerations" class="auto internal xref">Section 8</a> discusses the construction's
+security and deployment considerations. <a href="#iana" class="auto internal xref">Section 9</a> covers IANA considerations, and
+<a href="#test-vectors" class="auto internal xref">Appendix A</a> provides test vectors for the ciphersuites defined here.<a href="#section-1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1401,43 +1401,42 @@ order. This document also uses the variable-size vector convention <code>&lt;V&g
 defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">Algorithms are specified in Python and use the following functions, types, and
-notation.<a href="#section-2-4" class="pilcrow">¶</a></p>
-<p id="section-2-5">Type <code>bytes</code> is used for byte strings, <code>int</code> for integers, and <code>Sequence</code> for a
-read-only sequence.<a href="#section-2-5" class="pilcrow">¶</a></p>
-<p id="section-2-6">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-6" class="pilcrow">¶</a></p>
-<p id="section-2-7">For two byte strings <code>x</code> and <code>y</code>, <code>x + y</code> denotes their concatenation, and,
-if they are of equal length, <code>_xor(x, y)</code> denotes their bytewise exclusive or.<a href="#section-2-7" class="pilcrow">¶</a></p>
-<p id="section-2-8">For a byte string <code>x</code>, <code>x[i:j]</code> denotes the substring of <code>x</code> that begins at
+<p id="section-2-4">The following functions, types, and notation are used throughout this
+document. The Python snippets are excerpts from the reference implementation.
+They use <code>bytes</code> for byte strings, <code>int</code> for integers, and <code>Sequence</code> for a
+read-only sequence.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-5">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">For two byte strings <code>x</code> and <code>y</code>, <code>x + y</code> denotes their concatenation, and,
+if they are of equal length, <code>_xor(x, y)</code> denotes their bytewise exclusive or.<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-7">For a byte string <code>x</code>, <code>x[i:j]</code> denotes the substring of <code>x</code> that begins at
 its byte with index <code>i</code> and ends just before its byte with index <code>j</code>, where
-indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-8" class="pilcrow">¶</a></p>
-<p id="section-2-9">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
+indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-7" class="pilcrow">¶</a></p>
+<p id="section-2-8">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
 <code>x[i:j]</code> denotes the sublist from index <code>i</code> up to but not including index <code>j</code>,
-and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-9" class="pilcrow">¶</a></p>
-<p id="section-2-10"><code>I2OSP(value, length)</code> converts a nonnegative integer into a byte string of the
+and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-8" class="pilcrow">¶</a></p>
+<p id="section-2-9"><code>I2OSP(value, length)</code> converts a nonnegative integer into a byte string of the
 requested length in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>. We write
 <code>U16Prefixed(value)</code> for the concatenation of <code>I2OSP(len(value), 2)</code> and
-byte string <code>value</code>.<a href="#section-2-10" class="pilcrow">¶</a></p>
-<p id="section-2-11"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
+byte string <code>value</code>.<a href="#section-2-9" class="pilcrow">¶</a></p>
+<p id="section-2-10"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
 them with a cryptographically secure random number generator. It is the only
 source of randomness in this document: every other value that has to be
-unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-11" class="pilcrow">¶</a></p>
-<p id="section-2-12"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
+unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-10" class="pilcrow">¶</a></p>
+<p id="section-2-11"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
 that is <code>x[k * Nseed:(k + 1) * Nseed]</code>, with <code>k</code> counted from zero.
-<a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>. This function is defined as
-follows:<a href="#section-2-12" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-2-13">
+<a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>.<a href="#section-2-11" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-2-12">
 <pre>
 def Seed(value: bytes, index: int) -&gt; bytes:
     return value[index * Nseed : (index + 1) * Nseed]
-</pre><a href="#section-2-13" class="pilcrow">¶</a>
+</pre><a href="#section-2-12" class="pilcrow">¶</a>
 </div>
-<p id="section-2-14">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
-do not include a terminating NUL byte.<a href="#section-2-14" class="pilcrow">¶</a></p>
-<p id="section-2-15">The definitions of the record types named in function signatures are implicit.
+<p id="section-2-13">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
+do not include a terminating NUL byte.<a href="#section-2-13" class="pilcrow">¶</a></p>
+<p id="section-2-14">The definitions of the record types named in function signatures are implicit.
 Parameters become constant values once the ciphersuite is fixed. An algorithm
 that can fail raises an error; the errors used in this document are listed in
-<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-15" class="pilcrow">¶</a></p>
+<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-14" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
