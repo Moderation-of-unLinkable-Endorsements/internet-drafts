@@ -53,7 +53,7 @@ class Response(NamedTuple):
     t: Scalar
 
 
-class Endorsement(NamedTuple):
+class Token(NamedTuple):
     c: Scalar
     s: Scalar
     y: Scalar
@@ -61,9 +61,9 @@ class Endorsement(NamedTuple):
     nf: bytes
 
 
-class Redemption(NamedTuple):
+class Endorsement(NamedTuple):
     X_hat: Element
-    shown: Endorsement
+    shown: Token
     proof_challenge: Scalar
     response: Scalar
     commitment_keys: Sequence[Element]
@@ -166,7 +166,7 @@ def Respond(skA: Scalar, state: AnchorState, challenge: Scalar) -> Response:
     return response
 
 
-def Finalize(pkA: Element, state: ClientState, response: Response) -> Endorsement:
+def Finalize(pkA: Element, state: ClientState, response: Response) -> Token:
     if pkA.isIdentity():
         raise VerifyError
 
@@ -188,19 +188,19 @@ def Finalize(pkA: Element, state: ClientState, response: Response) -> Endorsemen
     y_final = gamma1 * y
     t_final = gamma1 * t + r2
 
-    return Endorsement(c, s_final, y_final, t_final, nf)
+    return Token(c, s_final, y_final, t_final, nf)
 
 
 def Verify(
     pkA: Element,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
 ) -> bool:
     if pkA.isIdentity():
         return False
 
-    (c, s, y, t, nf) = endorsement
+    (c, s, y, t, nf) = token
 
     if len(nf) != Nn or c.isZero() or y.isZero():
         return False
@@ -288,12 +288,12 @@ def Depth(n: int) -> int:
 def ProofStatement(
     anchor_set: Sequence[Element],
     X_hat: Element,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
 ) -> bytes:
-    (c, s_hat, y, t, nf) = endorsement
+    (c, s_hat, y, t, nf) = token
     n = len(anchor_set)
 
     anchor_set_enc = b""
@@ -318,7 +318,7 @@ def ProofStatement(
 def ComputeProofChallenge(
     anchor_set: Sequence[Element],
     X_hat: Element,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
@@ -333,7 +333,7 @@ def ComputeProofChallenge(
         ProofStatement(
             anchor_set,
             X_hat,
-            endorsement,
+            token,
             ctx_iss,
             ctx_red,
             challenge_digest,
@@ -435,7 +435,7 @@ def ProveIssuer(
     index: int,
     delta: Scalar,
     X_hat: Element,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
@@ -451,7 +451,7 @@ def ProveIssuer(
     instance = ProofStatement(
         anchor_set,
         X_hat,
-        endorsement,
+        token,
         ctx_iss,
         ctx_red,
         challenge_digest,
@@ -481,7 +481,7 @@ def ProveIssuer(
     proof_challenge = ComputeProofChallenge(
         anchor_set,
         X_hat,
-        endorsement,
+        token,
         ctx_iss,
         ctx_red,
         challenge_digest,
@@ -505,7 +505,7 @@ def ProveIssuer(
 def VerifyIssuer(
     anchor_set: Sequence[Element],
     X_hat: Element,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
@@ -537,7 +537,7 @@ def VerifyIssuer(
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
         X_hat,
-        endorsement,
+        token,
         ctx_iss,
         ctx_red,
         challenge_digest,
@@ -549,12 +549,12 @@ def VerifyIssuer(
 def Redeem(
     anchor_set: Sequence[Element],
     index: int,
-    endorsement: Endorsement,
+    token: Token,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
-) -> Redemption:
-    (c, s, y, t, nf) = endorsement
+) -> Endorsement:
+    (c, s, y, t, nf) = token
     n = len(anchor_set)
 
     if not 0 <= index < n:
@@ -565,7 +565,7 @@ def Redeem(
 
     X_hat = anchor_set[index] + delta * B
     s_hat = s + (c * y) * delta
-    shown = Endorsement(c, s_hat, y, t, nf)
+    shown = Token(c, s_hat, y, t, nf)
 
     (proof_challenge, response, commitment_keys, openings) = ProveIssuer(
         anchor_set,
@@ -579,7 +579,7 @@ def Redeem(
         Seed(rand, 1),
     )
 
-    return Redemption(
+    return Endorsement(
         X_hat,
         shown,
         proof_challenge,
@@ -589,9 +589,9 @@ def Redeem(
     )
 
 
-def VerifyRedemption(
+def VerifyEndorsement(
     anchor_set: Sequence[Element],
-    redemption: Redemption,
+    endorsement: Endorsement,
     ctx_iss: bytes,
     ctx_red: bytes,
     challenge_digest: bytes,
@@ -603,7 +603,7 @@ def VerifyRedemption(
         response,
         commitment_keys,
         openings,
-    ) = redemption
+    ) = endorsement
 
     if not Verify(X_hat, shown, ctx_iss, ctx_red):
         raise VerifyError

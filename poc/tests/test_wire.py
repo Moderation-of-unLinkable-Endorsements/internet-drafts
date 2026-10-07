@@ -26,21 +26,21 @@ def _issue_over_the_wire():
     response_message = wire.EncodeResponseMessage(response)
     response = wire.DecodeResponseMessage(response_message)
 
-    endorsement = protocol.Finalize(pkA, client_state, response)
-    encoded = wire.EncodeEndorsement(endorsement)
-    assert wire.DecodeEndorsement(encoded) == endorsement
+    token = protocol.Finalize(pkA, client_state, response)
+    encoded = wire.EncodeToken(token)
+    assert wire.DecodeToken(encoded) == token
     messages = [commit_message, challenge_message, response_message, encoded]
-    return pkA, endorsement, messages
+    return pkA, token, messages
 
 
-def _redemption(size):
-    pkA, endorsement, _ = _issue_over_the_wire()
+def _endorsement(size):
+    pkA, token, _ = _issue_over_the_wire()
     anchor_set = [G.ScalarMultGen(protocol.Scalar(100 + i)) for i in range(size)]
     anchor_set[-1] = pkA
-    redemption = protocol.Redeem(
-        anchor_set, size - 1, endorsement, b"epoch-1", b"moderator-1", b"d"
+    endorsement = protocol.Redeem(
+        anchor_set, size - 1, token, b"epoch-1", b"moderator-1", b"d"
     )
-    return anchor_set, redemption, wire.EncodeRedemption(redemption)
+    return anchor_set, endorsement, wire.EncodeEndorsement(endorsement)
 
 
 def test_message_sizes():
@@ -55,40 +55,40 @@ def test_message_sizes():
 
 
 @pytest.mark.parametrize("size", [1, 2, 3, 5, 8, 9])
-def test_redemption_round_trip(size):
-    anchor_set, redemption, encoded = _redemption(size)
+def test_endorsement_round_trip(size):
+    anchor_set, endorsement, encoded = _endorsement(size)
     q = protocol.Depth(size)
     headers = len(wire.EncodeLength(q * G.Ne)) + len(wire.EncodeLength(q * G.Ns))
     assert len(encoded) == (
         G.Ne + 4 * G.Ns + protocol.Nn + 2 * G.Ns + headers + q * (G.Ne + G.Ns)
     )
-    decoded = wire.DecodeRedemption(encoded, size)
-    assert decoded == redemption
-    assert protocol.VerifyRedemption(
+    decoded = wire.DecodeEndorsement(encoded, size)
+    assert decoded == endorsement
+    assert protocol.VerifyEndorsement(
         anchor_set, decoded, b"epoch-1", b"moderator-1", b"d"
-    ) == redemption.shown.nf
+    ) == endorsement.shown.nf
 
 
-def test_redemption_rejects_another_anchor_set_size():
-    _, _, encoded = _redemption(3)
+def test_endorsement_rejects_another_anchor_set_size():
+    _, _, encoded = _endorsement(3)
     for n in (2, 5):
         with pytest.raises(DeserializeError, match="Anchor Set"):
-            wire.DecodeRedemption(encoded, n)
+            wire.DecodeEndorsement(encoded, n)
     # Depth(3) == Depth(4), so a set of four keys decodes and the proof fails.
-    wire.DecodeRedemption(encoded, 4)
+    wire.DecodeEndorsement(encoded, 4)
 
 
 def test_truncated_and_padded_messages_are_rejected():
     _, _, messages = _issue_over_the_wire()
-    _, _, redemption = _redemption(3)
+    _, _, endorsement = _endorsement(3)
     decoders = [
         wire.DecodeCommitMessage,
         wire.DecodeChallengeMessage,
         wire.DecodeResponseMessage,
-        wire.DecodeEndorsement,
-        lambda data: wire.DecodeRedemption(data, 3),
+        wire.DecodeToken,
+        lambda data: wire.DecodeEndorsement(data, 3),
     ]
-    for decode, message in zip(decoders, messages + [redemption], strict=True):
+    for decode, message in zip(decoders, messages + [endorsement], strict=True):
         decode(message)
         for end in range(len(message)):
             with pytest.raises(DeserializeError):

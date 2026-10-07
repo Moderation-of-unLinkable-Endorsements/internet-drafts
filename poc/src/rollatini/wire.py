@@ -15,8 +15,8 @@ from .protocol import (
     Endorsement,
     G,
     Nn,
-    Redemption,
     Response,
+    Token,
 )
 
 
@@ -64,12 +64,12 @@ class Reader:
     def scalar(self) -> Scalar:
         return G.DeserializeScalar(self.take(G.Ns))
 
-    def endorsement(self) -> Endorsement:
+    def token(self) -> Token:
         c = self.scalar()
         s = self.scalar()
         y = self.scalar()
         t = self.scalar()
-        return Endorsement(c, s, y, t, self.take(Nn))
+        return Token(c, s, y, t, self.take(Nn))
 
     def finish(self) -> None:
         if self.offset != len(self.data):
@@ -122,43 +122,43 @@ def DecodeResponseMessage(data: bytes) -> Response:
     return Response(s, y, t)
 
 
-def EncodeEndorsement(endorsement: Endorsement) -> bytes:
-    if len(endorsement.nf) != Nn:
+def EncodeToken(token: Token) -> bytes:
+    if len(token.nf) != Nn:
         raise ValueError(f"nullifier must be exactly {Nn} bytes")
     return (
-        G.SerializeScalar(endorsement.c)
-        + G.SerializeScalar(endorsement.s)
-        + G.SerializeScalar(endorsement.y)
-        + G.SerializeScalar(endorsement.t)
-        + endorsement.nf
+        G.SerializeScalar(token.c)
+        + G.SerializeScalar(token.s)
+        + G.SerializeScalar(token.y)
+        + G.SerializeScalar(token.t)
+        + token.nf
     )
 
 
-def DecodeEndorsement(data: bytes) -> Endorsement:
+def DecodeToken(data: bytes) -> Token:
     reader = Reader(data)
-    endorsement = reader.endorsement()
+    token = reader.token()
     reader.finish()
-    return endorsement
+    return token
 
 
-def EncodeRedemption(redemption: Redemption) -> bytes:
+def EncodeEndorsement(endorsement: Endorsement) -> bytes:
     return (
-        G.SerializeElement(redemption.X_hat)
-        + EncodeEndorsement(redemption.shown)
-        + G.SerializeScalar(redemption.proof_challenge)
-        + G.SerializeScalar(redemption.response)
+        G.SerializeElement(endorsement.X_hat)
+        + EncodeToken(endorsement.shown)
+        + G.SerializeScalar(endorsement.proof_challenge)
+        + G.SerializeScalar(endorsement.response)
         + _vector(
-            b"".join(G.SerializeElement(Q) for Q in redemption.commitment_keys)
+            b"".join(G.SerializeElement(Q) for Q in endorsement.commitment_keys)
         )
-        + _vector(b"".join(G.SerializeScalar(o) for o in redemption.openings))
+        + _vector(b"".join(G.SerializeScalar(o) for o in endorsement.openings))
     )
 
 
-def DecodeRedemption(data: bytes, n: int) -> Redemption:
-    """Decode a redemption against an Anchor Set of `n` keys."""
+def DecodeEndorsement(data: bytes, n: int) -> Endorsement:
+    """Decode an Endorsement against an Anchor Set of `n` keys."""
     reader = Reader(data)
     X_hat = reader.element()
-    shown = reader.endorsement()
+    shown = reader.token()
     proof_challenge = reader.scalar()
     response = reader.scalar()
     keys = reader.vector()
@@ -170,7 +170,7 @@ def DecodeRedemption(data: bytes, n: int) -> Redemption:
         raise DeserializeError("vector lengths do not match the Anchor Set")
     keys_reader = Reader(keys)
     openings_reader = Reader(openings)
-    return Redemption(
+    return Endorsement(
         X_hat,
         shown,
         proof_challenge,

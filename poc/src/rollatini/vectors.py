@@ -130,9 +130,9 @@ def _render(source: Source) -> str:
     encoded = wire.EncodeResponseMessage(response)
     entries += entry("issue.response.message", encoded)
     response = wire.DecodeResponseMessage(encoded)
-    endorsement = rollatini.Finalize(pkA, client_state, response)
-    assert rollatini.Verify(pkA, endorsement, CTX_ISS, CTX_RED)
-    entries += entry("issue.endorsement", wire.EncodeEndorsement(endorsement))
+    token = rollatini.Finalize(pkA, client_state, response)
+    assert rollatini.Verify(pkA, token, CTX_ISS, CTX_RED)
+    entries += entry("issue.token", wire.EncodeToken(token))
     out += "\n## Issuance {#rollatini-tv-issue}\n\n" + block(entries)
 
     for n, index in REDEMPTIONS:
@@ -150,18 +150,18 @@ def _render(source: Source) -> str:
             b"".join(G.SerializeElement(pk) for pk in anchor_set),
         )
         entries += entry(key + ".challenge_digest", CHALLENGE_DIGEST)
-        redemption = rollatini.Redeem(
-            anchor_set, index, endorsement, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
+        endorsement = rollatini.Redeem(
+            anchor_set, index, token, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         rand = source.rand()
         (delta,) = G.DeriveScalars(common.Seed(rand, 0), b"delta", 1)
         entries += entry(key + ".rand", rand)
         entries += entry(key + ".delta", G.SerializeScalar(delta))
-        encoded = wire.EncodeRedemption(redemption)
-        entries += entry(key + ".message", encoded)
-        redemption = wire.DecodeRedemption(encoded, n)
-        nf = rollatini.VerifyRedemption(
-            anchor_set, redemption, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
+        encoded = wire.EncodeEndorsement(endorsement)
+        entries += entry(key + ".endorsement", encoded)
+        endorsement = wire.DecodeEndorsement(encoded, n)
+        nf = rollatini.VerifyEndorsement(
+            anchor_set, endorsement, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         entries += entry(key + ".nf", nf)
         title = f"Redemption Against {n} Anchor{'s' if n > 1 else ''}"
