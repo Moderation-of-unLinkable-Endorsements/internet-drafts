@@ -885,7 +885,7 @@ result, and step 4 follows.
    policy whether to refund and, if so, the return amount `t`, and runs
    `IssueRefund(skM, ctx_cred, spend, t)` if it refunds. It then records the
    *result* under `(key_id, spend.k)`: the digest of the presentation
-   octets, `ctx_cred`, and the decision, either `Refund(t)`, optionally with
+   octets, `ctx_cred`, and the decision, either `Refund(t)` with
    the octets of the `RefundMessage`, or `NoUpdate`. Recording is atomic and
    MUST fail if a result is already recorded under that nullifier or if the
    key or context is no longer accepted, so of two racing presentations at
@@ -969,11 +969,11 @@ interval. Step 1 of {{act-spend}} checks the record and the continued
 acceptance of its key and credential context before returning a result.
 Recovery remains available after the presentation's challenge expires:
 
-* For a recorded `Refund(t)`, the Moderator returns the refund it stored, or
-  runs `IssueRefund(skM, ctx_cred, spend, t)` again with the recorded
-  `ctx_cred` and `t`. Re-running `IssueRefund` is harmless, since every
-  refund of one spend shares the nullifier `kstar` ({{ACT}}).
+* For a recorded `Refund(t)`, the Moderator returns the refund it stored.
 * For a recorded `NoUpdate`, the Moderator returns an absent update.
+
+The recovery handle ({{HTTP-TRANSPORT}}) is
+`key_id || SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate)`.
 
 The Moderator MUST NOT authorize another operation for a recorded nullifier,
 and MUST NOT change a recorded decision. It returns the recovered result
@@ -1070,6 +1070,9 @@ including the same `Update` or the same absence of an update. It MUST reject the
 replay after that record expires and MUST NOT issue a second Credential. The
 Client MUST NOT combine the same presented Credential with a different update
 request. These requirements are the retry semantics of {{REVERSE-FLOW}}.
+
+The recovery handle ({{HTTP-TRANSPORT}}) is
+`token.token_key_id || token.nonce || SHA-256(PresentationAndUpdate)`.
 
 ### Limitations
 

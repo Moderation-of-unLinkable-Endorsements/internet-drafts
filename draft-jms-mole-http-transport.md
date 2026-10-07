@@ -340,11 +340,37 @@ Mole-Credential: update="<optional-credential-update>"
 Each credential type MUST define the challenge fields that partition cached
 Credentials, or state that Credentials of that type are not cacheable.
 
+### Client -> Moderator - Recovery {#recovery}
+
+A Client missing the response to a presentation MAY send a handle instead of
+resending it.
+
+~~~tls-presentation
+struct {
+  uint16 credential_type;
+  opaque recovery_handle<V>;
+} CredentialRecovery;
+~~~
+
+The handle is defined by the credential type ({{PROTOCOLS}}). It is sent in a
+`POST` request with empty content to the Redeem & Issue endpoint
+({{configuration}}):
+
+~~~
+Authorization: Mole recovery="<credential-recovery>"
+~~~
+
+The Moderator treats it as a byte-identical resend of the presentation,
+using no other Client identifier. It MUST NOT perform the protected operation
+or verify a proof. It answers `409` with the recorded update while the result
+is retained, and `401` otherwise, whether or not a record exists.
+
 ### ACT Responses {#act-responses}
 
 For credential type `0x0001`, the Moderator MUST use the following response
 rules. The issuance rows apply to Redeem & Issue, and the presentation rows
-apply to Presentation and Update, as specified in {{PROTOCOLS}}.
+apply to Presentation and Update and to recovery requests ({{recovery}}),
+as specified in {{PROTOCOLS}}.
 
 | Outcome | HTTP status | Mole-Credential |
 |---|---|---|
@@ -360,7 +386,8 @@ A `401` response MUST include a `WWW-Authenticate: Mole` challenge for the
 required exchange. Invalid authentication includes an unknown or retired
 key, an unaccepted credential context, a failed proof, or a repeated
 nullifier for which recovery is unavailable. A recoverable byte-identical
-presentation is handled by the recovery row.
+presentation or recovery request ({{recovery}}) is handled by the recovery
+row.
 
 Acceptance of an ACT presentation is the recording of its result in the
 nullifier store. A response sent after that recording MUST carry the recorded
