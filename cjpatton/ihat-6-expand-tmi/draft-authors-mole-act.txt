@@ -125,18 +125,12 @@ Table of Contents
 
 1.  Introduction
 
-   MoLE Credentials carry per-Client state that a Moderator tests and
-   updates at each presentation without learning it, and without being
-   able to link presentations to each other or to issuance.  Anonymous
-   Credit Tokens (ACTs) provide a numeric balance as this state
-   (Section 4).
-
-   The Moderator is both the issuer and the verifier.  A Client obtains
-   an initial Credential, spends credits, and finalizes a fresh
-   Credential that replaces the spent Credential.  [PROTOCOLS] maps
-   these operations to the MoLE credential APIs, specifies when issuance
-   is authorized, and supplies the credential and spend contexts.  This
-   document treats those contexts as opaque byte strings.
+   Applications such as MoLE require an updateable state managed by a
+   client but authenticated by a server, with stringent requirements on
+   unlinkability of updates and tests.  Anonymous Credit Tokens provides
+   such functionality: a Client holds a balance that is authenticated
+   via signature issued by a Moderator, and can be told to update the
+   balance in a verifiable manner.
 
 2.  Conventions and Definitions
 
@@ -165,7 +159,10 @@ Table of Contents
 
 3.  Preliminaries
 
-   The construction has three dependencies:
+   This document contains executable Python code to specify much of the
+   protocol.
+
+   ACT uses three three dependencies:
 
    Group:  A prime-order group implementing the interface in
       Section 3.1.  Section 5 gives concrete instances.
@@ -234,12 +231,12 @@ Table of Contents
 
 4.  The Credential Scheme
 
-   A MoLE Credential is an Anonymous Credit Token (ACT).  It is a keyed-
-   verification anonymous credential [KVAC] over a privately verifiable,
-   pairing-free BBS-style signature [BBS] [TZ23], whose hidden state is
-   a _balance_ c: a nonnegative integer number of credits.  A Moderator
-   issues a Credential with an initial balance of its choosing, and the
-   Client later _spends_ from it.  A spend reveals a public amount s and
+   An Anonymous Credit Token is a keyed-verification anonymous
+   credential [KVAC] over a privately verifiable, pairing-free BBS-style
+   signature [BBS] [TZ23], whose hidden state is a _balance_ c: a
+   nonnegative integer number of credits.  An Moderator issues a
+   Credential with an initial balance of its choosing, and the Client
+   later _spends_ from it.  A spend reveals a public amount s and
    proves, in zero knowledge, that the Credential holds at least s
    credits.  It also reveals a nullifier, which the Moderator checks
    against its record of accepted spends to enforce single use.
@@ -259,10 +256,6 @@ Table of Contents
    and to other presentations, subject to the assumptions and anonymity-
    set requirements of Section 6.
 
-   This is the credential type 0x0001 of [PROTOCOLS].  In the vocabulary
-   of [ARCH], a spend is a _Presentation_ whose _Predicate_ is "the
-   balance is at least s", and the refund message is the _Update_.
-
    The scheme is a two-party protocol between a Client and a Moderator.
    The Moderator holds a key pair (skM, pkM) and is both the issuer and
    the verifier: Credentials are not publicly verifiable, and only their
@@ -270,10 +263,10 @@ Table of Contents
    spending, is a single request/response exchange followed by a Client-
    local finalization.
 
-   For spending, both parties also have s, a, and a _spend context_
-   ctx_spend that binds the proof to the Moderator's challenge
-   (Section 4.6).  [PROTOCOLS] defines this context as the SHA-256
-   digest of the encoded challenge.
+   For spending, both parties know s, the spend amount, a, the maximum
+   refund, and a _spend context_ ctx_spend that binds the proof to the
+   Moderator's challenge (Section 4.6).  [PROTOCOLS] defines this
+   context as the SHA-256 digest of the encoded challenge.
 
       Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
     ------------------------------------------------------------------
@@ -772,7 +765,7 @@ Table of Contents
    selected by whether s and a are zero; a group marked with a condition
    below is present exactly when it holds.
 
-   Relation Spend(H1, H2, H3, A_prime, B_bar, A_bar, H1_prime, K_n,
+   Relation Spend(A_prime, B_bar, A_bar, H1_prime, K_n,
                   s, a,
                   Com1[0], ..., Com1[L-1],           (s > 0)
                   Com_c,                             (s = 0)
@@ -1142,17 +1135,12 @@ Table of Contents
 
 5.  Ciphersuites
 
-   The Credential scheme is specified for the P-256 ciphersuite below.
    A ciphersuite fixes the group, hash functions, encodings, and domain
-   separation tags.  Both parties agree on the ciphersuite as specified
-   in Section 4.1.
+   separation tags.  Both parties MUST agree on the ciphersuite as
+   specified in Section 4.1.
 
    ctx_proto is as computed in Section 4.1.  The seed length, that of
    the random input to every derivation, is Nseed = 48 bytes.
-
-   For the Credential scheme, the P-256 ciphersuite sets MAX_BIT_LENGTH
-   = 64, which allows amounts to be carried as uint64 values and keeps
-   2^(L+1) far below the group order (Section 6).
 
    ACTv1 is specified against the -03 revisions of [SIGMA] and
    [FIAT-SHAMIR].  A later revision that changes the NARG string or its
@@ -1174,8 +1162,11 @@ Table of Contents
    ACT uses Ne = 33, Ns = 32, and Nseed = 48.  Instantiate every hash
    with the ACT ctx_proto of Section 4.1, including the explicit DSTs of
    G.DeriveScalars, G.ExpandScalars, G.DeriveNonces, and
-   G.DeriveKeyPair.  The group-element permutation of Rollatini is not
-   used.
+   G.DeriveKeyPair.
+
+   For this ciphersuite MAX_BIT_LENGTH = 64, which allows amounts to be
+   carried as uint64 values and keeps 2^(L+1) far below the group order
+   (Section 6).
 
 5.2.  Randomness
 
@@ -1272,23 +1263,22 @@ Table of Contents
       random oracle model (Section 7.5 of [SIGMA]).  This idealized
       argument does not rely on the hardness of discrete logarithms.
 
-      For the specified hash-derived scalars and nonces, the intended
-      statistical guarantee is in the random oracle model, against
-      adversaries with unbounded computation and a bounded number of
-      classical oracle queries.  The proof strategy replaces the derived
-      vectors by independent random scalars, with a loss accounting for
-      scalar-reduction bias, collisions, and queries to secret
-      derivation inputs (Section 4.2 of [ROLLATINI]).  Concrete bounds
-      for this replacement and its composition with the proofs remain to
-      be established.  The public amounts s, a, and t, and the
-      configuration, determine which Credentials could have produced a
-      presentation; [PROTOCOLS] constrains these amounts, and [ARCH]
-      states the anonymity-set requirements.
+      For the specified hash-derived scalars and nonces, we are assuming
+      the security of Hash based pseudorandom generators in addition.
+      The proof strategy replaces the derived vectors by independent
+      random scalars, with a loss accounting for scalar-reduction bias,
+      collisions, and queries to secret derivation inputs (Section 4.2
+      of [ROLLATINI]).  Concrete bounds for this replacement and its
+      composition with the proofs remain to be established.  The public
+      amounts s, a, and t, and the configuration, determine which
+      Credentials could have produced a presentation; [PROTOCOLS]
+      constrains these amounts, and [ARCH] states the anonymity-set
+      requirements.
 
    Quantum adversaries:  A quantum computer capable of solving discrete
-      logarithms in G can recover skM from pkM and forge Credentials.
-      The unlinkability of recorded transcripts under the specified
-      hash-derived randomness requires an analysis in the quantum random
+      logarithms in G can recover skM from pkM and forge tokens.  The
+      unlinkability of recorded transcripts under the specified hash-
+      derived randomness requires an analysis in the quantum random
       oracle model.  This analysis remains open for this construction.
 
    Amount validation:  The spend relation constrains c, s, a, v1, and v2
@@ -1327,14 +1317,12 @@ Table of Contents
       group library accepts an encoding of the identity must perform the
       rejection itself.
 
-   Nullifier store:  The scheme itself does not prevent a second spend
-      of a Credential; the Moderator's record of seen nullifiers does.
-      The Moderator MUST check the nullifier of a spend against that
-      record and add it to the record atomically, so that a spend is
-      either fully processed or not at all.  Losing the record re-admits
-      every Credential spent while it was in effect; the record covers
-      at least the lifetime of the credential context it was recorded
-      under ([PROTOCOLS]).
+   Nullifier store:  The Moderator MUST check the nullifier of a spend
+      against a permanent record and add it to the record atomically, so
+      that a spend is either fully processed or not at all.  Losing the
+      record re-admits every Credential spent while it was in effect;
+      the record covers at least the lifetime of the credential context
+      it was recorded under ([PROTOCOLS]).
 
    Single use of Credentials and states:  A Client MUST treat a
       Credential as spent, and MUST have stored the returned state

@@ -1729,23 +1729,11 @@ def ExpandScalars(self, key: bytes, count: int) -&gt; list[Scalar]:
     return scalars
 </pre><a href="#section-4.2-4" class="pilcrow">¶</a>
 </div>
-<p id="section-4.2-5"><code>expand_message_xmd</code> is that of <span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>, over the
-hash function of the ciphersuite. Every derived scalar depends on all of
-<code>rand</code>, so a change to any part of it changes every scalar, except with
-negligible probability. Modeling the hash function as a random oracle, the
-scalars derived from uniformly random <code>rand</code> are independent of an
-adversary's view unless it evaluates the hash function on one of the inputs
-the derivation hashes. Each of those holds at least <code>Nh</code> bytes the adversary
-does not know: <code>rand</code>, the key, or an intermediate value of
-<code>expand_message_xmd</code>. An adversary that evaluates the hash function <code>Q</code> times
-therefore hits one with probability about <code>Q / 2^(8 * Nh)</code>. Short of that,
-each scalar is within about <code>2^-128</code> of uniform over the nonzero scalars,
-since <code>HashToScalar</code> reduces 16 bytes more than <code>Ns</code> (<a href="#ciphersuites" class="auto internal xref">Section 7</a>), and
-the scalars are jointly within the sum of those distances. A derived scalar is zero, and <code>DeriveError</code> raised, with
-probability about <code>1/p</code>, which is negligible; implementations might choose
-to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
-<p id="section-4.2-6"><code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code> and <span class="bcp14">MUST NOT</span> be used for
-more than one derivation. See <a href="#randomness" class="auto internal xref">Section 7.2</a>.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
+<p id="section-4.2-5"><code>expand_message_xmd</code> is that of <span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>, over the hash
+function of the ciphersuite. <code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code>
+and <span class="bcp14">MUST NOT</span> be used for more than one derivation. See <a href="#randomness" class="auto internal xref">Section 7.2</a>. An A
+derived scalar is zero, and <code>DeriveError</code> raised, with negligible probability;
+implementations might choose to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="derive-nonce">
@@ -3385,9 +3373,7 @@ algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 signature is that of Tessaro and Zhu <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>, instantiated with the public
 input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
-under the discrete logarithm assumption. Notably, its concurrent security does
-not rely on the hardness of the ROS problem, which is broken in polynomial time,
-nor on the mROS problem, which admits sub-exponential attacks.<a href="#section-8-1" class="pilcrow">¶</a></p>
+under the discrete logarithm assumption.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-8-2">
         <dt id="section-8-2.1">Blindness:</dt>
         <dd style="margin-left: 1.5em" id="section-8-2.2">
@@ -3442,7 +3428,8 @@ Endorsement.<a href="#section-8-2.6.1" class="pilcrow">¶</a></p>
 cannot produce <code>k+1</code> distinct valid Endorsements under that context,
 regardless of how many sessions it has completed under <em>other</em> issuance
 contexts <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>. This is what allows a Moderator to conclude that an
-accepted Endorsement corresponds to exactly one grant by a trusted Anchor.<a href="#section-8-2.8.1" class="pilcrow">¶</a></p>
+accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
+This security guarantee holds even with concurrent sessions.<a href="#section-8-2.8.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-2.9">Unforgeability under rerandomization:</dt>

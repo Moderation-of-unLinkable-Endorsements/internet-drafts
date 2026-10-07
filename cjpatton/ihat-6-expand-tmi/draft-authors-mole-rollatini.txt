@@ -449,25 +449,11 @@ Table of Contents
        return scalars
 
    expand_message_xmd is that of Section 5.3.1 of [HASH2CURVE], over the
-   hash function of the ciphersuite.  Every derived scalar depends on
-   all of rand, so a change to any part of it changes every scalar,
-   except with negligible probability.  Modeling the hash function as a
-   random oracle, the scalars derived from uniformly random rand are
-   independent of an adversary's view unless it evaluates the hash
-   function on one of the inputs the derivation hashes.  Each of those
-   holds at least Nh bytes the adversary does not know: rand, the key,
-   or an intermediate value of expand_message_xmd.  An adversary that
-   evaluates the hash function Q times therefore hits one with
-   probability about Q / 2^(8 * Nh).  Short of that, each scalar is
-   within about 2^-128 of uniform over the nonzero scalars, since
-   HashToScalar reduces 16 bytes more than Ns (Section 7), and the
-   scalars are jointly within the sum of those distances.  A derived
-   scalar is zero, and DeriveError raised, with probability about 1/p,
-   which is negligible; implementations might choose to panic rather
-   than handle the exception.
-
-   rand MUST be Nseed bytes of output of random and MUST NOT be used for
-   more than one derivation.  See Section 7.2.
+   hash function of the ciphersuite. rand MUST be Nseed bytes of output
+   of random and MUST NOT be used for more than one derivation.  See
+   Section 7.2.  An A derived scalar is zero, and DeriveError raised,
+   with negligible probability; implementations might choose to panic
+   rather than handle the exception.
 
 4.3.  Deriving Nonces
 
@@ -1961,9 +1947,7 @@ Table of Contents
    with the public input set to the issuance context.  Security is
    analysed in the random oracle model, and one-more unforgeability
    additionally in the algebraic group model under the discrete
-   logarithm assumption.  Notably, its concurrent security does not rely
-   on the hardness of the ROS problem, which is broken in polynomial
-   time, nor on the mROS problem, which admits sub-exponential attacks.
+   logarithm assumption.
 
    Blindness:  All the Anchor receives in a session is the blinded
       challenge c * gamma2.  With uniform blinding factors, the blinded
@@ -2013,6 +1997,7 @@ Table of Contents
       it has completed under _other_ issuance contexts [TESSZHU].  This
       is what allows a Moderator to conclude that an accepted
       Endorsement corresponds to exactly one grant by a trusted Anchor.
+      This security guarantee holds even with concurrent sessions.
 
    Unforgeability under rerandomization:  Lemma 1 of [FFKLLS26]
       establishes strong key randomizability of [TESSZHU].  Thus,
