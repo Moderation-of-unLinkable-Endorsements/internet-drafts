@@ -151,15 +151,12 @@ informative:
 
 --- abstract
 
-This document specifies Rollatini, the cryptographic construction used to
-produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
-an Anchor issues to a Client, and that the Client later redeems at a Moderator
-without the Anchor being able to link the redemption to the issuance.
-
-This document defines the endorsement issuance protocol, built from a
-pairing-free partially blind signature scheme, together with the group,
-encoding, and context-binding rules that both the Anchor and the Client follow.
-
+This document specifies Rollatini, an Issuer-Hiding Anonymous Token (IHAT)
+suitable for instantiating MoLE Endorsements. An Anchor issues a token to a
+Client, and the Client later redeems the token at a Moderator without the Anchor
+being able to link the redemption to the issuance. Rollatini is built from
+widely available cryptographic primitives, including standard, pairing-free
+elliptic curves.
 
 --- middle
 
