@@ -92,9 +92,9 @@ informative:
         ins: J. Steinberger
         name: John Steinberger
   FFKLLS26:
-    title: "Issuer-Hiding BBS-Based Anonymous Credentials without Policy Keys"
+    title: "Issuer-Hiding Anonymous Tokens and Credentials from Key-Randomizable Signatures"
     target: https://eprint.iacr.org/2026/870
-    date: 2026
+    date: 2026-10-05
     author:
       -
         ins: A. Flamini
@@ -172,11 +172,13 @@ Endorsement among the set of Anchors a Moderator accepts. Existing systems do
 not meet all of these needs. This document defines such a system, Rollatini,
 an Issuer-Hiding Anonymous Token (IHAT).
 
-The construction is a pairing-free partially blind signature {{TESSZHU}}. An
-Anchor holds a signing key and issues, in three moves, a signature on a
-Client-chosen message that the Anchor never sees. Each Endorsement is also bound
-at issuance time to two contexts. These may be used to limit the validity scope
-of each Endorsement, i.e., when and for whom it may later be used:
+Rollatini follows the construction described in Section 3.4 of {{FFKLLS26}},
+which in turn is based on the pairing-free partially blind signature of
+{{TESSZHU}}. An Anchor holds a signing key and issues, in three moves, a
+signature on a Client-chosen message that the Anchor never sees. Each
+Endorsement is also bound at issuance time to two contexts. These may be used to
+limit the validity scope of each Endorsement, i.e., when and for whom it may
+later be used:
 
 * The issuance context `ctx_iss` is agreed out of band among the Client, the
   Anchor, and the Moderator. `ctx_iss` can encode, for instance, the time
@@ -2025,24 +2027,21 @@ algorithm provides.
 
 # Security Considerations {#security-considerations}
 
-> **TODO.** This section is a summary of the properties the construction is
-> intended to provide and of the requirements implementations must meet. Formal
-> statements and the corresponding reductions are not yet written.
+The security of Rollatini is studied in {{FFKLLS26}}. The underlying blind
+signature is that of Tessaro and Zhu {{TESSZHU}}, instantiated with the public
+input set to the issuance context. Security is analysed in the random oracle
+model, and one-more unforgeability additionally in the algebraic group model
+under the discrete logarithm assumption. Notably, its concurrent security does
+not rely on the hardness of the ROS problem, which is broken in polynomial time,
+nor on the mROS problem, which admits sub-exponential attacks.
 
-The issuance protocol is the partially blind signature scheme of Tessaro and
-Zhu {{TESSZHU}}, instantiated with the public input set to the issuance context.
-Its security is analysed in the random oracle model, and one-more
-unforgeability additionally in the algebraic group model under the discrete
-logarithm assumption. Notably, its concurrent security does not rely on the
-hardness of the ROS problem, which is broken in polynomial time, nor on the
-mROS problem, which admits sub-exponential attacks.
 
 Blindness:
 : All the Anchor receives in a session is the blinded challenge `c * gamma2`.
   With uniform blinding factors, the blinded challenge is uniformly
   distributed and independent of the message and of the resulting signature,
-  and the scheme is perfectly blind {{TESSZHU}}. The blinding factors of this
-  document are derived by hashing ("Derived blinding factors" below), so in
+  and the underlying scheme is perfectly blind {{FFKLLS26}}. The blinding factors
+  of this document are  derived by hashing ("Derived blinding factors" below), so in
   the random oracle model the scheme is statistically blind: an Anchor can
   link an Endorsement to the session that produced it only by evaluating the
   hash function on one of the secret inputs from which the Client derives
@@ -2086,24 +2085,19 @@ One-more unforgeability:
   accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
 
 Unforgeability under rerandomization:
-: Rerandomization is additive and applies only after issuance, so issuance is
-  the unmodified scheme of {{TESSZHU}} and its unforgeability is intended to
-  carry over directly: a reduction relays the signing oracle verbatim, extracts
-  `delta` and the branch it belongs to from the issuer-hiding proof, and undoes
-  the public shift to obtain a forgery under the Anchor's own key. The
-  extraction is the special soundness of the stacking composition
-  (Section 7 of {{STACKSIG}}): two accepting proofs that share a first move but
-  answer different challenges agree on the branch commitment at the binding
-  position, and the branch proof of {{branch}} then yields `delta` for that
-  branch's statement. Nothing in `Redeem` gives a Client a signature it did not
-  already hold: `X_hat` and `s_hat` are computed from values it has, and a
-  Client that could produce an accepted redemption without an Endorsement from
-  some Anchor in `anchor_set` would yield a forgery. **TODO:** this reduction is
-  stated, not written out, and must account for multiple redemptions in the
-  one-more unforgeability game.
+: Lemma 1 of {{FFKLLS26}} establishes strong key randomizability of {{TESSZHU}}.
+  Thus, Theorem 1 of {{FFKLLS26}} reduces issuer-hiding one-more unforgeability
+  to {{TESSZHU}}, provided the issuer-hiding proof is straight-line extractable.
+
+  > TODO Appendix C claims straight-line extractability for {{SIGMA}}, but not
+  > {{STACKSIG}}. Decide how to justify this gap. Perhaps we expect a direct
+  > proof (rather than composition via Theorem 1) to be possible.
 
 Issuer hiding:
-: Up to the statistical distance given below, a redemption reveals nothing
+: Theorem 2 of {{FFKLLS26}} establishes issuer-hiding blindness from perfect
+  blindness of issuance, strong key randomizability, and perfect zero knowledge
+  of the issuer-hiding proof, assuming uniform randomness. Up to the statistical
+  distance given below, a redemption reveals nothing
   about which Anchor in `anchor_set` issued the Endorsement, so a Moderator, an
   Anchor, and the two colluding learn only that some key in `anchor_set` was
   used. `X_hat` and the `response` of the single branch proof are
