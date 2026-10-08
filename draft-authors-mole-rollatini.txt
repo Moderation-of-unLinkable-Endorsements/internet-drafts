@@ -341,28 +341,8 @@ Table of Contents
 
    Issuance is a three-move protocol between a Client and an Anchor,
    followed by a local finalization step at the Client.  The Anchor
-   moves first and holds per-session state between its two moves.
-
-     Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
-   ---------------------------------------------------------------------
-                                 state, commitment = Commit(ctx_iss)
-
-                               commitment
-                                <--------
-
-     state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
-
-                                challenge
-                                -------->
-
-                            response = Respond(skA, state, challenge)
-
-                                response
-                                <--------
-
-     endorsement = Finalize(pkA, state, response)
-
-                 Figure 1: Endorsement issuance overview
+   moves first and holds per-session state between its two moves, as
+   shown in Figure 1.
 
    The Anchor speaks first.  This document does not prescribe how the
    three messages are carried, nor how a Client that wants an
@@ -624,9 +604,29 @@ Table of Contents
 
    Issuance produces a signature on the message Message(nf, ctx_red)
    relative to the public input ctx_iss.  It consists of four
-   algorithms, run in the order
+   algorithms, run in the order shown in Figure 1.
 
-     Commit -> Challenge -> Respond -> Finalize
+   +--------+                           +--------+
+   | Client |                           | Anchor |
+   +---+----+                           +---+----+
+       |                                    |
+       |                                 Commit
+       |                                    |
+       |<-------- commitment (A, C) --------+
+       |                                    |
+   Challenge                                |
+       |                                    |
+       +------------- challenge ----------->|
+       |                                    |
+       |                                 Respond
+       |                                    |
+       |<-------- response (s, y, t) -------+
+       |                                    |
+   Finalize                                 |
+       |                                    |
+   endorsement                              |
+
+                  Figure 1: Endorsement issuance overview
 
    Commit and Respond are run by the Anchor; Challenge and Finalize are
    run by the Client.  Both parties input the issuance context ctx_iss;
@@ -984,23 +984,21 @@ Table of Contents
    carries it in that challenge; the Client learns it there and locates
    its own Anchor in it.  Both parties input the two contexts.
 
-     Client(endorsement,                   Moderator(anchor_set,
-            ctx_iss, ctx_red)                        ctx_iss, ctx_red)
-   ---------------------------------------------------------------------
-                      challenge (carries anchor_set)
-                                <--------
+   +--------+                           +-----------+
+   | Client |                           | Moderator |
+   +---+----+                           +-----+-----+
+       |                                      |
+       |<----- challenge (anchor_set) --------+
+       |                                      |
+   Redeem                                     |
+       |                                      |
+       +------------- redemption ------------>|
+       |                                      |
+       |                               VerifyRedemption
+       |                                      |
+       |                                      nf
 
-     redemption = Redeem(anchor_set, index, endorsement,
-                         ctx_iss, ctx_red, challenge_digest)
-
-                               redemption
-                                -------->
-
-                      nf = VerifyRedemption(anchor_set, redemption,
-                                            ctx_iss, ctx_red,
-                                            challenge_digest)
-
-                Figure 2: Endorsement redemption overview
+                 Figure 2: Endorsement redemption overview
 
    anchor_set is the list of Anchor public keys the Moderator accepts.
    Both parties MUST use the same list in the same order.  A proof

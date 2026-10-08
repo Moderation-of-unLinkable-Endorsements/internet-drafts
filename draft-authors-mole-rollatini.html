@@ -1610,36 +1610,9 @@ fatal to the affected session; see <a href="#sessions" class="auto internal xref
       </h2>
 <p id="section-4-1">Issuance is a three-move protocol between a Client and an Anchor, followed by a
 local finalization step at the Client. The Anchor moves first and holds
-per-session state between its two moves.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<span id="name-endorsement-issuance-overvi"></span><div id="fig-issuance">
-<figure id="figure-1">
-        <div class="alignLeft art-text artwork" id="section-4-2.1">
-<pre>
-   Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
- ---------------------------------------------------------------------
-                               state, commitment = Commit(ctx_iss)
-
-                             commitment
-                              &lt;--------
-
-   state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
-
-                              challenge
-                              --------&gt;
-
-                          response = Respond(skA, state, challenge)
-
-                              response
-                              &lt;--------
-
-   endorsement = Finalize(pkA, state, response)
-</pre>
-</div>
-<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
-<a href="#name-endorsement-issuance-overvi" class="selfRef">Endorsement issuance overview</a>
-        </figcaption></figure>
-</div>
-<p id="section-4-3">The Anchor speaks first. This document does not prescribe how the three
+per-session state between its two moves, as shown in
+<a href="#fig-issuance" class="auto internal xref">Figure 1</a>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<p id="section-4-2">The Anchor speaks first. This document does not prescribe how the three
 messages are carried, nor how a Client that wants an Endorsement reaches an
 Anchor in the first place; both are the business of the transport, and a Client
 will in general have to signal its intent by some means that carries no
@@ -1647,14 +1620,14 @@ protocol data. For example, over HTTP a Client might ask for issuance in a
 request with an empty body, receive the commitment in the response, send the
 challenge in a second request, and receive the response in the reply to that.
 <a href="#wire" class="auto internal xref">Section 5.6</a> specifies the encoding of the three messages and their mapping onto
-the exchanges of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">Neither context is carried in these messages. Both parties already hold the
+the exchanges of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-3">Neither context is carried in these messages. Both parties already hold the
 issuance context, having agreed on it out of band; the redemption context is
-known only to the Client.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">The Client's output is an Endorsement that is publicly verifiable under the
+known only to the Client.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">The Client's output is an Endorsement that is publicly verifiable under the
 Anchor's public key <code>pkA</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>). The Anchor learns neither the nullifier
 nor the redemption context bound into it, and cannot link the Endorsement to
-the session that produced it.<a href="#section-4-5" class="pilcrow">¶</a></p>
+the session that produced it.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <div id="config">
 <section id="section-4.1">
         <h3 id="name-configuration-and-protocol-">
@@ -1918,11 +1891,59 @@ without breaking any of its cryptographic properties; see
 <a href="#section-5" class="section-number selfRef">5. </a><a href="#name-endorsement-issuance" class="section-name selfRef">Endorsement Issuance</a>
       </h2>
 <p id="section-5-1">Issuance produces a signature on the message <code>Message(nf, ctx_red)</code> relative to
-the public input <code>ctx_iss</code>. It consists of four algorithms, run in the order<a href="#section-5-1" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5-2">
-<pre>
-  Commit -&gt; Challenge -&gt; Respond -&gt; Finalize
-</pre><a href="#section-5-2" class="pilcrow">¶</a>
+the public input <code>ctx_iss</code>. It consists of four algorithms, run in the order
+shown in <a href="#fig-issuance" class="auto internal xref">Figure 1</a>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span id="name-endorsement-issuance-overvi"></span><div id="fig-issuance">
+<figure id="figure-1">
+        <div id="section-5-2.1">
+          <div class="alignLeft art-svg artwork" id="section-5-2.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="336" width="384" viewBox="0 0 384 336" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,144" fill="none" stroke="black"></path>
+              <path d="M 40,176 L 40,272" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 304,64" fill="none" stroke="black"></path>
+              <path d="M 336,64 L 336,80" fill="none" stroke="black"></path>
+              <path d="M 336,112 L 336,208" fill="none" stroke="black"></path>
+              <path d="M 336,240 L 336,320" fill="none" stroke="black"></path>
+              <path d="M 376,32 L 376,64" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 376,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,64 L 376,64" fill="none" stroke="black"></path>
+              <path d="M 48,128 L 112,128" fill="none" stroke="black"></path>
+              <path d="M 272,128 L 336,128" fill="none" stroke="black"></path>
+              <path d="M 40,192 L 144,192" fill="none" stroke="black"></path>
+              <path d="M 240,192 L 328,192" fill="none" stroke="black"></path>
+              <path d="M 48,256 L 112,256" fill="none" stroke="black"></path>
+              <path d="M 280,256 L 336,256" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="336,192 324,186.4 324,197.6" fill="black" transform="rotate(0,328,192)"></polygon>
+              <polygon class="arrowhead" points="56,256 44,250.4 44,261.6" fill="black" transform="rotate(180,48,256)"></polygon>
+              <polygon class="arrowhead" points="56,128 44,122.4 44,133.6" fill="black" transform="rotate(180,48,128)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="340" y="52">Anchor</text>
+                <text x="332" y="100">Commit</text>
+                <text x="164" y="132">commitment</text>
+                <text x="224" y="132">(A,</text>
+                <text x="252" y="132">C)</text>
+                <text x="40" y="164">Challenge</text>
+                <text x="192" y="196">challenge</text>
+                <text x="336" y="228">Respond</text>
+                <text x="156" y="260">response</text>
+                <text x="208" y="260">(s,</text>
+                <text x="236" y="260">y,</text>
+                <text x="260" y="260">t)</text>
+                <text x="36" y="292">Finalize</text>
+                <text x="40" y="308">|</text>
+                <text x="48" y="324">endorsement</text>
+              </g>
+            </svg><a href="#section-5-2.1.1" class="pilcrow">¶</a>
+</div>
+</div>
+<figcaption><a href="#figure-1" class="selfRef">Figure 1</a>:
+<a href="#name-endorsement-issuance-overvi" class="selfRef">Endorsement issuance overview</a>
+        </figcaption></figure>
 </div>
 <p id="section-5-3"><code>Commit</code> and <code>Respond</code> are run by the Anchor; <code>Challenge</code> and <code>Finalize</code> are
 run by the Client. Both parties input the issuance context <code>ctx_iss</code>; only the
@@ -2317,24 +2338,39 @@ challenge; the Client learns it there and locates its own Anchor in it. Both
 parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <span id="name-endorsement-redemption-over"></span><div id="fig-redemption">
 <figure id="figure-2">
-        <div class="alignLeft art-text artwork" id="section-6-4.1">
-<pre>
-   Client(endorsement,                   Moderator(anchor_set,
-          ctx_iss, ctx_red)                        ctx_iss, ctx_red)
- ---------------------------------------------------------------------
-                    challenge (carries anchor_set)
-                              &lt;--------
-
-   redemption = Redeem(anchor_set, index, endorsement,
-                       ctx_iss, ctx_red, challenge_digest)
-
-                             redemption
-                              --------&gt;
-
-                    nf = VerifyRedemption(anchor_set, redemption,
-                                          ctx_iss, ctx_red,
-                                          challenge_digest)
-</pre>
+        <div id="section-6-4.1">
+          <div class="alignLeft art-svg artwork" id="section-6-4.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="240" width="424" viewBox="0 0 424 240" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,112" fill="none" stroke="black"></path>
+              <path d="M 40,144 L 40,224" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 304,64" fill="none" stroke="black"></path>
+              <path d="M 352,64 L 352,176" fill="none" stroke="black"></path>
+              <path d="M 400,32 L 400,64" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 400,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,64 L 400,64" fill="none" stroke="black"></path>
+              <path d="M 48,96 L 88,96" fill="none" stroke="black"></path>
+              <path d="M 288,96 L 352,96" fill="none" stroke="black"></path>
+              <path d="M 40,160 L 144,160" fill="none" stroke="black"></path>
+              <path d="M 248,160 L 344,160" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="352,160 340,154.4 340,165.6" fill="black" transform="rotate(0,344,160)"></polygon>
+              <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="352" y="52">Moderator</text>
+                <text x="136" y="100">challenge</text>
+                <text x="228" y="100">(anchor_set)</text>
+                <text x="28" y="132">Redeem</text>
+                <text x="196" y="164">redemption</text>
+                <text x="356" y="196">VerifyRedemption</text>
+                <text x="352" y="212">|</text>
+                <text x="356" y="228">nf</text>
+              </g>
+            </svg><a href="#section-6-4.1.1" class="pilcrow">¶</a>
+</div>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
 <a href="#name-endorsement-redemption-over" class="selfRef">Endorsement redemption overview</a>
