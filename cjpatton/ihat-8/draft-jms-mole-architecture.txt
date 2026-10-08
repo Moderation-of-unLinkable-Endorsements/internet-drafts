@@ -89,7 +89,7 @@ Table of Contents
    5.  Privacy Goals and Threat Model
    6.  Security Goals and Threat Model
    7.  Flows
-     7.1.  Grant
+     7.1.  Endorsement
      7.2.  Redeem & Issue
      7.3.  Presentation and Updates
    8.  Anchor Feedback
@@ -142,26 +142,28 @@ Table of Contents
    mitigate this either by withdrawing trust in those specific Clients
    or by withdrawing trust in the Anchor.
 
-   These roles interact through three distinct flows: Grant, Redeem &
-   Issue, and Presentation.  In Grant, an Anchor issues material that
-   the Client can use to construct an Endorsement.  This material may be
-   a purpose-built token or a credential issued through an existing
-   protocol.  In Redeem & Issue, a Client constructs and redeems an
-   Endorsement at a Moderator and receives a Credential, allowing the
-   Moderator to bootstrap its trust in the Client.  In Presentation, the
-   Client presents a Credential to a Moderator, allowing the Moderator
-   to make an access control decision and to adjust its level of trust
-   in the Client over time, including by dynamically rate-limiting
-   access.
+   These roles interact through three distinct flows: Endorsement,
+   Redeem & Issue, and Presentation.  In Endorsement, an Anchor grants a
+   Client an Endorsement based on its trust relationship with that
+   Client.  The Anchor issues material from which the Client constructs
+   the cryptographic evidence presented to a Moderator.  This material
+   may be a purpose-built token or a credential issued through an
+   existing protocol.  In Redeem & Issue, a Client constructs and
+   redeems an Endorsement at a Moderator and receives a Credential,
+   allowing the Moderator to bootstrap its trust in the Client.  In
+   Presentation, the Client presents a Credential to a Moderator,
+   allowing the Moderator to make an access control decision and to
+   adjust its level of trust in the Client over time, including by
+   dynamically rate-limiting access.
 
    These flows are designed to protect the Client's privacy.  Redeeming
    an Endorsement does not reveal the authorizing Anchor, only that it
    is a member of the Moderator's Anchor Set, so it does not leak
    information about the Client such as which Anchor's policy the Client
-   satisfies.  In addition, a Client's interactions across Grant, Redeem
-   & Issue and Presentation are unlinkable, preventing Anchors and
-   Moderators from tracking Clients through their participation in the
-   system.  These privacy properties are designed to hold even when
+   satisfies.  In addition, a Client's interactions across Endorsement,
+   Redeem & Issue and Presentation are unlinkable, preventing Anchors
+   and Moderators from tracking Clients through their participation in
+   the system.  These privacy properties are designed to hold even when
    Anchors and Moderators collude.
 
    This document describes the requirements for these flows and how they
@@ -274,8 +276,9 @@ Table of Contents
    *Client:*  An entity that seeks access to resources controlled by a
       Moderator.
 
-   *Anchor:*  An entity that issues material to Clients based on a trust
-      relationship, authorizing them to construct Endorsements.
+   *Anchor:*  An entity that grants Endorsements to Clients based on a
+      trust relationship, issuing material from which they construct the
+      cryptographic evidence.
 
    *Moderator:*  An entity that consumes Endorsement redemptions and
       Credential presentations from Clients and issues Credentials
@@ -303,10 +306,11 @@ Table of Contents
       learns only whether the state satisfies the Predicate, not the
       state itself.
 
-   *Grant Flow:*  The flow in which an Anchor issues material to a
-      Client, based on the Anchor's trust relationship with that Client.
-      A grant may use a MoLE-specific exchange or an existing issuance
-      protocol outside MoLE.
+   *Endorsement Flow:*  The flow in which an Anchor grants an
+      Endorsement to a Client, based on the Anchor's trust relationship
+      with that Client.  The grant authorizes the Client to construct
+      the evidence presented to a Moderator and may use a MoLE-specific
+      exchange or an existing issuance protocol outside MoLE.
 
    *Redeem & Issue Flow:*  The flow in which a Client redeems an
       Endorsement at a Moderator and, in return, obtains a Credential,
@@ -328,14 +332,14 @@ Table of Contents
 
 4.  Overview
 
-   MoLE is composed of three distinct flows: Grant, in which a Client
-   obtains Anchor-issued material signifying its trust relationship with
-   an Anchor; Redeem & Issue, in which a Client constructs and redeems
-   an Endorsement to obtain a Credential from a Moderator without
-   revealing which Anchor authorized it; and Presentation, in which a
-   Client uses a Credential from a Moderator to prove that it is
-   presently in good standing with the Moderator in order to access a
-   resource.
+   MoLE is composed of three distinct flows: Endorsement, in which a
+   Client obtains Anchor-issued material signifying its trust
+   relationship with an Anchor; Redeem & Issue, in which a Client
+   constructs and redeems an Endorsement to obtain a Credential from a
+   Moderator without revealing which Anchor authorized it; and
+   Presentation, in which a Client uses a Credential from a Moderator to
+   prove that it is presently in good standing with the Moderator in
+   order to access a resource.
 
    +--------+            +--------+              +-----------+
    | Anchor |            | Client |              | Moderator |
@@ -364,14 +368,14 @@ Table of Contents
 
                     Figure 1: MoLE Architecture Overview
 
-   During Grant, a Client interacts with an Anchor with which it has a
-   trust relationship.  The nature of the trust relationship is specific
-   to the Anchor and may be based on some kind of strong authentication,
-   e.g. a login, or may be relatively weak, e.g. based on solving a
-   CAPTCHA.  The Anchor issues material to the Client to signify this
-   trust relationship.  The Client later constructs an Endorsement from
-   this material, using the Moderator's challenge and accepted Anchor
-   Set.
+   During Endorsement, a Client interacts with an Anchor with which it
+   has a trust relationship.  The nature of the trust relationship is
+   specific to the Anchor and may be based on some kind of strong
+   authentication, e.g. a login, or may be relatively weak, e.g. based
+   on solving a CAPTCHA.  The Anchor issues material to the Client to
+   signify this trust relationship.  The Client later constructs an
+   Endorsement from this material, using the Moderator's challenge and
+   accepted Anchor Set.
 
    Later, when trying to access a resource, a Client may be prompted by
    a Moderator to present a Credential.  If the Client doesn't have a
@@ -404,7 +408,7 @@ Table of Contents
 
    MoLE deployments aim to provide three privacy properties for Clients:
 
-   1.  _Grants and Endorsement Redemptions are Unlinkable_ - During an
+   1.  _Endorsement Grants and Redemptions are Unlinkable_ - During an
        interaction in which a Moderator issues a new Credential on the
        basis of an Endorsement, neither the Moderator nor the Anchor can
        link the session in which the underlying material was granted to
@@ -501,7 +505,7 @@ Table of Contents
 
 7.  Flows
 
-7.1.  Grant
+7.1.  Endorsement
 
    +--------+                 +--------+
    | Client |                 | Anchor |
@@ -512,18 +516,19 @@ Table of Contents
        +--- EndorsementRequest -->|
        |<-- EndorsementResponse --+
        |                          |
-   GrantFinalization              |
+   EndorsementFinalization        |
        |                          |
 
-                            Figure 2: MoLE Grant
+                         Figure 2: MoLE Endorsement
 
-   The Grant flow allows an Anchor to provide a Client with material
-   from which it can construct an Endorsement, signalling the Anchor's
-   trust in the Client.  Depending on the deployment, the Grant flow
-   might be triggered by the Anchor pro-actively, or it may be requested
-   by the Client according to need.  The diagram shows a MoLE-specific
-   grant exchange; a protocol based on legacy credentials can instead
-   use their existing issuance mechanism.
+   The Endorsement flow allows an Anchor to grant an Endorsement to a
+   Client, signalling the Anchor's trust in the Client by issuing
+   material from which the Client constructs the cryptographic evidence.
+   Depending on the deployment, the Endorsement flow might be triggered
+   by the Anchor pro-actively, or it may be requested by the Client
+   according to need.  The diagram shows a MoLE-specific grant exchange;
+   a protocol based on legacy credentials can instead use their existing
+   issuance mechanism.
 
    An Anchor will endorse a client according to its own criteria for
    trust in the client.  This may be because of some kind of strong
@@ -841,8 +846,8 @@ Table of Contents
    clients spend at least as much CPU as it costs servers to reject a
    faulty Endorsement redemption.
 
-   As the Grant flow is triggered by the Anchor in a context where it
-   already trusts the user, it is less vulnerable to DDOS.
+   As the Endorsement flow is triggered by the Anchor in a context where
+   it already trusts the user, it is less vulnerable to DDOS.
 
 11.  Privacy Considerations
 
@@ -857,12 +862,12 @@ Table of Contents
 
    Client Vendors may act to limit the use of Anchors or Moderators
    where the total anonymity size is too low.  For example, the Client
-   Vendors may allow Grant flows to succeed but program Clients not to
-   construct Endorsements from the resulting material until a threshold
-   is met across the fleet of clients.  The same process may be applied
-   to a Moderator's credential during Redeem & Issue, ensuring that a
-   minimum size set is reached before the Client will present a
-   Credential from a given Moderator.
+   Vendors may allow Endorsement flows to succeed but program Clients
+   not to construct Endorsements from the resulting material until a
+   threshold is met across the fleet of clients.  The same process may
+   be applied to a Moderator's credential during Redeem & Issue,
+   ensuring that a minimum size set is reached before the Client will
+   present a Credential from a given Moderator.
 
 11.2.   Configuration Consistency and Partitioning Attacks
 
@@ -907,11 +912,11 @@ Table of Contents
    may exist in the protocol.  For example, if the Client is programmed
    to fetch Anchor-issued material on-demand (rather than pro-actively
    provided by an Anchor), a similar timing side channel exists between
-   Grant and Redeem & Issue.  This timing side channel is particularly
-   severe as the Grant session may have context which identifies the
-   user or their device.  For this reason, deployments are discouraged
-   from fetching Anchor-issued material in direct response to a Redeem &
-   Issue session.
+   Endorsement and Redeem & Issue.  This timing side channel is
+   particularly severe as the Endorsement session may have context which
+   identifies the user or their device.  For this reason, deployments
+   are discouraged from fetching Anchor-issued material in direct
+   response to a Redeem & Issue session.
 
    Particular consideration should be given to designing flows in which
    Moderators provide all the information that Clients need during
