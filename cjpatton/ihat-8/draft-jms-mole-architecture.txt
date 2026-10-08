@@ -144,17 +144,13 @@ Table of Contents
 
    These roles interact through three distinct flows: Endorsement,
    Redeem & Issue, and Presentation.  In Endorsement, an Anchor grants a
-   Client an Endorsement based on its trust relationship with that
-   Client.  The Anchor issues material from which the Client constructs
-   the cryptographic evidence presented to a Moderator.  This material
-   may be a purpose-built token or a credential issued through an
-   existing protocol.  In Redeem & Issue, a Client constructs and
-   redeems an Endorsement at a Moderator and receives a Credential,
-   allowing the Moderator to bootstrap its trust in the Client.  In
-   Presentation, the Client presents a Credential to a Moderator,
-   allowing the Moderator to make an access control decision and to
-   adjust its level of trust in the Client over time, including by
-   dynamically rate-limiting access.
+   Client an Endorsement, which conveys the Anchor's trust in the Client
+   to other parties.  In Redeem & Issue, a Client redeems an Endorsement
+   at a Moderator and receives a Credential, allowing the Moderator to
+   bootstrap its trust in the Client.  In Presentation, the Client
+   presents a Credential to a Moderator, allowing the Moderator to make
+   an access control decision and to adjust its level of trust in the
+   Client over time, including by dynamically rate-limiting access.
 
    These flows are designed to protect the Client's privacy.  Redeeming
    an Endorsement does not reveal the granting Anchor, only that it is a
@@ -199,9 +195,9 @@ Table of Contents
    However, other sites may have access to relatively rich context about
    a user, e.g. because the user maintains an account, made a payment,
    or provided some other scarce signal to the site.  MoLE enables such
-   sites to act as Anchors which grant material from which users can
-   construct Endorsements, suitable for bootstrapping trust when users
-   visit new sites for the first time.
+   sites to act as Anchors which grant Endorsements to users, suitable
+   for bootstrapping trust when users visit new sites for the first
+   time.
 
    In this use case, the site acts as or works with a Moderator.  The
    Client presents a Credential whose underlying Endorsement attests to
@@ -277,17 +273,14 @@ Table of Contents
       Moderator.
 
    *Anchor:*  An entity that grants Endorsements to Clients based on a
-      trust relationship, issuing material from which they construct the
-      cryptographic evidence.
+      trust relationship.
 
    *Moderator:*  An entity that consumes Endorsement redemptions and
       Credential presentations from Clients and issues Credentials
       according to an access policy.
 
-   *Endorsement:*  Cryptographic evidence constructed by a Client and
-      presented to a Moderator during redemption.  It establishes
-      authorization from an Anchor in the Moderator's Anchor Set without
-      revealing which Anchor authorized the Client.
+   *Endorsement:*  A cryptographic object granted by an Anchor to a
+      Client.
 
    *Credential:*  A cryptographic object issued by a Moderator to a
       Client.  This Credential has an associated state that is updated
@@ -304,7 +297,7 @@ Table of Contents
 
    *Redeem & Issue Flow:*  The flow in which a Client redeems an
       Endorsement at a Moderator and, in return, obtains a Credential,
-      without revealing which Anchor granted it.
+      without revealing which Anchor granted the Endorsement.
 
    *Presentation Flow:*  The flow by which a Client proves possession of
       a Credential whose state satisfies a Predicate specified by the
@@ -368,17 +361,16 @@ Table of Contents
    Later, when trying to access a resource, a Client may be prompted by
    a Moderator to present a Credential.  If the Client doesn't have a
    Credential for this Moderator it will then engage in the Redeem &
-   Issue flow.  In this flow, the Client constructs and redeems an
-   Endorsement using material issued by an Anchor in the Moderator's
-   Anchor Set, and receives a Credential in return.  Redeeming an
-   Endorsement does not reveal which Anchor was used, only that it
-   belongs to the Anchor Set.
+   Issue flow.  In this flow, the Client redeems an Endorsement from the
+   Moderator's Anchor Set and receives a Credential in return.
+   Redeeming an Endorsement does not reveal which Anchor was used, only
+   that it came from the Anchor Set.
 
-   Once a Moderator has accepted an Endorsement, it can prevent a second
-   use of the same underlying authorization within the protocol's replay
-   protection scope.  This property prevents abusive Clients from
-   constantly resetting their state to receive a fresh Credential from
-   the Moderator in order to bypass rate limits.
+   Once a Moderator has accepted a specific Endorsement, the Moderator
+   can prevent a second use of that Endorsement in their system.  This
+   property prevents abusive Clients from constantly resetting their
+   state to receive a fresh Credential from the Moderator in order to
+   bypass rate limits.
 
    Finally, the Client can present the Credential to the Moderator,
    along with a credential update request.  This presentation enables
@@ -397,17 +389,17 @@ Table of Contents
 
    1.  _Endorsement Grants and Redemptions are Unlinkable_ - During an
        interaction in which a Moderator issues a new Credential on the
-       basis of an Endorsement, neither the Moderator nor the Anchor can
-       link the session in which the Endorsement was granted to the
-       session in which it was redeemed.
+       basis of an Endorsement obtained from an Anchor, neither the
+       Moderator nor the Anchor can link the session in which the
+       Endorsement was granted to the session in which it was redeemed.
 
    2.  _Endorsement Redemptions are Anchor-hiding_ - During an
        interaction in which a Moderator issues a new Credential on the
-       basis of an Endorsement, the Client hides the Anchor that granted
-       it among the Moderator's Anchor Set. Such Anchor-hiding makes an
-       Endorsement redemption indistinguishable regardless of which
-       Anchor in the Anchor Set the Client used, to both the Anchor and
-       the Moderator.
+       basis of an Endorsement from an Anchor, the Client hides the
+       Anchor it obtained the Endorsement from among the Moderator's
+       Anchor Set. Such Anchor-hiding makes an Endorsement redemption
+       indistinguishable regardless of which Anchor in the Anchor Set
+       the Client used, to both the Anchor and the Moderator.
 
    3.  _Credential Issuances and Presentations are Unlinkable_ - If a
        Client engages in multiple presentations, then those
@@ -505,14 +497,10 @@ Table of Contents
 
                          Figure 2: MoLE Endorsement
 
-   The Endorsement flow allows an Anchor to grant an Endorsement to a
-   Client, signalling the Anchor's trust in the Client by issuing
-   material from which the Client constructs the cryptographic evidence.
-   Depending on the deployment, the Endorsement flow might be triggered
-   by the Anchor pro-actively, or it may be requested by the Client
-   according to need.  The diagram shows a MoLE-specific grant exchange;
-   a protocol based on legacy credentials can instead use their existing
-   issuance mechanism.
+   The Endorsement flow allows an Anchor to provide a Client with an
+   Endorsement, signalling its trust in the client.  Depending on the
+   deployment, the Endorsement flow might be triggered by the Anchor
+   pro-actively, or it may be requested by the Client according to need.
 
    An Anchor will endorse a client according to its own criteria for
    trust in the client.  This may be because of some kind of strong
@@ -521,46 +509,42 @@ Table of Contents
    choose whether to trust a specific Anchor on the basis of its
    criteria for endorsing users.
 
-   In order to be useful, Anchors will need to constrain how many
-   authorizations they grant a given user.  Endorsements are valuable to
-   Clients and Moderators insofar as the underlying authorizations are
-   scarce.  If an Anchor issued material authorizing a very large number
-   of redemptions, this would reduce the effectiveness of rate limiting
-   applied by Moderators.
+   In order to be useful, Anchors will need to constrain how many times
+   they will Endorse a given user.  This is because Endorsements are
+   valuable to Clients and Moderators insofar as they are scarce.  If an
+   Anchor gave out a very large number of Endorsements, this would
+   reduce the effectiveness of rate limiting applied by Moderators.
 
-   Anchors furnish their issued material with the necessary metadata to
-   identify the issuing Anchor and for the Client to evaluate whether it
-   can construct an Endorsement accepted by a given Moderator.  This
+   Anchors furnish each Endorsement with the necessary metadata to
+   identify the Anchor that used it and for the Client to evaluate
+   whether a given Moderator can consume that Endorsement.  This
    metadata may enumerate specific Moderators (in a small deployment) or
    identify authentication material like a public key which can be used
-   later to evaluate whether a given Moderator is authorized.  Metadata
-   identifying the Anchor MUST NOT be revealed in the Endorsement.
+   later to evaluate whether a given Moderator is authorized.
 
    The specific properties of the Endorsement vary based on the exact
    protocol used.  Important properties are described below:
 
-   1.  Public Verifiability: any party with the public verification
-       inputs can verify that the Endorsement is valid without needing
-       access to secret key material held by an Anchor.
+   1.  Public Verifiability: any party with knowledge of the Anchor can
+       verify that the Endorsement is valid without needing access to
+       secret key material held by the Anchor.
 
    2.  Blind Redemption: a Client redeeming the Endorsement does not
-       reveal any information other than authorization by one of a set
-       of Anchors trusted by a Moderator.
+       reveal any information other than that the Endorsement is from
+       one of a set of Anchors trusted by a Moderator.
 
    3.  Unlinkable Redemption: even if the Anchor colludes with another
        party at which the Endorsement is redeemed, they can't link the
-       redemption to the session in which the underlying material was
-       granted.
+       redemption to the session in which it was granted.
 
-   4.  Expiry: A Client redeeming the Endorsement proves that the
-       underlying authorization is valid for the accepted time period.
+   4.  Expiry: A Client redeeming the Endorsement can prove that the
+       Endorsement was granted within a particular time period.
 
-   5.  One-Time-Use: A Moderator can prevent a second redemption of the
-       same authorization within the protocol's replay protection scope.
+   5.  One-Time-Use: A Moderator can prevent the redemption of the same
+       Endorsement twice.
 
-   6.  Unforgeability: A Client cannot produce more accepted
-       Endorsements than its Anchor-issued material authorizes within
-       the protocol's replay protection scope.
+   6.  One-More Unforgability: A Client granted an Endorsement cannot
+       forge an another valid Endorsement.
 
 7.2.  Redeem & Issue
 
@@ -570,9 +554,9 @@ Table of Contents
        |                                           |
        |<========== Anchor Negotiation ===========>|
        |                                           |
-   ConstructEndorsement                            |
+   EndorsementRedemption                           |
        |                                           |
-       +----- Endorsement+CredentialRequest ------->|
+       +--- EndorsementToken+CredentialRequest --->|
        |<---------- CredentialResponse ------------+
        |                                           |
    CredentialFinalization                          |
@@ -589,25 +573,24 @@ Table of Contents
    The challenge should contain enough information to identify the
    Moderator and the Anchors whose Endorsements it will trust for
    redemption.  If the Client wishes to complete the presentation and
-   has suitable Anchor-issued material, it will begin the Redeem & Issue
-   flow.  In some circumstances, the Moderator may not require any
-   Anchors for redemption, i.e. it has some local means of establishing
-   trust in this case.
+   has suitable Endorsements, it will begin the Redeem & Issue flow.  In
+   some circumstances, the Moderator may not require any Anchors for
+   redemption, i.e. it has some local means of establishing trust in
+   this case.
 
-   In Redeem & Issue, the Client constructs and redeems an Endorsement,
-   proving to the Moderator that it holds suitable material issued by an
-   Anchor trusted by the Moderator without revealing which specific
-   Anchor was used.  In order to translate this into a tangible privacy
-   property for clients, see the Privacy Considerations section for a
-   discussion around anonymity sets and maximizing them.  Redemption
-   must be unlinkable to the grant of the underlying material so that
-   even if the Anchor and Moderator collude they can't link the two
-   sessions.
+   In Redeem & Issue, the Client redeems an Endorsement, proving to the
+   Moderator that it holds a suitable Endorsement from an Anchor trusted
+   by the Moderator without revealing which specific Anchor was used.
+   In order to translate this into a tangible privacy property for
+   clients, the see the Privacy Considerations section for a discussion
+   around anonymity sets and maximizing them.  The redemption must be
+   unlinkable to the grant of the Endorsement so that even if the Anchor
+   and Moderator collude they can't link the two sessions.
 
-   Further, redemption must ensure that even in the presence of a
-   dishonest Client, a Moderator will only issue a Credential once for a
-   given authorization within the protocol's replay protection scope, in
-   order to mitigate attempts to bypass rate limits.
+   Further, the redemption of the Endorsement must ensure that even in
+   the presence of a dishonest client, a Moderator will only issue a
+   Credential once for a given Endorsement in order to mitigate attempts
+   to bypass rate limits.
 
    The properties of the Credential issued by the Moderator will vary
    depending on the exact protocol used.  However, they must support:
@@ -691,13 +674,12 @@ Table of Contents
    the risk of excluding honest users vs including malicious users is
    deployment specific.
 
-   This guides how Moderators should select suitable Anchors, seeking to
-   cover their user base whilst minimizing the number of authorizations
-   that users can redeem for a given time period.  Each accepted
-   Endorsement can be converted into an independent Credential, so if a
-   malicious user can perform X queries before their Credential is
-   revoked and their Anchor-issued material authorizes E redemptions in
-   that period, then their total access is X * E.
+   This guides how Moderator's should select suitable Anchors, seeking
+   to cover their user base whilst minimizing the number of Endorsements
+   that users hold for a given time period.  Each Endorsment can be
+   converted into an independent credential, so if a malicious user can
+   perform X queries before their credential is revoked and they have E
+   endorsements then their total access is X * E.
 
 9.2.  Discriminatory Treatment
 
@@ -798,23 +780,21 @@ Table of Contents
    MoLE requires all parties to maintain state in order to uphold its
    security and privacy properties.
 
-   *Anchors* which issue material on the basis of some long term account
-   will need to maintain state in order to record when a user has been
-   granted such material (see Section 9.1).  Losing this state means
-   over-granting, but not a privacy loss.
+   *Anchors* which grant Endorsements on the basis of some long term
+   account will need to maintain state in order to record when a user
+   has been granted an Endorsement (see Section 9.1).  Losing this state
+   means over-granting, but not a privacy loss.
 
    *Moderators* require state in order to prevent the double-spend of
    Endorsements and Credentials.  State should be bounded to uphold
    Section 5.
 
-   *Clients* store their Anchor-issued material and Credentials.  They
-   MUST mark single-use Tokens and Credentials as consumed once redeemed
-   or presented (see Section 11.4).  A legacy credential may authorize
-   Endorsements in several scopes; the Client tracks consumption
-   separately in each scope rather than discarding that credential.  If
-   a Client is unsure that its state is valid, it SHOULD discard the
-   affected single-use material or avoid using the affected scope.  This
-   might affect availability, but still uphold privacy and security.
+   *Clients* store their tokens and MUST burn them once redeemed or
+   presented (see Section 11.4).  Ensuring that they do no replay state
+   is their responsibility, as it puts them in control of the Section 5.
+   If a Client is unsure that its state is valid SHOULD discard the
+   affected tokens.  This might affect their availability, but still
+   uphold privacy and security.
 
 10.3.  DDOS Mitigations
 
@@ -839,19 +819,19 @@ Table of Contents
 
    Client anonymity sets depend on the total number of clients that
    share the same configuration metadata.  During a Redeem & Issue flow,
-   this corresponds to the number of other Clients that can construct
-   valid Endorsements for the specified anchor pool.  During a
-   Presentation flow, this corresponds to the number of other clients
-   that possess valid Credentials for the specified Anchor pool.
+   this corresponds to the number of other Clients that possess valid
+   Endorsements for the specified anchor pool.  During a Presentation
+   flow, this corresponds to the number of other clients that possess
+   valid Credentials for the specified Anchor pool.
 
    Client Vendors may act to limit the use of Anchors or Moderators
    where the total anonymity size is too low.  For example, the Client
-   Vendors may allow Endorsement flows to succeed but program Clients
-   not to construct Endorsements from the resulting material until a
-   threshold is met across the fleet of clients.  The same process may
-   be applied to a Moderator's credential during Redeem & Issue,
-   ensuring that a minimum size set is reached before the Client will
-   present a Credential from a given Moderator.
+   Vendors may allow Endorsement flows to succeed but program Clients to
+   flag the resulting Endorsement as unusable until a threshold is met
+   across the fleet of clients.  The same process may be applied to a
+   Moderator's credential during Redeem & Issue, ensuring that a minimum
+   size set is reached before the Client will present a Credential from
+   a given Moderator.
 
 11.2.   Configuration Consistency and Partitioning Attacks
 
@@ -894,13 +874,13 @@ Table of Contents
 
    Depending on the configuration of clients, other timing side channels
    may exist in the protocol.  For example, if the Client is programmed
-   to fetch Anchor-issued material on-demand (rather than pro-actively
+   to fetch Anchor endorsements on-demand (rather than pro-actively
    provided by an Anchor), a similar timing side channel exists between
    Endorsement and Redeem & Issue.  This timing side channel is
    particularly severe as the Endorsement session may have context which
    identifies the user or their device.  For this reason, deployments
-   are discouraged from fetching Anchor-issued material in direct
-   response to a Redeem & Issue session.
+   are discouraged from fetching Endorsements in direct response to a
+   Redeem & Issue session.
 
    Particular consideration should be given to designing flows in which
    Moderators provide all the information that Clients need during
