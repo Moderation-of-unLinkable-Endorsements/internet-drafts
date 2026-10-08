@@ -157,13 +157,13 @@ Table of Contents
    dynamically rate-limiting access.
 
    These flows are designed to protect the Client's privacy.  Redeeming
-   an Endorsement does not reveal the authorizing Anchor, only that it
-   is a member of the Moderator's Anchor Set, so it does not leak
-   information about the Client such as which Anchor's policy the Client
-   satisfies.  In addition, a Client's interactions across Endorsement,
-   Redeem & Issue and Presentation are unlinkable, preventing Anchors
-   and Moderators from tracking Clients through their participation in
-   the system.  These privacy properties are designed to hold even when
+   an Endorsement does not reveal the granting Anchor, only that it is a
+   member of the Moderator's Anchor Set, so it does not leak information
+   about the Client such as which Anchor's policy the Client satisfies.
+   In addition, a Client's interactions across Endorsement, Redeem &
+   Issue and Presentation are unlinkable, preventing Anchors and
+   Moderators from tracking Clients through their participation in the
+   system.  These privacy properties are designed to hold even when
    Anchors and Moderators collude.
 
    This document describes the requirements for these flows and how they
@@ -287,15 +287,7 @@ Table of Contents
    *Endorsement:*  Cryptographic evidence constructed by a Client and
       presented to a Moderator during redemption.  It establishes
       authorization from an Anchor in the Moderator's Anchor Set without
-      revealing which Anchor authorized the Client.  The endorsement
-      protocol defines the evidence, its context binding, and its replay
-      protection identifier.
-
-   *Anchor-Issued Material:*  The protocol-specific object from which a
-      Client constructs an Endorsement.  Examples include a blindly
-      issued Token in Rollatini and a legacy credential in Longfellow.
-      This material is held by the Client and is distinct from the
-      Endorsement sent to the Moderator and from a MoLE Credential.
+      revealing which Anchor authorized the Client.
 
    *Credential:*  A cryptographic object issued by a Moderator to a
       Client.  This Credential has an associated state that is updated
@@ -308,13 +300,11 @@ Table of Contents
 
    *Endorsement Flow:*  The flow in which an Anchor grants an
       Endorsement to a Client, based on the Anchor's trust relationship
-      with that Client.  The grant authorizes the Client to construct
-      the evidence presented to a Moderator and may use a MoLE-specific
-      exchange or an existing issuance protocol outside MoLE.
+      with that Client.
 
    *Redeem & Issue Flow:*  The flow in which a Client redeems an
       Endorsement at a Moderator and, in return, obtains a Credential,
-      without revealing which Anchor authorized it.
+      without revealing which Anchor granted it.
 
    *Presentation Flow:*  The flow by which a Client proves possession of
       a Credential whose state satisfies a Predicate specified by the
@@ -322,8 +312,8 @@ Table of Contents
 
    *Policy:*  Rules used by a Moderator to evaluate presentations.
 
-   *Anchor Set:*  The set of Anchors whose authorization a Moderator
-      accepts in Endorsements during Redeem & Issue.
+   *Anchor Set:*  The set of Anchors whose Endorsements a Moderator will
+      accept during Redeem & Issue.
 
    *Anonymity Set:*  The set of Clients among which a given Client is
       indistinguishable during an interaction.  The strength of MoLE's
@@ -333,13 +323,13 @@ Table of Contents
 4.  Overview
 
    MoLE is composed of three distinct flows: Endorsement, in which a
-   Client obtains Anchor-issued material signifying its trust
-   relationship with an Anchor; Redeem & Issue, in which a Client
-   constructs and redeems an Endorsement to obtain a Credential from a
-   Moderator without revealing which Anchor authorized it; and
-   Presentation, in which a Client uses a Credential from a Moderator to
-   prove that it is presently in good standing with the Moderator in
-   order to access a resource.
+   Client obtains an Endorsement signifying its trust relationship with
+   an Anchor; Redeem & Issue, in which a Client redeems an Endorsement
+   from an Anchor to obtain a Credential from a Moderator without
+   revealing which Anchor granted it; and Presentation, in which a
+   Client uses a Credential from a Moderator to prove that it is
+   presently in good standing with the Moderator in order to access a
+   resource.
 
    +--------+            +--------+              +-----------+
    | Anchor |            | Client |              | Moderator |
@@ -347,7 +337,7 @@ Table of Contents
        |                     |                         |
        |<~~~ Interaction ~~~>|                         |
        |                     |                         |
-       +== Issued Material =>|                         |
+       +==== Endorsement ==>>|                         |
        |                     |                         |
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        |                     |                         |
@@ -372,10 +362,8 @@ Table of Contents
    has a trust relationship.  The nature of the trust relationship is
    specific to the Anchor and may be based on some kind of strong
    authentication, e.g. a login, or may be relatively weak, e.g. based
-   on solving a CAPTCHA.  The Anchor issues material to the Client to
-   signify this trust relationship.  The Client later constructs an
-   Endorsement from this material, using the Moderator's challenge and
-   accepted Anchor Set.
+   on solving a CAPTCHA.  The Anchor grants the Client one or more
+   Endorsements to signify this trust relationship.
 
    Later, when trying to access a resource, a Client may be prompted by
    a Moderator to present a Credential.  If the Client doesn't have a
