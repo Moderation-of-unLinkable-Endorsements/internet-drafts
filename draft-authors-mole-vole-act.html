@@ -1256,6 +1256,14 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-mq-zero-opening-scaling-for" class="internal xref">MQ zero-opening scaling forgery</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-proof-status" class="internal xref">Proof status</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
@@ -2255,16 +2263,22 @@ GenerateParameters():
     5.    M_i := bytesIntoUpper(stream.next(u_com))
     6.    // linear part
     7.    l_i := stream.next(n_com)
-    8.    // inhomogeneous quadratic map F_q^{n_com} -&gt; F_q
-    9.    Q_i(x) := x^T*M_i*x + l_i*x
-    10. F := (Q_0, ..., Q_{k-1})
-    11. G := (Q_k, ..., Q_{m_uov-1})
-    12. return (F, G)
+    8.    // constant part
+    9.    a_i := stream.next(1)[0]
+    10.   // affine quadratic map F_q^{n_com} -&gt; F_q
+    11.   Q_i(x) := x^T*M_i*x + l_i*x + a_i
+    12. F := (Q_0, ..., Q_{k-1})
+    13. G := (Q_k, ..., Q_{m_uov-1})
+    14. return (F, G)
 </pre><a href="#section-6.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2-9">Each quadratic map has a quadratic component and a linear component. The linear
-terms are essential: a purely homogeneous map (<code>l_i = 0</code>) has <code>F(0) = G(0) = 0</code>
-and is scaling-covariant (<code>Q_i(a x) = a^2 Q_i(x)</code>), which admits a forgery.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+<p id="section-6.2-9">Each quadratic map has quadratic, linear, and constant components. The
+coefficients are sampled sequentially from a <code>SHAKE128</code> stream. The
+linear terms prevent generic scaling of nonzero openings. The constant terms
+remove the shared zero fixed point: for the specified derivation, <code>G(0)</code> is
+nonzero. Without the constant terms, a malicious Client can choose <code>r = 0</code>
+and exploit the homogeneity of the UOV public map to forge tokens, as described
+in <a href="#mq-zero-opening-forgery" class="auto internal xref">Section 7.1</a>.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
 <div id="mq-com">
 <section id="section-6.2.1">
           <h4 id="name-commitment-3">
@@ -2343,51 +2357,104 @@ nf_len + ctx_len + L</code> hold the refund encoding <code>&lt;x&gt;_L</code>.<a
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
+<div id="mq-zero-opening-forgery">
+<section id="section-7.1">
+        <h3 id="name-mq-zero-opening-scaling-for">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-mq-zero-opening-scaling-for" class="section-name selfRef">MQ zero-opening scaling forgery</a>
+        </h3>
+<p id="section-7.1-1">An earlier version of Ratatouille-MQ omitted the constant coefficients <code>a_i</code>
+from <code>Q_i</code>. The linear coefficients prevent scaling at a generic opening, but
+they do not help at the Client-controlled opening <code>r = 0</code>, where the earlier
+maps had <code>F(0) = G(0) = 0</code>.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">For example, take an all-zero issuance context and an initial balance of one.
+A malicious Client can choose a nonzero <code>nf</code> and <code>r = 0</code>, obtaining <code>s</code> such
+that<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.1-3">
+<pre>
+P(s) = Tag(Com(nf, 0, 1, 0), 0).
+</pre><a href="#section-7.1-3" class="pilcrow">¶</a>
+</div>
+<p id="section-7.1-4">The UOV public map is homogeneous quadratic, so <code>P(alpha*s) =
+alpha^2*P(s)</code>. For any nonzero <code>beta</code> in <code>F_256</code>, there is a unique <code>alpha</code>
+such that <code>alpha^2 = beta</code>. In the construction without constant
+coefficients, fieldwise scaling gives<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.1-5">
+<pre>
+P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
+</pre><a href="#section-7.1-5" class="pilcrow">¶</a>
+</div>
+<p id="section-7.1-6">Here <code>beta</code> in the balance position denotes its natural byte value, so its
+two-byte encoding is <code>0 || beta</code>. The nullifiers <code>beta*nf</code> are distinct. The
+Client therefore knows a true witness for each forged token and can construct
+valid spend proofs without breaking VOLEitH, commitment binding, or UOV
+inversion. One issued one-credit token yields 255 token witnesses whose
+balances sum to 32640.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+<p id="section-7.1-7">The constant coefficients prevent this scaling orbit. In particular, the
+binding block at <code>r = 0</code> is the nonzero vector <code>G(0) = (a_k, ...,
+a_{m_uov-1})</code>. A scaled UOV signature could match another zero-opening token
+only if <code>beta*G(0) = G(0)</code>, which forces <code>beta = 1</code>.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+<p id="section-7.1-8">This correction addresses this specific forgery only. Adding public constants
+is an output translation, so it does not establish the hiding or binding of the
+MQ commitment, the security of the selected parameters, or the security of the
+composition with UOV and VOLEitH.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="proof-status">
+<section id="section-7.2">
+        <h3 id="name-proof-status">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-proof-status" class="section-name selfRef">Proof status</a>
+        </h3>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-1.1">
-          <p id="section-7-1.1.1">TODO Prove the following claims.<a href="#section-7-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-7.2-1.1">
+            <p id="section-7.2-1.1.1">TODO Prove the following claims.<a href="#section-7.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
-<p id="section-7-2">Unlinkability of Ratatouille reduces to the zero-knowledge property of the
-VOLEitH proof system and the hiding property of the commitment.
-One-more-unforgeability reduces to witness-extractability of VOLEitH, binding
-of the commitment, and the one-more-UOV assumption (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8).
-The one-more-UOV assumption is a stronger assumption than standard UOV
-(<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some scrutiny before we rely on it too
-heavily.<a href="#section-7-2" class="pilcrow">¶</a></p>
+        </ul>
+<p id="section-7.2-2">A proof of unlinkability would need to reduce to the zero-knowledge property of
+the VOLEitH proof system and the hiding property of the commitment. A proof of
+one-more-unforgeability would need to use witness-extractability of VOLEitH,
+binding of the commitment, and a suitable unforgeability property of UOV. This
+document does not provide either reduction.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">In particular, the one-more-preimage assumption in <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span> is stated for
+random challenge targets. Ratatouille-MQ instead asks the UOV trapdoor to
+invert structured, attacker-influenced targets of the form <code>Tag(Com(...), x)</code>.
+Applying the PoMFRIT result therefore requires an additional argument that is
+not given here. Assuming hardness directly for this structured target family
+would be a new, protocol-specific assumption.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-3.1">
-          <p id="section-7-3.1.1">NOTE A few observations we've made so far:<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-7-3.1.2">
-<li id="section-7-3.1.2.1">
-              <p id="section-7-3.1.2.1.1">One-more-UOV reduction likely treats <code>Com()</code> and <code>Tag()</code> as random
+<li class="normal ulEmpty" id="section-7.2-4.1">
+            <p id="section-7.2-4.1.1">NOTE A few observations we've made so far:<a href="#section-7.2-4.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.2-4.1.2">
+<li id="section-7.2-4.1.2.1">
+                <p id="section-7.2-4.1.2.1.1">One-more-UOV reduction likely treats <code>Com()</code> and <code>Tag()</code> as random
 oracles. This is reasonable for Ratatouille-KP800, but we would need to
 figure out something else for Ratatouille-MQ. It seems to be me (cjpatton)
-that we probably need a proper hash for <code>Tag()</code> at least.<a href="#section-7-3.1.2.1.1" class="pilcrow">¶</a></p>
+that we probably need a proper hash for <code>Tag()</code> at least.<a href="#section-7.2-4.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-7-3.1.2.2">
-              <p id="section-7-3.1.2.2.1">If we add a randomizer to <code>Tag()</code> and instantiate it with Keccak, then we
-might even be able to reduce to standard UOV rather than one-more-UOV.<a href="#section-7-3.1.2.2.1" class="pilcrow">¶</a></p>
+              <li id="section-7.2-4.1.2.2">
+                <p id="section-7.2-4.1.2.2.1">If we add a randomizer to <code>Tag()</code> and instantiate it with Keccak, then we
+might even be able to reduce to standard UOV rather than one-more-UOV.<a href="#section-7.2-4.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-7-3.1.2.3">
-              <p id="section-7-3.1.2.3.1">For Ratatouille-MQ, figure out if the homomorphic tagging trick for the MQ
+              <li id="section-7.2-4.1.2.3">
+                <p id="section-7.2-4.1.2.3.1">For Ratatouille-MQ, figure out if the homomorphic tagging trick for the MQ
 variant is sound. We likely need the commitment to be pseudorandom, in
 which case allowing the attacker to select the tag probably incurs a
-security loss multiplicative in the number of bits of the refund.<a href="#section-7-3.1.2.3.1" class="pilcrow">¶</a></p>
+security loss multiplicative in the number of bits of the refund.<a href="#section-7.2-4.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-          </ol>
+            </ol>
 </li>
-      </ul>
-<p id="section-7-4">The parameters of the MQ commitment in <a href="#mq-commitment" class="auto internal xref">Section 6.2</a> were chosen from a
+        </ul>
+<p id="section-7.2-5">The parameters of the MQ commitment in <a href="#mq-commitment" class="auto internal xref">Section 6.2</a> were chosen from a
 regime for which security is only heuristically justified based on the best
 known attacks. Further cryptanalysis is required to determine if these
-parameters are safe <span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span>.<a href="#section-7-4" class="pilcrow">¶</a></p>
+parameters are safe <span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span>.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-5.1">
-          <p id="section-7-5.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
-TurboSHAKE).<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-7.2-6.1">
+            <p id="section-7.2-6.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-7.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
+        </ul>
+</section>
+</div>
 </section>
 </div>
 <div id="iana-considerations">
