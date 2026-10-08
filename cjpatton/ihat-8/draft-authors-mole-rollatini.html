@@ -1344,7 +1344,8 @@ the group, encoding, and context-binding rules followed by the participants.<a h
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1"><span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. They must be unlinkable by the Anchor that issued them, they must be
+<p id="section-1-1">MoLE Endorsements have a number of constraints imposed by the architecture
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
 not meet all of these needs. This document defines such a system, Rollatini,
@@ -1614,7 +1615,7 @@ fatal to the affected session; see <a href="#sessions" class="auto internal xref
 <p id="section-4-1">Issuance is a three-move protocol between a Client and an Anchor, followed by a
 local finalization step at the Client. The Anchor moves first and holds
 per-session state between its two moves, as shown in
-<a href="#fig-issuance-algorithms" class="auto internal xref">Figure 1</a>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<a href="#fig-issuance" class="auto internal xref">Figure 1</a>.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">The Anchor speaks first. This document does not prescribe how the three
 messages are carried, nor how a Client that wants an Endorsement reaches an
 Anchor in the first place; both are the business of the transport, and a Client
@@ -1897,8 +1898,8 @@ without breaking any of its cryptographic properties; see
       </h2>
 <p id="section-5-1">Issuance produces a signature on the message <code>Message(nf, ctx_red)</code> relative to
 the public input <code>ctx_iss</code>. It consists of four algorithms, run in the order
-shown in <a href="#fig-issuance-algorithms" class="auto internal xref">Figure 1</a>.<a href="#section-5-1" class="pilcrow">¶</a></p>
-<span id="name-issuance-algorithms-and-mes"></span><div id="fig-issuance-algorithms">
+shown in <a href="#fig-issuance" class="auto internal xref">Figure 1</a>.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<span id="name-issuance-algorithms-and-mes"></span><div id="fig-issuance">
 <figure id="figure-1">
         <div id="section-5-2.1">
           <div class="alignLeft art-svg artwork" id="section-5-2.1.1">
