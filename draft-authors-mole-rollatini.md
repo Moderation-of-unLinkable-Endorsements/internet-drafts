@@ -379,29 +379,8 @@ fatal to the affected session; see {{sessions}}.
 
 Issuance is a three-move protocol between a Client and an Anchor, followed by a
 local finalization step at the Client. The Anchor moves first and holds
-per-session state between its two moves.
-
-~~~
-   Client(pkA, ctx_iss, ctx_red)                Anchor(skA, ctx_iss)
- ---------------------------------------------------------------------
-                               state, commitment = Commit(ctx_iss)
-
-                             commitment
-                              <--------
-
-   state, challenge = Challenge(pkA, ctx_iss, ctx_red, commitment)
-
-                              challenge
-                              -------->
-
-                          response = Respond(skA, state, challenge)
-
-                              response
-                              <--------
-
-   endorsement = Finalize(pkA, state, response)
-~~~
-{: #fig-issuance title="Endorsement issuance overview"}
+per-session state between its two moves, as shown in
+{{fig-issuance}}.
 
 The Anchor speaks first. This document does not prescribe how the three
 messages are carried, nor how a Client that wants an Endorsement reaches an
@@ -670,10 +649,30 @@ without breaking any of its cryptographic properties; see
 
 Issuance produces a signature on the message `Message(nf, ctx_red)` relative to
 the public input `ctx_iss`. It consists of four algorithms, run in the order
+shown in {{fig-issuance}}.
 
+~~~ aasvg
++--------+                           +--------+
+| Client |                           | Anchor |
++---+----+                           +---+----+
+    |                                    |
+    |                                 Commit
+    |                                    |
+    |<-------- commitment (A, C) --------+
+    |                                    |
+Challenge                                |
+    |                                    |
+    +------------- challenge ----------->|
+    |                                    |
+    |                                 Respond
+    |                                    |
+    |<-------- response (s, y, t) -------+
+    |                                    |
+Finalize                                 |
+    |                                    |
+endorsement                              |
 ~~~
-  Commit -> Challenge -> Respond -> Finalize
-~~~
+{: #fig-issuance title="Endorsement issuance overview"}
 
 `Commit` and `Respond` are run by the Anchor; `Challenge` and `Finalize` are
 run by the Client. Both parties input the issuance context `ctx_iss`; only the
@@ -1041,22 +1040,20 @@ Moderator. The Moderator holds the ordered Anchor Set and carries it in that
 challenge; the Client learns it there and locates its own Anchor in it. Both
 parties input the two contexts.
 
-~~~
-   Client(endorsement,                   Moderator(anchor_set,
-          ctx_iss, ctx_red)                        ctx_iss, ctx_red)
- ---------------------------------------------------------------------
-                    challenge (carries anchor_set)
-                              <--------
-
-   redemption = Redeem(anchor_set, index, endorsement,
-                       ctx_iss, ctx_red, challenge_digest)
-
-                             redemption
-                              -------->
-
-                    nf = VerifyRedemption(anchor_set, redemption,
-                                          ctx_iss, ctx_red,
-                                          challenge_digest)
+~~~ aasvg
++--------+                           +-----------+
+| Client |                           | Moderator |
++---+----+                           +-----+-----+
+    |                                      |
+    |<----- challenge (anchor_set) --------+
+    |                                      |
+Redeem                                     |
+    |                                      |
+    +------------- redemption ------------>|
+    |                                      |
+    |                               VerifyRedemption
+    |                                      |
+    |                                      nf
 ~~~
 {: #fig-redemption title="Endorsement redemption overview"}
 
