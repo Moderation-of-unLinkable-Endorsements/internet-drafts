@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 10 April 2027                                           Mozilla
+Expires: 11 April 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                          7 October 2026
+                                                          8 October 2026
 
 
                              MoLE Protocols
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 April 2027.
+   This Internet-Draft will expire on 11 April 2027.
 
 Copyright Notice
 
@@ -234,11 +234,12 @@ Table of Contents
 
    Each credential protocol defines the contents of its type-specific
    CredentialChallenge body.  Endorsement protocols use the common
-   Challenge in Section 4.1.  For a new operation, a Moderator MUST
-   retain enough state to verify that a response uses a Challenge it
-   issued and that remains valid.  A credential protocol can return an
-   already accepted result after its Challenge expires, without
-   authorizing a new operation (Section 5.2.5).
+   Challenge in Section 4.1.  For a new operation, a Moderator MUST be
+   able to verify, from retained state or by recomputing the Challenge,
+   that a response uses a Challenge it issued and that remains valid.  A
+   credential protocol can return an already accepted result after its
+   Challenge expires, without authorizing a new operation
+   (Section 5.2.5).
 
 4.  Endorsement Protocols
 
@@ -310,13 +311,20 @@ Table of Contents
    The type-specific body of ModeratorChallenge is:
 
    struct {
-     opaque nonce[32];
+     opaque redemption_context[32];
    } RedemptionChallenge;
 
    The structure fields are:
 
-   *  nonce is an unpredictable value that the Moderator MUST NOT reuse
-      within its configured replay protection scope.
+   *  redemption_context scopes the redemption.  The Moderator
+      constructs it and the Client uses it as received.  It MUST
+      distinguish the Moderator and the policy it issues under, and
+      SHOULD distinguish a time window.
+
+   The Client does not send the challenge back.  The Moderator either
+   keeps the challenges it sends or recomputes redemption_context when a
+   request arrives, for instance as an authenticated encoding of its
+   origin, policy, and time window, trying adjacent windows.
 
    Endorsement protocols compute the following value when creating or
    verifying a redemption:
@@ -336,7 +344,10 @@ Table of Contents
    challenge_digest enters the Fiat-Shamir transcript in both Rollatini
    and Longfellow, but is not a Longfellow circuit public input.  A
    redemption created for one ModeratorChallenge does not verify under
-   another.
+   another, so a Moderator that accepts only the redemption_context it
+   constructs rejects a redemption made under another Moderator's
+   challenge.  This does not stop a Moderator that relays another
+   Moderator's challenge to the Client.
 
    The Challenge algorithm and ChallengeMessage in Rollatini issuance
    are defined by [ROLLATINI] and are unrelated to a ModeratorChallenge.
@@ -348,30 +359,29 @@ Table of Contents
    RedeemRequest(endorsement, moderator_challenge, configuration)
      -> redemption | INVALID
    FinalizeRedeem(redemption, moderator_challenge, configuration)
-     -> replay_protection_id | INVALID
+     -> replay_protection_ids | INVALID
 
    RedeemRequest runs at the Client.  FinalizeRedeem runs at the
    Moderator, verifies the redemption and Challenge binding, and returns
-   a replay_protection_id or INVALID.  Both operations derive
-   challenge_digest from moderator_challenge as specified above.  After
-   a successful call, the Moderator MUST atomically insert
-   replay_protection_id in the protocol's configured replay protection
-   scope only if it is absent.  If it is already present, the Moderator
-   MUST treat the result as INVALID and MUST NOT issue a Credential for
-   the accompanying IssuanceRequest.  There is no global replay
-   protection service.
+   a possibly empty set of replay_protection_ids or INVALID.  Both
+   operations derive challenge_digest from moderator_challenge as
+   specified above.  The Moderator MUST atomically insert every returned
+   identifier in the protocol's configured replay protection scope, each
+   only if absent.  If any is already present, the Moderator MUST treat
+   the result as INVALID and MUST NOT issue a Credential for the
+   accompanying IssuanceRequest.  There is no global replay protection
+   service.
 
 4.3.  No Endorsement Required
 
    Endorsement type 0x0001 indicates that the Moderator does not require
    an Endorsement under its policy.  It has no grant.  The endorsement
    input and Redemption are both the distinguished empty value.
-   RedeemRequest returns that empty value.  FinalizeRedeem returns
-   challenge_digest as its replay_protection_id when the Moderator's
-   policy permits issuance without an Endorsement, and INVALID
-   otherwise.  This prevents reuse of one Moderator Challenge within the
-   configured replay protection scope.  This type therefore implements
-   the same abstract API as every other endorsement type.
+   RedeemRequest returns that empty value.  FinalizeRedeem returns the
+   empty set when the Moderator's policy permits issuance without an
+   Endorsement, and INVALID otherwise.  How often a Client can obtain a
+   Credential this way is up to Moderator policy, for instance rate
+   limiting.
 
 4.4.  Rollatini
 
@@ -456,12 +466,11 @@ Table of Contents
    FinalizeRedeem checks that the issuance epoch and Moderator Challenge
    are accepted, decodes the payload, and calls
    VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
-   challenge_digest).  Its returned nf is the replay_protection_id,
-   scoped to ctx_iss in the Moderator's store.  Any decoding or
-   verification failure returns INVALID.  The common replay protection
-   rules apply before Credential issuance.  The same nf is exposed on
-   repeated redemptions, including across Moderators; the scheme does
-   not enforce global single use.
+   challenge_digest).  It returns {nf}, scoped to ctx_iss in the
+   Moderator's store.  Any decoding or verification failure returns
+   INVALID.  The common replay protection rules apply before Credential
+   issuance.  The same nf is exposed on repeated redemptions, including
+   across Moderators; the scheme does not enforce global single use.
 
 4.5.  Longfellow
 
@@ -544,10 +553,10 @@ Table of Contents
    the circuits, and returns the encoded Redemption above.
    FinalizeRedeem checks the artifact identifier, verifies the proof and
    its transcript binding, and checks that the configured epoch and
-   verification_time remain current.  It returns the nullifier as
-   replay_protection_id, or INVALID on any failure.  Both operations
-   derive challenge_digest from moderator_challenge.  The common caller
-   performs the atomic replay protection check.
+   verification_time remain current.  It returns {nullifier}, or INVALID
+   on any failure.  Both operations derive challenge_digest from
+   moderator_challenge.  The common caller performs the atomic replay
+   protection check.
 
 4.5.3.  Differences from Rollatini
 
@@ -817,10 +826,10 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    4.  It chooses the initial balance c under its policy and runs
        IssueResponse(skM, ctx_cred, c, request).  It then records the
-       replay_protection_id returned by FinalizeRedeem.  Recording is
-       atomic and fails if the identifier is already recorded.  If any
-       step fails, or it is unknown whether the identifier was recorded,
-       no response is released.
+       replay_protection_ids returned by FinalizeRedeem.  Recording is
+       atomic and fails if any identifier is already recorded.  If any
+       step fails, or it is unknown whether the identifiers were
+       recorded, no response is released.
 
    5.  It returns the result in a CredentialResponse.
 
@@ -946,13 +955,13 @@ FinalizeUpdate(presentation_state, update, configuration)
        t, and runs IssueRefund(skM, ctx_cred, spend, t) if it refunds.
        It then records the _result_ under (key_id, spend.k): the digest
        of the presentation octets, ctx_cred, and the decision, either
-       Refund(t), optionally with the octets of the RefundMessage, or
-       NoUpdate.  Recording is atomic and MUST fail if a result is
-       already recorded under that nullifier or if the key or context is
-       no longer accepted, so of two racing presentations at most one is
-       recorded.  If any step fails, or it is unknown whether the result
-       was recorded, no refund is released.  The Moderator MUST NOT
-       attempt the protected operation unless this request's result was
+       Refund(t) with the octets of the RefundMessage, or NoUpdate.
+       Recording is atomic and MUST fail if a result is already recorded
+       under that nullifier or if the key or context is no longer
+       accepted, so of two racing presentations at most one is recorded.
+       If any step fails, or it is unknown whether the result was
+       recorded, no refund is released.  The Moderator MUST NOT attempt
+       the protected operation unless this request's result was
        successfully recorded.
 
    4.  It attempts the protected operation.  Its HTTP response carries
@@ -1032,12 +1041,12 @@ FinalizeUpdate(presentation_state, update, configuration)
    presentation's challenge expires:
 
    *  For a recorded Refund(t), the Moderator returns the refund it
-      stored, or runs IssueRefund(skM, ctx_cred, spend, t) again with
-      the recorded ctx_cred and t.  Re-running IssueRefund is harmless,
-      since every refund of one spend shares the nullifier kstar
-      ([ACT]).
+      stored.
 
    *  For a recorded NoUpdate, the Moderator returns an absent update.
+
+   The recovery handle ([HTTP-TRANSPORT]) is key_id ||
+   SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate).
 
    The Moderator MUST NOT authorize another operation for a recorded
    nullifier, and MUST NOT change a recorded decision.  It returns the
@@ -1140,6 +1149,9 @@ FinalizeUpdate(presentation_state, update, configuration)
    issue a second Credential.  The Client MUST NOT combine the same
    presented Credential with a different update request.  These
    requirements are the retry semantics of [REVERSE-FLOW].
+
+   The recovery handle ([HTTP-TRANSPORT]) is token.token_key_id ||
+   token.nonce || SHA-256(PresentationAndUpdate).
 
 5.3.4.  Limitations
 
@@ -1603,9 +1615,10 @@ Appendix A.  Example
    The Client finalizes the ResponseMessage into an Endorsement.  It
    then obtains a ModeratorChallenge from the Moderator, computes its
    digest, and sends an HTTP request with a CredentialRequest containing
-   the Rollatini Redemption and a Privacy Pass TokenRequest:
+   the Rollatini Redemption and a Privacy Pass TokenRequest to its
+   Redeem & Issue endpoint:
 
-   GET /resource HTTP/1.1
+   POST /issue HTTP/1.1
    Host: moderator.example
    Authorization: Mole credential-request="<credential-request>"
 
