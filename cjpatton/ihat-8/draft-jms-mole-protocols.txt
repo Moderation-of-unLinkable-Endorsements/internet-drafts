@@ -18,8 +18,8 @@ Abstract
 
    This document defines protocols that instantiate the MoLE
    architecture: two endorsement protocols, by which a Client proves to
-   a Moderator that it holds material issued by a trusted Anchor without
-   revealing which one, and two credential protocols, by which a
+   a Moderator that it holds an Endorsement from a trusted Anchor
+   without revealing which one, and two credential protocols, by which a
    Moderator issues, verifies, and updates per-Client state without
    being able to link presentations.  It also establishes the registries
    that identify these protocols.
@@ -126,11 +126,11 @@ Table of Contents
 1.  Introduction
 
    The MoLE architecture [ARCHITECTURE] defines three roles.  Clients
-   obtain Anchor-issued material, construct Endorsements, redeem them at
-   Moderators in exchange for Credentials, and present those Credentials
-   to Moderators to access resources.  The architecture states the
-   required properties of Endorsements and Credentials but does not say
-   how to build them.  This document does.
+   obtain Endorsements from Anchors, redeem them at Moderators in
+   exchange for Credentials, and present those Credentials to Moderators
+   to access resources.  The architecture states the required properties
+   of Endorsements and Credentials but does not say how to build them.
+   This document does.
 
    TODO: the protocols below reflect our current understanding of how
    MoLE may work, and showcase agility.  They are not final.  Some may
@@ -158,9 +158,7 @@ Table of Contents
 
    This document uses the following terms for protocol actions:
 
-   Grant:  An Anchor gives a Client material from which it can construct
-      Endorsements.  This may be a Rollatini Token or a legacy
-      credential used by Longfellow.
+   Grant:  An Anchor gives a Client an Endorsement.
 
    Redeem:  A Client spends an Endorsement at one logical Moderator.  A
       Client MUST NOT attempt to redeem the same Endorsement at a second
@@ -178,7 +176,7 @@ Table of Contents
       returned in the same exchange.
 
    Finalize:  The Client-local step that turns a protocol response into
-      a stored Token or Credential.
+      a stored Endorsement or Credential.
 
 3.  Common Requirements
 
@@ -236,23 +234,22 @@ Table of Contents
 
    Each credential protocol defines the contents of its type-specific
    CredentialChallenge body.  Endorsement protocols use the common
-   Challenge in Section 4.1.  For a new operation, a Moderator MUST
-   retain enough state to verify that a response uses a Challenge it
-   issued and that remains valid.  A credential protocol can return an
-   already accepted result after its Challenge expires, without
-   authorizing a new operation (Section 5.2.5).
+   Challenge in Section 4.1.  For a new operation, a Moderator MUST be
+   able to verify, from retained state or by recomputing the Challenge,
+   that a response uses a Challenge it issued and that remains valid.  A
+   credential protocol can return an already accepted result after its
+   Challenge expires, without authorizing a new operation
+   (Section 5.2.5).
 
 4.  Endorsement Protocols
 
    An endorsement protocol has two parts.  First, before contacting a
-   Moderator, the Client obtains material issued by an Anchor.  This is
-   the grant: Rollatini uses request/response exchanges that produce a
-   Token, while Longfellow uses a legacy credential obtained out of
-   band.  Second, the Client constructs an Endorsement from that
-   material and redeems it at a Moderator.  The Endorsement proves
-   authorization by an Anchor in the Moderator's accepted set without
-   revealing which one.  Redemption happens inside the Redeem & Issue
-   flow (Section 5).
+   Moderator, the Client runs one or more request/response exchanges
+   with an Anchor and finalizes the result into an Endorsement.  This is
+   the grant.  Second, the Client redeems the Endorsement at a
+   Moderator, proving it came from an Anchor in the Moderator's accepted
+   set without revealing which one.  Redemption happens inside the
+   Redeem & Issue flow (Section 5).
 
    +--------+                    +--------+
    | Client |                    | Anchor |
@@ -268,17 +265,17 @@ Table of Contents
        |                        +-----+-----+
        |                              |
        |<-------- Challenge ----------+
-       +-------- Endorsement -------->|
+       +-------- Redemption --------->|
        |                              |
 
                  Figure 1: Endorsement grant and redemption
 
-   MoLE-specific exchanges with the Anchor are HTTP POST requests.  The
-   request body has media type application/mole-endorsement-request and
-   contains an EndorsementRequest.  The response body has media type
-   application/mole-endorsement-response and contains an
-   EndorsementResponse.  The endorsement type determines how many
-   exchanges are needed and what the body field contains at each step.
+   Exchanges with the Anchor are HTTP POST requests.  The request body
+   has media type application/mole-endorsement-request and contains an
+   EndorsementRequest.  The response body has media type application/
+   mole-endorsement-response and contains an EndorsementResponse.  The
+   endorsement type determines how many exchanges are needed and what
+   the body field contains at each step.
 
    struct {
      uint16 endorsement_type;
@@ -305,23 +302,29 @@ Table of Contents
    the consumed session cannot be replayed.  The Client starts a fresh
    grant session.
 
-   Every endorsement protocol defines an Endorsement structure.  It is
-   the evidence constructed by the Client and sent to the Moderator
-   during redemption, carried in the endorsement field of a
-   CredentialRequest (Section 5).
+   Every endorsement protocol defines a Redemption structure.  It is the
+   message a Client sends to redeem the Endorsement, carried in the
+   endorsement_presentation field of a CredentialRequest (Section 5).
 
 4.1.  Redemption Challenge Binding
 
    The type-specific body of ModeratorChallenge is:
 
    struct {
-     opaque nonce[32];
+     opaque redemption_context[32];
    } RedemptionChallenge;
 
    The structure fields are:
 
-   *  nonce is an unpredictable value that the Moderator MUST NOT reuse
-      within its configured replay protection scope.
+   *  redemption_context scopes the redemption.  The Moderator
+      constructs it and the Client uses it as received.  It MUST
+      distinguish the Moderator and the policy it issues under, and
+      SHOULD distinguish a time window.
+
+   The Client does not send the challenge back.  The Moderator either
+   keeps the challenges it sends or recomputes redemption_context when a
+   request arrives, for instance as an authenticated encoding of its
+   origin, policy, and time window, trying adjacent windows.
 
    Endorsement protocols compute the following value when creating or
    verifying a redemption:
@@ -341,7 +344,10 @@ Table of Contents
    challenge_digest enters the Fiat-Shamir transcript in both Rollatini
    and Longfellow, but is not a Longfellow circuit public input.  A
    redemption created for one ModeratorChallenge does not verify under
-   another.
+   another, so a Moderator that accepts only the redemption_context it
+   constructs rejects a redemption made under another Moderator's
+   challenge.  This does not stop a Moderator that relays another
+   Moderator's challenge to the Client.
 
    The Challenge algorithm and ChallengeMessage in Rollatini issuance
    are defined by [ROLLATINI] and are unrelated to a ModeratorChallenge.
@@ -350,35 +356,32 @@ Table of Contents
 
    Each endorsement protocol defines these abstract operations:
 
-   RedeemRequest(anchor_material, moderator_challenge, configuration)
-     -> endorsement | INVALID
-   FinalizeRedeem(endorsement, moderator_challenge, configuration)
-     -> replay_protection_id | INVALID
+   RedeemRequest(endorsement, moderator_challenge, configuration)
+     -> redemption | INVALID
+   FinalizeRedeem(redemption, moderator_challenge, configuration)
+     -> replay_protection_ids | INVALID
 
-   anchor_material is the protocol-specific input held by the Client: a
-   Rollatini Token or a legacy credential for Longfellow.  RedeemRequest
-   runs at the Client and constructs the Endorsement.  FinalizeRedeem
-   runs at the Moderator, verifies the Endorsement and Challenge
-   binding, and returns a replay_protection_id or INVALID.  Both
+   RedeemRequest runs at the Client.  FinalizeRedeem runs at the
+   Moderator, verifies the redemption and Challenge binding, and returns
+   a possibly empty set of replay_protection_ids or INVALID.  Both
    operations derive challenge_digest from moderator_challenge as
-   specified above.  After a successful call, the Moderator MUST
-   atomically insert replay_protection_id in the protocol's configured
-   replay protection scope only if it is absent.  If it is already
-   present, the Moderator MUST treat the result as INVALID and MUST NOT
-   issue a Credential for the accompanying IssuanceRequest.  There is no
-   global replay protection service.
+   specified above.  The Moderator MUST atomically insert every returned
+   identifier in the protocol's configured replay protection scope, each
+   only if absent.  If any is already present, the Moderator MUST treat
+   the result as INVALID and MUST NOT issue a Credential for the
+   accompanying IssuanceRequest.  There is no global replay protection
+   service.
 
 4.3.  No Endorsement Required
 
    Endorsement type 0x0001 indicates that the Moderator does not require
-   an Endorsement under its policy.  It has no grant.  The
-   anchor_material input and Endorsement are both the distinguished
-   empty value.  RedeemRequest returns that empty value.  FinalizeRedeem
-   returns challenge_digest as its replay_protection_id when the
-   Moderator's policy permits issuance without an Endorsement, and
-   INVALID otherwise.  This prevents reuse of one Moderator Challenge
-   within the configured replay protection scope.  This type therefore
-   implements the same abstract API as every other endorsement type.
+   an Endorsement under its policy.  It has no grant.  The endorsement
+   input and Redemption are both the distinguished empty value.
+   RedeemRequest returns that empty value.  FinalizeRedeem returns the
+   empty set when the Moderator's policy permits issuance without an
+   Endorsement, and INVALID otherwise.  How often a Client can obtain a
+   Credential this way is up to Moderator policy, for instance rate
+   limiting.
 
 4.4.  Rollatini
 
@@ -387,7 +390,7 @@ Table of Contents
    This protocol uses Rollatini [ROLLATINI], a pairing-free Issuer-
    Hiding Anonymous Token (IHAT).  The Anchor blindly signs a Client-
    chosen nullifier.  The Client later proves, with an issuer-hiding
-   proof, that its Token verifies under one of the Anchor keys the
+   proof, that its Endorsement verifies under one of the Anchor keys the
    Moderator accepts.  The cryptographic operations, and the contents
    and encodings of every message body, are defined in [ROLLATINI].
 
@@ -408,7 +411,7 @@ Table of Contents
       a stable key ID.
 
    Issuance Context  ctx_iss, the canonical encoding of the issuance
-      epoch.  Tokens are valid for that epoch, see Section 6.
+      epoch.  Endorsements are valid for that epoch, see Section 6.
 
    Redemption Context  ctx_red, the ASCII string "MoLE-Rollatini-
       ctx_red-v1", without a terminating NUL byte.  This fixed, domain-
@@ -438,37 +441,36 @@ Table of Contents
        Respond.
 
    3.  The Client runs Finalize(pkA, state, response) as specified by
-       [ROLLATINI], obtaining a Token.  On failure it MUST discard the
-       session state and MUST NOT retry with that state.
+       [ROLLATINI].  On failure it MUST discard the session state and
+       MUST NOT retry with that state.
 
    CommitMessage, ChallengeMessage, ResponseMessage, session_id, and the
-   Token encoding are defined by [ROLLATINI].  The session identifier is
-   only transport correlation and is not bound into the Token.
+   Endorsement encoding are defined by [ROLLATINI].  The session
+   identifier is only transport correlation and is not bound into the
+   Endorsement.
 
-   The Anchor learns neither nf nor the final Token.  Under the
+   The Anchor learns neither nf nor the final Endorsement.  Under the
    statistical blindness claim in [ROLLATINI], its protocol transcript
-   does not let it link the Token or an Endorsement constructed from it
-   to its issuance session.  Timing, network, and configuration metadata
-   are outside that claim.
+   does not let it recognize the Endorsement when it is later redeemed.
+   Timing, network, and configuration metadata are outside that claim.
 
 4.4.3.  Redemption
 
-   The type-specific Endorsement payload is the encoding of Endorsement
-   in [ROLLATINI].  RedeemRequest derives challenge_digest as in
-   Section 4.1 and calls Redeem(anchor_set, index, token, ctx_iss,
+   The type-specific Redemption payload is the encoding of Redemption in
+   [ROLLATINI].  RedeemRequest derives challenge_digest as in
+   Section 4.1 and calls Redeem(anchor_set, index, endorsement, ctx_iss,
    ctx_red, challenge_digest).  The ordered anchor_set comes from
    Moderator configuration; index selects the Anchor that issued the
-   Token.  The Client rejects a set that omits its Anchor.
+   Endorsement.  The Client rejects a set that omits its Anchor.
 
    FinalizeRedeem checks that the issuance epoch and Moderator Challenge
    are accepted, decodes the payload, and calls
-   VerifyEndorsement(anchor_set, endorsement, ctx_iss, ctx_red,
-   challenge_digest).  Its returned nf is the replay_protection_id,
-   scoped to ctx_iss in the Moderator's store.  Any decoding or
-   verification failure returns INVALID.  The common replay protection
-   rules apply before Credential issuance.  The same nf is exposed on
-   repeated redemptions, including across Moderators; the scheme does
-   not enforce global single use.
+   VerifyRedemption(anchor_set, redemption, ctx_iss, ctx_red,
+   challenge_digest).  It returns {nf}, scoped to ctx_iss in the
+   Moderator's store.  Any decoding or verification failure returns
+   INVALID.  The common replay protection rules apply before Credential
+   issuance.  The same nf is exposed on repeated redemptions, including
+   across Moderators; the scheme does not enforce global single use.
 
 4.5.  Longfellow
 
@@ -519,19 +521,17 @@ Table of Contents
    decoded ModeratorChallenge as challenge_digest, as defined in
    Section 4.1.
 
-   The Client evaluates the two circuits over its legacy credential to
-   construct an Endorsement containing a proof and a nullifier.  The
-   legacy credential is Anchor-issued material, not a MoLE Credential.
-   The nullifier is derived, inside the circuit, from a credential-bound
-   secret, the canonical Moderator origin, and the current epoch.  One
-   credential therefore yields exactly one valid nullifier per Moderator
-   origin and epoch.
+   The Client evaluates the two circuits over its credential to produce
+   a proof and a nullifier.  The nullifier is derived, inside the
+   circuit, from a credential-bound secret, the canonical Moderator
+   origin, and the current epoch.  One credential therefore yields
+   exactly one valid nullifier per Moderator origin and epoch.
 
    struct {
      opaque circuit_artifact_id[32];
      opaque nullifier<V>;
      opaque proof<V>;
-   } Endorsement;
+   } Redemption;
 
    The structure fields are:
 
@@ -550,13 +550,13 @@ Table of Contents
 
    Longfellow implements the common API in Section 4.  RedeemRequest
    checks that the artifact and manifest match configuration, evaluates
-   the circuits, and returns the encoded Endorsement above.
+   the circuits, and returns the encoded Redemption above.
    FinalizeRedeem checks the artifact identifier, verifies the proof and
    its transcript binding, and checks that the configured epoch and
-   verification_time remain current.  It returns the nullifier as
-   replay_protection_id, or INVALID on any failure.  Both operations
-   derive challenge_digest from moderator_challenge.  The common caller
-   performs the atomic replay protection check.
+   verification_time remain current.  It returns {nullifier}, or INVALID
+   on any failure.  Both operations derive challenge_digest from
+   moderator_challenge.  The common caller performs the atomic replay
+   protection check.
 
 4.5.3.  Differences from Rollatini
 
@@ -587,7 +587,7 @@ Table of Contents
    +---+----+                             +-----+-----+
        |                                        |
        |<--------- ModeratorChallenge ----------+
-       +--- Endorsement + IssuanceRequest ----->|  HTTP request
+       +--- Redemption + IssuanceRequest ------>|  HTTP request
        |<---------- IssuanceResponse -----------+
    Finalize                                    |
        |                                        |
@@ -610,7 +610,7 @@ Table of Contents
 
    struct {
      uint16 endorsement_type;
-     opaque endorsement<V>; /* encoded Endorsement */
+     opaque endorsement_presentation<V>; /* encoded Redemption */
      uint16 credential_type;
      opaque issuance_request<V>;
    } CredentialRequest;
@@ -624,8 +624,8 @@ Table of Contents
 
    *  endorsement_type identifies the endorsement protocol.
 
-   *  endorsement is its encoded Endorsement.  It is empty for
-      endorsement type 0x0001 (Section 4.3).
+   *  endorsement_presentation is its encoded Redemption.  It is empty
+      for endorsement type 0x0001 (Section 4.3).
 
    *  credential_type identifies the credential protocol.
 
@@ -826,10 +826,10 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    4.  It chooses the initial balance c under its policy and runs
        IssueResponse(skM, ctx_cred, c, request).  It then records the
-       replay_protection_id returned by FinalizeRedeem.  Recording is
-       atomic and fails if the identifier is already recorded.  If any
-       step fails, or it is unknown whether the identifier was recorded,
-       no response is released.
+       replay_protection_ids returned by FinalizeRedeem.  Recording is
+       atomic and fails if any identifier is already recorded.  If any
+       step fails, or it is unknown whether the identifiers were
+       recorded, no response is released.
 
    5.  It returns the result in a CredentialResponse.
 
@@ -912,9 +912,8 @@ FinalizeUpdate(presentation_state, update, configuration)
    A Client that holds no Usable Credential (Section 5.2.4) for this
    Moderator under the challenged credential_context, or whose
    Credential ProveSpend would reject for the challenged s and a, does
-   not present.  It runs Redeem & Issue, constructing an Endorsement
-   from suitable Anchor-issued material if the Moderator requires one
-   (Section 4).
+   not present.  It runs Redeem & Issue, first obtaining an Endorsement
+   if the Moderator requires one (Section 4).
 
    Otherwise the Client computes ctx_spend, runs ProveSpend(credential,
    ctx_cred, s, a, ctx_spend), stores the returned state and the
@@ -956,13 +955,13 @@ FinalizeUpdate(presentation_state, update, configuration)
        t, and runs IssueRefund(skM, ctx_cred, spend, t) if it refunds.
        It then records the _result_ under (key_id, spend.k): the digest
        of the presentation octets, ctx_cred, and the decision, either
-       Refund(t), optionally with the octets of the RefundMessage, or
-       NoUpdate.  Recording is atomic and MUST fail if a result is
-       already recorded under that nullifier or if the key or context is
-       no longer accepted, so of two racing presentations at most one is
-       recorded.  If any step fails, or it is unknown whether the result
-       was recorded, no refund is released.  The Moderator MUST NOT
-       attempt the protected operation unless this request's result was
+       Refund(t) with the octets of the RefundMessage, or NoUpdate.
+       Recording is atomic and MUST fail if a result is already recorded
+       under that nullifier or if the key or context is no longer
+       accepted, so of two racing presentations at most one is recorded.
+       If any step fails, or it is unknown whether the result was
+       recorded, no refund is released.  The Moderator MUST NOT attempt
+       the protected operation unless this request's result was
        successfully recorded.
 
    4.  It attempts the protected operation.  Its HTTP response carries
@@ -1042,12 +1041,12 @@ FinalizeUpdate(presentation_state, update, configuration)
    presentation's challenge expires:
 
    *  For a recorded Refund(t), the Moderator returns the refund it
-      stored, or runs IssueRefund(skM, ctx_cred, spend, t) again with
-      the recorded ctx_cred and t.  Re-running IssueRefund is harmless,
-      since every refund of one spend shares the nullifier kstar
-      ([ACT]).
+      stored.
 
    *  For a recorded NoUpdate, the Moderator returns an absent update.
+
+   The recovery handle ([HTTP-TRANSPORT]) is key_id ||
+   SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate).
 
    The Moderator MUST NOT authorize another operation for a recorded
    nullifier, and MUST NOT change a recorded decision.  It returns the
@@ -1151,6 +1150,9 @@ FinalizeUpdate(presentation_state, update, configuration)
    presented Credential with a different update request.  These
    requirements are the retry semantics of [REVERSE-FLOW].
 
+   The recovery handle ([HTTP-TRANSPORT]) is token.token_key_id ||
+   token.nonce || SHA-256(PresentationAndUpdate).
+
 5.3.4.  Limitations
 
    TODO: define a device binding mechanism, issuing tokens bound to a
@@ -1194,15 +1196,15 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    During redemption of an Endorsement, the Client uses the accepted
    Anchor Set from the Moderator's authenticated configuration.  If the
-   Client does not have material issued by one of the Anchors in the
-   Anchor Set, it must either abort the redemption flow or pause it
-   until it can obtain a suitable Token or legacy credential.  The
-   Client must take care to ensure its actions in this case do not
-   inadvertently reveal the authorizing Anchor of an accepted
-   Endorsement.  For example, if the Client initiates two concurrent
-   redemption flows, the Moderator can select Anchor Sets that differ by
-   just one Anchor.  If one flow aborts but the other does not, then the
-   Moderator immediately learns the Anchor of the accepted Endorsement.
+   Client does not have an Endorsement issued by one of the Anchors in
+   the Anchor Set, it must either abort the redemption flow or pause it
+   until it can obtain a suitable Endorsement.  The Client must take
+   care to ensure its actions in this case do not inadvertently reveal
+   the issuing Anchor of an accepted Endorsement.  For example, if the
+   Client initiates two concurrent redemption flows, the Moderator can
+   select Anchor Sets that differ by just one Anchor.  If one flow
+   aborts but the other does not, then the Moderator immediately learns
+   the Anchor of the accepted Endorsement.
 
 7.1.  Anonymous Credit Tokens
 
@@ -1573,8 +1575,8 @@ Appendix A.  Example
 
    A Client requests a resource protected by a Moderator that uses
    credential type 0x0002 (Privacy Pass Reverse Flow) and accepts
-   endorsement type 0x0002 (Rollatini).  The Client obtains a Token
-   before contacting that Moderator.
+   endorsement type 0x0002 (Rollatini).  The Client obtains the
+   Endorsement before contacting that Moderator.
 
    +--------+         +--------+      +-----------+
    | Client |         | Anchor |      | Moderator |
@@ -1586,7 +1588,7 @@ Appendix A.  Example
        |<-- ResponseMessage ---+            |
    Finalize               |                 |
        |<-------- ModeratorChallenge -------+
-       |   Endorsement + IssuanceRequest     |
+       |   Redemption + IssuanceRequest      |
        +------------------------------------>|
        |<------------------------------------+
        |   IssuanceResponse                  |
@@ -1610,13 +1612,13 @@ Appendix A.  Example
 
    EndorsementRequest { 0x0002, "" }
 
-   The Client finalizes the ResponseMessage into a Token.  It then
-   obtains a ModeratorChallenge from the Moderator, computes its digest,
-   constructs an Endorsement from the Token, and sends an HTTP request
-   with a CredentialRequest containing the Rollatini Endorsement and a
-   Privacy Pass TokenRequest:
+   The Client finalizes the ResponseMessage into an Endorsement.  It
+   then obtains a ModeratorChallenge from the Moderator, computes its
+   digest, and sends an HTTP request with a CredentialRequest containing
+   the Rollatini Redemption and a Privacy Pass TokenRequest to its
+   Redeem & Issue endpoint:
 
-   GET /resource HTTP/1.1
+   POST /issue HTTP/1.1
    Host: moderator.example
    Authorization: Mole credential-request="<credential-request>"
 
