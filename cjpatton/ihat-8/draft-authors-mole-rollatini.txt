@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                   W. Ladd
-Expires: 10 April 2027                               Akamai Technologies
+Expires: 11 April 2027                               Akamai Technologies
                                                              D. I. Mohan
                                          Georgia Institute of Technology
-                                                          7 October 2026
+                                                          8 October 2026
 
 
               Rollatini: An Issuer-Hiding Anonymous Token
@@ -57,7 +57,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 April 2027.
+   This Internet-Draft will expire on 11 April 2027.
 
 Copyright Notice
 
@@ -86,7 +86,7 @@ Table of Contents
      4.3.  Deriving Nonces
      4.4.  Key Generation
      4.5.  Context Binding
-   5.  Issuance of Tokens
+   5.  Token of Issuance
      5.1.  Anchor Commitment
      5.2.  Client Challenge
      5.3.  Anchor Response
@@ -129,13 +129,12 @@ Table of Contents
 
 1.  Introduction
 
-   MoLE Endorsements have a number of constraints imposed by the
-   architecture [ARCH].  They must be unlinkable to the grant of their
-   underlying material, they must be publicly verifiable, and a
-   redemption must hide the authorizing Anchor among the set of Anchors
-   a Moderator accepts.  Existing systems do not meet all of these
-   needs.  This document defines such a system, Rollatini, an Issuer-
-   Hiding Anonymous Token (IHAT).
+   [ARCH].  They must be unlinkable by the Anchor that issued them, they
+   must be publicly verifiable, and a redemption must hide which Anchor
+   issued the Endorsement among the set of Anchors a Moderator accepts.
+   Existing systems do not meet all of these needs.  This document
+   defines such a system, Rollatini, an Issuer-Hiding Anonymous Token
+   (IHAT).
 
    Rollatini follows the construction described in Section 3.4 of
    [FFKLLS26], which in turn is based on the pairing-free partially
@@ -605,7 +604,7 @@ Table of Contents
    construction provides without breaking any of its cryptographic
    properties; see Section 8.
 
-5.  Issuance of Tokens
+5.  Token of Issuance
 
    Issuance produces a signature on the message Message(nf, ctx_red)
    relative to the public input ctx_iss.  It consists of four
@@ -1787,12 +1786,6 @@ Table of Contents
    derived from the token or from any other value a Client reuses.  It
    hides the Anchor, and reusing it would link two redemptions to each
    other.
-
-   A Client can construct multiple byte-distinct Endorsements from one
-   token by rerandomizing it again.  They all carry the same nullifier
-   and consume the same authorization; constructing another Endorsement
-   does not permit another accepted redemption within the Moderator's
-   replay protection scope.
 
 6.4.  Redemption Verification
 
