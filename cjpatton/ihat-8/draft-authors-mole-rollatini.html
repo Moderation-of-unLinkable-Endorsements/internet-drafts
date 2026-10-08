@@ -1202,7 +1202,7 @@ the group, encoding, and context-binding rules followed by the participants.<a h
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
-            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-token-of-issuance" class="internal xref">Token of Issuance</a></p>
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-token-issuance" class="internal xref">Token Issuance</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
                 <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-anchor-commitment" class="internal xref">Anchor Commitment</a></p>
@@ -1236,7 +1236,7 @@ the group, encoding, and context-binding rules followed by the participants.<a h
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
-            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-endorsement-redemption" class="internal xref">Endorsement Redemption</a></p>
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-token-redemption" class="internal xref">Token Redemption</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
                 <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-key-rerandomization" class="internal xref">Key Rerandomization</a></p>
@@ -1892,8 +1892,8 @@ without breaking any of its cryptographic properties; see
 </div>
 <div id="issuance">
 <section id="section-5">
-      <h2 id="name-token-of-issuance">
-<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-token-of-issuance" class="section-name selfRef">Token of Issuance</a>
+      <h2 id="name-token-issuance">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-token-issuance" class="section-name selfRef">Token Issuance</a>
       </h2>
 <p id="section-5-1">Issuance produces a signature on the message <code>Message(nf, ctx_red)</code> relative to
 the public input <code>ctx_iss</code>. It consists of four algorithms, run in the order
@@ -2326,10 +2326,11 @@ invalid token.<a href="#section-5.7-2" class="pilcrow">¶</a></p>
 </div>
 <div id="redemption">
 <section id="section-6">
-      <h2 id="name-endorsement-redemption">
-<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-endorsement-redemption" class="section-name selfRef">Endorsement Redemption</a>
+      <h2 id="name-token-redemption">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-token-redemption" class="section-name selfRef">Token Redemption</a>
       </h2>
-<p id="section-6-1">A Client constructs an Endorsement from a token and redeems it at a Moderator.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<p id="section-6-1">A Client redeems a token at a Moderator by constructing and presenting an
+Endorsement.<a href="#section-6-1" class="pilcrow">¶</a></p>
 <p id="section-6-2">A token authorizes a single use (<a href="#context-binding" class="auto internal xref">Section 4.5</a>), so redemption does not have
 to hide the signature: the Client reveals it, and the Moderator deduplicates on
 the nullifier. What redemption must hide is which Anchor issued the token. The
@@ -2341,29 +2342,44 @@ belongs to some Anchor in the Moderator's Anchor Set (<a href="#issuer-proof" cl
 Moderator. The Moderator holds the ordered Anchor Set and carries it in that
 challenge; the Client learns it there and locates its own Anchor in it. Both
 parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
-<span id="name-endorsement-redemption-over"></span><div id="fig-redemption">
+<span id="name-token-redemption-overview"></span><div id="fig-redemption">
 <figure id="figure-2">
-        <div class="alignLeft art-text artwork" id="section-6-4.1">
-<pre>
-   Client(token,                         Moderator(anchor_set,
-          ctx_iss, ctx_red)                        ctx_iss, ctx_red)
- ---------------------------------------------------------------------
-                    challenge (carries anchor_set)
-                              &lt;--------
-
-   endorsement = Redeem(anchor_set, index, token,
-                       ctx_iss, ctx_red, challenge_digest)
-
-                             endorsement
-                              --------&gt;
-
-                    nf = VerifyRedemption(anchor_set, endorsement,
-                                          ctx_iss, ctx_red,
-                                          challenge_digest)
-</pre>
+        <div id="section-6-4.1">
+          <div class="alignLeft art-svg artwork" id="section-6-4.1.1">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="240" width="424" viewBox="0 0 424 240" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+              <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
+              <path d="M 40,64 L 40,112" fill="none" stroke="black"></path>
+              <path d="M 40,144 L 40,224" fill="none" stroke="black"></path>
+              <path d="M 80,32 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 304,64" fill="none" stroke="black"></path>
+              <path d="M 352,64 L 352,176" fill="none" stroke="black"></path>
+              <path d="M 400,32 L 400,64" fill="none" stroke="black"></path>
+              <path d="M 8,32 L 80,32" fill="none" stroke="black"></path>
+              <path d="M 304,32 L 400,32" fill="none" stroke="black"></path>
+              <path d="M 8,64 L 80,64" fill="none" stroke="black"></path>
+              <path d="M 304,64 L 400,64" fill="none" stroke="black"></path>
+              <path d="M 48,96 L 88,96" fill="none" stroke="black"></path>
+              <path d="M 288,96 L 352,96" fill="none" stroke="black"></path>
+              <path d="M 40,160 L 136,160" fill="none" stroke="black"></path>
+              <path d="M 248,160 L 344,160" fill="none" stroke="black"></path>
+              <polygon class="arrowhead" points="352,160 340,154.4 340,165.6" fill="black" transform="rotate(0,344,160)"></polygon>
+              <polygon class="arrowhead" points="56,96 44,90.4 44,101.6" fill="black" transform="rotate(180,48,96)"></polygon>
+              <g class="text">
+                <text x="44" y="52">Client</text>
+                <text x="352" y="52">Moderator</text>
+                <text x="136" y="100">challenge</text>
+                <text x="228" y="100">(anchor_set)</text>
+                <text x="28" y="132">Redeem</text>
+                <text x="192" y="164">endorsement</text>
+                <text x="356" y="196">VerifyRedemption</text>
+                <text x="352" y="212">|</text>
+                <text x="356" y="228">nf</text>
+              </g>
+            </svg><a href="#section-6-4.1.1" class="pilcrow">¶</a>
+</div>
 </div>
 <figcaption><a href="#figure-2" class="selfRef">Figure 2</a>:
-<a href="#name-endorsement-redemption-over" class="selfRef">Endorsement Redemption Overview</a>
+<a href="#name-token-redemption-overview" class="selfRef">Token Redemption Overview</a>
         </figcaption></figure>
 </div>
 <p id="section-6-5"><code>anchor_set</code> is the list of Anchor public keys the Moderator accepts. Both
