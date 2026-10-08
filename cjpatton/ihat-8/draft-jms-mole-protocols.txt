@@ -462,7 +462,7 @@ Table of Contents
 
    FinalizeRedeem checks that the issuance epoch and Moderator Challenge
    are accepted, decodes the payload, and calls
-   VerifyRedemption(anchor_set, endorsement, ctx_iss, ctx_red,
+   VerifyEndorsement(anchor_set, endorsement, ctx_iss, ctx_red,
    challenge_digest).  Its returned nf is the replay_protection_id,
    scoped to ctx_iss in the Moderator's store.  Any decoding or
    verification failure returns INVALID.  The common replay protection

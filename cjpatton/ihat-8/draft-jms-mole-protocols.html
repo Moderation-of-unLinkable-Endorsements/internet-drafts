@@ -1798,7 +1798,7 @@ the Anchor that issued the Token. The Client rejects a set that omits
 its Anchor.<a href="#section-4.4.3-1" class="pilcrow">¶</a></p>
 <p id="section-4.4.3-2"><code>FinalizeRedeem</code> checks that the issuance epoch and Moderator Challenge are
 accepted, decodes the payload, and calls
-<code>VerifyRedemption(anchor_set, endorsement, ctx_iss, ctx_red, challenge_digest)</code>.
+<code>VerifyEndorsement(anchor_set, endorsement, ctx_iss, ctx_red, challenge_digest)</code>.
 Its returned <code>nf</code> is the <code>replay_protection_id</code>, scoped to <code>ctx_iss</code> in the
 Moderator's store. Any decoding or verification failure returns <code>INVALID</code>.
 The common replay protection rules apply before Credential issuance. The

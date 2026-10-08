@@ -1268,7 +1268,7 @@ the group, encoding, and context-binding rules followed by the participants.<a h
                 <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-redemption" class="internal xref">Redemption</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
-                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-redemption-verification" class="internal xref">Redemption Verification</a></p>
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-endorsement-verification" class="internal xref">Endorsement Verification</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
                 <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-encodings-2" class="internal xref">Encodings</a></p>
@@ -2346,7 +2346,7 @@ parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <figure id="figure-2">
         <div id="section-6-4.1">
           <div class="alignLeft art-svg artwork" id="section-6-4.1.1">
-<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="240" width="424" viewBox="0 0 424 240" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" height="240" width="432" viewBox="0 0 432 240" class="diagram" text-anchor="middle" font-family="monospace" font-size="13px" stroke-linecap="round">
               <path d="M 8,32 L 8,64" fill="none" stroke="black"></path>
               <path d="M 40,64 L 40,112" fill="none" stroke="black"></path>
               <path d="M 40,144 L 40,224" fill="none" stroke="black"></path>
@@ -2371,7 +2371,7 @@ parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
                 <text x="228" y="100">(anchor_set)</text>
                 <text x="28" y="132">Redeem</text>
                 <text x="192" y="164">endorsement</text>
-                <text x="356" y="196">VerifyRedemption</text>
+                <text x="360" y="196">VerifyEndorsement</text>
                 <text x="352" y="212">|</text>
                 <text x="356" y="228">nf</text>
               </g>
@@ -3206,14 +3206,14 @@ Anchor, and reusing it would link two redemptions to each other.<a href="#sectio
 </div>
 <div id="verify-redemption">
 <section id="section-6.4">
-        <h3 id="name-redemption-verification">
-<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-redemption-verification" class="section-name selfRef">Redemption Verification</a>
+        <h3 id="name-endorsement-verification">
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-endorsement-verification" class="section-name selfRef">Endorsement Verification</a>
         </h3>
 <p id="section-6.4-1">The Moderator checks the signature under the rerandomized key and the proof
 against its Anchor Set.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.4-2">
 <pre>
-def VerifyRedemption(
+def VerifyEndorsement(
     anchor_set: Sequence[Element],
     endorsement: Endorsement,
     ctx_iss: bytes,
@@ -3253,9 +3253,9 @@ def VerifyRedemption(
 rerandomized key. Together the two checks establish that the Client holds a
 token issued under <code>ctx_iss</code> and <code>ctx_red</code> by one of the Anchors in
 <code>anchor_set</code>, and reveal nothing further about which one. On success,
-<code>VerifyRedemption</code> returns the nullifier; either failed check raises a
+<code>VerifyEndorsement</code> returns the nullifier; either failed check raises a
 <code>VerifyError</code>.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
-<p id="section-6.4-4"><code>VerifyRedemption</code> does not enforce single use. The nullifier <code>nf</code> is in the
+<p id="section-6.4-4"><code>VerifyEndorsement</code> does not enforce single use. The nullifier <code>nf</code> is in the
 clear in the redemption, and a Moderator that accepts a redemption <span class="bcp14">MUST</span> reject
 it if it has already recorded that <code>nf</code>, and <span class="bcp14">MUST</span> record <code>nf</code> before granting
 anything on the strength of it. A Moderator <span class="bcp14">SHOULD</span> scope its nullifier store to
@@ -3834,7 +3834,7 @@ of <a href="#wire" class="auto internal xref">Section 5.6</a> or <a href="#redem
 carry <code>issue.session_id</code>. The keys of each Anchor Set other than <code>key.pkA</code>
 were generated for the vectors. Every redemption constructs an Endorsement
 from the same token, whose authorization a Moderator would accept only once;
-each <code>nf</code> entry is the output of <code>VerifyRedemption</code>.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
+each <code>nf</code> entry is the output of <code>VerifyEndorsement</code>.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
 <div id="rollatini-tv-suite">
 <section id="appendix-A.1">
         <h3 id="name-ciphersuite">

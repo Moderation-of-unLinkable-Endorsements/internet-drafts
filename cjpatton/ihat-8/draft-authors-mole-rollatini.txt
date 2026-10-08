@@ -106,7 +106,7 @@ Table of Contents
        6.2.5.  Proving
        6.2.6.  Verifying
      6.3.  Redemption
-     6.4.  Redemption Verification
+     6.4.  Endorsement Verification
      6.5.  Encodings
    7.  Ciphersuites
      7.1.  Rollatini(P-256, SHA-256)
@@ -996,7 +996,7 @@ Table of Contents
        |                                      |
        +------------ endorsement ------------>|
        |                                      |
-       |                               VerifyRedemption
+       |                               VerifyEndorsement
        |                                      |
        |                                      nf
 
@@ -1785,12 +1785,12 @@ Table of Contents
    hides the Anchor, and reusing it would link two redemptions to each
    other.
 
-6.4.  Redemption Verification
+6.4.  Endorsement Verification
 
    The Moderator checks the signature under the rerandomized key and the
    proof against its Anchor Set.
 
-   def VerifyRedemption(
+   def VerifyEndorsement(
        anchor_set: Sequence[Element],
        endorsement: Endorsement,
        ctx_iss: bytes,
@@ -1829,11 +1829,11 @@ Table of Contents
    the rerandomized key.  Together the two checks establish that the
    Client holds a token issued under ctx_iss and ctx_red by one of the
    Anchors in anchor_set, and reveal nothing further about which one.
-   On success, VerifyRedemption returns the nullifier; either failed
+   On success, VerifyEndorsement returns the nullifier; either failed
    check raises a VerifyError.
 
-   VerifyRedemption does not enforce single use.  The nullifier nf is in
-   the clear in the redemption, and a Moderator that accepts a
+   VerifyEndorsement does not enforce single use.  The nullifier nf is
+   in the clear in the redemption, and a Moderator that accepts a
    redemption MUST reject it if it has already recorded that nf, and
    MUST record nf before granting anything on the strength of it.  A
    Moderator SHOULD scope its nullifier store to the issuance context,
@@ -2330,7 +2330,7 @@ Appendix A.  Test Vectors
    key.pkA were generated for the vectors.  Every redemption constructs
    an Endorsement from the same token, whose authorization a Moderator
    would accept only once; each nf entry is the output of
-   VerifyRedemption.
+   VerifyEndorsement.
 
 A.1.  Ciphersuite
 
