@@ -18,10 +18,11 @@ Abstract
 
    This document specifies Rollatini, a cryptographic construction used
    to produce and consume MoLE Endorsements.  An Anchor issues a token
-   to a Client.  The Client later constructs an Endorsement from that
-   token, including an issuer-hiding proof, and redeems it at a
-   Moderator without revealing the Anchor or allowing the Anchor to link
-   redemption to token issuance.
+   to a Client.  To redeem the token, the Client constructs an
+   Endorsement from it, including an issuer-hiding proof, and presents
+   the Endorsement to a Moderator.  The Endorsement reveals neither
+   which Anchor issued the token nor, to the Anchor, which issuance the
+   token came from.
 
    This document defines token issuance, built from a pairing-free
    partially blind signature scheme, and Endorsement construction and
@@ -130,12 +131,12 @@ Table of Contents
 1.  Introduction
 
    MoLE Endorsements have a number of constraints imposed by the
-   architecture [ARCH].  They must be unlinkable by the Anchor that
-   issued them, they must be publicly verifiable, and a redemption must
-   hide which Anchor issued the Endorsement among the set of Anchors a
-   Moderator accepts.  Existing systems do not meet all of these needs.
-   This document defines such a system, Rollatini, an Issuer-Hiding
-   Anonymous Token (IHAT).
+   architecture [ARCH].  An Endorsement must be unlinkable, by the
+   Anchor, to the issuance of the token it was constructed from; it must
+   be publicly verifiable; and it must hide which Anchor issued the
+   token among the set of Anchors a Moderator accepts.  Existing systems
+   do not meet all of these needs.  This document defines such a system,
+   Rollatini, an Issuer-Hiding Anonymous Token (IHAT).
 
    Rollatini follows the construction described in Section 3.4 of
    [FFKLLS26], which in turn is based on the pairing-free partially
@@ -146,18 +147,18 @@ Table of Contents
    adding a proof that its issuing Anchor belongs to the Moderator's
    Anchor Set. Each token is bound at issuance time to two contexts,
    which also constrain the Endorsements constructed from it.  These may
-   be used to limit when and for whom the token may later be used:
+   be used to limit when and where the token may later be redeemed:
 
    *  The issuance context ctx_iss is agreed out of band among the
       Client, the Anchor, and the Moderator. ctx_iss can encode, for
       instance, the time period in which the token is issued, ensuring
-      its authorization expires.
+      tokens expire.
 
    *  The redemption context ctx_red is agreed out of band between the
       Client and the Moderator.  For example, it may be a long-term
-      identity of the target Moderator.  This may be used to prevent
-      Endorsement reuse across Moderators without requiring a
-      synchronized state between them.
+      identity of the target Moderator.  This may be used to prevent a
+      token from being redeemed at more than one Moderator without
+      requiring a synchronized state between them.
 
    [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
    redemption APIs.  It supplies the issuance and redemption contexts;
@@ -167,15 +168,16 @@ Table of Contents
 
    The remainder of this document is organized as follows.  After
    defining conventions and cryptographic preliminaries (Section 3), we
-   given an overview of issuance and specify some functionalities common
-   to issuance and redemption Section 4.  Section 5 specifies the
-   issuance flow, including message encodings and session handling.
-   Section 6 specifies issuer-hiding redemption, including key
-   rerandomization and the proof that the issuing Anchor belongs to the
-   Moderator's Anchor Set. Section 7 defines the supported ciphersuites,
-   and Section 8 discusses the construction's security and deployment
-   considerations.  Section 9 covers IANA considerations, and Appendix A
-   provides test vectors for the ciphersuites defined here.
+   give an overview of token issuance and specify some functionalities
+   common to issuance and redemption (Section 4).  Section 5 specifies
+   token issuance, including message encodings and session handling.
+   Section 6 specifies token redemption: how a Client constructs an
+   Endorsement from a token, including key rerandomization and the proof
+   that the issuing Anchor belongs to the Moderator's Anchor Set, and
+   how a Moderator verifies it.  Section 7 defines the supported
+   ciphersuites, and Section 8 discusses the construction's security and
+   deployment considerations.  Section 9 covers IANA considerations, and
+   Appendix A provides test vectors for the ciphersuites defined here.
 
 2.  Conventions and Definitions
 
@@ -186,7 +188,18 @@ Table of Contents
    capitals, as shown here.
 
    The terms Client, Anchor, Moderator, Endorsement, Credential, and
-   Anchor Set are used as defined in [ARCH].
+   Anchor Set are used as defined in [ARCH].  In addition, this document
+   distinguishes between the following:
+
+   Token:  The object an Anchor issues to a Client (Section 5).  A token
+      is never sent to a Moderator.
+
+   Endorsement:  The cryptographic evidence a Client derives from a
+      token and presents to a Moderator in order to redeem the token
+      (Section 6).
+
+   A token can be redeemed at most once (Section 6.4), and every
+   Endorsement constructed from it is freshly randomized (Section 6.3).
 
    Unless otherwise specified, this document encodes protocol messages
    in TLS notation (Section 3 of [TLS13]).  Moreover, all constants are
@@ -349,15 +362,15 @@ Table of Contents
    shown in Figure 1.
 
    The Anchor speaks first.  This document does not prescribe how the
-   three messages are carried, nor how a Client that wants an
-   Endorsement reaches an Anchor in the first place; both are the
-   business of the transport, and a Client will in general have to
-   signal its intent by some means that carries no protocol data.  For
-   example, over HTTP a Client might ask for issuance in a request with
-   an empty body, receive the commitment in the response, send the
-   challenge in a second request, and receive the response in the reply
-   to that.  Section 5.6 specifies the encoding of the three messages
-   and their mapping onto the exchanges of [PROTOCOLS].
+   three messages are carried, nor how a Client that wants a token
+   reaches an Anchor in the first place; both are the business of the
+   transport, and a Client will in general have to signal its intent by
+   some means that carries no protocol data.  For example, over HTTP a
+   Client might ask for issuance in a request with an empty body,
+   receive the commitment in the response, send the challenge in a
+   second request, and receive the response in the reply to that.
+   Section 5.6 specifies the encoding of the three messages and their
+   mapping onto the exchanges of [PROTOCOLS].
 
    Neither context is carried in these messages.  Both parties already
    hold the issuance context, having agreed on it out of band; the
@@ -590,15 +603,15 @@ Table of Contents
    afterwards be re-bound to another value, so a Client that needs to
    redeem under several redemption contexts needs a separate token, and
    so a separate issuance, for each.  Anchors bound how many tokens they
-   grant a given Client in order to keep Endorsement authorizations
-   scarce ([ARCH]), so that budget is consumed per redemption context
-   rather than per Client.
+   issue to a given Client in order to keep tokens scarce ([ARCH]), so
+   that budget is consumed per redemption context rather than per
+   Client.
 
    The nullifier nf MUST be a fresh string of Nn uniformly random bytes,
    generated by the Client, and MUST NOT be reused across tokens.  It is
    revealed in every Endorsement constructed from that token, so the
-   Moderator ensures the token authorizes at most one accepted
-   redemption in its replay protection scope.
+   Moderator can ensure each token is redeemed at most once
+   (Section 6.4).
 
    The values the two contexts take determine the anonymity set a Client
    redeems in, and a deployment can destroy the unlinkability the
@@ -848,8 +861,8 @@ Table of Contents
 
        return c == ComputeChallenge(ctx_iss, commitment, m)
 
-   A Moderator never runs Verify under an Anchor's public key: a
-   redemption does not reveal which Anchor issued the token, so the
+   A Moderator never runs Verify under an Anchor's public key: an
+   Endorsement does not reveal which Anchor issued the token, so the
    Moderator runs it under a rerandomized key and checks an issuer-
    hiding proof alongside (Section 6).  The Client MUST NOT reveal the
    Anchor's public key to the Moderator.
@@ -973,14 +986,14 @@ Table of Contents
    A Client redeems a token at a Moderator by constructing and
    presenting an Endorsement.
 
-   A token authorizes a single use (Section 4.5), so redemption does not
-   have to hide the signature: the Client reveals it, and the Moderator
-   deduplicates on the nullifier.  What redemption must hide is which
-   Anchor issued the token.  The signature of Section 5 verifies under
-   one Anchor's public key, so presenting it against that key would name
-   the Anchor.  Instead the Client rerandomizes the key (Section 6.1)
-   and proves in zero knowledge that the rerandomized key belongs to
-   some Anchor in the Moderator's Anchor Set (Section 6.2).
+   A token can be redeemed only once (Section 4.5), so the Endorsement
+   does not have to hide the signature: the Client reveals it, and the
+   Moderator deduplicates on the nullifier.  What redemption must hide
+   is which Anchor issued the token.  The signature of Section 5
+   verifies under one Anchor's public key, so presenting it against that
+   key would name the Anchor.  Instead the Client rerandomizes the key
+   (Section 6.1) and proves in zero knowledge that the rerandomized key
+   belongs to some Anchor in the Moderator's Anchor Set (Section 6.2).
 
    The Endorsement is one message from the Client, answering a challenge
    from the Moderator.  The Moderator holds the ordered Anchor Set and
@@ -1007,11 +1020,11 @@ Table of Contents
    Both parties MUST use the same list in the same order.  A proof
    computed over a different list or order will not verify.
 
-   challenge_digest binds the redemption to the challenge that triggered
-   it.  It is computed from the Moderator's challenge as specified in
-   [PROTOCOLS], and this document treats it as an opaque byte string.
-   Note that this challenge is the Moderator's, and has nothing to do
-   with the issuance challenge of Section 5.2.
+   challenge_digest binds the Endorsement to the challenge that
+   triggered it.  It is computed from the Moderator's challenge as
+   specified in [PROTOCOLS], and this document treats it as an opaque
+   byte string.  Note that this challenge is the Moderator's, and has
+   nothing to do with the issuance challenge of Section 5.2.
 
    index is the position in anchor_set of the public key of the Anchor
    that issued the token.  A Client whose Anchor does not appear in
@@ -1042,7 +1055,7 @@ Table of Contents
    place of pkA.
 
    Because this shift is additive, issuance is left unmodified and the
-   unforgeability of Section 5 carries over to the modified token
+   unforgeability of Section 5 carries over to the adapted token
    (Section 8).  But X_hat by itself provides no evidence that it was
    derived from an Anchor key.  The Client therefore also proves
    knowledge of delta relating X_hat to a key in anchor_set, without
@@ -1781,9 +1794,9 @@ Table of Contents
            openings,
        )
 
-   delta MUST be freshly derived for every redemption, and MUST NOT be
+   delta MUST be freshly derived for every Endorsement, and MUST NOT be
    derived from the token or from any other value a Client reuses.  It
-   hides the Anchor, and reusing it would link two redemptions to each
+   hides the Anchor, and reusing it would link two Endorsements to each
    other.
 
 6.4.  Endorsement Verification
@@ -1834,18 +1847,19 @@ Table of Contents
    check raises a VerifyError.
 
    VerifyEndorsement does not enforce single use.  The nullifier nf is
-   in the clear in the redemption, and a Moderator that accepts a
-   redemption MUST reject it if it has already recorded that nf, and
-   MUST record nf before granting anything on the strength of it.  A
-   Moderator SHOULD scope its nullifier store to the issuance context,
-   since a token issued under a different ctx_iss does not verify
-   anyway.  [PROTOCOLS] places these checks, and the check that ctx_iss
-   is current, at the Moderator.
+   in the clear in the Endorsement, and a Moderator MUST reject an
+   Endorsement whose nf it has already recorded, and MUST record nf
+   before granting anything on the strength of it.  A Moderator SHOULD
+   scope its nullifier store to the issuance context, since a token
+   issued under a different ctx_iss does not verify anyway.  [PROTOCOLS]
+   places these checks, and the check that ctx_iss is current, at the
+   Moderator.
 
-   An Anchor Set of one key gives a tree of depth zero: the redemption
+   An Anchor Set of one key gives a tree of depth zero: the Endorsement
    carries no commitment keys or openings, and the issuer-hiding proof
-   is a proof of knowledge of delta for that key.  The redemption then
-   names its Anchor, as the Anchor Set itself does; see Section 8.
+   is a proof of knowledge of delta for that key.  The Endorsement then
+   names the Anchor that issued the token, as the Anchor Set itself
+   does; see Section 8.
 
 6.5.  Encodings
 
@@ -1966,9 +1980,10 @@ Table of Contents
       evaluating the hash function on one of the secret inputs from
       which the Client derives its blinding factors (Section 4.2).
       Finding one by search takes about 2^256 evaluations, or 2^128 on a
-      quantum computer.  Grants of tokens and Endorsement redemptions
-      are therefore unlinkable, as [ARCH] requires, even to an attacker
-      who records transcripts for a future quantum computer.
+      quantum computer.  The issuance of a token and the Endorsement
+      later presented to redeem it are therefore unlinkable, as [ARCH]
+      requires, even to an attacker who records transcripts for a future
+      quantum computer.
 
    Derived blinding factors:  Challenge derives its four blinding
       factors with G.DeriveScalars, and Redeem derives delta the same
@@ -2002,9 +2017,9 @@ Table of Contents
       distinct signed messages under that context, regardless of how
       many sessions it has completed under _other_ issuance contexts
       [TESSZHU].  This is what allows a Moderator to conclude that an
-      accepted Endorsement corresponds to exactly one grant by a trusted
-      Anchor.  This security guarantee holds even with concurrent
-      sessions.
+      accepted Endorsement corresponds to exactly one token issued by a
+      trusted Anchor.  This security guarantee holds even with
+      concurrent sessions.
 
    Unforgeability under rerandomization:  Lemma 1 of [FFKLLS26]
       establishes strong key randomizability of [TESSZHU].  Thus,
@@ -2021,7 +2036,7 @@ Table of Contents
       blindness from perfect blindness of issuance, strong key
       randomizability, and perfect zero knowledge of the issuer-hiding
       proof, assuming uniform randomness.  Up to the statistical
-      distance given below, a redemption reveals nothing about which
+      distance given below, an Endorsement reveals nothing about which
       Anchor in anchor_set issued the token, so a Moderator, an Anchor,
       and the two colluding learn only that some key in anchor_set was
       used.  X_hat and the response of the single branch proof are
@@ -2033,14 +2048,13 @@ Table of Contents
       composition is therefore witness indistinguishable (appendix and
       Section 7 of [STACKSIG]).  These results assume uniform
       randomness; in the random oracle model, each of the 2 * q + 2
-      scalars a redemption derives is within about 2^-128 of uniform
-      ("Derived blinding factors" above), a statistical distance of at
-      most (2 * q + 2) * 2^-128.  Like blindness, issuer hiding
-      therefore holds in that model against an adversary that does not
-      find those inputs, including a quantum computer that records
-      transcripts today.  The _binding_ property of the commitment, not
-      its hiding, rests on the discrete logarithm, which is the
-      direction [ARCH] requires.
+      scalars Redeem derives is within about 2^-128 of uniform ("Derived
+      blinding factors" above), a statistical distance of at most (2 * q
+      + 2) * 2^-128.  Like blindness, issuer hiding therefore holds in
+      that model against an adversary that does not find those inputs,
+      including a quantum computer that records transcripts today.  The
+      _binding_ property of the commitment, not its hiding, rests on the
+      discrete logarithm, which is the direction [ARCH] requires.
 
    Partially binding commitments:  The soundness of the issuer-hiding
       proof rests on two things: the commitment of Section 6.2.2 binding
@@ -2062,14 +2076,15 @@ Table of Contents
       Endorsements without an Anchor-issued token.
 
    Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
-      Set_, so the set is the anonymity set, and a redemption against a
-      set of one key names its Anchor (Section 6.4); blindness still
-      keeps it unlinkable to the session that produced the token.  A
-      Moderator that offers different Anchor Sets to different Clients
-      partitions them, and one that reorders the set between Clients
-      does the same; the set and its order MUST be the same for every
-      Client offered a given ctx_iss.  See [ARCH] for how set size
-      interacts with Anchor diversity.
+      Set_, so the set is the anonymity set, and an Endorsement
+      constructed against a set of one key names the Anchor that issued
+      the token (Section 6.4); blindness still keeps it unlinkable to
+      the session that produced the token.  A Moderator that offers
+      different Anchor Sets to different Clients partitions them, and
+      one that reorders the set between Clients does the same; the set
+      and its order MUST be the same for every Client offered a given
+      ctx_iss.  See [ARCH] for how set size interacts with Anchor
+      diversity.
 
    Proof size and cost:  The proof is logarithmic in the size of the
       Anchor Set: two scalars, plus one element and one scalar for each
@@ -2139,10 +2154,10 @@ Table of Contents
       configuration takes the same value for every Client and every
       session.  Under such a challenge, challenge_digest binds a proof
       to the Moderator rather than to a session, and it is the nullifier
-      check of Section 6.4 that prevents a redemption from being
+      check of Section 6.4 that prevents an Endorsement from being
       replayed.  A deployment that wants challenge binding to carry
       session freshness needs the challenge to include a value that
-      varies per session.  The signature itself does not depend on the
+      varies per session.  The token's signature does not depend on the
       challenge, so single use rests on the nullifier check.
 
    Context binding:  The issuance context enters both the commitment
@@ -2325,13 +2340,13 @@ Appendix A.  Test Vectors
    SerializeScalar(r1) || SerializeScalar(r2) followed by
    SerializeScalar(gamma1) || SerializeScalar(gamma2) ||
    SerializeScalar(c). issue.Z is CreateContextBase(ctx_iss), and
-   key.P_pkA is P(pkA).  Every message and token entry is an encoding of
-   Section 5.6 or Section 6.5, and the commit and challenge messages
-   carry issue.session_id.  The keys of each Anchor Set other than
-   key.pkA were generated for the vectors.  Every redemption constructs
-   an Endorsement from the same token, whose authorization a Moderator
-   would accept only once; each nf entry is the output of
-   VerifyEndorsement.
+   key.P_pkA is P(pkA).  Every message, token, and endorsement entry is
+   an encoding of Section 5.6 or Section 6.5, and the commit and
+   challenge messages carry issue.session_id.  The keys of each Anchor
+   Set other than key.pkA were generated for the vectors.  Every
+   redemption vector constructs an Endorsement from the same token, so a
+   Moderator would accept only one of them; each nf entry is the output
+   of VerifyEndorsement.
 
 A.1.  Ciphersuite
 
@@ -2429,7 +2444,7 @@ A.5.  Redemption Against 2 Anchors
        6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
    redeem2.delta =
        33c221d1588baa3ac3589f2e8972fbc1b6b18a32ddf6a54bc7d55be6e8763f18
-   redeem2.message =
+   redeem2.endorsement =
        020e4737feb353d8f713342c0eb52ed2a1a2c569d658daaf16f907a872380105
        0ce62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
        279958a11e2506950f8d014b0329e8fc5ab36eca2c1a4ba5113e9d852cb2555a
@@ -2463,7 +2478,7 @@ A.6.  Redemption Against 5 Anchors
        56033a95bec633bf0ecea472b0175acee9073e60074887fce64c537fde6fdd88
    redeem5.delta =
        094ac33f15105dfa8b102e3c707e8f1ce90cb48ad544b5b6fbe9b17c44e634b1
-   redeem5.message =
+   redeem5.endorsement =
        02e4a72beabef3e6037b33aff1e56c5c1e19192e9194c0780e048f5da21f4400
        6ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
        2756b4ae805c0054aa48f3304ce0a646361ac6b3bf00a7f4aa2ac828f167ec11
@@ -2497,7 +2512,7 @@ A.7.  Redemption Against 1 Anchor
        ca99a7db68fd8816691248473c40c53203c5e1687d4628a176c8e2759133c57e
    redeem1.delta =
        a20875aba695e447305ba2833a23d141dcd105d6703b149489272c5bb6850bc2
-   redeem1.message =
+   redeem1.endorsement =
        036c7114e474fe664a90bf71604dab46a02905f3fa421d9d8952e514a4001cb8
        9ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
        271ca069fa7fa55962a7d78cfb969861786aea5250ac35d0b1a83d2939fc8bf4
