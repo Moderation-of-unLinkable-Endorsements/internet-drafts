@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-06T05:32:08.701225+00:00",
+  "timestamp": "2026-10-08T05:12:31.381225+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -47,6 +47,11 @@
       "name": "protocols",
       "description": "",
       "color": "870ff9"
+    },
+    {
+      "name": "wire breaking",
+      "description": null,
+      "color": "aaaaaa"
     }
   ],
   "issues": [
@@ -604,7 +609,7 @@
       ],
       "body": "Right now IHAT has roughly the following syntax:\n\n* Issuance: `Client(ctx_red, ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` That is, the client and anchor agree on the anchor's key and issuance context (client keeps the redemption context secret) and interact over some number of moves (2-3).\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Client and moderator agree on the issuance and redemption context and the anchor set. The client sends an endorsement covered by the anchor set.\n\nEach IHAT token can be used just once. In some situations, it may be useful to instead be able to present the same token once (or perhaps multiple times) to many Moderators. Something like this:\n\n* Issuance: `Client(ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` Same as above, except `ctx_red` isn't determined until redemption time.\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Same as above. \n\nWe know roughly how to do this with both Longfellow and Moussaka. In both cases, the solution involves adding an additional hash to the circuit that's used as a PRF applied to the redemption context (and perhaps presentation count, as in ARC). We can do the same thing for plain IHAT as well, but it would use the non-PQ-private trick in ARC.\n\n\n\n\n",
       "createdAt": "2026-08-10T15:49:29Z",
-      "updatedAt": "2026-08-18T10:56:09Z",
+      "updatedAt": "2026-10-07T17:22:35Z",
       "closedAt": null,
       "comments": [
         {
@@ -627,6 +632,13 @@
           "body": "Supporting Multi-Show IHAT would also require to adapt the privacy goals `Endorsement Grants and Redemptions are Unlinkable` to capture unlinkability across multiple presentations with distinct presentation contexts, right? I believe it currently only states unlinkability to its endorsement issuance session.",
           "createdAt": "2026-08-18T10:56:09Z",
           "updatedAt": "2026-08-18T10:56:09Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Just noting here that Moussaka can easily be adapted to support this feature, at the cost of proving an additional hash. I'll update the draft with a sketch of how this would work.",
+          "createdAt": "2026-10-07T17:22:35Z",
+          "updatedAt": "2026-10-07T17:22:35Z"
         }
       ]
     },
@@ -713,7 +725,7 @@
       "id": "I_kwDOSX6krs8AAAABRWpYXQ",
       "title": "ihat: Make randomness an explicit parameter of each algorithm",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/72",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -722,8 +734,8 @@
       ],
       "body": "This makes it easier to generate reproducible test vectors. See https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/69/changes#r3994560515 for discussion.",
       "createdAt": "2026-09-15T08:31:15Z",
-      "updatedAt": "2026-10-05T22:31:22Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-07T21:15:52Z",
+      "closedAt": "2026-10-07T21:15:52Z",
       "comments": [
         {
           "author": "wbl",
@@ -764,6 +776,79 @@
           "updatedAt": "2026-09-24T22:29:50Z"
         }
       ]
+    },
+    {
+      "number": 97,
+      "id": "I_kwDOSX6krs8AAAABVtTo8w",
+      "title": "rollatini: Clarify concurrent security claims",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/97",
+      "state": "CLOSED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [
+        "wbl"
+      ],
+      "labels": [
+        "crypto"
+      ],
+      "body": "The Rollatini draft makes the following claim:\n\n> The security of Rollatini is studied in {{FFKLLS26}}. The underlying blind\n> signature is that of Tessaro and Zhu {{TESSZHU}}, instantiated with the public\n> input set to the issuance context. Security is analysed in the random oracle\n> model, and one-more unforgeability additionally in the algebraic group model\n> under the discrete logarithm assumption. Notably, its concurrent security does\n> not rely on the hardness of the ROS problem, which is broken in polynomial time,\n> nor on the mROS problem, which admits sub-exponential attacks.\n\nThis is a confusing paragraph. In part it makes a claim about concurrent security, but only implicitly. Figure out what we want to say here, or consider removing it altogether.\n\nSee https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/95#discussion_r4211715332.\n            ",
+      "createdAt": "2026-10-07T20:56:45Z",
+      "updatedAt": "2026-10-07T21:41:42Z",
+      "closedAt": "2026-10-07T21:41:42Z",
+      "comments": []
+    },
+    {
+      "number": 98,
+      "id": "I_kwDOSX6krs8AAAABVtZzXQ",
+      "title": "rollatini: Purpose of {{scheme}} section is unclear",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/98",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "In part, it's an overview of issuance. But it also defines several functions used in the remainder of the doc. Consider splitting this into two sections, the first an overview of the entire document, and the second an \"auxiliary functions\" section or something like that.",
+      "createdAt": "2026-10-07T21:05:04Z",
+      "updatedAt": "2026-10-07T21:05:04Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 103,
+      "id": "I_kwDOSX6krs8AAAABVuqVfg",
+      "title": "rollatini: Mix of fixed-length and variable-length length prefixes",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/103",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto",
+        "wire breaking"
+      ],
+      "body": "In various places we use `U16PRefixed()` when encoding values that need a length prefix. We also use QUIC-style variable length prefixes for other things. It would be useful I think to be consistent.\n\nVariable length prefixes are a bit more complex, but since we have already implemented them, why not use them universally? This would have the advantage of not imposing limits on the length of the context strings:\n\n> Each Endorsement is bound at issuance to two contexts, the issuance context and\n> the redemption context, and a redemption succeeds only if the Client and the\n> Moderator agree on both values. Both are opaque byte strings. `ctx_iss` is at\n> most `2^16 - 1` bytes. Because the encoded message is itself passed to\n> `U16Prefixed`, `ctx_red` is at most `2^16 - 1 - Nn - 4` bytes. These bounds are\n> enforced by `U16Prefixed`. The two contexts are bound by deliberately different\n> means, reflecting who is trusted to choose each.\n",
+      "createdAt": "2026-10-07T23:09:22Z",
+      "updatedAt": "2026-10-07T23:09:50Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 105,
+      "id": "I_kwDOSX6krs8AAAABVvpauA",
+      "title": "act: rate limits",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/105",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This issue describes modifying ACT to enable basic rate limiting. We'll ignore some of the mechanics around how exactly the credentials are passed around and signed and just focus on proving the relations between K and K', the Pedersen commitments that get signed.\n\nCurrently we have K = c * h_1 + k * h_2, and then with a spend. we have K' = (c-s)*h_1+k' *h_2 where s is the amount spent. c-s+a has to be shown to be in the proper range where a is a max refund. (Currently the draft does more if there is an adjustment, but that can be fixed). What gets signed and returned is K'+z*h_1, where z is a refund amount, less than a.\n\nWe can do alternative approach: Let K = c * h_1 + k *h_2 + t *h_3where t is a timestamp unknown to the server and K' = (c-s) *h_1 + k' h_2 + v *h_3 where v is a time that is proven to be what the server is currently wanting. Now supply an additional commitment C = b * h_1 + r * h_2\nwhere we prove that (t-v)*u= 1 and b = 1 for some auxilliary scalar u OR b = 0. t and v are already in the witnesses for K and K', and then we can have another commitment for u with an opening relation for well formedness, and one relation for the product working (and two additional witness scalars).\n\nThe server can now return K'+z*h_1 to refund. This does not change c if t=v (and hence b = 0) but does increase it by z if b = 1. The new credential has the current time v and the updated value of either c -s or c-s+z depending on what timestamp the old credential had.",
+      "createdAt": "2026-10-08T01:12:20Z",
+      "updatedAt": "2026-10-08T01:12:20Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -4877,7 +4962,7 @@
       ],
       "body": "Also, add Tianyu as editor.",
       "createdAt": "2026-08-08T01:43:24Z",
-      "updatedAt": "2026-08-13T23:48:51Z",
+      "updatedAt": "2026-10-07T23:12:43Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
@@ -5105,7 +5190,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-08-11T16:29:02Z",
-      "updatedAt": "2026-08-12T20:35:37Z",
+      "updatedAt": "2026-10-07T23:12:43Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "fe7c79533c7882178fe2d3dcce6ab1832da90a8a",
@@ -6063,7 +6148,7 @@
       ],
       "body": "Specify token issuance and redemption in enough detail to understand how the protocol works in broad strokes. Some details remain unspecified:\r\n\r\n1. The wire format of messages sent in the protocol\r\n\r\n2. The details of how the redemption proof is constructed. The circuit is described in a fair amount of detail, but it's not yet clear how the circuit is compiled into a proof. Also, an optimization that will be important in practice is to commit to intermediate states of the Keccak evaluation. We need to be precise about how this works.\r\n\r\nAdd estimates of the communication cost. An important observation (by Claude) is that the size of the redemption proof does not change that much as a function of the size of the Anchor Set. This is because most of the multiplications we're doing on the UOV maps depend on public constants rather than the witness, so these don't count towards the total proof size. We do have to commit to the selector vector, but this is tiny in comparison.\r\n\r\nUpdate the constraints for the redemption proof. Claude came up with a set of \"parity constraints\" that appear to be a bit more robust. In particular the `b[i] * (b[i] - 1) = 0` checks don't actually prove that `b[i]` is `0` or `1` in a characteristic-2 field.\r\n\r\nMinor things:\r\n\r\n1. Zero-index vectors rather than start counting at 1. This is more consistent with Pythonic pseudocode, which we're approaching here.\r\n\r\n2. Add a note about multishow (issue 45).\r\n\r\n3. Define the interfaces for Keccak, UOV, and VOLEitH a bit more precisely than VOLE-ACT. We will eventually move this section to VOLE-ACT so that that document is the source of truth for all of our conventions.\r\n\r\n4. Have Claude do a bit of copy editing.",
       "createdAt": "2026-08-14T02:34:46Z",
-      "updatedAt": "2026-08-14T20:37:34Z",
+      "updatedAt": "2026-10-07T23:12:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "7777c07ba940840c9ccb2871cd421c51f7284b75",
@@ -6486,7 +6571,7 @@
       ],
       "body": "1. Align scope and tone with vole-ihat (removes a lot of redundant text)\r\n2. Explain motivation for MQ commitments and add WARNING about their security\r\n3. Add document outline",
       "createdAt": "2026-08-17T19:20:25Z",
-      "updatedAt": "2026-08-18T18:25:29Z",
+      "updatedAt": "2026-10-07T23:12:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "1b727cf1ac36137f29f39bbf7200be21d103d831",
@@ -6530,7 +6615,7 @@
       ],
       "body": "Based on #49 (merge that first).\r\n\r\n1. Move {{VOLE-IHAT}} Preliminaries and Notation to {{VOLE-ACT}} and remove redundant text from the latter. Apply some copy editing notes from Kimi K2.6 on the finalized text.\r\n\r\n2. Remove unused and redundant notation:\r\n\r\n   - `F_{2^lambda}`, the big VOLE field; we don't specify the algorithm in enough detail for this to matter yet.\r\n\r\n   - `P(s)`, application of a quadratic. Not necessary, and as written is a little misleading.\r\n\r\n   - `H`: Not used.\r\n\r\n3. Remove the data types section entirely. This is functionally a glossary, which may be useful to add back at some point, but we don't need all of these terms.\r\n\r\n4. Move Cryptographic Parameters into the Protocol Specification. This text needs work, but in any case it doesn't belong in Notation.",
       "createdAt": "2026-08-17T21:00:36Z",
-      "updatedAt": "2026-08-18T18:37:58Z",
+      "updatedAt": "2026-10-07T23:12:39Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "5108658214ea41be27b45f8edc6ebc34c575ff30",
@@ -6574,7 +6659,7 @@
       ],
       "body": "Based on #50 (merge that first).\r\n\r\nHarmonize the overview with the scope and tone of Moussaka. Also, add a NOTE about removing one of the hashes in the spend proof and add some notes about security.",
       "createdAt": "2026-08-17T23:47:51Z",
-      "updatedAt": "2026-08-19T15:24:26Z",
+      "updatedAt": "2026-10-07T23:12:38Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "2283d7e5b4eabe8615aaad873793948edb41ba63",
@@ -6618,7 +6703,7 @@
       ],
       "body": "Replace the Cryptographic and System Parameters sections in Ratatouille with a Configuration section and a Domain Separation Tag section. The former encapsulates all parameters of the two instantiations; the latter just defines the DST. Previously the System Parameters section also defined a cipher suite, but not very clearly.\r\n\r\nWhile at it:\r\n\r\n1. Name the variants Ratatouille-Keccak and Ratatouille-MQ.\r\n\r\n2. Remove VOLEitH parameters that are irrelevant to the configuration, namely `lambda`, `tau`, and `w_grind`.\r\n\r\n3. Harmonize notation between Moussaka and Ratatouille, namely `nu`, `rho`, and `L`.",
       "createdAt": "2026-08-18T18:36:42Z",
-      "updatedAt": "2026-08-19T15:24:27Z",
+      "updatedAt": "2026-10-07T23:12:37Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/rata-honing-3",
       "baseRefOid": "2863b190f2db3a38c1200999cd3eeb7f8b3a4a41",
@@ -6662,7 +6747,7 @@
       ],
       "body": "Harmonize the protocol spec with Moussaka. Minor things:\r\n\r\n1. Add `[a..b] = {a, ..., b}` to notation.\r\n\r\n2. Remove the observation about \"re-randomizing a token under a fresh nullifier, which is useful for transferring a token\". \"Transferring a token\" is not a use case described anywhere.\r\n\r\n3. Remove some text that just re-iterates what's in Overview.\r\n\r\n4. Rename \"change token\" to \"updated state\".",
       "createdAt": "2026-08-18T21:25:22Z",
-      "updatedAt": "2026-08-19T15:24:28Z",
+      "updatedAt": "2026-10-07T23:12:37Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/rata-honing-4",
       "baseRefOid": "3eefe717e356865a8e0ae6688d8218ba27680b03",
@@ -6706,7 +6791,7 @@
       ],
       "body": "The only substantive change is to clarify an ambiguity with the usage of `KP800()`. The input is supposed to be 100 bytes of state, but Ratatouille expects it be variable length and to deal with domain separation of different length inputs internally. We now do this externally.\r\n\r\nEditorial changes:\r\n\r\n1. Consolidate the parameters of each configuration into tables and create subsections for the commitment and tag of each.\r\n\r\n2. Simplify the security claims\r\n\r\n3. Add SHAKE128 XOF syntax to preliminaries.\r\n\r\n4. Rename Ratatouille-Keccak to -KP800, in case anyone wants to specify more conservative parameters.\r\n\r\n5. Rename credit width to credit length to match other configuration parameters.\r\n\r\n6. Add DST length to parameters.\r\n\r\n7. Revise pseudocode blocks so that the art wraps at 70 characters.\r\n\r\n8. Add a TODO about issuance context.\r\n\r\n9. Add an observation about the security of Ratatouille-MQ.\r\n\r\n10. Fix references.",
       "createdAt": "2026-08-19T01:01:34Z",
-      "updatedAt": "2026-08-19T15:24:29Z",
+      "updatedAt": "2026-10-07T23:12:37Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/rata-honing-5",
       "baseRefOid": "8effa8006a65d1ef045b1c6d593107daada4b441",
@@ -6750,7 +6835,7 @@
       ],
       "body": "Harmonize domain separation between Ratatouille and Moussaka, removing the \"application context\" from the former. Also, add issuance context to Ratatouille. Its length is 16 bytes to match Moussaka.\r\n\r\nMinor things:\r\n\r\n1. Hardcode `q=256` as in Moussaka. We're unlikely to make a different choice (such as `q=16`, which matches the uov-Is parameter set) given how nice it is to work with bytes.\r\n\r\n2. Replace Greek letter names with more meaningful names, e.g., `nu` -> `nf_len`.\r\n\r\n3. Add variable to define the length of context strings.\r\n\r\n4.  Update TODOs.",
       "createdAt": "2026-08-19T21:30:53Z",
-      "updatedAt": "2026-08-21T18:10:11Z",
+      "updatedAt": "2026-10-07T23:12:34Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
@@ -6926,7 +7011,7 @@
       ],
       "body": "",
       "createdAt": "2026-08-19T21:53:53Z",
-      "updatedAt": "2026-09-08T14:39:36Z",
+      "updatedAt": "2026-10-07T23:12:35Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "77625bced3d7ac2341235f2e6ad0fd7f67929d86",
@@ -7286,7 +7371,7 @@
       ],
       "body": "",
       "createdAt": "2026-08-21T22:19:54Z",
-      "updatedAt": "2026-08-24T15:39:29Z",
+      "updatedAt": "2026-10-07T23:12:31Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "4abc160ade0814a22103b6a19f550399b5b3f27b",
@@ -8133,7 +8218,7 @@
       ],
       "body": "Add an (incomplete) reference implementation of IHAT and replace the pseudocode in the draft with snippets from the reference implementation.",
       "createdAt": "2026-09-11T21:57:13Z",
-      "updatedAt": "2026-09-15T00:06:14Z",
+      "updatedAt": "2026-10-07T23:12:29Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "99c650f11da28a8e5b8718c450e9a672ef38b198",
@@ -8632,7 +8717,7 @@
       ],
       "body": "Editorial changes. I've also dropped some comments with some non-editorial things I wanted to discuss.",
       "createdAt": "2026-09-11T22:36:57Z",
-      "updatedAt": "2026-09-15T10:03:12Z",
+      "updatedAt": "2026-10-07T23:12:29Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "2874e2b1e834c59b68719a02eaadb491c8a12e37",
@@ -10123,22 +10208,896 @@
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "crypto"
+      ],
       "body": "the MQ maps had linear terms but no constants, so `r = 0` remained a fixed point. because UOV is homogeneous quadratic, one valid one-credit token could be scaled into 255 valid token witnesses with distinct nullifiers, worth 32,640 credits in total.\n\nthis adds a constant coefficient to every `Q_i`, drawing it from the existing `\"m1\"` SHAKE stream after the quadratic and linear coefficients. the resulting nonzero `G(0)` blocks that scaling orbit.\n\nthis also documents the forgery and clarifies that the patch fixes this specific attack, not the still-open end-to-end security proof for the MQ/UOV/VOLEitH composition.\n\nvalidated with the draft build, 110 reference tests, mypy, pyflakes, pylint, and `git diff --check`.\n",
       "createdAt": "2026-10-06T02:03:59Z",
-      "updatedAt": "2026-10-06T02:12:18Z",
+      "updatedAt": "2026-10-07T17:17:34Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "8bfdf4996f73e4e605d5bb9b31b33f72aceac566",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samuelschlesinger/vole-act-mq-constants",
-      "headRefOid": "69da8975933546527e6bad44c7a250e75dcb11bf",
+      "headRefOid": "a18c0d1e4c6a626fb4ec6bdae34cf9e0b7b09596",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABQ99HDw",
+          "commit": {
+            "abbreviatedOid": "69da897"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-06T19:35:49Z",
+          "updatedAt": "2026-10-06T19:38:36Z",
+          "comments": [
+            {
+              "originalPosition": 22,
+              "body": "```suggestion\ncoefficients are sampled sequentially from a `SHAKE128` stream. The\n```",
+              "createdAt": "2026-10-06T19:35:49Z",
+              "updatedAt": "2026-10-06T19:38:36Z"
+            },
+            {
+              "originalPosition": 37,
+              "body": "Might be helpful to reference the previous commit hash here",
+              "createdAt": "2026-10-06T19:36:10Z",
+              "updatedAt": "2026-10-06T19:38:36Z"
+            },
+            {
+              "originalPosition": 89,
+              "body": "Unrelated to this PR, but I'm pretty sure standard soundness will suffice. (we still need a formal proof of course.)",
+              "createdAt": "2026-10-06T19:38:02Z",
+              "updatedAt": "2026-10-06T19:38:36Z"
+            },
+            {
+              "originalPosition": 98,
+              "body": "\ud83d\udc4d ",
+              "createdAt": "2026-10-06T19:38:33Z",
+              "updatedAt": "2026-10-06T19:38:36Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 86,
+      "id": "PR_kwDOSX6krs8AAAABHKuP1w",
+      "title": "rollatini: Update editors",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/86",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "It looks like at some point we inadvertently dropped Watson and added Jon and Armando. This appears to have been unintentional.",
+      "createdAt": "2026-10-07T17:14:00Z",
+      "updatedAt": "2026-10-07T23:12:28Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8bfdf4996f73e4e605d5bb9b31b33f72aceac566",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-1-authors",
+      "headRefOid": "cb3a60cad73bfd4d91209413af3205f9f9470309",
+      "closedAt": "2026-10-07T17:35:41Z",
+      "mergedAt": "2026-10-07T17:35:41Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "67f85df165ff34cb5696f737cc100352a3c4eeec"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRJuyqg",
+          "commit": {
+            "abbreviatedOid": "cb3a60c"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T17:35:34Z",
+          "updatedAt": "2026-10-07T17:35:34Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 87,
+      "id": "PR_kwDOSX6krs8AAAABHK7MaQ",
+      "title": "rollatini: Finesse the abstract",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/87",
+      "state": "CLOSED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "In my opinion, abstracts for IETF documents should be short and to the point. We mainly want to reiterate what an IHAT is and how it fits into MoLE. Also worth briefly mentioning the primitives used.\r\n\r\nA more minimal change would be to say \"*an* IHAT used to instantiate MOLE Endiorsements\" instead of \"*the*\".",
+      "createdAt": "2026-10-07T17:32:44Z",
+      "updatedAt": "2026-10-07T23:12:26Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "67f85df165ff34cb5696f737cc100352a3c4eeec",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-2-abstract",
+      "headRefOid": "73ec39505f774a4efe4166a73124c2af6405037a",
+      "closedAt": "2026-10-07T18:35:40Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRJviXQ",
+          "commit": {
+            "abbreviatedOid": "73ec395"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T17:36:40Z",
+          "updatedAt": "2026-10-07T17:36:40Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "I just dislike how many MoLE-universe-specific terms are in this relative to the previous one. You'd have to be an in-universe character to understand.",
+              "createdAt": "2026-10-07T17:36:40Z",
+              "updatedAt": "2026-10-07T17:36:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKCbZQ",
+          "commit": {
+            "abbreviatedOid": "73ec395"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T18:04:03Z",
+          "updatedAt": "2026-10-07T18:04:03Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "By my count it actually has less!",
+              "createdAt": "2026-10-07T18:04:03Z",
+              "updatedAt": "2026-10-07T18:04:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKQBnA",
+          "commit": {
+            "abbreviatedOid": "73ec395"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T18:24:12Z",
+          "updatedAt": "2026-10-07T18:24:12Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Fair, I guess I mean that it doesn't have semantic anchors in terms people may have heard before. Happy to merge it though, I dislike the old one as well.",
+              "createdAt": "2026-10-07T18:24:12Z",
+              "updatedAt": "2026-10-07T18:24:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKS9GQ",
+          "commit": {
+            "abbreviatedOid": "73ec395"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T18:28:34Z",
+          "updatedAt": "2026-10-07T18:28:35Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "It's your doc, so take this only as a suggestion. The minimal change I think is needed is to say Rollatini is *a* construction for Endorsements rather than *the* construction. Want me to put up a PR for that?",
+              "createdAt": "2026-10-07T18:28:34Z",
+              "updatedAt": "2026-10-07T18:28:35Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKTuBg",
+          "commit": {
+            "abbreviatedOid": "73ec395"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T18:29:42Z",
+          "updatedAt": "2026-10-07T18:29:43Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Sure.",
+              "createdAt": "2026-10-07T18:29:42Z",
+              "updatedAt": "2026-10-07T18:29:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 89,
+      "id": "PR_kwDOSX6krs8AAAABHLXxVw",
+      "title": "protocls/http: Recover a lost update by handle",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/89",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement",
+        "http-transport",
+        "protocols"
+      ],
+      "body": "A Client can fetch a recorded update with a short handle instead of resending the presentation. HTTP-TRANSPORT defines the generic request, and each credential type in PROTOCOLS defines how it's handled.\r\n\r\nThere's some open question about replayability vs when the refund is only sent at the end of the session. This seems to be wording we can tune.",
+      "createdAt": "2026-10-07T18:15:54Z",
+      "updatedAt": "2026-10-08T00:38:20Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b8267ef3d20c8c2f06ce559cefaf4adf7b3b5c62",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/recovery-handle",
+      "headRefOid": "773ec640f6041219426765e7132ea4f4cd4ddfee",
+      "closedAt": "2026-10-08T00:38:16Z",
+      "mergedAt": "2026-10-08T00:38:16Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "116b110e44db858bbfd1c23c2b5505aaf32648c1"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "claude doing a validation and one minor modification\r\nclaude marking itself as a co-author \ud83e\udd26\ud83c\udffb ",
+          "createdAt": "2026-10-07T18:22:19Z",
+          "updatedAt": "2026-10-07T18:22:19Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMENXw",
+          "commit": {
+            "abbreviatedOid": "773ec64"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T21:17:22Z",
+          "updatedAt": "2026-10-07T21:17:22Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 90,
+      "id": "PR_kwDOSX6krs8AAAABHLX0wg",
+      "title": "protocols: verify ACT spends before recording",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/90",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "Mostly tweaking words to ensure the implementation does the right checks at the right time",
+      "createdAt": "2026-10-07T18:15:59Z",
+      "updatedAt": "2026-10-07T18:24:01Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "67f85df165ff34cb5696f737cc100352a3c4eeec",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/act-recording",
+      "headRefOid": "10401e72fae40211b49869075f259a37b56eecf2",
+      "closedAt": "2026-10-07T18:24:01Z",
+      "mergedAt": "2026-10-07T18:24:01Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "b8267ef3d20c8c2f06ce559cefaf4adf7b3b5c62"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKPIGQ",
+          "commit": {
+            "abbreviatedOid": "10401e7"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T18:22:53Z",
+          "updatedAt": "2026-10-07T18:22:53Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 91,
+      "id": "PR_kwDOSX6krs8AAAABHLeDww",
+      "title": "protocols: distinguish and scope challenges",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/91",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement",
+        "http-transport",
+        "protocols"
+      ],
+      "body": "There where some confusion as I implemented the flow about which steps I was in. Specifically, when the flow is not linear or needs to be resumed, solely `challenge` is confusing.\r\n\r\nAdding distinct ones to have specific scopes",
+      "createdAt": "2026-10-07T18:25:33Z",
+      "updatedAt": "2026-10-08T00:38:36Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b8267ef3d20c8c2f06ce559cefaf4adf7b3b5c62",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/challenges",
+      "headRefOid": "6fc61d4e9b2d329bb9ffd7c9fb6654a6014a2e90",
+      "closedAt": "2026-10-08T00:38:32Z",
+      "mergedAt": "2026-10-08T00:38:32Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "51c51ffdd4364338584ec1c5037ff9b51110d87c"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "resolved conflict with main",
+          "createdAt": "2026-10-07T18:36:16Z",
+          "updatedAt": "2026-10-07T18:36:16Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMEEkg",
+          "commit": {
+            "abbreviatedOid": "6fc61d4"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T21:17:07Z",
+          "updatedAt": "2026-10-07T21:17:07Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 92,
+      "id": "PR_kwDOSX6krs8AAAABHLpm_g",
+      "title": "rollatini: abstract: Clarify there are multiple ways to endorse",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/92",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Minimal alternative to #87.",
+      "createdAt": "2026-10-07T18:42:51Z",
+      "updatedAt": "2026-10-07T23:12:26Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b8267ef3d20c8c2f06ce559cefaf4adf7b3b5c62",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-2-abstract-minimal",
+      "headRefOid": "82634960a84bb5f5df72dca46e7a033bc21e52a6",
+      "closedAt": "2026-10-07T20:40:56Z",
+      "mergedAt": "2026-10-07T20:40:56Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "70549a8431fc3760306de9600a2edbebe4b5bc64"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRKgxCQ",
+          "commit": {
+            "abbreviatedOid": "8263496"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T18:48:43Z",
+          "updatedAt": "2026-10-07T18:48:43Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 93,
+      "id": "PR_kwDOSX6krs8AAAABHLwnNA",
+      "title": "rollatini: Editorial pass of intro",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/93",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "1. No need to mention the codepoint in the intro.\r\n2. The scope section seems to be irrelevant now that the protcool is fully specified.\r\n3. Add an outline paragraph.",
+      "createdAt": "2026-10-07T18:53:33Z",
+      "updatedAt": "2026-10-07T23:12:19Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "70549a8431fc3760306de9600a2edbebe4b5bc64",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-3-intro",
+      "headRefOid": "f06baa8262f53381d2486fe4685ce37942588b83",
+      "closedAt": "2026-10-07T21:03:14Z",
+      "mergedAt": "2026-10-07T21:03:14Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "7312b60532963612db7aadd4b52d006384c17672"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRLvNsw",
+          "commit": {
+            "abbreviatedOid": "f06baa8"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T20:44:41Z",
+          "updatedAt": "2026-10-07T20:44:41Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 95,
+      "id": "PR_kwDOSX6krs8AAAABHMsJjQ",
+      "title": "rollatini: Update relationship with {{FFKLLS26}}",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/95",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Update the intro to make {{FFKLLS26}} the authoritative reference for the design of Rollatini rather than {{TESSZHU}}. Also, clarify what the paper establishes about the scheme and what it doesn't.",
+      "createdAt": "2026-10-07T20:23:33Z",
+      "updatedAt": "2026-10-07T23:12:18Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-3-intro",
+      "baseRefOid": "f06baa8262f53381d2486fe4685ce37942588b83",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-4-paper-ref",
+      "headRefOid": "60d8cbb7cff92dfafec14b477e5e6f6b1cef970d",
+      "closedAt": "2026-10-07T21:03:15Z",
+      "mergedAt": "2026-10-07T21:03:15Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "8528e9e5ddb7bea62e8c258159da44e37db3c0f6"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRLqSHQ",
+          "commit": {
+            "abbreviatedOid": "0bfa041"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Happy to merge, but think there are some things we might want to change.",
+          "createdAt": "2026-10-07T20:37:02Z",
+          "updatedAt": "2026-10-07T20:44:25Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "I'm going to have to be nitpicky here: Tessaro and Zhu study the security of the blind signature, which is what we need, and we use that analysis unchanged. Not quite sure how to word that/change this paragraph to work.  I would provide the concurrent security claim instead of saying what it doesn't depend on. How about \"One More Unforgeability exists even with many concurrent sessions, unlike other approaches to blind signatures\" instead of talking about mROS or ROS? That probably belongs in the blindness section, so then I'm not sure what to say in this intro paragraph.",
+              "createdAt": "2026-10-07T20:37:03Z",
+              "updatedAt": "2026-10-07T20:44:25Z"
+            },
+            {
+              "originalPosition": 88,
+              "body": "We regularly accept that signatures have security of 2^128 when fiat shamir only says 2^64, and this is an \"artificial\" artifact of the model, that applies to even schemes we can define differently to show security like proofs over committed artifacts. So I'd be happy black-boxing the ZK.",
+              "createdAt": "2026-10-07T20:43:27Z",
+              "updatedAt": "2026-10-07T20:44:25Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRLzZDA",
+          "commit": {
+            "abbreviatedOid": "60d8cbb"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T20:50:45Z",
+          "updatedAt": "2026-10-07T21:02:33Z",
+          "comments": [
+            {
+              "originalPosition": 40,
+              "body": "All that's actually changed here is to clarify the relationship between {{FFKLL26}} and this paragraph. I haven't actually changed the paragraph itself. I'll leave changing it to you. I'll file an issue.\r\n\r\nI'll also note that I'm confused about the claim about issuance context here. {{FFKLL26}} doesn't touch this at all as far as I can tell. Thought It seems pretty straightforward.\r\n\r\nI don't know why we mention (m)ROS here, but we at least need to define these terms.\r\n\r\nHonestly, I think we could comfortably just delete this paragraph altogether.",
+              "createdAt": "2026-10-07T20:50:45Z",
+              "updatedAt": "2026-10-07T21:02:33Z"
+            },
+            {
+              "originalPosition": 40,
+              "body": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/97",
+              "createdAt": "2026-10-07T21:00:20Z",
+              "updatedAt": "2026-10-07T21:02:33Z"
+            },
+            {
+              "originalPosition": 88,
+              "body": "Your call. I'll leave the TODO, you should feel free to resolve as you see fit.\r\n\r\nFor what it's worth, this is a \"remnant\" of a previous TODO that was partially resolved by {{FFKLLS26}}.",
+              "createdAt": "2026-10-07T21:01:53Z",
+              "updatedAt": "2026-10-07T21:02:33Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 96,
+      "id": "PR_kwDOSX6krs8AAAABHM6ejQ",
+      "title": "rollatini: Don't refer to the reference implementation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/96",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Notation section refers to the reference implementation without providing a reference. We don't actually want this reference: the document is meant to be self-contained. What we want to say instead is that algorithms are specified in Python.",
+      "createdAt": "2026-10-07T20:45:41Z",
+      "updatedAt": "2026-10-07T23:12:17Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8528e9e5ddb7bea62e8c258159da44e37db3c0f6",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-5-notation",
+      "headRefOid": "63aa1494b7b0f05b4b83e941ca25bb6e3d68492b",
+      "closedAt": "2026-10-07T21:12:07Z",
+      "mergedAt": "2026-10-07T21:12:06Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "6c1132d87a3e5504e5394fadd17cb752b4a30aaa"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRL9_Aw",
+          "commit": {
+            "abbreviatedOid": "63aa149"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T21:07:20Z",
+          "updatedAt": "2026-10-07T21:07:20Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 99,
+      "id": "PR_kwDOSX6krs8AAAABHNL5Yw",
+      "title": "act: editorial pass to smooth language in a few places",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/99",
+      "state": "MERGED",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-10-07T21:13:27Z",
+      "updatedAt": "2026-10-07T21:36:51Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6c1132d87a3e5504e5394fadd17cb752b4a30aaa",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/act-editorial-pass",
+      "headRefOid": "859b63ca31a49abab86b5e3cd976b528352eb90d",
+      "closedAt": "2026-10-07T21:36:51Z",
+      "mergedAt": "2026-10-07T21:36:51Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "976fa564bac7d2038365a3417a2d8e0c5b329d76"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMCLyA",
+          "commit": {
+            "abbreviatedOid": "6ff53bf"
+          },
+          "author": "github-actions",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T21:14:00Z",
+          "updatedAt": "2026-10-07T21:14:01Z",
+          "comments": [
+            {
+              "originalPosition": 65,
+              "body": "````suggestion\nFor spending, both parties know `s`, the spend amount, `a`,\n````",
+              "createdAt": "2026-10-07T21:14:00Z",
+              "updatedAt": "2026-10-07T21:14:01Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMD2HQ",
+          "commit": {
+            "abbreviatedOid": "6ff53bf"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T21:16:46Z",
+          "updatedAt": "2026-10-07T21:16:46Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 100,
+      "id": "PR_kwDOSX6krs8AAAABHNXXTg",
+      "title": "rollatini: update security consideration section.",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/100",
+      "state": "MERGED",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Fixes Issue #97",
+      "createdAt": "2026-10-07T21:32:37Z",
+      "updatedAt": "2026-10-07T21:41:29Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6c1132d87a3e5504e5394fadd17cb752b4a30aaa",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/issue-97",
+      "headRefOid": "0953cef32a9673720c8af73fbaca7718b0383108",
+      "closedAt": "2026-10-07T21:41:29Z",
+      "mergedAt": "2026-10-07T21:41:29Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "7e17996c5a9e3d8e2b5ca47e678a8516690255a5"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMQ2uw",
+          "commit": {
+            "abbreviatedOid": "0953cef"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "Works for me!",
+          "createdAt": "2026-10-07T21:37:56Z",
+          "updatedAt": "2026-10-07T21:37:56Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 101,
+      "id": "PR_kwDOSX6krs8AAAABHNpQVA",
+      "title": "rollatini: Clean up scalar derivation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/101",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "1. Specify all parameters used for hash_to_fiield() {{HASH2CURVE}}\r\n2. Simplify how the default DST is dermined\r\n3. Remove the supporting analysis",
+      "createdAt": "2026-10-07T22:04:27Z",
+      "updatedAt": "2026-10-07T23:12:15Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "7e17996c5a9e3d8e2b5ca47e678a8516690255a5",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-6-expand-tmi",
+      "headRefOid": "2497b3057c35d8defd69012f53b69a93ee0a126b",
+      "closedAt": "2026-10-07T22:14:12Z",
+      "mergedAt": "2026-10-07T22:14:11Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "1067b45e2ffa6c68aa347d8a37a5017e03bbf53a"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMhQpg",
+          "commit": {
+            "abbreviatedOid": "2497b30"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T22:05:57Z",
+          "updatedAt": "2026-10-07T22:05:57Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRMkHMA",
+          "commit": {
+            "abbreviatedOid": "2497b30"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T22:10:30Z",
+          "updatedAt": "2026-10-07T22:10:30Z",
+          "comments": [
+            {
+              "originalPosition": 47,
+              "body": "My take: The goal of DeriveScalars is pretty straightforward, and it's pretty clear from looking at it that it achieve the goal. In any case, this analysis doesn't really belong here, but in Security Considerations.",
+              "createdAt": "2026-10-07T22:10:30Z",
+              "updatedAt": "2026-10-07T22:10:30Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 102,
+      "id": "PR_kwDOSX6krs8AAAABHN-Cpg",
+      "title": "rollatini: Add a note about hash_to_field usage",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/102",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "ExpandScalars() is essentially a wrapper around hash_to_field() with count=1. This seems wasteful, since we could instead do something like this:\r\n\r\n```python\r\ndef ExpandScalars(self, key: bytes, count: int) -> list[Scalar]:\r\n    return hash_to_field(\r\n        key,\r\n        count=count,\r\n        DST=b\"ExpandScalars-\" + self.ctx_proto,\r\n        p=self.Order(),\r\n        m=1,\r\n        L=48,\r\n        expand=expand_message_xmd,\r\n    )\r\n```\r\n\r\nHowever, the current implementation turns out to be necessary for ACT: Using the SHA-256 cipher suite, we're limited to 170 scalars of output, but for a range proof of a 64-bit credit count we need more than this. (GPT 6.1-Sol counts 391 nonces required for the spend proof. It also looked at using SHA-512 instead. This gets us closer, to 340 scalars of output.) It seems at least worth documenting this limitation.",
+      "createdAt": "2026-10-07T22:43:56Z",
+      "updatedAt": "2026-10-07T23:12:14Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "1067b45e2ffa6c68aa347d8a37a5017e03bbf53a",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-7-simpler-derive-scalar",
+      "headRefOid": "57510d148396408b2efaa5aea60a13f10784fa96",
+      "closedAt": "2026-10-07T23:11:05Z",
+      "mergedAt": "2026-10-07T23:11:05Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "fa8d7e7c117faf3bf84e6ea8653139efb64aeb52"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRM68uA",
+          "commit": {
+            "abbreviatedOid": "61d5737"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-07T22:50:28Z",
+          "updatedAt": "2026-10-07T22:50:28Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRM8dpg",
+          "commit": {
+            "abbreviatedOid": "61d5737"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-07T22:53:43Z",
+          "updatedAt": "2026-10-07T22:53:43Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "Nod to ACT: see commit message. I avoided adding a reference here because that would create a circular dependency.",
+              "createdAt": "2026-10-07T22:53:43Z",
+              "updatedAt": "2026-10-07T22:53:43Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 104,
+      "id": "PR_kwDOSX6krs8AAAABHOjFVQ",
+      "title": "Sort out \"token\" versus \"endorsement\"",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/104",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "NOT READY FOR REVIEW",
+      "createdAt": "2026-10-08T00:07:36Z",
+      "updatedAt": "2026-10-08T02:43:34Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "51c51ffdd4364338584ec1c5037ff9b51110d87c",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-8",
+      "headRefOid": "d8ab055ff55e0646a4cc483161af99d9aab1ebca",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABRNcWrw",
+          "commit": {
+            "abbreviatedOid": "f5dcaa4"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-08T00:14:22Z",
+          "updatedAt": "2026-10-08T00:14:22Z",
+          "comments": [
+            {
+              "originalPosition": 622,
+              "body": "This diff summarizes the change quite neatly. The endorsement is the thing that's presented to the Moderator. It is constructed from an IHAT token. For Rollatini in particular, the endorsement encodes the rerandomized token, called the \"shown token\" here.",
+              "createdAt": "2026-10-08T00:14:22Z",
+              "updatedAt": "2026-10-08T00:14:22Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
