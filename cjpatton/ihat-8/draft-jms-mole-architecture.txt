@@ -337,7 +337,7 @@ Table of Contents
        |                     |                         |
        |<~~~ Interaction ~~~>|                         |
        |                     |                         |
-       +==== Endorsement ==>>|                         |
+       +==== Endorsement ===>|                         |
        |                     |                         |
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
        |                     |                         |
@@ -376,8 +376,7 @@ Table of Contents
 
    Once a Moderator has accepted an Endorsement, it can prevent a second
    use of the same underlying authorization within the protocol's replay
-   protection scope, even if the Client constructs a different proof
-   from the same material.  This property prevents abusive Clients from
+   protection scope.  This property prevents abusive Clients from
    constantly resetting their state to receive a fresh Credential from
    the Moderator in order to bypass rate limits.
 
@@ -399,16 +398,16 @@ Table of Contents
    1.  _Endorsement Grants and Redemptions are Unlinkable_ - During an
        interaction in which a Moderator issues a new Credential on the
        basis of an Endorsement, neither the Moderator nor the Anchor can
-       link the session in which the underlying material was granted to
-       the session in which the Endorsement was redeemed.
+       link the session in which the Endorsement was granted to the
+       session in which it was redeemed.
 
    2.  _Endorsement Redemptions are Anchor-hiding_ - During an
        interaction in which a Moderator issues a new Credential on the
-       basis of an Endorsement, the Client hides the Anchor that issued
-       its underlying material among the Moderator's Anchor Set. Such
-       Anchor-hiding makes an Endorsement redemption indistinguishable
-       regardless of which Anchor in the Anchor Set the Client used, to
-       both the Anchor and the Moderator.
+       basis of an Endorsement, the Client hides the Anchor that granted
+       it among the Moderator's Anchor Set. Such Anchor-hiding makes an
+       Endorsement redemption indistinguishable regardless of which
+       Anchor in the Anchor Set the Client used, to both the Anchor and
+       the Moderator.
 
    3.  _Credential Issuances and Presentations are Unlinkable_ - If a
        Client engages in multiple presentations, then those
@@ -461,11 +460,8 @@ Table of Contents
    MoLE's security properties are intended for Moderators.  Moderators
    can be assured:
 
-   *  When they accept an Endorsement, that it is backed by material
-      issued by a trusted Anchor and consumes an authorization that has
-      not already been used within the protocol's replay protection
-      scope.  Constructing another proof from the same material does not
-      create another authorization in that scope.
+   *  When they accept an Endorsement, that it corresponds to exactly
+      one Endorsement granted by a trusted Anchor.
 
    *  When they accept a Credential under a given predicate, that the
       Credential is one they previously issued with a matching
