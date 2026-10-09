@@ -36,11 +36,6 @@ author:
     fullname: Armando Faz-Hernandez
     organization: Cloudflare, Inc.
     email: armfazh@cloudflare.com
- -
-    fullname: Deep Inder Mohan
-    organization: Georgia Institute of Technology
-    email: dmohan@gatech.edu
-
 
 normative:
   ROLLATINI:
