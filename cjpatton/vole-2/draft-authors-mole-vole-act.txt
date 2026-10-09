@@ -376,18 +376,19 @@ Table of Contents
    R, where X is the instance, using the VOLE-in-the-Head proof system
    defined in [FAEST].  We write v := VOLEitH.Verify(R, X, pf, msg) to
    denote verification of pf under the same relation and instance, where
-   the output v is a bit.  The optional msg is a byte string agreed upon
-   by the prover and verifier out-of-band that is bound to the proof,
-   analogously to how the message is bound to the proof in [FAEST].
+   the output v is a bit.
+
+   The message msg is a byte string agreed upon by the prover and
+   verifier out-of-band that is bound to the proof.  The message is
+   optional: if unspecified, it is implicitly defined to be the empty
+   string.
 
    In addition to its constraints, each relation R specifies a domain
    separation tag R.dst and an encoding R.EncodeInstance(X) of the
-   instance as a byte string.  Internally, the prover and verifier bind
-   the relation, instance, and message to the proof by deriving
-
-   mu := H_2^0(R.EncodeInstance(X) || msg || R.dst)
-
-   where H_2^0 is as defined in [FAEST].
+   instance as a byte string.  Internally, the prover binds the tag,
+   instance, and the message to the proof such that the verifier must
+   agree on their values in order to accept.  This is analogous to how
+   the message is bound to the proof in FAEST (Figure 8.2 of [FAEST]).
 
    Relations are specified in the style of Section 3.4 of [SIGMA] as a
    sequence of constraints.  Each constraint is an equation of the
