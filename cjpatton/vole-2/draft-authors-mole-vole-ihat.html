@@ -1392,33 +1392,25 @@ for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwi
 that the public key selected by <code>b</code> maps <code>s</code> to <code>Com(nf, ctx_iss, ctx_red, r)</code>
 and that <code>b</code> is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for
 details.<a href="#section-3-10" class="pilcrow">¶</a></p>
-<p id="section-3-11">The redemption proof is also bound to the challenge that triggered
-redemption, represented by a <code>challenge_digest</code> agreed upon by the Client and
-Moderator <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. This value isn't known until redemption time, so it
-can't be included in the commitment. Nor is it part of the instance of the
-redemption relation, since no constraint depends on it. Instead, it is passed
-to VOLEitH as the message to which the proof is bound, analogous to how FAEST
-binds the message being signed. The proof only verifies under the same
-<code>challenge_digest</code>.<a href="#section-3-11" class="pilcrow">¶</a></p>
-<p id="section-3-12">The commitment <code>Com()</code> is instantiated with a single evaluation of the
+<p id="section-3-11">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 <code>Keccak-p[800,12]</code> permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
 state is also half the size of the state used by either SHA-3 or TurboSHAKE.
 This helps reduce the size of the VOLEitH proof. See <a href="#security" class="auto internal xref">Section 6</a> for
-justification.<a href="#section-3-12" class="pilcrow">¶</a></p>
+justification.<a href="#section-3-11" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-13.1">
-          <p id="section-3-13.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
+<li class="normal ulEmpty" id="section-3-12.1">
+          <p id="section-3-12.1.1">NOTE Both issuance and redemption involve a <code>Com()</code> evaluation. An
 alternative is to have the Anchor bind the issuance context by applying an
 outer commit, like <code>Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)</code>. This way
 no issuance proof is required. It would also have the benefit of not
-requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
+requiring the stronger one-more-UOV assumption. See <a href="#security" class="auto internal xref">Section 6</a> for details.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-3-14.1">
-          <p id="section-3-14.1.1">NOTE We can add multishow and late binding of redemption context by adding
-another hash evaluation to the redemption proof. See issue 45.<a href="#section-3-14.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-3-13.1">
+          <p id="section-3-13.1.1">NOTE We can add multishow and late binding of redemption context by adding
+another hash evaluation to the redemption proof. See issue 45.<a href="#section-3-13.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1429,10 +1421,10 @@ another hash evaluation to the redemption proof. See issue 45.<a href="#section-
 <a href="#section-4" class="section-number selfRef">4. </a><a href="#name-preliminaries" class="section-name selfRef">Preliminaries</a>
       </h2>
 <p id="section-4-1">The procedures <code>KP800()</code>, <code>UOV.CompactKeyGen()</code>, <code>UOV.ExpandPK()</code>,
-<code>UOV.ExpandSK()</code>, <code>UOV.SPre()</code>, <code>VOLEitH.Prove()</code>, and <code>VOLEitH.Verify()</code> are
-defined as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. We adopt the uov-Ip parameter set (NIST Level 1) for
-UOV. That is, for the remainder of this document, let <code>n=119</code>, <code>m=45</code>, and
-<code>q=2^8</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<code>UOV.ExpandSK()</code>, <code>UOV.SPre()</code>, <code>PKDigest()</code>, <code>VOLEitH.Prove()</code>, and
+<code>VOLEitH.Verify()</code> are defined as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. We adopt the uov-Ip
+parameter set (NIST Level 1) for UOV. That is, for the remainder of this
+document, let <code>n=119</code>, <code>m=45</code>, and <code>q=2^8</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">Moussaka also fixes the following parameters, named as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>:<a href="#section-4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-3.1">
@@ -1466,6 +1458,15 @@ revisions to this document. The template for domain separation is the same as
 <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">A global constant <code>MAX_ANCHORS</code> defines the maximum size of an Anchor Set. Its
 value <span class="bcp14">SHALL</span> be <code>64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5-4.1">
+          <p id="section-5-4.1.1">NOTE Specifying the maximum number of Anchors is not strictly necessary. It's
+done so that the size of the redemption proof is independent of the number of
+Anchors: the witness is padded to <code>MAX_ANCHORS</code> with <code>0s</code>. Removing this
+padding would save a few bytes, but it makes the implementation a little more
+complicated.<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
 <div id="anchor-key-generation">
 <section id="section-5.1">
         <h3 id="name-anchor-key-generation">
@@ -1553,9 +1554,8 @@ Relation IssueRelation(t, ctx_iss):
     - t = Com(nf, ctx_iss, ctx_red, r)
 </pre><a href="#section-5.3-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.3-3">The domain separation tag for this relation is <code>IssueRelation.dst = "mous" ||
-VERSION || "i0"</code> and the instance is encoded as
-<code>IssueRelation.EncodeInstance(t, ctx_iss) = t || ctx_iss</code>.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
+<p id="section-5.3-3">Let <code>"mous" || VERSION || "i0"</code> be the domain separation tag for this instance.
+The encoding of the instance is defined as <code>t || ctx_iss</code>.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.3-4.1">
             <p id="section-5.3-4.1.1">TODO Expand <code>Com()</code> into a set of polynomial constraints. An optimization
@@ -1724,29 +1724,15 @@ Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
     - sum(b) = 1
 </pre><a href="#section-5.4-5" class="pilcrow">¶</a>
 </div>
-<p id="section-5.4-6">The domain separation tag for this relation is <code>RedeemRelation.dst = "mous" ||
-VERSION || "r0"</code> and the instance is encoded as follows:<a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<p id="section-5.4-6">Let <code>"mous" || VERSION || "r0"</code> be the domain separation tag for this relation.
+The encoding of the instance is defined as<a href="#section-5.4-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-5.4-7">
 <pre>
-RedeemRelation.EncodeInstance(P, nf, ctx_iss, ctx_red) =
-    &lt;MAX_ANCHORS&gt;_4 || &lt;N&gt;_4 ||
-    PKDigest(P[0]) || ... || PKDigest(P[N-1]) ||
-    nf || ctx_iss || ctx_red
+    &lt;MAX_ANCHORS&gt;_4 || &lt;N&gt;_4
+    || PKDigest(P[0]) || ... || PKDigest(P[N-1])
+    || nf || ctx_iss || ctx_red
 </pre><a href="#section-5.4-7" class="pilcrow">¶</a>
 </div>
-<p id="section-5.4-8">where <code>&lt;v&gt;_4</code> is the 4-byte little-endian encoding of integer <code>v</code> and
-<code>PKDigest()</code> is as defined in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. Encoding <code>N</code> ensures that the
-encoding of the Anchor Set is unambiguous. Encoding <code>MAX_ANCHORS</code> binds the
-proof to the maximum Anchor Set size, which determines the shape of the
-relation.<a href="#section-5.4-8" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.4-9.1">
-            <p id="section-5.4-9.1.1">NOTE An implementation may pad the selector <code>b</code> to <code>MAX_ANCHORS</code> entries so
-that the redemption proof has the same size for every Anchor Set. The
-constraints then also check that <code>b[u] = 0</code> for each <code>u</code> in
-<code>[N..MAX_ANCHORS]</code>.<a href="#section-5.4-9.1.1" class="pilcrow">¶</a></p>
-</li>
-        </ul>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">

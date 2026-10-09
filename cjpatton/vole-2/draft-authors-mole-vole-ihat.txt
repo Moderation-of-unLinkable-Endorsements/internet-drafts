@@ -232,16 +232,6 @@ Table of Contents
    ctx_iss, ctx_red, r) and that b is the indicator vector of a single
    Anchor.  See Section 5.4 for details.
 
-   The redemption proof is also bound to the challenge that triggered
-   redemption, represented by a challenge_digest agreed upon by the
-   Client and Moderator [ROLLATINI].  This value isn't known until
-   redemption time, so it can't be included in the commitment.  Nor is
-   it part of the instance of the redemption relation, since no
-   constraint depends on it.  Instead, it is passed to VOLEitH as the
-   message to which the proof is bound, analogous to how FAEST binds the
-   message being signed.  The proof only verifies under the same
-   challenge_digest.
-
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
    [RFC9861], this parameterization of Keccak uses half as many rounds
@@ -263,10 +253,10 @@ Table of Contents
 4.  Preliminaries
 
    The procedures KP800(), UOV.CompactKeyGen(), UOV.ExpandPK(),
-   UOV.ExpandSK(), UOV.SPre(), VOLEitH.Prove(), and VOLEitH.Verify() are
-   defined as in [VOLE-ACT].  We adopt the uov-Ip parameter set (NIST
-   Level 1) for UOV.  That is, for the remainder of this document, let
-   n=119, m=45, and q=2^8.
+   UOV.ExpandSK(), UOV.SPre(), PKDigest(), VOLEitH.Prove(), and
+   VOLEitH.Verify() are defined as in [VOLE-ACT].  We adopt the uov-Ip
+   parameter set (NIST Level 1) for UOV.  That is, for the remainder of
+   this document, let n=119, m=45, and q=2^8.
 
    Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
 
@@ -294,6 +284,12 @@ Table of Contents
 
    A global constant MAX_ANCHORS defines the maximum size of an Anchor
    Set. Its value SHALL be 64.
+
+      NOTE Specifying the maximum number of Anchors is not strictly
+      necessary.  It's done so that the size of the redemption proof is
+      independent of the number of Anchors: the witness is padded to
+      MAX_ANCHORS with 0s.  Removing this padding would save a few
+      bytes, but it makes the implementation a little more complicated.
 
 5.1.  Anchor Key Generation
 
@@ -366,9 +362,8 @@ Table of Contents
      Constraints:
        - t = Com(nf, ctx_iss, ctx_red, r)
 
-   The domain separation tag for this relation is IssueRelation.dst =
-   "mous" || VERSION || "i0" and the instance is encoded as
-   IssueRelation.EncodeInstance(t, ctx_iss) = t || ctx_iss.
+   Let "mous" || VERSION || "i0" be the domain separation tag for this
+   instance.  The encoding of the instance is defined as t || ctx_iss.
 
       TODO Expand Com() into a set of polynomial constraints.  An
       optimization that will be important for practice is to commit
@@ -509,24 +504,12 @@ Table of Contents
        - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
        - sum(b) = 1
 
-   The domain separation tag for this relation is RedeemRelation.dst =
-   "mous" || VERSION || "r0" and the instance is encoded as follows:
+   Let "mous" || VERSION || "r0" be the domain separation tag for this
+   relation.  The encoding of the instance is defined as
 
-   RedeemRelation.EncodeInstance(P, nf, ctx_iss, ctx_red) =
-       <MAX_ANCHORS>_4 || <N>_4 ||
-       PKDigest(P[0]) || ... || PKDigest(P[N-1]) ||
-       nf || ctx_iss || ctx_red
-
-   where <v>_4 is the 4-byte little-endian encoding of integer v and
-   PKDigest() is as defined in [VOLE-ACT].  Encoding N ensures that the
-   encoding of the Anchor Set is unambiguous.  Encoding MAX_ANCHORS
-   binds the proof to the maximum Anchor Set size, which determines the
-   shape of the relation.
-
-      NOTE An implementation may pad the selector b to MAX_ANCHORS
-      entries so that the redemption proof has the same size for every
-      Anchor Set. The constraints then also check that b[u] = 0 for each
-      u in [N..MAX_ANCHORS].
+       <MAX_ANCHORS>_4 || <N>_4
+       || PKDigest(P[0]) || ... || PKDigest(P[N-1])
+       || nf || ctx_iss || ctx_red
 
 5.4.1.  Redeem Request
 
