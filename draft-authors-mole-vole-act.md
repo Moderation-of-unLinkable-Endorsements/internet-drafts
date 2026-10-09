@@ -400,11 +400,11 @@ by the Client and Issuer, and `x = 0`. The initial issuance protocol is as
 follows:
 
 1. The Client samples a nullifier `nf` and an opening `r`, then constructs a
-   commitment `c = Com(nf, ctx_iss, T_init, r)` and VOLEitH proof `pf_init` of
+   commitment `c = Com(nf, ctx_iss, T_init, r)` and VOLEitH proof `pf_iss` of
    knowledge of the `nf, r` for which `c = Com(nf, ctx_iss, T_init, r)`. It then
-   sends `c, pf_init` to the Issuer.
+   sends `c, pf_iss` to the Issuer.
 
-1. The Issuer verifies `pf_init`, samples a solution `s` to `P(s) = Tag(c, 0)`,
+1. The Issuer verifies `pf_iss`, samples a solution `s` to `P(s) = Tag(c, 0)`,
    then sends `s` to the Client.
 
 1. The Client finalizes issuance by checking that `P(s) = Tag(c, 0)`.
@@ -678,12 +678,12 @@ IssueRequest(T_init, ctx_iss):
     1. nf <- F_q^nf_len
     2. r  <- F_q^r_len
     3. c  := Com(nf, ctx_iss, T_init, r)
-    4. pf_init := VOLEitH.Prove(
+    4. pf_iss := VOLEitH.Prove(
          IssueRelation,         // relation
          (c, T_init, ctx_iss),  // instance
          (nf, r),               // witness
        )
-    5. request := (c, pf_init)
+    5. request := (c, pf_iss)
     6. pending_token := (nf, r)
     7. return (pending_token, request)
 ~~~~
@@ -705,11 +705,11 @@ IssueResponse(td, request, T_init, ctx_iss):
     - s: Issuer signature, in F_q^{n_uov}, or INVALID
 
   Steps:
-    1. (c, pf_init) := request  // commitment, issuance proof
+    1. (c, pf_iss) := request  // commitment, issuance proof
     2. v := VOLEitH.Verify(
          IssueRelation,         // relation
          (c, T_init, ctx_iss),  // instance
-         pf_init,
+         pf_iss,
        )
     3. if v = 0: return INVALID
     4. s := UOV.SPre(td, Tag(c, 0))
@@ -809,18 +809,19 @@ ProveSpend(P, token, d, ctx_iss):
   Steps:
     1.  (nf, t, r, x, s) := token
     2.  if d > t + x: return INVALID  // insufficient balance
-    3.  nf' <- F_q^nf_len             // nullifier of the updated state
-    4.  r'  <- F_q^r_len              // opening of the updated state
-    5.  t'  := t + x - d              // credit of the updated state
-    6.  c'  := Com(nf', ctx_iss, t', r')
-    7.  pf_spend := VOLEitH.Prove(
+    3.  t'  := t + x - d              // credit of the updated state
+    4.  if t' >= 2^(8*L): return INVALID  // change overflows
+    5.  nf' <- F_q^nf_len             // nullifier of the updated state
+    6.  r'  <- F_q^r_len              // opening of the updated state
+    7.  c'  := Com(nf', ctx_iss, t', r')
+    8.  pf_spend := VOLEitH.Prove(
           SpendRelation,              // relation
           (P, nf, d, c', ctx_iss),    // instance
           (t, r, x, s, nf', t', r'),  // witness
         )
-    8.  request := (nf, d, c', pf_spend)
-    9.  pending_token := (nf', t', r')
-    10. return (pending_token, request)
+    9.  request := (nf, d, c', pf_spend)
+    10. pending_token := (nf', t', r')
+    11. return (pending_token, request)
 ~~~~
 
 ### Spend Verification and Refund
