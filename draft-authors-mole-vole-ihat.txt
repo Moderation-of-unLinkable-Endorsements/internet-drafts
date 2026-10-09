@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 11 April 2027                                        Cloudflare
-                                                          8 October 2026
+Expires: 12 April 2027                                        Cloudflare
+                                                          9 October 2026
 
 
                                 Moussaka
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 11 April 2027.
+   This Internet-Draft will expire on 12 April 2027.
 
 Copyright Notice
 
@@ -126,18 +126,13 @@ Table of Contents
    Moussaka has significantly higher bandwidth cost compared to
    Rollatini:
 
-   1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
+   1.  each Anchor public key is 45.5KB (this corresponds to the uov-Ip
        parameter set [UOV]);
 
-   2.  ~8KB are transmitted during issuance; and
+   2.  the Client uploads 7.1KB during issuance; and
 
-   3.  ~9KB are transmitted during redemption, plus a couple bytes per
-       Anchor in the Anchor Set.
-
-      NOTE(cjpatton) These numbers aren't based on an actual
-      implementation.  They are the result of an analysis from Claude
-      Opus 5 looking at the FAEST spec and an arithmetization of Keccak
-      in a work in progress implementation.
+   3.  the Client uploads 8.6KB during redemption for an Anchor Set of
+       up to 64 Anchors.
 
       NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH
       proofs (one for issuance and another for redemption) using the
@@ -271,7 +266,7 @@ Table of Contents
    UOV.ExpandSK(), UOV.SPre(), VOLEitH.Prove(), and VOLEitH.Verify() are
    defined as in [VOLE-ACT].  We adopt the uov-Ip parameter set (NIST
    Level 1) for UOV.  That is, for the remainder of this document, let
-   n=112, m=44, and q=2^8.
+   n=119, m=45, and q=2^8.
 
    Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
 
@@ -614,11 +609,14 @@ Table of Contents
 
 8.1.  Normative References
 
-   [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
+   [FAEST]    Baum, C., Beullens, W., Braun, L., Delpech de Saint
               Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
               E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
-              "The FAEST Signature Scheme", Version 2.0, 2025,
-              <https://faest.info/faest-spec-v2.0.pdf>.
+              "FAEST v3: Algorithm Specifications", NIST PQC Additional
+              Digital Signatures Round 3 Submission, Version 3.0, 1
+              September 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/FAEST_specifications.pdf>.
 
    [FIPS202]  National Institute of Standards and Technology (NIST),
               "SHA-3 Standard: Permutation-Based Hash and Extendable-
@@ -628,8 +626,9 @@ Table of Contents
    [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
               Kannwischer, "MAYO: Practical Post-Quantum Signatures from
               Oil-and-Vinegar Maps", NIST PQC Additional Digital
-              Signatures Round 2 Submission, 5 February 2025,
-              <https://pqmayo.org/assets/specs/mayo-round2.pdf>.
+              Signatures Round 3 Submission, 31 August 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/mayo_specification.pdf>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -648,10 +647,10 @@ Table of Contents
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
               C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
-              PQC Additional Digital Signatures Round 2 Submission,
-              February 2025, <https://csrc.nist.gov/csrc/media/Projects/
-              pqc-dig-sig/documents/round-2/spec-files/uov-spec-
-              round2-web.pdf>.
+              PQC Additional Digital Signatures Round 3 Submission,
+              Version 3.0, 30 August 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/UOV_Specification_R3.pdf>.
 
    [VOLE-ACT] "TODO I-D.draft-authors-mole-vole-act", n.d..
 

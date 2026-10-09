@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang &amp; Patton</td>
-<td class="center">Expires 11 April 2027</td>
+<td class="center">Expires 12 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-08" class="published">8 October 2026</time>
+<time datetime="2026-10-09" class="published">9 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-11">11 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-12">12 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ the moderator. The commitment is instantiated with <code>Keccak-p[800,12]</code>
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 11 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1266,62 +1266,55 @@ key in the Anchor Set.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <p id="section-1-5">Moussaka has significantly higher bandwidth cost compared to Rollatini:<a href="#section-1-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-6">
 <li id="section-1-6.1">
-          <p id="section-1-6.1.1">each Anchor public key is 42.6KB (this corresponds to the uov-Ip parameter
+          <p id="section-1-6.1.1">each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
 set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.2">
-          <p id="section-1-6.2.1">~8KB are transmitted during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.2.1">the Client uploads 7.1KB during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-6.3">
-          <p id="section-1-6.3.1">~9KB are transmitted during redemption, plus a couple bytes per Anchor in
-the Anchor Set.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-6.3.1">the Client uploads 8.6KB during redemption for an Anchor Set of up to 64
+Anchors.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-7.1">
-          <p id="section-1-7.1.1">NOTE(cjpatton) These numbers aren't based on an actual implementation. They
-are the result of an analysis from Claude Opus 5 looking at the FAEST spec
-and an arithmetization of Keccak in a work in progress implementation.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1-8.1">
-          <p id="section-1-8.1.1">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
+          <p id="section-1-7.1.1">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
 for issuance and another for redemption) using the more invasive techniques
-from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
+from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-9">On the other hand, Moussaka is round optimal: only two moves are required for
-issuance, whereas Rollatini requires three.<a href="#section-1-9" class="pilcrow">¶</a></p>
-<p id="section-1-10">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
+<p id="section-1-8">On the other hand, Moussaka is round optimal: only two moves are required for
+issuance, whereas Rollatini requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-9">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
 defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
 overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
 the signature scheme, commitment scheme, and proof system used by Moussaka and
 provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
 the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
-considerations for implementers and adopters.<a href="#section-1-10" class="pilcrow">¶</a></p>
+considerations for implementers and adopters.<a href="#section-1-9" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1-11.1">
-          <p id="section-1-11.1.1">TODO(cjpatton) Resolve gaps with <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>:<a href="#section-1-11.1.1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-1-11.1.2">
-<li id="section-1-11.1.2.1">
-              <p id="section-1-11.1.2.1.1">The protocol wants to bind the challenge that triggered redemption to the
+<li class="normal ulEmpty" id="section-1-10.1">
+          <p id="section-1-10.1.1">TODO(cjpatton) Resolve gaps with <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>:<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-10.1.2">
+<li id="section-1-10.1.2.1">
+              <p id="section-1-10.1.2.1.1">The protocol wants to bind the challenge that triggered redemption to the
 redemption process so that the Client and Moderator confirm agreement.
 This is a 32-byte <code>challenge_digest</code>. Since this value isn't determined
 until redemption time, we can't include it in the commitment. The most
 natural solution is analogous to Rollatini: include <code>challenge_digest</code> in
 the VOLEitH transcript. This is mildly invasive, but shouldn't be too bad
-to support. PoMFRIT does a similar thing with the public key.<a href="#section-1-11.1.2.1.1" class="pilcrow">¶</a></p>
+to support. PoMFRIT does a similar thing with the public key.<a href="#section-1-10.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-1-11.1.2.2">
-              <p id="section-1-11.1.2.2.1">The APIs are a bit misaligned. This is unavoidable to some extent for
+            <li id="section-1-10.1.2.2">
+              <p id="section-1-10.1.2.2.1">The APIs are a bit misaligned. This is unavoidable to some extent for
 issuance, since our protocol is 2 moves and theirs is 3, but it should be
-possible to align redemption precisely.<a href="#section-1-11.1.2.2.1" class="pilcrow">¶</a></p>
+possible to align redemption precisely.<a href="#section-1-10.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-1-11.1.2.3">
-              <p id="section-1-11.1.2.3.1">Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
+            <li id="section-1-10.1.2.3">
+              <p id="section-1-10.1.2.3.1">Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
 Perhaps all MoLE drafts should use the same pseudocode eventually?
-Likewise for Ratatouille.<a href="#section-1-11.1.2.3.1" class="pilcrow">¶</a></p>
+Likewise for Ratatouille.<a href="#section-1-10.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 </li>
@@ -1439,7 +1432,7 @@ another hash evaluation to the redemption proof. See issue 45.<a href="#section-
 <p id="section-4-1">The procedures <code>KP800()</code>, <code>UOV.CompactKeyGen()</code>, <code>UOV.ExpandPK()</code>,
 <code>UOV.ExpandSK()</code>, <code>UOV.SPre()</code>, <code>VOLEitH.Prove()</code>, and <code>VOLEitH.Verify()</code> are
 defined as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. We adopt the uov-Ip parameter set (NIST Level 1) for
-UOV. That is, for the remainder of this document, let <code>n=112</code>, <code>m=44</code>, and
+UOV. That is, for the remainder of this document, let <code>n=119</code>, <code>m=45</code>, and
 <code>q=2^8</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
 <p id="section-4-2">Moussaka also fixes the following parameters, named as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>:<a href="#section-4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -1881,7 +1874,7 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="FAEST">[FAEST]</dt>
         <dd>
-<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"The FAEST Signature Scheme"</span>, <span class="seriesInfo">Version 2.0</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://faest.info/faest-spec-v2.0.pdf">https://faest.info/faest-spec-v2.0.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"FAEST v3: Algorithm Specifications"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <span class="seriesInfo">Version 3.0</span>, <time datetime="2026-09-01" class="refDate">1 September 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FIPS202">[FIPS202]</dt>
         <dd>
@@ -1889,7 +1882,7 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="MAYO">[MAYO]</dt>
         <dd>
-<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Campos, F.</span>, <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Hess, B.</span>, and <span class="refAuthor">M. J. Kannwischer</span>, <span class="refTitle">"MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02-05" class="refDate">5 February 2025</time>, <span>&lt;<a href="https://pqmayo.org/assets/specs/mayo-round2.pdf">https://pqmayo.org/assets/specs/mayo-round2.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Campos, F.</span>, <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Hess, B.</span>, and <span class="refAuthor">M. J. Kannwischer</span>, <span class="refTitle">"MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <time datetime="2026-08-31" class="refDate">31 August 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>
@@ -1905,7 +1898,7 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
         <dd>
-<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <span class="seriesInfo">Version 3.0</span>, <time datetime="2026-08-30" class="refDate">30 August 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="VOLE-ACT">[VOLE-ACT]</dt>
       <dd>
