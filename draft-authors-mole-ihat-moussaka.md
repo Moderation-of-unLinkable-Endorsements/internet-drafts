@@ -252,15 +252,9 @@ provides normative references for their specifications. {{protocol}} specifies
 the protocol in full detail. Finally, {{security}} enumerates some security
 considerations for implementers and adopters.
 
-> TODO(cjpatton) Resolve gaps with {{IHAT-ROLLATINI}}:
->
-> 1. The APIs are a bit misaligned. This is unavoidable to some extent for
->    issuance, since our protocol is 2 moves and theirs is 3, but it should be
->    possible to align redemption precisely.
->
-> 2. (Likewise for Ratatouille) Our pseudocode is derived from an old version of
->    ACT, but MoLE ACT {{ACT}} now uses Python, as does {{IHAT-ROLLATINI}}.
->    Consider transcribing our pseudocode into Python.
+> TODO(cjpatton) Our pseudocode is derived from an old version of ACT, but MoLE
+> ACT {{ACT}} now uses Python, as does {{IHAT-ROLLATINI}}. Consider transcribing
+> our pseudocode into Python. (Likewise for Ratatouille.)
 
 # Conventions and Definitions {#conventions}
 
