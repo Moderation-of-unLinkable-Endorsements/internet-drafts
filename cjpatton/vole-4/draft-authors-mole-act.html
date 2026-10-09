@@ -1359,12 +1359,12 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
 defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>; a lowercase credential is the generic cryptographic
 notion. The message-encoding conventions, Python notation, and helpers
 <code>I2OSP</code>, <code>U16Prefixed</code>, <code>random</code>, and <code>Seed</code> are those of
-Section 2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. The algorithms use <code>bytes</code> for byte strings, <code>int</code>
-for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code> module.
-Record fields appear in the same order as their tuple representation.<a href="#section-2-2" class="pilcrow">¶</a></p>
+Section 2 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. The algorithms use <code>bytes</code> for byte strings,
+<code>int</code> for integers, and <code>Sequence</code> and <code>NamedTuple</code> from Python's <code>typing</code>
+module. Record fields appear in the same order as their tuple representation.<a href="#section-2-2" class="pilcrow">¶</a></p>
 <p id="section-2-3">The group <code>G</code>, protocol context <code>ctx_proto</code>, seed length <code>Nseed</code>,
 generators, and balance width <code>L</code> are globals fixed by the ACT
-configuration (<a href="#act-config" class="auto internal xref">Section 4.1</a>). Shared group methods from <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> use
+configuration (<a href="#act-config" class="auto internal xref">Section 4.1</a>). Shared group methods from <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> use
 the ACT group instance <code>G</code>, which stores <code>ctx_proto</code> and applies ACT
 domain separation. Both schemes use <code>Nseed = 48</code>. Public byte-string
 inputs retain the length bounds
@@ -1389,7 +1389,7 @@ gives concrete instances.<a href="#section-3-3.2.1" class="pilcrow">¶</a></p>
 <dt id="section-3-3.3">Hash:</dt>
         <dd style="margin-left: 1.5em" id="section-3-3.4">
           <p id="section-3-3.4.1">A cryptographic hash function, used by the <code>HashToGroup</code>, <code>HashToScalar</code>,
-and derivation algorithms that the group of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> provides.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
+and derivation algorithms that the group of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> provides.<a href="#section-3-3.4.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-3-3.5">Sigma protocol:</dt>
@@ -1405,7 +1405,7 @@ and derivation algorithms that the group of <span>[<a href="#ROLLATINI" class="c
 <a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-prime-order-group" class="section-name selfRef">Prime-Order Group</a>
         </h3>
 <p id="section-3.1-1">ACT uses the prime-order group interface and the <code>Element</code> and <code>Scalar</code>
-types of Section 3.1 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, instantiated as in <a href="#ciphersuites" class="auto internal xref">Section 5</a>.
+types of Section 3.1 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, instantiated as in <a href="#ciphersuites" class="auto internal xref">Section 5</a>.
 The prime <code>p = G.Order()</code> is the group order and the scalar-field modulus.
 The Python interface provides <code>G.scalar(x)</code> for an integer <code>x</code> in
 <code>[0, G.Order())</code>, <code>s.isZero()</code> for a scalar, and <code>A.isIdentity()</code> for an
@@ -1420,7 +1420,7 @@ an element <code>A</code> is <code>G.Identity() - A</code>.<a href="#section-3.1
 <a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-errors" class="section-name selfRef">Errors</a>
         </h3>
 <p id="section-3.2-1"><code>DeserializeError</code>, <code>VerifyError</code>, <code>DeriveError</code>, and <code>ValueError</code> have the
-meanings given in Section 3.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. ACT additionally uses
+meanings given in Section 3.2 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. ACT additionally uses
 <code>AmountError</code> when a balance or amount is outside the range admitted by
 <a href="#act-amounts" class="auto internal xref">Section 4.3</a>:<a href="#section-3.2-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-3.2-2">
@@ -1438,10 +1438,10 @@ class AmountError(ValueError):
 <a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-deriving-scalars" class="section-name selfRef">Deriving Scalars</a>
         </h3>
 <p id="section-3.3-1">Use <code>G.DeriveScalars(rand: bytes, info: bytes, count: int) -&gt;
-list[Scalar]</code> from Section 4.2 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, using the ACT group instance
-initialized with <code>ctx_proto</code>. It rejects <code>rand</code> whose length is not <code>Nseed</code>
-with <code>ValueError</code>, and raises <code>DeriveError</code> in the negligible event that a
-derived scalar is zero. ACT applies the following requirements to this
+list[Scalar]</code> from Section 4.2 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, using the ACT group
+instance initialized with <code>ctx_proto</code>. It rejects <code>rand</code> whose length is not
+<code>Nseed</code> with <code>ValueError</code>, and raises <code>DeriveError</code> in the negligible event that
+a derived scalar is zero. ACT applies the following requirements to this
 shared algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2"><code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code> and <span class="bcp14">MUST NOT</span> be used for
 more than one derivation. An algorithm derives all of its scalars with one
@@ -1462,7 +1462,7 @@ nonce vectors.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
 <a href="#section-3.4" class="section-number selfRef">3.4. </a><a href="#name-key-generation" class="section-name selfRef">Key Generation</a>
         </h3>
 <p id="section-3.4-1">Use <code>G.DeriveKeyPair(seed, info)</code> and <code>G.GenerateKeyPair()</code> from Section
-4.4 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
+4.4 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, with the ACT group instance of <a href="#act-config" class="auto internal xref">Section 4.1</a>. Both
 return <code>tuple[Scalar, Element]</code>; ACT names the returned keys <code>(skM,
 pkM)</code> because the Moderator is the issuer. The Moderator publishes
 <code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
@@ -1732,9 +1732,9 @@ recommends; the length prefixes keep the tag unambiguous.<a href="#section-4.4.1
 <p id="section-4.4.2-1"><code>ProveCompact</code> draws one nonce per witness scalar from its <code>rng</code>, in
 scalar-index order. The <code>rng</code> <span class="bcp14">MUST</span> return, on its <code>i</code>-th call, the value
 that <code>ProverNonces.random_scalar</code> computes below. The nonces are derived
-together with <code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the witness,
-the session, the relation, and fresh randomness; see "Derived prover nonces"
-in <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
+together with <code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>) from the
+witness, the session, the relation, and fresh randomness; see "Derived prover
+nonces" in <a href="#act-security" class="auto internal xref">Section 6</a>.<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-4.4.2-2">
 <pre>
 class ProverNonces:
@@ -1856,7 +1856,7 @@ class Credential(NamedTuple):
           </h4>
 <p id="section-4.5.1-1"><code>IssueResponse</code> here and <code>IssueRefund</code> (<a href="#act-refund" class="auto internal xref">Section 4.6.4</a>) choose the
 exponent <code>e</code> of the signature <code>(A, e)</code>. It is derived with <code>G.DeriveNonces</code>
-(Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the signing key, the group-element
+(Section 4.3 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>) from the signing key, the group-element
 encoding of the signed attributes, and fresh randomness. Repeating these
 inputs reproduces the same signature. Changing the signed encoding changes
 the derivation input even when the random source repeats
@@ -2531,8 +2531,8 @@ move the pin to <code>-04</code> when it is published.<a href="#section-5-4.1.1"
 SHA-256 for the hash function. The value of the ciphersuite
 identifier is <code>b"P256-SHA256"</code>.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.1-2">Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
-algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. ACT uses
-<code>Ne = 33</code>, <code>Ns = 32</code>, and <code>Nseed = 48</code>. Instantiate every hash with the
+algorithms, and canonical encodings of Section 7.1 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. ACT
+uses <code>Ne = 33</code>, <code>Ns = 32</code>, and <code>Nseed = 48</code>. Instantiate every hash with the
 ACT <code>ctx_proto</code> of <a href="#act-config" class="auto internal xref">Section 4.1</a>, including the explicit DSTs of
 <code>G.DeriveScalars</code>, <code>G.ExpandScalars</code>, <code>G.DeriveNonces</code>, and
 <code>G.DeriveKeyPair</code>.<a href="#section-5.1-2" class="pilcrow">¶</a></p>
@@ -2549,10 +2549,10 @@ far below the group order (<a href="#act-security" class="auto internal xref">Se
 <p id="section-5.2-1">Every random value in this document is drawn with <code>random</code> and consumed in
 inputs of <code>Nseed</code> bytes, by <code>G.DeriveScalars</code> (<a href="#derive-scalar" class="auto internal xref">Section 3.3</a>), by
 <code>G.DeriveKeyPair</code> (<a href="#keygen" class="auto internal xref">Section 3.4</a>) for a key, or, for the values listed below, by
-<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>); no scalar is sampled directly.
-Implementations <span class="bcp14">MUST</span> draw with a cryptographically secure random number
-generator and <span class="bcp14">MUST NOT</span> reuse randomness across derivations. Randomness is as
-sensitive as the values derived from it, and the constant-time requirement
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>); no scalar is sampled
+directly. Implementations <span class="bcp14">MUST</span> draw with a cryptographically secure random
+number generator and <span class="bcp14">MUST NOT</span> reuse randomness across derivations. Randomness is
+as sensitive as the values derived from it, and the constant-time requirement
 of <a href="#act-security" class="auto internal xref">Section 6</a> covers both.<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <p id="section-5.2-2">The following values <span class="bcp14">MUST</span> be derived with <code>G.DeriveNonces</code>, with the inputs
 stated where they are used; drawing them directly is not conformant:<a href="#section-5.2-2" class="pilcrow">¶</a></p>
@@ -2666,7 +2666,7 @@ the security of Hash based pseudorandom generators in addition.  The
 proof strategy replaces the derived vectors by independent random
 scalars, with a loss accounting for scalar-reduction bias,
 collisions, and queries to secret derivation inputs (Section 4.2 of
-<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>). Concrete bounds for this replacement and its
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>). Concrete bounds for this replacement and its
 composition with the proofs remain to be established. The public
 amounts <code>s</code>, <code>a</code>, and <code>t</code>, and the configuration, determine which
 Credentials could have produced a presentation; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
@@ -2706,9 +2706,9 @@ and a repeated signing exponent <code>e</code> under one context lets a Client
 holding two Credentials with that exponent forge Credentials at any
 balance below <code>2^L</code>, each with a fresh nullifier, which the nullifier
 store cannot detect. Both values are therefore derived with
-<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the key and the operation
-(<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>, <a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>), so that a rolled back
-or snapshotted random source reproduces an earlier response instead of
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>) from the key and the
+operation (<a href="#act-signing-exponent" class="auto internal xref">Section 4.5.1</a>, <a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>), so that a rolled
+back or snapshotted random source reproduces an earlier response instead of
 yielding a second one. An implementation that draws either value
 directly <span class="bcp14">MUST</span> treat every repetition as a compromise of <code>skM</code>.<a href="#section-6-4.10.1" class="pilcrow">¶</a></p>
 </dd>
@@ -2772,7 +2772,7 @@ verification through a group element rather than a scalar, which
 <dt id="section-6-4.19">Derived prover nonces:</dt>
         <dd style="margin-left: 1.5em" id="section-6-4.20">
           <p id="section-6-4.20.1"><code>ProverNonces</code> derives the nonces of a proof together with
-<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>) from the witness, the
+<code>G.DeriveNonces</code> (Section 4.3 of <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>) from the witness, the
 session, the relation, and <code>Nseed</code> bytes of fresh randomness. Its security
 analysis must establish that the nonce vector is indistinguishable from
 fresh uniform randomness to parties without the witness, as required by
@@ -2849,6 +2849,10 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
         <dd>
 <span class="refAuthor">Orrù, M.</span>, <span class="refTitle">"Fiat-Shamir Transformation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-fiat-shamir-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="IHAT-ROLLATINI">[IHAT-ROLLATINI]</dt>
+        <dd>
+<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">D. I. Mohan</span>, <span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-authors-mole-ihat-rollatini</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="PROTOCOLS">[PROTOCOLS]</dt>
         <dd>
 <span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
@@ -2860,10 +2864,6 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="ROLLATINI">[ROLLATINI]</dt>
-        <dd>
-<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">D. I. Mohan</span>, <span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-authors-mole-rollatini</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="SIGMA">[SIGMA]</dt>
       <dd>

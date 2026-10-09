@@ -1295,7 +1295,7 @@ the protocol in full detail. Finally, <a href="#security" class="auto internal x
 considerations for implementers and adopters.<a href="#section-1-9" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-10.1">
-          <p id="section-1-10.1.1">TODO(cjpatton) Resolve gaps with <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>:<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-10.1.1">TODO(cjpatton) Resolve gaps with <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>:<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-10.1.2">
 <li id="section-1-10.1.2.1">
               <p id="section-1-10.1.2.1.1">The APIs are a bit misaligned. This is unavoidable to some extent for
@@ -1303,9 +1303,9 @@ issuance, since our protocol is 2 moves and theirs is 3, but it should be
 possible to align redemption precisely.<a href="#section-1-10.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
             <li id="section-1-10.1.2.2">
-              <p id="section-1-10.1.2.2.1">Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
-Perhaps all MoLE drafts should use the same pseudocode eventually?
-Likewise for Ratatouille.<a href="#section-1-10.1.2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-1-10.1.2.2.1">(Likewise for Ratatouille) Our pseudocode is derived from an old version of
+ACT, but MoLE ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> now uses Python, as does <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>.
+Consider transcribing our pseudocode into Python.<a href="#section-1-10.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 </li>
@@ -1351,11 +1351,11 @@ computed by hashing the message to be signed. The UOV secret key is a trapdoor
 for <code>P</code> that can be used to efficiently sample signatures for a given target.<a href="#section-3-3" class="pilcrow">¶</a></p>
 <p id="section-3-4">Issuance binds a token to an issuance context <code>ctx_iss</code> agreed upon by the
 Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agreed upon
-by the Client and Moderator <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. The protocol commits to both contexts
-during issuance: the Anchor verifies the <code>ctx_iss</code> binding during issuance, and
-the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding during
-redemption. Note that Moussaka constrains how these values are chosen compared
-to <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
+by the Client and Moderator <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. The protocol commits to both
+contexts during issuance: the Anchor verifies the <code>ctx_iss</code> binding during
+issuance, and the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding
+during redemption. Note that Moussaka constrains how these values are chosen
+compared to <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-5">The issuance protocol is as follows:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-6.1">
@@ -1522,13 +1522,13 @@ Com(nf, ctx_iss, ctx_red, r):
 <p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 <code>state</code> is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>: <code>nf_len</code> is 24 bytes, whereas <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>
-uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>
-allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+inputs relative to <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>: <code>nf_len</code> is 24 bytes, whereas
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.2-4.1">
             <p id="section-5.2-4.1.1">TODO(cjpatton) Consider bumping the nullifier length to <code>32</code> to match
-<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> and guidelines for choosing the context strings. Honestly,
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> and guidelines for choosing the context strings. Honestly,
 truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -1673,8 +1673,8 @@ of a sequence of UOV public keys <code>P[0], ..., P[N-1]</code>. The Anchor Set 
 be empty and <span class="bcp14">MUST NOT</span> have more than <code>MAX_ANCHORS</code> elements, that is, <code>0 &lt; N
 &lt;= MAX_ANCHORS</code>. They also agree on <code>challenge_digest</code>, which binds the
 redemption to the challenge that triggered it. It is computed from the
-Moderator's challenge as described in <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>; this document treats it
-as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
+Moderator's challenge as described in <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>; this document treats
+it as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> in <code>[N]</code> be the index of the issuing Anchor. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
 <code>b</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The relation first selects
@@ -1908,6 +1908,10 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">National Institute of Standards and Technology (NIST)</span>, <span class="refTitle">"SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"</span>, <span class="seriesInfo">FIPS PUB 202</span>, <time datetime="2015-08" class="refDate">August 2015</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.202">https://doi.org/10.6028/NIST.FIPS.202</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="IHAT-ROLLATINI">[IHAT-ROLLATINI]</dt>
+        <dd>
+<span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="MAYO">[MAYO]</dt>
         <dd>
 <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Campos, F.</span>, <span class="refAuthor">Celi, S.</span>, <span class="refAuthor">Hess, B.</span>, and <span class="refAuthor">M. J. Kannwischer</span>, <span class="refTitle">"MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <time datetime="2026-08-31" class="refDate">31 August 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf</a>&gt;</span>. </dd>
@@ -1919,10 +1923,6 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="ROLLATINI">[ROLLATINI]</dt>
-        <dd>
-<span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
       <dd>
@@ -1937,6 +1937,10 @@ TurboSHAKE).<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
+<dt id="ACT">[ACT]</dt>
+        <dd>
+<span class="refTitle">"Anonymous Credit Tokens (ACT)"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="PoMFRIT">[PoMFRIT]</dt>
         <dd>
 <span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beckmann, M.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Mukherjee, S.</span>, and <span class="refAuthor">C. Rechberger</span>, <span class="refTitle">"Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"</span>, <span class="seriesInfo">Cryptology ePrint Archive Paper 2026/109</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://eprint.iacr.org/2026/109">https://eprint.iacr.org/2026/109</a>&gt;</span>. </dd>

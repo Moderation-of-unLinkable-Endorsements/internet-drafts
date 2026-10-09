@@ -150,15 +150,16 @@ Table of Contents
    Finally, Section 6 enumerates some security considerations for
    implementers and adopters.
 
-      TODO(cjpatton) Resolve gaps with [ROLLATINI]:
+      TODO(cjpatton) Resolve gaps with [IHAT-ROLLATINI]:
 
       1.  The APIs are a bit misaligned.  This is unavoidable to some
           extent for issuance, since our protocol is 2 moves and theirs
           is 3, but it should be possible to align redemption precisely.
 
-      2.  Our pseudocode is derived from ACT, but theirs is more in line
-          with VOPRF.  Perhaps all MoLE drafts should use the same
-          pseudocode eventually?  Likewise for Ratatouille.
+      2.  (Likewise for Ratatouille) Our pseudocode is derived from an
+          old version of ACT, but MoLE ACT [ACT] now uses Python, as
+          does [IHAT-ROLLATINI].  Consider transcribing our pseudocode
+          into Python.
 
 2.  Conventions and Definitions
 
@@ -193,12 +194,12 @@ Table of Contents
 
    Issuance binds a token to an issuance context ctx_iss agreed upon by
    the Client, Anchor, and Moderator, and a redemption context ctx_red
-   agreed upon by the Client and Moderator [ROLLATINI].  The protocol
-   commits to both contexts during issuance: the Anchor verifies the
-   ctx_iss binding during issuance, and the Moderator verifies both the
-   ctx_iss and ctx_red binding during redemption.  Note that Moussaka
-   constrains how these values are chosen compared to [ROLLATINI]; see
-   Section 5.2 for details.
+   agreed upon by the Client and Moderator [IHAT-ROLLATINI].  The
+   protocol commits to both contexts during issuance: the Anchor
+   verifies the ctx_iss binding during issuance, and the Moderator
+   verifies both the ctx_iss and ctx_red binding during redemption.
+   Note that Moussaka constrains how these values are chosen compared to
+   [IHAT-ROLLATINI]; see Section 5.2 for details.
 
    The issuance protocol is as follows:
 
@@ -338,14 +339,14 @@ Table of Contents
    The layout of state is chosen so that the entire commitment is
    computed with a single application of the permutation.  The zero
    padding is sized so that state is always 100 bytes.  This layout also
-   constrains the lengths of the inputs relative to [ROLLATINI]: nf_len
-   is 24 bytes, whereas [ROLLATINI] uses a 32-byte nullifier, and
-   ctx_len is 16 bytes, whereas [ROLLATINI] allows the contexts to be
-   arbitrary byte strings.
+   constrains the lengths of the inputs relative to [IHAT-ROLLATINI]:
+   nf_len is 24 bytes, whereas [IHAT-ROLLATINI] uses a 32-byte
+   nullifier, and ctx_len is 16 bytes, whereas [IHAT-ROLLATINI] allows
+   the contexts to be arbitrary byte strings.
 
       TODO(cjpatton) Consider bumping the nullifier length to 32 to
-      match [ROLLATINI] and guidelines for choosing the context strings.
-      Honestly, truncating a hash to 16 bytes is not terrible.
+      match [IHAT-ROLLATINI] and guidelines for choosing the context
+      strings.  Honestly, truncating a hash to 16 bytes is not terrible.
       (Likewise for Ratatouille.)
 
 5.3.  Issuance
@@ -457,8 +458,8 @@ Table of Contents
    elements, that is, 0 < N <= MAX_ANCHORS.  They also agree on
    challenge_digest, which binds the redemption to the challenge that
    triggered it.  It is computed from the Moderator's challenge as
-   described in [ROLLATINI]; this document treats it as an opaque byte
-   string of length 32.
+   described in [IHAT-ROLLATINI]; this document treats it as an opaque
+   byte string of length 32.
 
    Let i in [N] be the index of the issuing Anchor.  The witness for the
    redemption proof is the opening r, the signature s, and the selector
@@ -651,6 +652,11 @@ Table of Contents
               Output Functions", FIPS PUB 202, August 2015,
               <https://doi.org/10.6028/NIST.FIPS.202>.
 
+   [IHAT-ROLLATINI]
+              "Rollatini: An Issuer-Hiding Anonymous Token", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ihat-rollatini.html>.
+
    [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
               Kannwischer, "MAYO: Practical Post-Quantum Signatures from
               Oil-and-Vinegar Maps", NIST PQC Additional Digital
@@ -667,11 +673,6 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-   [ROLLATINI]
-              "Rollatini: An Issuer-Hiding Anonymous Token", n.d.,
-              <https://moderation-of-unlinkable-endorsements.github.io/
-              internet-drafts/draft-authors-mole-rollatini.html>.
-
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
               C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
@@ -681,6 +682,10 @@ Table of Contents
               sig/documents/UOV_Specification_R3.pdf>.
 
 8.2.  Informative References
+
+   [ACT]      "Anonymous Credit Tokens (ACT)", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-act.html>.
 
    [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
               C. Rechberger, "Concretely Efficient Blind Signatures
