@@ -130,6 +130,35 @@ normative:
         name: Bo-Yin Yang
 
 informative:
+  MiniSHAKE:
+    title: "MiniSHAKE"
+    target: https://eprint.iacr.org/2026/2363
+    date: 2026
+    seriesinfo:
+      "Cryptology ePrint Archive": "Paper 2026/2363"
+    author:
+      -
+        ins: G. Bertoni
+        name: Guido Bertoni
+      -
+        ins: J. Daemen
+        name: Joan Daemen
+      -
+        ins: S. Hoffert
+        name: Seth Hoffert
+      -
+        ins: S. Mella
+        name: Silvia Mella
+      -
+        ins: M. Peeters
+        name: Michaël Peeters
+      -
+        ins: G. Van Assche
+        name: Gilles Van Assche
+      -
+        ins: R. Van Keer
+        name: Ronny Van Keer
+
   ARCHITECTURE: I-D.draft-jms-mole-architecture
   ACT:
     title: "Anonymous Credit Tokens (ACT)"
@@ -1132,9 +1161,24 @@ is an output translation, so it does not establish the hiding or binding of the
 MQ commitment, the security of the selected parameters, or the security of the
 composition with UOV and VOLEitH.
 
-## Proof status {#proof-status}
+## Choice of Keccak-p[800,12] {#kp800-choice}
 
-> TODO Prove the following claims.
+Ratatouille uses `Keccak-p[800,12]` for hashing rather than the more
+conventional 1600-bit permutation underlying SHA-3 and TurboSHAKE {{RFC9861}}.
+The reason is proof size.
+
+The cost of a Keccak evaluation in a VOLEitH proof is roughly proportional to
+the width of the permutation: each round has one non-linear layer with one AND
+per state bit, and each intermediate state that the prover commits to adds one
+witness bit per state bit. Halving the width therefore roughly halves the cost
+of each `Com()` and `Tag()` evaluation, which dominate the size of the issuance
+and spend proofs. Every input to `Com()` and `Tag()` fits in a single 100-byte
+state, so one evaluation of the permutation suffices. The number of rounds, 12,
+is the same as in TurboSHAKE. `Keccak-p[800,12]` is the permutation underlying
+MiniSHAKE {{MiniSHAKE}}, a family of Keccak instances defined by the designers
+of Keccak for applications that hash many very short messages.
+
+## Proof status {#proof-status}
 
 A proof of unlinkability would need to reduce to the zero-knowledge property of
 the VOLEitH proof system and the hiding property of the commitment. A proof of
@@ -1168,9 +1212,6 @@ The parameters of the MQ commitment in {{mq-commitment}} were chosen from a
 regime for which security is only heuristically justified based on the best
 known attacks. Further cryptanalysis is required to determine if these
 parameters are safe {{BFMRSV25}}.
-
-> TODO Justify halving the Keccak state from 1600 to 800 (relative to
-> TurboSHAKE).
 
 # IANA Considerations
 

@@ -328,14 +328,11 @@ state is also half the size of the state used by either SHA-3 or TurboSHAKE.
 This helps reduce the size of the VOLEitH proof. See {{security}} for
 justification.
 
-> NOTE Both issuance and redemption involve a `Com()` evaluation. An
-> alternative is to have the Anchor bind the issuance context by applying an
-> outer commit, like `Com(Com(nf, ctx_red, r_red), ctx_iss, r_iss)`. This way
-> no issuance proof is required. It would also have the benefit of not
-> requiring the stronger one-more-UOV assumption. See {{security}} for details.
-
 > NOTE We can add multishow and late binding of redemption context by adding
-> another hash evaluation to the redemption proof. See issue 45.
+> another hash evaluation to the redemption proof. Basically, we would use
+> Keccak-p[800,12] to construct a PRF from which we derive the nullifier as
+> PRF(K, red_ctx) where K is a key committed to during issuance. See [issue
+> 45](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45).
 
 # Preliminaries {#preliminaries}
 
@@ -680,9 +677,12 @@ VOLEitH, binding of the commitment, and the one-more-UOV assumption
 assumption than standard UOV ({{UOV}}, Definition 2) that requires some
 scrutiny before we rely on it too heavily.
 
-> NOTE Here's a sketch of the reduction to one-more-UOV. We consider a
-> simplified version of Moussaka, similar to PoMFRIT. During redemption, the
-> Client proves knowledge of `s, r` for which `P(s) = c` and `c = Com(nf, r)`.
+> NOTE Here's a sketch of the reduction to one-more-UOV. The same idea seems to
+> apply to Ratatouille {{ACT-RATATOUILLE}} as well.
+>
+> We consider a simplified version of the protocol, basically a blind signature
+> built in the same framework. During redemption, the Client proves knowledge of
+> `s, r` for which `P(s) = c` and `c = Com(nf, r)`.
 >
 > Our goal is to transform a one-more-redemption forger `B` into a one-more-UOV
 > forger `A`. We simulate `B`'s RO queries using the random targets we got as
@@ -713,8 +713,24 @@ scrutiny before we rely on it too heavily.
 > wants. It now only needs to find a collision in the remaining bits of the
 > image.
 
-> TODO Justify halving the Keccak state from 1600 to 800 (relative to
-> TurboSHAKE).
+> NOTE Both Moussaka and Ratatouille can avoid the stronger one-more-UOV
+> assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
+> by sampling a signing salt and using Keccak-p[800,12] to hash the input and
+> the salt.
+>
+> For Moussaka, the cost of this would be an additional hash evaluation in the
+> circuit. For Ratatouille, we would just need to add a salt to `Tag()`, which
+> adds a little bit to the witness.
+
+> NOTE Nothing ties the issuance of a token to the Anchor. We could consider
+> adding the Anchor public key to the encoding of the instance, like we do for
+> the redemption proof. (Likewise for Ratatouille.)
+
+## Choice of Keccak-p[800,12]
+
+The commitment `Com()` uses `Keccak-p[800,12]` for the same reasons as the
+commitment of Ratatouille-KP800, namely to reduce the size of the VOLEitH
+proofs. See {{ACT-RATATOUILLE}} for discussion.
 
 # IANA Considerations
 
