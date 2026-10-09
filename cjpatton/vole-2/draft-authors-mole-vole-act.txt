@@ -376,32 +376,18 @@ Table of Contents
    R, where X is the instance, using the VOLE-in-the-Head proof system
    defined in [FAEST].  We write v := VOLEitH.Verify(R, X, pf, msg) to
    denote verification of pf under the same relation and instance, where
-   the output v is a bit.
+   the output v is a bit.  The optional msg is a byte string agreed upon
+   by the prover and verifier out-of-band that is bound to the proof,
+   analogously to how the message is bound to the proof in [FAEST].
 
-   The optional input msg is a byte string that is bound to the proof
-   without being part of the instance, i.e., it is not used by the
-   constraints.  When msg is omitted, it is the empty string.  In
-   addition to its constraints, each relation R specifies a domain
+   In addition to its constraints, each relation R specifies a domain
    separation tag R.dst and an encoding R.EncodeInstance(X) of the
-   instance as a byte string.  The prover and verifier bind the
-   relation, instance, and message to the proof by deriving
+   instance as a byte string.  Internally, the prover and verifier bind
+   the relation, instance, and message to the proof by deriving
 
    mu := H_2^0(R.EncodeInstance(X) || msg || R.dst)
 
-   where H_2^0 is as defined in [FAEST].  This is analogous to the
-   derivation mu := H_2^0(pk || msg) in FAEST, where the FAEST public
-   key pk is the instance and msg is the message being signed.  As in
-   FAEST, mu determines the prover's randomness and every challenge, so
-   pf verifies only if the verifier uses the same R, X, and msg as the
-   prover.
-
-      TODO Generalizing VOLEitH from the FAEST one-way function to
-      arbitrary relations, and adding R.dst to mu, are extensions of
-      [FAEST] that we intend to propose to the FAEST team.  For now, the
-      input to H_2^0 is unambiguous as long as each field of the
-      instance encoding has a fixed length or is preceded by its length,
-      and msg has a fixed length for each relation.  Supporting
-      variable-length messages will likely require length-prefixing msg.
+   where H_2^0 is as defined in [FAEST].
 
    Relations are specified in the style of Section 3.4 of [SIGMA] as a
    sequence of constraints.  Each constraint is an equation of the

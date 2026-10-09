@@ -1580,48 +1580,33 @@ document, we let <code>q = 256</code>.<a href="#section-4-6" class="pilcrow">¶<
 witness <code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is the
 instance, using the VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We write
 <code>v := VOLEitH.Verify(R, X, pf, msg)</code> to denote verification of <code>pf</code> under the
-same relation and instance, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">The optional input <code>msg</code> is a byte string that is bound to the proof without
-being part of the instance, i.e., it is not used by the constraints. When <code>msg</code>
-is omitted, it is the empty string. In addition to its constraints, each
-relation <code>R</code> specifies a domain separation tag <code>R.dst</code> and an encoding
-<code>R.EncodeInstance(X)</code> of the instance as a byte string. The prover and verifier
-bind the relation, instance, and message to the proof by deriving<a href="#section-4-8" class="pilcrow">¶</a></p>
+same relation and instance, where the output <code>v</code> is a bit. The optional <code>msg</code> is
+a byte string agreed upon by the prover and verifier out-of-band that is bound
+to the proof, analogously to how the message is bound to the proof in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">In addition to its constraints, each relation <code>R</code> specifies a domain separation
+tag <code>R.dst</code> and an encoding <code>R.EncodeInstance(X)</code> of the instance as a byte
+string. Internally, the prover and verifier bind the relation, instance, and
+message to the proof by deriving<a href="#section-4-8" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-4-9">
 <pre>
 mu := H_2^0(R.EncodeInstance(X) || msg || R.dst)
 </pre><a href="#section-4-9" class="pilcrow">¶</a>
 </div>
-<p id="section-4-10">where <code>H_2^0</code> is as defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. This is analogous to the derivation
-<code>mu := H_2^0(pk || msg)</code> in FAEST, where the FAEST public key <code>pk</code> is the
-instance and <code>msg</code> is the message being signed. As in FAEST, <code>mu</code> determines
-the prover's randomness and every challenge, so <code>pf</code> verifies only if the
-verifier uses the same <code>R</code>, <code>X</code>, and <code>msg</code> as the prover.<a href="#section-4-10" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-11.1">
-          <p id="section-4-11.1.1">TODO Generalizing VOLEitH from the FAEST one-way function to arbitrary
-relations, and adding <code>R.dst</code> to <code>mu</code>, are extensions of <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> that we
-intend to propose to the FAEST team. For now, the input to <code>H_2^0</code> is
-unambiguous as long as each field of the instance encoding has a fixed length
-or is preceded by its length, and <code>msg</code> has a fixed length for each relation.
-Supporting variable-length messages will likely require length-prefixing
-<code>msg</code>.<a href="#section-4-11.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
-<p id="section-4-12">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
+<p id="section-4-10">where <code>H_2^0</code> is as defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>.<a href="#section-4-10" class="pilcrow">¶</a></p>
+<p id="section-4-11">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
 of constraints. Each constraint is an equation of the instance and witness
 variables. Unlike <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, these equations need not be linear: each side of
 the equation is a polynomial of arbitrary degree. However, because the degree
 of the polynomial influences the size of the proof, the relation must be
-designed to balance the size of the witness with the degree of the constraints.<a href="#section-4-12" class="pilcrow">¶</a></p>
+designed to balance the size of the witness with the degree of the constraints.<a href="#section-4-11" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-13.1">
-          <p id="section-4-13.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
+<li class="normal ulEmpty" id="section-4-12.1">
+          <p id="section-4-12.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
 specifies a compiler of constraints into a proof, as in <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, but this
 is currently beyond the scope of what the FAEST spec does. The degree of
 constraints is coupled tightly to the proof generation procedure, which means
 I think we'll end up pulling some details of the proof construction into this
-document.<a href="#section-4-13.1.1" class="pilcrow">¶</a></p>
+document.<a href="#section-4-12.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
