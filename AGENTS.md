@@ -1,6 +1,6 @@
 # Contributor Guidance
 
-Keep the Python snippets in `draft-authors-mole-rollatini.md` consistent with
+Keep the Python snippets in `draft-authors-mole-ihat-rollatini.md` consistent with
 the reference implementation in `poc/src/rollatini/`. Apply the same rule to
 `draft-authors-mole-act.md` and `poc/src/act/`; shared derivation
 methods live in `poc/src/rollatini/ciphersuite.py`, and `Seed` lives in
