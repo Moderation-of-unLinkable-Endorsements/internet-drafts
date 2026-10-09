@@ -44,21 +44,22 @@ normative:
       -
         org: National Institute of Standards and Technology (NIST)
   FAEST:
-    title: "The FAEST Signature Scheme"
-    target: https://faest.info/faest-spec-v2.0.pdf
-    date: 2025
+    title: "FAEST v3: Algorithm Specifications"
+    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf
+    date: 2026-09-01
     seriesinfo:
-      "Version": "2.0"
+      "NIST PQC Additional Digital Signatures": "Round 3 Submission"
+      "Version": "3.0"
     author:
       -
         ins: C. Baum
         name: Carsten Baum
       -
-        ins: L. Braun
-        name: Lennart Braun
-      -
         ins: W. Beullens
         name: Ward Beullens
+      -
+        ins: L. Braun
+        name: Lennart Braun
       -
         ins: C. Delpech de Saint Guilhem
         name: Cyprien Delpech de Saint Guilhem
@@ -88,10 +89,11 @@ normative:
         name: Peter Scholl
   UOV:
     title: "UOV: Unbalanced Oil and Vinegar"
-    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf
-    date: 2025-02
+    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf
+    date: 2026-08-30
     seriesinfo:
-      "NIST PQC Additional Digital Signatures": "Round 2 Submission"
+      "NIST PQC Additional Digital Signatures": "Round 3 Submission"
+      "Version": "3.0"
     author:
       -
         ins: W. Beullens
@@ -301,14 +303,14 @@ communication cost than the hash-based variant.
 
 Both variants of Ratatouille have higher bandwidth cost than ACT:
 
-1. the Issuer's public key is 42.6 KB, which corresponds to the uov-Ip
+1. the Issuer's public key is 45.5 KB, which corresponds to the uov-Ip
    parameter set for UOV (the MQ instantiation has a larger public key in
    order to accommodate the commitment parameters);
 
-1. the Client uploads 7.8 KB during initial issuance (4.3 KB for the MQ
+1. the Client uploads 6.9 KB during initial issuance (4.3 KB for the MQ
    variant); and
 
-1. the Client uploads 14.2 KB during a spend (9.0 KB for the MQ variant).
+1. the Client uploads 17.0 KB during a spend (9.0 KB for the MQ variant).
 
 In both the initial issuance and a spend, the Issuer's reply is a single UOV
 signature, which is below a couple of hundred bytes for both instantiations.
@@ -887,8 +889,8 @@ This section specifies two concrete configurations of Ratatouille
 | `nf_len` nullifier length    | `24`                    |
 | `ctx_len` context length     | `16`                    |
 | `r_len` opening length       | `16`                    |
-| `n_uov` UOV signature length | `112` ({{UOV}}, uov-Ip) |
-| `m_uov` UOV target length    | `44` ({{UOV}}, uov-Ip)  |
+| `n_uov` UOV signature length | `119` ({{UOV}}, uov-Ip) |
+| `m_uov` UOV target length    | `45` ({{UOV}}, uov-Ip)  |
 {: #ratatouille-kp800-parameters title="Ratatouille-KP800 Parameters" }
 
 Ratatouille-KP800 uses the uov-Ip parameter set for UOV and a reduced-round and

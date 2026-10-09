@@ -47,21 +47,22 @@ normative:
       -
         org: National Institute of Standards and Technology (NIST)
   FAEST:
-    title: "The FAEST Signature Scheme"
-    target: https://faest.info/faest-spec-v2.0.pdf
-    date: 2025
+    title: "FAEST v3: Algorithm Specifications"
+    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf
+    date: 2026-09-01
     seriesinfo:
-      "Version": "2.0"
+      "NIST PQC Additional Digital Signatures": "Round 3 Submission"
+      "Version": "3.0"
     author:
       -
         ins: C. Baum
         name: Carsten Baum
       -
-        ins: L. Braun
-        name: Lennart Braun
-      -
         ins: W. Beullens
         name: Ward Beullens
+      -
+        ins: L. Braun
+        name: Lennart Braun
       -
         ins: C. Delpech de Saint Guilhem
         name: Cyprien Delpech de Saint Guilhem
@@ -91,10 +92,10 @@ normative:
         name: Peter Scholl
   MAYO:
     title: "MAYO: Practical Post-Quantum Signatures from Oil-and-Vinegar Maps"
-    target: https://pqmayo.org/assets/specs/mayo-round2.pdf
-    date: 2025-02-05
+    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/mayo_specification.pdf
+    date: 2026-08-31
     seriesinfo:
-      "NIST PQC Additional Digital Signatures": "Round 2 Submission"
+      "NIST PQC Additional Digital Signatures": "Round 3 Submission"
     author:
       -
         ins: W. Beullens
@@ -113,10 +114,11 @@ normative:
         name: Matthias J. Kannwischer
   UOV:
     title: "UOV: Unbalanced Oil and Vinegar"
-    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf
-    date: 2025-02
+    target: https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf
+    date: 2026-08-30
     seriesinfo:
-      "NIST PQC Additional Digital Signatures": "Round 2 Submission"
+      "NIST PQC Additional Digital Signatures": "Round 3 Submission"
+      "Version": "3.0"
     author:
       -
         ins: W. Beullens
@@ -222,17 +224,13 @@ key in the Anchor Set.
 
 Moussaka has significantly higher bandwidth cost compared to Rollatini:
 
-1. each Anchor public key is 42.6KB (this corresponds to the uov-Ip parameter
+1. each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
    set {{UOV}});
 
-1. ~8KB are transmitted during issuance; and
+1. the Client uploads 7.1KB during issuance; and
 
-1. ~9KB are transmitted during redemption, plus a couple bytes per Anchor in
-   the Anchor Set.
-
-> NOTE(cjpatton) These numbers aren't based on an actual implementation. They
-> are the result of an analysis from Claude Opus 5 looking at the FAEST spec
-> and an arithmetization of Keccak in a work in progress implementation.
+1. the Client uploads 8.6KB during redemption for an Anchor Set of up to 64
+   Anchors.
 
 > NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
 > for issuance and another for redemption) using the more invasive techniques
@@ -353,7 +351,7 @@ justification.
 The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
 `UOV.ExpandSK()`, `UOV.SPre()`, `VOLEitH.Prove()`, and `VOLEitH.Verify()` are
 defined as in {{VOLE-ACT}}. We adopt the uov-Ip parameter set (NIST Level 1) for
-UOV. That is, for the remainder of this document, let `n=112`, `m=44`, and
+UOV. That is, for the remainder of this document, let `n=119`, `m=45`, and
 `q=2^8`.
 
 Moussaka also fixes the following parameters, named as in {{VOLE-ACT}}:
