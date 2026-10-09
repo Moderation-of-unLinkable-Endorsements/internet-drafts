@@ -674,20 +674,21 @@ IssueRequest(T_init, ctx_iss):
 
   Output:
     - pending_token: Client state
-    - request: issuance request
+    - request: issuance request, or INVALID
 
   Steps:
-    1. nf <- F_q^nf_len
-    2. r  <- F_q^r_len
-    3. c  := Com(nf, ctx_iss, T_init, r)
-    4. pf_iss := VOLEitH.Prove(
+    1. if T_init = 0: return INVALID
+    2. nf <- F_q^nf_len
+    3. r  <- F_q^r_len
+    4. c  := Com(nf, ctx_iss, T_init, r)
+    5. pf_iss := VOLEitH.Prove(
          IssueRelation,         // relation
          (c, T_init, ctx_iss),  // instance
          (nf, r),               // witness
        )
-    5. request := (c, pf_iss)
-    6. pending_token := (nf, r)
-    7. return (pending_token, request)
+    6. request := (c, pf_iss)
+    7. pending_token := (nf, r, T_init, c)
+    8. return (pending_token, request)
 ~~~~
 
 ### Issue Response
@@ -707,37 +708,36 @@ IssueResponse(td, request, T_init, ctx_iss):
     - s: Issuer signature, in F_q^{n_uov}, or INVALID
 
   Steps:
-    1. (c, pf_iss) := request  // commitment, issuance proof
-    2. v := VOLEitH.Verify(
+    1. if T_init = 0: return INVALID
+    2. (c, pf_iss) := request  // commitment, issuance proof
+    3. v := VOLEitH.Verify(
          IssueRelation,         // relation
          (c, T_init, ctx_iss),  // instance
          pf_iss,
        )
-    3. if v = 0: return INVALID
-    4. s := UOV.SPre(td, Tag(c, 0))
-    5. return s
+    4. if v = 0: return INVALID
+    5. s := UOV.SPre(td, Tag(c, 0))
+    6. return s
 ~~~~
 
-### Token Verification
+### Issue Finalization
 
 To complete token issuance, the Client runs the following procedure using the
 Issuer's public key.
 
 ~~~~pseudocode
-VerifyIssuance(P, pending_token, s, T_init, ctx_iss):
+FinalizeIssue(P, pending_token, s):
   Input:
     - P: Issuer public key
     - pending_token: Client state
     - s: Issuer signature, in F_q^{n_uov}
-    - T_init: initial credit balance, in [1..2^(8*L)]
-    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the issued token, or INVALID
 
   Steps:
-    1. (nf, r) := pending_token
-    2. if P(s) != Tag(Com(nf, ctx_iss, T_init, r), 0): return INVALID
+    1. (nf, r, T_init, c) := pending_token
+    2. if P(s) != Tag(c, 0): return INVALID
     3. token := (nf, T_init, r, 0, s)
     4. return token
 ~~~~
@@ -749,9 +749,10 @@ Spending lets the Client spend `d` credits from a token of effective balance
 trip. The Client reveals the nullifier `nf` of the current state and commits to
 the updated state, then proves in zero knowledge that the current state was
 certified by the Issuer and that the updated state is consistent with the
-current state and the requested spend. The Issuer checks the proof, ensures
-`nf` has not been spent, and certifies the updated state. The Issuer may also
-grant a refund `x'`, which it binds to the updated state via the tag ({{tag}}).
+current state and the requested spend. The Issuer checks the proof and certifies
+the updated state; it is the responsibility of the caller to ensure `nf` has not
+been spent. The Issuer may also grant a refund `x'`, which it binds to the
+updated state via the tag ({{tag}}).
 
 The witness for the spend proof is the current state, the signature that
 certifies it, and the updated state. The relation checks that the current state
@@ -791,13 +792,13 @@ Let `"rata" || VERSION || "p0"` be the domain separation tag for this relation.
 The encoding of the instance is defined as `PKDigest(P) || nf || <d>_L || c' ||
 ctx_iss`.
 
-### Spend Proof Generation
+### Spend Request
 
 To spend `d` credits from a token, the Client runs the following procedure using
 the Issuer's public key.
 
 ~~~~pseudocode
-ProveSpend(P, token, d, ctx_iss):
+SpendRequest(P, token, d, ctx_iss):
   Input:
     - P: Issuer public key
     - token: the token to spend
@@ -805,100 +806,91 @@ ProveSpend(P, token, d, ctx_iss):
     - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
-    - pending_token: Client state
+    - pending_spend: Client state
     - request: spend request, or INVALID
 
   Steps:
     1.  (nf, t, r, x, s) := token
-    2.  if d > t + x: return INVALID  // insufficient balance
-    3.  t'  := t + x - d              // credit of the updated state
-    4.  if t' >= 2^(8*L): return INVALID  // change overflows
-    5.  nf' <- F_q^nf_len             // nullifier of the updated state
-    6.  r'  <- F_q^r_len              // opening of the updated state
-    7.  c'  := Com(nf', ctx_iss, t', r')
-    8.  pf_spend := VOLEitH.Prove(
+    2.  if P(s) != Tag(Com(nf, ctx_iss, t, r), x):
+          return INVALID              // not issued by P for ctx_iss
+    3.  if d > t + x: return INVALID  // insufficient balance
+    4.  t'  := t + x - d              // credit of the updated state
+    5.  if t' >= 2^(8*L): return INVALID  // change overflows
+    6.  nf' <- F_q^nf_len             // nullifier of the updated state
+    7.  r'  <- F_q^r_len              // opening of the updated state
+    8.  c'  := Com(nf', ctx_iss, t', r')
+    9.  pf_spend := VOLEitH.Prove(
           SpendRelation,              // relation
           (P, nf, d, c', ctx_iss),    // instance
           (t, r, x, s, nf', t', r'),  // witness
         )
-    9.  request := (nf, d, c', pf_spend)
-    10. pending_token := (nf', t', r')
-    11. return (pending_token, request)
+    10. request := (nf, d, c', pf_spend)
+    11. pending_spend := (nf', t', r', c')
+    12. return (pending_spend, request)
 ~~~~
 
-### Spend Verification and Refund
+### Spend Response
 
-To process a spend, the Issuer runs the following procedure on the request, the
-trapdoor for its public key, the refund `x'` it grants, and the issuance context
-it expects.
+To process a spend, the Issuer runs the following procedure on its public key,
+the trapdoor for its public key, the request, the issuance context it expects,
+and the refund `x'` it grants.
 
 ~~~~pseudocode
-VerifyAndRefund(P, td, request, x', ctx_iss):
+SpendResponse(P, td, request, ctx_iss, x'):
   Input:
     - P: Issuer public key
     - td: Issuer secret key
     - request: spend request
-    - x': granted refund, in [2^(8*L)]
     - ctx_iss: issuance context, in F_q^ctx_len
+    - x': granted refund, in [2^(8*L)]
 
   Output:
     - response: spend response, or INVALID
-
-  Steps:
-    1. (nf, d, c', pf_spend) := request
-    2. if nf in used_nullifiers: return INVALID  // double spend
-    3. if x' not in [2^(8*L)]: return INVALID
-    4. if VerifySpend(P, request, ctx_iss) = INVALID: return INVALID
-    5. used_nullifiers.add(nf)
-    6. s' := UOV.SPre(td, Tag(c', x'))
-    7. response := (x', s')
-    8. return response
-
-VerifySpend(P, request, ctx_iss):
-  Input:
-    - P: Issuer public key
-    - request: spend request
-    - ctx_iss: issuance context, in F_q^ctx_len
-
-  Output:
-    - VALID or INVALID
+    - nf: nullifier of the spent token, in F_q^nf_len
+    - d: credits spent, in [2^(8*L)]
 
   Steps:
     1. (nf, d, c', pf_spend) := request
     2. if d not in [2^(8*L)]: return INVALID
-    3. v := VOLEitH.Verify(
+    3. if x' not in [2^(8*L)]: return INVALID
+    4. v := VOLEitH.Verify(
          SpendRelation,            // relation
          (P, nf, d, c', ctx_iss),  // instance
          pf_spend,
        )
-    4. if v = 0: return INVALID
-    5. return VALID
+    5. if v = 0: return INVALID
+    6. s' := UOV.SPre(td, Tag(c', x'))
+    7. response := (x', s')
+    8. return (response, nf, d)
 ~~~~
 
-Here `used_nullifiers` is the set of nullifiers the Issuer has accepted so far,
-which it maintains for the lifetime of its key.
+It is the caller's responsibility to enforce double spend protection. The caller
+MUST reject a request whose nullifier `nf` it has already recorded, and MUST
+record `nf` before sending the response. The check and the record MUST be
+performed atomically, so that concurrent requests carrying the same `nf` cannot
+both be accepted. Records MUST be kept for as long as the Issuer accepts tokens
+for its key and issuance context.
 
-### Refund Token Construction
+### Spend Finalization
 
 To complete the spend, the Client runs the following procedure using the
 Issuer's public key.
 
 ~~~~pseudocode
-VerifyRefund(P, pending_token, response, ctx_iss):
+FinalizeSpend(P, pending_spend, response):
   Input:
     - P: Issuer public key
-    - pending_token: Client state
+    - pending_spend: Client state
     - response: spend response
-    - ctx_iss: issuance context, in F_q^ctx_len
 
   Output:
     - token: the change token, or INVALID
 
   Steps:
-    1. (nf', t', r') := pending_token
+    1. (nf', t', r', c') := pending_spend
     2. (x', s') := response
     3. if x' not in [2^(8*L)]: return INVALID
-    4. if P(s') != Tag(Com(nf', ctx_iss, t', r'), x'): return INVALID
+    4. if P(s') != Tag(c', x'): return INVALID
     5. token := (nf', t', r', x', s')
     6. return token
 ~~~~
