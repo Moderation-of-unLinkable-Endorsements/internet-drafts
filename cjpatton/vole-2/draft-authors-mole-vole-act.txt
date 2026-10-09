@@ -230,8 +230,8 @@ Table of Contents
       i.e., {0, 1}. In this document, q is always a power of two so that
       F_q is an extension field of F_2.
 
-   *  <t>_L: The L-byte big-endian encoding of a non-negative integer t
-      < 2^(8*L) as an element of F_256^L (equivalently F_2^(8*L)).
+   *  <t>_L: The L-byte little-endian encoding of a non-negative integer
+      t < 2^(8*L) as an element of F_256^L (equivalently F_2^(8*L)).
 
    Each element of F_256 has a natural representation as a byte.  We
    sometimes write F_256^k to denote the set of length-k byte strings,
@@ -371,23 +371,37 @@ Table of Contents
    We consider UOV parameters over F_256.  That is, for the remainder of
    this document, we let q = 256.
 
-   We write pf := VOLEitH.Prove(R, X, W, binder) to denote proving
+   We write pf := VOLEitH.Prove(R, X, W, msg) to denote proving
    knowledge of a witness W for which the pair (X, W) is in the relation
    R, where X is the instance, using the VOLE-in-the-Head proof system
-   defined in [FAEST].  We write v := VOLEitH.Verify(R, X, pf, binder)
-   to denote verification of pf under the same relation and instance,
-   where the output v is a bit.
+   defined in [FAEST].  We write v := VOLEitH.Verify(R, X, pf, msg) to
+   denote verification of pf under the same relation and instance, where
+   the output v is a bit.
 
-   The optional input binder is a byte string that is bound to the proof
-   without being part of the instance: it is absorbed into the Fiat-
-   Shamir transcript before the first challenge is derived, so pf
-   verifies only if the verifier uses the same binder as the prover.
-   When binder is omitted, it is the empty string.
+   The optional input msg is a byte string that is bound to the proof
+   without being part of the instance, i.e., it is not used by the
+   constraints.  When msg is omitted, it is the empty string.  In
+   addition to its constraints, each relation R specifies a domain
+   separation tag R.dst and an encoding R.EncodeInstance(X) of the
+   instance as a byte string.  The prover and verifier bind the
+   relation, instance, and message to the proof by deriving
 
-      TODO Binders are an extension of the proof system in [FAEST],
-      which we intend to propose to the FAEST team.  The binder will
-      likely need to be length-prefixed so that it can have arbitrary
-      length.
+   mu := H_2^0(R.EncodeInstance(X) || msg || R.dst)
+
+   where H_2^0 is as defined in [FAEST].  This is analogous to the
+   derivation mu := H_2^0(pk || msg) in FAEST, where the FAEST public
+   key pk is the instance and msg is the message being signed.  As in
+   FAEST, mu determines the prover's randomness and every challenge, so
+   pf verifies only if the verifier uses the same R, X, and msg as the
+   prover.
+
+      TODO Generalizing VOLEitH from the FAEST one-way function to
+      arbitrary relations, and adding R.dst to mu, are extensions of
+      [FAEST] that we intend to propose to the FAEST team.  For now, the
+      input to H_2^0 is unambiguous as long as each field of the
+      instance encoding has a fixed length or is preceded by its length,
+      and msg has a fixed length for each relation.  Supporting
+      variable-length messages will likely require length-prefixing msg.
 
    Relations are specified in the style of Section 3.4 of [SIGMA] as a
    sequence of constraints.  Each constraint is an equation of the
@@ -534,6 +548,11 @@ Table of Contents
      Constraints:
        - c = Com(nf, ctx_iss, T_init, r)
 
+   The domain separation tag for this relation is IssueRelation.dst =
+   "rata" || VERSION || "i0" and the instance is encoded as
+   IssueRelation.EncodeInstance(c, T_init, ctx_iss) = c || <T_init>_L ||
+   ctx_iss.
+
 5.3.1.  Issue Request
 
    To request a Ratatouille token from the Issuer, the Client runs the
@@ -654,6 +673,15 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
 
    Note that the same ctx_iss appears in V1 and V2, so the updated token
    is necessarily bound to the context the token was issued under.
+
+   The domain separation tag for this relation is SpendRelation.dst =
+   "rata" || VERSION || "p0" and the instance is encoded as
+
+   SpendRelation.EncodeInstance(P, nf, d, c', ctx_iss) =
+       PKDigest(P) || nf || <d>_L || c' || ctx_iss
+
+   where PKDigest(P) is the 32-byte SHAKE256 digest of the compact
+   public key cpk from which P was expanded.
 
 5.4.1.  Spend Proof Generation
 
@@ -984,7 +1012,7 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
    P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
 
    Here beta in the balance position denotes its natural byte value, so
-   its two-byte encoding is 0 || beta.  The nullifiers beta*nf are
+   its two-byte encoding is beta || 0.  The nullifiers beta*nf are
    distinct.  The Client therefore knows a true witness for each forged
    token and can construct valid spend proofs without breaking VOLEitH,
    commitment binding, or UOV inversion.  One issued one-credit token

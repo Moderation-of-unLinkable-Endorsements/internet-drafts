@@ -1395,8 +1395,11 @@ details.<a href="#section-3-10" class="pilcrow">¶</a></p>
 <p id="section-3-11">The redemption proof is also bound to the challenge that triggered
 redemption, represented by a <code>challenge_digest</code> agreed upon by the Client and
 Moderator <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. This value isn't known until redemption time, so it
-can't be included in the commitment. Instead, it is passed to VOLEitH as a
-binder, so that the proof only verifies under the same <code>challenge_digest</code>.<a href="#section-3-11" class="pilcrow">¶</a></p>
+can't be included in the commitment. Nor is it part of the instance of the
+redemption relation, since no constraint depends on it. Instead, it is passed
+to VOLEitH as the message to which the proof is bound, analogous to how FAEST
+binds the message being signed. The proof only verifies under the same
+<code>challenge_digest</code>.<a href="#section-3-11" class="pilcrow">¶</a></p>
 <p id="section-3-12">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 <code>Keccak-p[800,12]</code> permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
 this parameterization of Keccak uses half as many rounds as SHA-3. However, its
@@ -1461,6 +1464,8 @@ would generate as input. This will make it easier to generate test vectors.<a hr
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The template for domain separation is the same as
 <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<p id="section-5-3">A global constant <code>MAX_ANCHORS</code> defines the maximum size of an Anchor Set. Its
+value <span class="bcp14">SHALL</span> be <code>64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <div id="anchor-key-generation">
 <section id="section-5.1">
         <h3 id="name-anchor-key-generation">
@@ -1548,11 +1553,14 @@ Relation IssueRelation(t, ctx_iss):
     - t = Com(nf, ctx_iss, ctx_red, r)
 </pre><a href="#section-5.3-2" class="pilcrow">¶</a>
 </div>
+<p id="section-5.3-3">The domain separation tag for this relation is <code>IssueRelation.dst = "mous" ||
+VERSION || "i0"</code> and the instance is encoded as
+<code>IssueRelation.EncodeInstance(t, ctx_iss) = t || ctx_iss</code>.<a href="#section-5.3-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5.3-3.1">
-            <p id="section-5.3-3.1.1">TODO Expand <code>Com()</code> into a set of polynomial constraints. An optimization
+<li class="normal ulEmpty" id="section-5.3-4.1">
+            <p id="section-5.3-4.1.1">TODO Expand <code>Com()</code> into a set of polynomial constraints. An optimization
 that will be important for practice is to commit intermediate states of the
-Keccak evaluation to the witness. We need to define precisely how this works.<a href="#section-5.3-3.1.1" class="pilcrow">¶</a></p>
+Keccak evaluation to the witness. We need to define precisely how this works.<a href="#section-5.3-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 <div id="issue-request">
@@ -1659,8 +1667,9 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
         </h3>
 <p id="section-5.4-1">Before redemption, the Client and Moderator agree on an Anchor Set consisting
 of a sequence of UOV public keys <code>P[0], ..., P[N-1]</code>. The Anchor Set <span class="bcp14">MUST NOT</span>
-be empty, that is, <code>N &gt; 0</code>. They also agree on <code>challenge_digest</code>, which binds
-the redemption to the challenge that triggered it. It is computed from the
+be empty and <span class="bcp14">MUST NOT</span> have more than <code>MAX_ANCHORS</code> elements, that is, <code>0 &lt; N
+&lt;= MAX_ANCHORS</code>. They also agree on <code>challenge_digest</code>, which binds the
+redemption to the challenge that triggered it. It is computed from the
 Moderator's challenge as described in <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>; this document treats it
 as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> in <code>[N]</code> be the index of the issuing Anchor. The witness for the
@@ -1715,6 +1724,29 @@ Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
     - sum(b) = 1
 </pre><a href="#section-5.4-5" class="pilcrow">¶</a>
 </div>
+<p id="section-5.4-6">The domain separation tag for this relation is <code>RedeemRelation.dst = "mous" ||
+VERSION || "r0"</code> and the instance is encoded as follows:<a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-7">
+<pre>
+RedeemRelation.EncodeInstance(P, nf, ctx_iss, ctx_red) =
+    &lt;MAX_ANCHORS&gt;_4 || &lt;N&gt;_4 ||
+    PKDigest(P[0]) || ... || PKDigest(P[N-1]) ||
+    nf || ctx_iss || ctx_red
+</pre><a href="#section-5.4-7" class="pilcrow">¶</a>
+</div>
+<p id="section-5.4-8">where <code>&lt;v&gt;_4</code> is the 4-byte little-endian encoding of integer <code>v</code> and
+<code>PKDigest()</code> is as defined in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. Encoding <code>N</code> ensures that the
+encoding of the Anchor Set is unambiguous. Encoding <code>MAX_ANCHORS</code> binds the
+proof to the maximum Anchor Set size, which determines the shape of the
+relation.<a href="#section-5.4-8" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.4-9.1">
+            <p id="section-5.4-9.1.1">NOTE An implementation may pad the selector <code>b</code> to <code>MAX_ANCHORS</code> entries so
+that the redemption proof has the same size for every Anchor Set. The
+constraints then also check that <code>b[u] = 0</code> for each <code>u</code> in
+<code>[N..MAX_ANCHORS]</code>.<a href="#section-5.4-9.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
 <div id="redeem-request">
 <section id="section-5.4.1">
           <h4 id="name-redeem-request">
@@ -1744,7 +1776,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red, challenge_digest):
          RedeemRelation,             // relation
          (P, nf, ctx_iss, ctx_red),  // instance
          (r, s, b),                  // witness
-         challenge_digest,           // binder
+         challenge_digest,           // message
        )
     5. request := (nf, pf_red)
     6. return request
@@ -1777,7 +1809,7 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
          RedeemRelation,             // relation
          (P, nf, ctx_iss, ctx_red),  // instance
          pf_red,
-         challenge_digest,           // binder
+         challenge_digest,           // message
        )
     3. if v = 0: return INVALID
     4. return nf

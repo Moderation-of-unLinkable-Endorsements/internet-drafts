@@ -235,9 +235,12 @@ Table of Contents
    The redemption proof is also bound to the challenge that triggered
    redemption, represented by a challenge_digest agreed upon by the
    Client and Moderator [ROLLATINI].  This value isn't known until
-   redemption time, so it can't be included in the commitment.  Instead,
-   it is passed to VOLEitH as a binder, so that the proof only verifies
-   under the same challenge_digest.
+   redemption time, so it can't be included in the commitment.  Nor is
+   it part of the instance of the redemption relation, since no
+   constraint depends on it.  Instead, it is passed to VOLEitH as the
+   message to which the proof is bound, analogous to how FAEST binds the
+   message being signed.  The proof only verifies under the same
+   challenge_digest.
 
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
@@ -288,6 +291,9 @@ Table of Contents
    This constant is used for domain separation and is meant to be kept
    in sync with revisions to this document.  The template for domain
    separation is the same as [VOLE-ACT].
+
+   A global constant MAX_ANCHORS defines the maximum size of an Anchor
+   Set. Its value SHALL be 64.
 
 5.1.  Anchor Key Generation
 
@@ -359,6 +365,10 @@ Table of Contents
 
      Constraints:
        - t = Com(nf, ctx_iss, ctx_red, r)
+
+   The domain separation tag for this relation is IssueRelation.dst =
+   "mous" || VERSION || "i0" and the instance is encoded as
+   IssueRelation.EncodeInstance(t, ctx_iss) = t || ctx_iss.
 
       TODO Expand Com() into a set of polynomial constraints.  An
       optimization that will be important for practice is to commit
@@ -443,7 +453,8 @@ Table of Contents
 
    Before redemption, the Client and Moderator agree on an Anchor Set
    consisting of a sequence of UOV public keys P[0], ..., P[N-1].  The
-   Anchor Set MUST NOT be empty, that is, N > 0.  They also agree on
+   Anchor Set MUST NOT be empty and MUST NOT have more than MAX_ANCHORS
+   elements, that is, 0 < N <= MAX_ANCHORS.  They also agree on
    challenge_digest, which binds the redemption to the challenge that
    triggered it.  It is computed from the Moderator's challenge as
    described in [ROLLATINI]; this document treats it as an opaque byte
@@ -498,6 +509,25 @@ Table of Contents
        - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
        - sum(b) = 1
 
+   The domain separation tag for this relation is RedeemRelation.dst =
+   "mous" || VERSION || "r0" and the instance is encoded as follows:
+
+   RedeemRelation.EncodeInstance(P, nf, ctx_iss, ctx_red) =
+       <MAX_ANCHORS>_4 || <N>_4 ||
+       PKDigest(P[0]) || ... || PKDigest(P[N-1]) ||
+       nf || ctx_iss || ctx_red
+
+   where <v>_4 is the 4-byte little-endian encoding of integer v and
+   PKDigest() is as defined in [VOLE-ACT].  Encoding N ensures that the
+   encoding of the Anchor Set is unambiguous.  Encoding MAX_ANCHORS
+   binds the proof to the maximum Anchor Set size, which determines the
+   shape of the relation.
+
+      NOTE An implementation may pad the selector b to MAX_ANCHORS
+      entries so that the redemption proof has the same size for every
+      Anchor Set. The constraints then also check that b[u] = 0 for each
+      u in [N..MAX_ANCHORS].
+
 5.4.1.  Redeem Request
 
    To redeem a token token = (nf, r, s) issued by Anchor P[i], the
@@ -523,7 +553,7 @@ Table of Contents
             RedeemRelation,             // relation
             (P, nf, ctx_iss, ctx_red),  // instance
             (r, s, b),                  // witness
-            challenge_digest,           // binder
+            challenge_digest,           // message
           )
        5. request := (nf, pf_red)
        6. return request
@@ -550,7 +580,7 @@ Table of Contents
             RedeemRelation,             // relation
             (P, nf, ctx_iss, ctx_red),  // instance
             pf_red,
-            challenge_digest,           // binder
+            challenge_digest,           // message
           )
        3. if v = 0: return INVALID
        4. return nf
