@@ -18,25 +18,25 @@ signature and the opening of the commitment. Two variants of the protocol are
 specified, one in which the commitment is instantiated with  Keccak-p[800,12] 
 and another in which a UOV-friendly commitment scheme is used instead. 
     " name="description">
-<meta content="xml2rfc 3.34.0" name="generator">
+<meta content="xml2rfc 3.34.1" name="generator">
 <meta content="moderation" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
 <meta content="draft-authors-mole-vole-act-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.0
-    Python 3.14.7
-    ConfigArgParse 1.7.5
+  xml2rfc 3.34.1
+    Python 3.14.8
+    ConfigArgParse 1.8.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.11.7
+    platformdirs 4.12.2
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.8.3
+    wcwidth 0.9.1
 -->
 <link href="draft-authors-mole-vole-act.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1052,11 +1052,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">Ratatouille</td>
-<td class="right">September 2026</td>
+<td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang, et al.</td>
-<td class="center">Expires 13 March 2027</td>
+<td class="center">Expires 12 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-09-09" class="published">9 September 2026</time>
+<time datetime="2026-10-09" class="published">9 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-03-13">13 March 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-12">12 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1134,7 +1134,7 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 13 March 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 12 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1256,6 +1256,14 @@ and another in which a UOV-friendly commitment scheme is used instead.<a href="#
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-mq-zero-opening-scaling-for" class="internal xref">MQ zero-opening scaling forgery</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-proof-status" class="internal xref">Proof status</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
@@ -1340,16 +1348,16 @@ makes them a good choice.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
 <p id="section-1-8">Both variants of Ratatouille have higher bandwidth cost than ACT:<a href="#section-1-8" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-9">
 <li id="section-1-9.1">
-          <p id="section-1-9.1.1">the Issuer's public key is 42.6 KB, which corresponds to the uov-Ip
+          <p id="section-1-9.1.1">the Issuer's public key is 45.5 KB, which corresponds to the uov-Ip
 parameter set for UOV (the MQ instantiation has a larger public key in
 order to accommodate the commitment parameters);<a href="#section-1-9.1.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-9.2">
-          <p id="section-1-9.2.1">the Client uploads 7.8 KB during initial issuance (4.3 KB for the MQ
+          <p id="section-1-9.2.1">the Client uploads 6.9 KB during initial issuance (4.3 KB for the MQ
 variant); and<a href="#section-1-9.2.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-1-9.3">
-          <p id="section-1-9.3.1">the Client uploads 14.2 KB during a spend (9.0 KB for the MQ variant).<a href="#section-1-9.3.1" class="pilcrow">¶</a></p>
+          <p id="section-1-9.3.1">the Client uploads 17.0 KB during a spend (9.0 KB for the MQ variant).<a href="#section-1-9.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
 <p id="section-1-10">In both the initial issuance and a spend, the Issuer's reply is a single UOV
@@ -1568,25 +1576,37 @@ under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. T
 in the signing algorithm in <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Figure 2.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <p id="section-4-6">We consider UOV parameters over <code>F_256</code>. That is, for the remainder of this
 document, we let <code>q = 256</code>.<a href="#section-4-6" class="pilcrow">¶</a></p>
-<p id="section-4-7">We write <code>pf := VOLEitH.Prove(R, X, W)</code> to denote proving knowledge of a
-witness <code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is
+<p id="section-4-7">We write <code>pf := VOLEitH.Prove(R, X, W, binder)</code> to denote proving knowledge of
+a witness <code>W</code> for which the pair <code>(X, W)</code> is in the relation <code>R</code>, where <code>X</code> is
 the instance, using the VOLE-in-the-Head proof system defined in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>. We
-write <code>v := VOLEitH.Verify(R, X, pf)</code> to denote verification of <code>pf</code> under the
-same relation and instance, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
-<p id="section-4-8">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
+write <code>v := VOLEitH.Verify(R, X, pf, binder)</code> to denote verification of <code>pf</code>
+under the same relation and instance, where the output <code>v</code> is a bit.<a href="#section-4-7" class="pilcrow">¶</a></p>
+<p id="section-4-8">The optional input <code>binder</code> is a byte string that is bound to the proof
+without being part of the instance: it is absorbed into the Fiat-Shamir
+transcript before the first challenge is derived, so <code>pf</code> verifies only if the
+verifier uses the same <code>binder</code> as the prover. When <code>binder</code> is omitted, it is
+the empty string.<a href="#section-4-8" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-4-9.1">
+          <p id="section-4-9.1.1">TODO Binders are an extension of the proof system in <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span>, which we
+intend to propose to the FAEST team. The binder will likely need to be
+length-prefixed so that it can have arbitrary length.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-4-10">Relations are specified in the style of <span><a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-sigma-protocols-03#section-3.4" class="relref">Section 3.4</a> of [<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> as a sequence
 of constraints. Each constraint is an equation of the instance and witness
 variables. Unlike <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, these equations need not be linear: each side of
 the equation is a polynomial of arbitrary degree. However, because the degree
 of the polynomial influences the size of the proof, the relation must be
-designed to balance the size of the witness with the degree of the constraints.<a href="#section-4-8" class="pilcrow">¶</a></p>
+designed to balance the size of the witness with the degree of the constraints.<a href="#section-4-10" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-4-9.1">
-          <p id="section-4-9.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
+<li class="normal ulEmpty" id="section-4-11.1">
+          <p id="section-4-11.1.1">TODO(cjpatton) Figure out how to cite <span>[<a href="#FAEST" class="cite xref">FAEST</a>]</span> more precisely. Ideally it
 specifies a compiler of constraints into a proof, as in <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span>, but this
 is currently beyond the scope of what the FAEST spec does. The degree of
 constraints is coupled tightly to the proof generation procedure, which means
 I think we'll end up pulling some details of the proof construction into this
-document.<a href="#section-4-9.1.1" class="pilcrow">¶</a></p>
+document.<a href="#section-4-11.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -2083,13 +2103,13 @@ VerifyRefund(P, pending_token, response, ctx_iss):
               <td class="text-left" rowspan="1" colspan="1">
                 <code>n_uov</code> UOV signature length</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>112</code> (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, uov-Ip)</td>
+                <code>119</code> (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, uov-Ip)</td>
             </tr>
             <tr>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>m_uov</code> UOV target length</td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>44</code> (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, uov-Ip)</td>
+                <code>45</code> (<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, uov-Ip)</td>
             </tr>
           </tbody>
         </table>
@@ -2255,16 +2275,22 @@ GenerateParameters():
     5.    M_i := bytesIntoUpper(stream.next(u_com))
     6.    // linear part
     7.    l_i := stream.next(n_com)
-    8.    // inhomogeneous quadratic map F_q^{n_com} -&gt; F_q
-    9.    Q_i(x) := x^T*M_i*x + l_i*x
-    10. F := (Q_0, ..., Q_{k-1})
-    11. G := (Q_k, ..., Q_{m_uov-1})
-    12. return (F, G)
+    8.    // constant part
+    9.    a_i := stream.next(1)[0]
+    10.   // affine quadratic map F_q^{n_com} -&gt; F_q
+    11.   Q_i(x) := x^T*M_i*x + l_i*x + a_i
+    12. F := (Q_0, ..., Q_{k-1})
+    13. G := (Q_k, ..., Q_{m_uov-1})
+    14. return (F, G)
 </pre><a href="#section-6.2-8" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2-9">Each quadratic map has a quadratic component and a linear component. The linear
-terms are essential: a purely homogeneous map (<code>l_i = 0</code>) has <code>F(0) = G(0) = 0</code>
-and is scaling-covariant (<code>Q_i(a x) = a^2 Q_i(x)</code>), which admits a forgery.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
+<p id="section-6.2-9">Each quadratic map has quadratic, linear, and constant components. The
+coefficients are sampled sequentially from a <code>SHAKE128</code> stream. The
+linear terms prevent generic scaling of nonzero openings. The constant terms
+remove the shared zero fixed point: for the specified derivation, <code>G(0)</code> is
+nonzero. Without the constant terms, a malicious Client can choose <code>r = 0</code>
+and exploit the homogeneity of the UOV public map to forge tokens, as described
+in <a href="#mq-zero-opening-forgery" class="auto internal xref">Section 7.1</a>.<a href="#section-6.2-9" class="pilcrow">¶</a></p>
 <div id="mq-com">
 <section id="section-6.2.1">
           <h4 id="name-commitment-3">
@@ -2343,51 +2369,104 @@ nf_len + ctx_len + L</code> hold the refund encoding <code>&lt;x&gt;_L</code>.<a
       <h2 id="name-security-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
+<div id="mq-zero-opening-forgery">
+<section id="section-7.1">
+        <h3 id="name-mq-zero-opening-scaling-for">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-mq-zero-opening-scaling-for" class="section-name selfRef">MQ zero-opening scaling forgery</a>
+        </h3>
+<p id="section-7.1-1">An earlier version of Ratatouille-MQ omitted the constant coefficients <code>a_i</code>
+from <code>Q_i</code>. The linear coefficients prevent scaling at a generic opening, but
+they do not help at the Client-controlled opening <code>r = 0</code>, where the earlier
+maps had <code>F(0) = G(0) = 0</code>.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">For example, take an all-zero issuance context and an initial balance of one.
+A malicious Client can choose a nonzero <code>nf</code> and <code>r = 0</code>, obtaining <code>s</code> such
+that<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.1-3">
+<pre>
+P(s) = Tag(Com(nf, 0, 1, 0), 0).
+</pre><a href="#section-7.1-3" class="pilcrow">¶</a>
+</div>
+<p id="section-7.1-4">The UOV public map is homogeneous quadratic, so <code>P(alpha*s) =
+alpha^2*P(s)</code>. For any nonzero <code>beta</code> in <code>F_256</code>, there is a unique <code>alpha</code>
+such that <code>alpha^2 = beta</code>. In the construction without constant
+coefficients, fieldwise scaling gives<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-7.1-5">
+<pre>
+P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
+</pre><a href="#section-7.1-5" class="pilcrow">¶</a>
+</div>
+<p id="section-7.1-6">Here <code>beta</code> in the balance position denotes its natural byte value, so its
+two-byte encoding is <code>0 || beta</code>. The nullifiers <code>beta*nf</code> are distinct. The
+Client therefore knows a true witness for each forged token and can construct
+valid spend proofs without breaking VOLEitH, commitment binding, or UOV
+inversion. One issued one-credit token yields 255 token witnesses whose
+balances sum to 32640.<a href="#section-7.1-6" class="pilcrow">¶</a></p>
+<p id="section-7.1-7">The constant coefficients prevent this scaling orbit. In particular, the
+binding block at <code>r = 0</code> is the nonzero vector <code>G(0) = (a_k, ...,
+a_{m_uov-1})</code>. A scaled UOV signature could match another zero-opening token
+only if <code>beta*G(0) = G(0)</code>, which forces <code>beta = 1</code>.<a href="#section-7.1-7" class="pilcrow">¶</a></p>
+<p id="section-7.1-8">This correction addresses this specific forgery only. Adding public constants
+is an output translation, so it does not establish the hiding or binding of the
+MQ commitment, the security of the selected parameters, or the security of the
+composition with UOV and VOLEitH.<a href="#section-7.1-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="proof-status">
+<section id="section-7.2">
+        <h3 id="name-proof-status">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-proof-status" class="section-name selfRef">Proof status</a>
+        </h3>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-1.1">
-          <p id="section-7-1.1.1">TODO Prove the following claims.<a href="#section-7-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-7.2-1.1">
+            <p id="section-7.2-1.1.1">TODO Prove the following claims.<a href="#section-7.2-1.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
-<p id="section-7-2">Unlinkability of Ratatouille reduces to the zero-knowledge property of the
-VOLEitH proof system and the hiding property of the commitment.
-One-more-unforgeability reduces to witness-extractability of VOLEitH, binding
-of the commitment, and the one-more-UOV assumption (<span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Definition 8).
-The one-more-UOV assumption is a stronger assumption than standard UOV
-(<span>[<a href="#UOV" class="cite xref">UOV</a>]</span>, Definition 2) that requires some scrutiny before we rely on it too
-heavily.<a href="#section-7-2" class="pilcrow">¶</a></p>
+        </ul>
+<p id="section-7.2-2">A proof of unlinkability would need to reduce to the zero-knowledge property of
+the VOLEitH proof system and the hiding property of the commitment. A proof of
+one-more-unforgeability would need to use witness-extractability of VOLEitH,
+binding of the commitment, and a suitable unforgeability property of UOV. This
+document does not provide either reduction.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">In particular, the one-more-preimage assumption in <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span> is stated for
+random challenge targets. Ratatouille-MQ instead asks the UOV trapdoor to
+invert structured, attacker-influenced targets of the form <code>Tag(Com(...), x)</code>.
+Applying the PoMFRIT result therefore requires an additional argument that is
+not given here. Assuming hardness directly for this structured target family
+would be a new, protocol-specific assumption.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-3.1">
-          <p id="section-7-3.1.1">NOTE A few observations we've made so far:<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-7-3.1.2">
-<li id="section-7-3.1.2.1">
-              <p id="section-7-3.1.2.1.1">One-more-UOV reduction likely treats <code>Com()</code> and <code>Tag()</code> as random
+<li class="normal ulEmpty" id="section-7.2-4.1">
+            <p id="section-7.2-4.1.1">NOTE A few observations we've made so far:<a href="#section-7.2-4.1.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7.2-4.1.2">
+<li id="section-7.2-4.1.2.1">
+                <p id="section-7.2-4.1.2.1.1">One-more-UOV reduction likely treats <code>Com()</code> and <code>Tag()</code> as random
 oracles. This is reasonable for Ratatouille-KP800, but we would need to
 figure out something else for Ratatouille-MQ. It seems to be me (cjpatton)
-that we probably need a proper hash for <code>Tag()</code> at least.<a href="#section-7-3.1.2.1.1" class="pilcrow">¶</a></p>
+that we probably need a proper hash for <code>Tag()</code> at least.<a href="#section-7.2-4.1.2.1.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-7-3.1.2.2">
-              <p id="section-7-3.1.2.2.1">If we add a randomizer to <code>Tag()</code> and instantiate it with Keccak, then we
-might even be able to reduce to standard UOV rather than one-more-UOV.<a href="#section-7-3.1.2.2.1" class="pilcrow">¶</a></p>
+              <li id="section-7.2-4.1.2.2">
+                <p id="section-7.2-4.1.2.2.1">If we add a randomizer to <code>Tag()</code> and instantiate it with Keccak, then we
+might even be able to reduce to standard UOV rather than one-more-UOV.<a href="#section-7.2-4.1.2.2.1" class="pilcrow">¶</a></p>
 </li>
-            <li id="section-7-3.1.2.3">
-              <p id="section-7-3.1.2.3.1">For Ratatouille-MQ, figure out if the homomorphic tagging trick for the MQ
+              <li id="section-7.2-4.1.2.3">
+                <p id="section-7.2-4.1.2.3.1">For Ratatouille-MQ, figure out if the homomorphic tagging trick for the MQ
 variant is sound. We likely need the commitment to be pseudorandom, in
 which case allowing the attacker to select the tag probably incurs a
-security loss multiplicative in the number of bits of the refund.<a href="#section-7-3.1.2.3.1" class="pilcrow">¶</a></p>
+security loss multiplicative in the number of bits of the refund.<a href="#section-7.2-4.1.2.3.1" class="pilcrow">¶</a></p>
 </li>
-          </ol>
+            </ol>
 </li>
-      </ul>
-<p id="section-7-4">The parameters of the MQ commitment in <a href="#mq-commitment" class="auto internal xref">Section 6.2</a> were chosen from a
+        </ul>
+<p id="section-7.2-5">The parameters of the MQ commitment in <a href="#mq-commitment" class="auto internal xref">Section 6.2</a> were chosen from a
 regime for which security is only heuristically justified based on the best
 known attacks. Further cryptanalysis is required to determine if these
-parameters are safe <span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span>.<a href="#section-7-4" class="pilcrow">¶</a></p>
+parameters are safe <span>[<a href="#BFMRSV25" class="cite xref">BFMRSV25</a>]</span>.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-7-5.1">
-          <p id="section-7-5.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
-TurboSHAKE).<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
+<li class="normal ulEmpty" id="section-7.2-6.1">
+            <p id="section-7.2-6.1.1">TODO Justify halving the Keccak state from 1600 to 800 (relative to
+TurboSHAKE).<a href="#section-7.2-6.1.1" class="pilcrow">¶</a></p>
 </li>
-      </ul>
+        </ul>
+</section>
+</div>
 </section>
 </div>
 <div id="iana-considerations">
@@ -2411,7 +2490,7 @@ TurboSHAKE).<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="FAEST">[FAEST]</dt>
         <dd>
-<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"The FAEST Signature Scheme"</span>, <span class="seriesInfo">Version 2.0</span>, <time datetime="2025" class="refDate">2025</time>, <span>&lt;<a href="https://faest.info/faest-spec-v2.0.pdf">https://faest.info/faest-spec-v2.0.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Baum, C.</span>, <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Braun, L.</span>, <span class="refAuthor">Delpech de Saint Guilhem, C.</span>, <span class="refAuthor">Klooß, M.</span>, <span class="refAuthor">Majenz, C.</span>, <span class="refAuthor">Mukherjee, S.</span>, <span class="refAuthor">Orsini, E.</span>, <span class="refAuthor">Ramacher, S.</span>, <span class="refAuthor">Rechberger, C.</span>, <span class="refAuthor">Roy, L.</span>, and <span class="refAuthor">P. Scholl</span>, <span class="refTitle">"FAEST v3: Algorithm Specifications"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <span class="seriesInfo">Version 3.0</span>, <time datetime="2026-09-01" class="refDate">1 September 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/FAEST_specifications.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FIPS202">[FIPS202]</dt>
         <dd>
@@ -2431,7 +2510,7 @@ TurboSHAKE).<a href="#section-7-5.1.1" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
       <dd>
-<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 2 Submission</span>, <time datetime="2025-02" class="refDate">February 2025</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/round-2/spec-files/uov-spec-round2-web.pdf</a>&gt;</span>. </dd>
+<span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <span class="seriesInfo">Version 3.0</span>, <time datetime="2026-08-30" class="refDate">30 August 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
