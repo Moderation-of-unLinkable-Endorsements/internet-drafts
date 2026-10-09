@@ -358,7 +358,7 @@ This document uses the following notation:
   i.e., `{0, 1}`. In this document, `q` is always a power of two so that `F_q`
   is an extension field of `F_2`.
 
-- `<t>_L`: The `L`-byte big-endian encoding of a non-negative integer `t <
+- `<t>_L`: The `L`-byte little-endian encoding of a non-negative integer `t <
   2^(8*L)` as an element of `F_256^L` (equivalently `F_2^(8*L)`).
 
 Each element of `F_256` has a natural representation as a byte. We sometimes
@@ -486,14 +486,32 @@ We write `s := UOV.SPre(td, t)` to denote sampling a preimage of target `t`
 under `P`, i.e., an `s` for which `P(s) = t`. This is the same procedure as used
 in the signing algorithm in {{UOV}}, Figure 2.
 
+We write `PKDigest(P)` to denote the 32-byte SHAKE256 {{FIPS202}} digest of the
+compact public key `cpk` from which `P` was expanded, i.e., `SHAKE256(cpk)`
+truncated to 32 bytes. It is used to bind a public key to a proof.
+
+> NOTE The choice of `SHAKE256()` is for consistency with the XOF used with our
+> VOLEitH parameters {{FAEST}}.
+
 We consider UOV parameters over `F_256`. That is, for the remainder of this
 document, we let `q = 256`.
 
-We write `pf := VOLEitH.Prove(R, X, W)` to denote proving knowledge of a
-witness `W` for which the pair `(X, W)` is in the relation `R`, where `X` is
-the instance, using the VOLE-in-the-Head proof system defined in {{FAEST}}. We
-write `v := VOLEitH.Verify(R, X, pf)` to denote verification of `pf` under the
-same relation and instance, where the output `v` is a bit.
+We write `pf := VOLEitH.Prove(R, X, W, msg)` to denote proving knowledge of a
+witness `W` for which the pair `(X, W)` is in the relation `R`, where `X` is the
+instance, using the VOLE-in-the-Head proof system defined in {{FAEST}}. We write
+`v := VOLEitH.Verify(R, X, pf, msg)` to denote verification of `pf` under the
+same relation and instance, where the output `v` is a bit. The message `msg` is
+a byte string agreed upon by the prover and verifier out-of-band. This parameter
+is optional: if unspecified, it is implicitly defined to be the empty string.
+
+In addition to its constraints, each relation `R` specifies a domain separation
+tag and an encoding of the instance as a byte string. Internally, the prover
+binds the tag, instance, and the message to the proof such that the verifier
+must agree on their values in order to accept. This is analogous to how the
+message to be signed is bound to the proof in FAEST (Figure 8.2 of {{FAEST}}).
+
+> TODO(cjpatton) Define mu := H_2^0(R.encodeInstance(X) || msg || R.DST) and
+> how it's used in VOLEitH (Figure 8.2, Line 1 of {{FAEST}}).
 
 Relations are specified in the style of {{Section 3.4 of SIGMA}} as a sequence
 of constraints. Each constraint is an equation of the instance and witness
@@ -638,6 +656,9 @@ Relation IssueRelation(c, T_init, ctx_iss):
     - c = Com(nf, ctx_iss, T_init, r)
 ~~~
 
+Let `"rata" || VERSION || "i0"` be the domain separation tag for this relation.
+The encoding of the instance is defined as `c || <T_init>_L || ctx_iss`.
+
 ### Issue Request
 
 To request a Ratatouille token from the Issuer, the Client runs the following
@@ -763,6 +784,10 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
 
 Note that the same `ctx_iss` appears in V1 and V2, so the updated token is
 necessarily bound to the context the token was issued under.
+
+Let `"rata" || VERSION || "p0"` be the domain separation tag for this relation.
+The encoding of the instance is defined as `PKDigest(P) || nf || <d>_L || c' ||
+ctx_iss`.
 
 ### Spend Proof Generation
 
@@ -1096,7 +1121,7 @@ P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
 ~~~
 
 Here `beta` in the balance position denotes its natural byte value, so its
-two-byte encoding is `0 || beta`. The nullifiers `beta*nf` are distinct. The
+two-byte encoding is `beta || 0`. The nullifiers `beta*nf` are distinct. The
 Client therefore knows a true witness for each forged token and can construct
 valid spend proofs without breaking VOLEitH, commitment binding, or UOV
 inversion. One issued one-credit token yields 255 token witnesses whose

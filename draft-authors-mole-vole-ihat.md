@@ -249,19 +249,11 @@ considerations for implementers and adopters.
 
 > TODO(cjpatton) Resolve gaps with {{ROLLATINI}}:
 >
-> 1. The protocol wants to bind the challenge that triggered redemption to the
->    redemption process so that the Client and Moderator confirm agreement.
->    This is a 32-byte `challenge_digest`. Since this value isn't determined
->    until redemption time, we can't include it in the commitment. The most
->    natural solution is analogous to Rollatini: include `challenge_digest` in
->    the VOLEitH transcript. This is mildly invasive, but shouldn't be too bad
->    to support. PoMFRIT does a similar thing with the public key.
->
-> 2. The APIs are a bit misaligned. This is unavoidable to some extent for
+> 1. The APIs are a bit misaligned. This is unavoidable to some extent for
 >    issuance, since our protocol is 2 moves and theirs is 3, but it should be
 >    possible to align redemption precisely.
 >
-> 3. Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
+> 2. Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
 >    Perhaps all MoLE drafts should use the same pseudocode eventually?
 >    Likewise for Ratatouille.
 
@@ -349,10 +341,10 @@ justification.
 # Preliminaries {#preliminaries}
 
 The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
-`UOV.ExpandSK()`, `UOV.SPre()`, `VOLEitH.Prove()`, and `VOLEitH.Verify()` are
-defined as in {{VOLE-ACT}}. We adopt the uov-Ip parameter set (NIST Level 1) for
-UOV. That is, for the remainder of this document, let `n=119`, `m=45`, and
-`q=2^8`.
+`UOV.ExpandSK()`, `UOV.SPre()`, `PKDigest()`, `VOLEitH.Prove()`, and
+`VOLEitH.Verify()` are defined as in {{VOLE-ACT}}. We adopt the uov-Ip
+parameter set (NIST Level 1) for UOV. That is, for the remainder of this
+document, let `n=119`, `m=45`, and `q=2^8`.
 
 Moussaka also fixes the following parameters, named as in {{VOLE-ACT}}:
 
@@ -374,6 +366,18 @@ A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The template for domain separation is the same as
 {{VOLE-ACT}}.
+
+A global constant `MAX_ANCHORS` defines the maximum size of an Anchor Set. Its
+value SHALL be `64`.
+
+> NOTE(cjpatton) In our implementation, the length of the selector vector `b` is
+> exactly `MAX_ANCHORS`: the last `MAX_ANCHORS - N` entries are padded with
+> `0`s. This ensures the witness length is known at compile time, which is
+> needed for [faest-arch-opt](https://github.com/faest-sign/faest-arch-opt). For
+> `MAX_ANCHORS = 64`, the witness for the padded selector vector is only 8 bytes
+> (in the implementation, the selector is stored as bits rather than bytes), so
+> removing the padding doesn't actually save very much. Eventually the spec will
+> be updated to match our implementation.
 
 ## Anchor Key Generation
 
@@ -446,6 +450,9 @@ Relation IssueRelation(t, ctx_iss):
   Constraints:
     - t = Com(nf, ctx_iss, ctx_red, r)
 ~~~~
+
+Let `"mous" || VERSION || "i0"` be the domain separation tag for this instance.
+The encoding of the instance is defined as `t || ctx_iss`.
 
 > TODO Expand `Com()` into a set of polynomial constraints. An optimization
 > that will be important for practice is to commit intermediate states of the
@@ -535,7 +542,11 @@ FinalizeIssue(P, pending_token, s, ctx_iss, ctx_red):
 
 Before redemption, the Client and Moderator agree on an Anchor Set consisting
 of a sequence of UOV public keys `P[0], ..., P[N-1]`. The Anchor Set MUST NOT
-be empty, that is, `N > 0`.
+be empty and MUST NOT have more than `MAX_ANCHORS` elements, that is, `0 < N
+<= MAX_ANCHORS`. They also agree on `challenge_digest`, which binds the
+redemption to the challenge that triggered it. It is computed from the
+Moderator's challenge as described in {{ROLLATINI}}; this document treats it
+as an opaque byte string of length `32`.
 
 Let `i` in `[N]` be the index of the issuing Anchor. The witness for the
 redemption proof is the opening `r`, the signature `s`, and the selector vector
@@ -589,6 +600,14 @@ Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
     - sum(b) = 1
 ~~~~
 
+Let `"mous" || VERSION || "r0"` be the domain separation tag for this relation.
+The encoding of the instance is defined as
+
+~~~~
+    <MAX_ANCHORS>_4 || <N>_4
+    || PKDigest(P[0]) || ... || PKDigest(P[N-1])
+    || nf || ctx_iss || ctx_red
+~~~~
 
 ### Redeem Request
 
@@ -596,13 +615,14 @@ To redeem a token `token = (nf, r, s)` issued by Anchor `P[i]`, the Client runs
 the following procedure.
 
 ~~~~pseudocode
-RedeemRequest(P, i, token, ctx_iss, ctx_red):
+RedeemRequest(P, i, token, ctx_iss, ctx_red, challenge_digest):
   Input:
     - P: Anchor Set of length N
     - i: index of the issuing Anchor, in [N]
     - token: the issued token
     - ctx_iss: issuance context, in F_q^ctx_len
     - ctx_red: redemption context, in F_q^ctx_len
+    - challenge_digest: challenge digest, in F_q^32
 
   Output:
     - request: redemption request
@@ -615,6 +635,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
          RedeemRelation,             // relation
          (P, nf, ctx_iss, ctx_red),  // instance
          (r, s, b),                  // witness
+         challenge_digest,           // message
        )
     5. request := (nf, pf_red)
     6. return request
@@ -625,12 +646,13 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red):
 To complete the redemption request, the Moderator runs the following procedure.
 
 ~~~~pseudocode
-FinalizeRedeem(P, request, ctx_iss, ctx_red):
+FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
   Input:
     - P: Anchor Set of length N
     - request: redemption request
     - ctx_iss: issuance context, in F_q^ctx_len
     - ctx_red: redemption context, in F_q^ctx_len
+    - challenge_digest: challenge digest, in F_q^32
 
   Output:
     - nf: the nullifier of the redeemed token, in F_q^nf_len, or INVALID
@@ -641,6 +663,7 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red):
          RedeemRelation,             // relation
          (P, nf, ctx_iss, ctx_red),  // instance
          pf_red,
+         challenge_digest,           // message
        )
     3. if v = 0: return INVALID
     4. return nf
