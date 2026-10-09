@@ -10,7 +10,7 @@ Expires: 12 April 2027                                        Cloudflare
 
 
                                 Moussaka
-                  draft-authors-mole-vole-ihat-latest
+                draft-authors-mole-ihat-moussaka-latest
 
 Abstract
 
@@ -29,9 +29,9 @@ About This Document
 
    The latest revision of this draft can be found at https://moderation-
    of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-vole-ihat.html.  Status information for this document may be
-   found at https://datatracker.ietf.org/doc/draft-authors-mole-vole-
-   ihat/.
+   mole-ihat-moussaka.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-ihat-
+   moussaka/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -112,16 +112,16 @@ Table of Contents
    by recovering the Anchor's secret key from its public key.
 
    This document specifies Moussaka, an Issuer-Hiding Anonymous Token
-   that is plausibly fully post-quantum secure.  Similar to [VOLE-ACT],
-   its design is based on the PoMFRIT blind signature scheme [PoMFRIT],
-   which combines a post-quantum signature scheme with a suitable zero-
-   knowledge proof system and commitment scheme.  Specifically, the
-   signer signs a commitment to the message, and the verifier checks a
-   zero-knowledge proof-of-knowledge of the signature and the opening of
-   the commitment.  Moussaka extends this paradigm in the natural way:
-   rather than prove knowledge of a signature under the public key of a
-   particular Anchor, the Client proves knowledge of a signature under
-   some public key in the Anchor Set.
+   that is plausibly fully post-quantum secure.  Similar to
+   [ACT-RATATOUILLE], its design is based on the PoMFRIT blind signature
+   scheme [PoMFRIT], which combines a post-quantum signature scheme with
+   a suitable zero-knowledge proof system and commitment scheme.
+   Specifically, the signer signs a commitment to the message, and the
+   verifier checks a zero-knowledge proof-of-knowledge of the signature
+   and the opening of the commitment.  Moussaka extends this paradigm in
+   the natural way: rather than prove knowledge of a signature under the
+   public key of a particular Anchor, the Client proves knowledge of a
+   signature under some public key in the Anchor Set.
 
    Moussaka has significantly higher bandwidth cost compared to
    Rollatini:
@@ -169,7 +169,7 @@ Table of Contents
    capitals, as shown here.
 
    This document follows the same conventions and uses the same notation
-   as [VOLE-ACT].
+   as [ACT-RATATOUILLE].
 
 3.  Overview
 
@@ -254,11 +254,12 @@ Table of Contents
 
    The procedures KP800(), UOV.CompactKeyGen(), UOV.ExpandPK(),
    UOV.ExpandSK(), UOV.SPre(), PKDigest(), VOLEitH.Prove(), and
-   VOLEitH.Verify() are defined as in [VOLE-ACT].  We adopt the uov-Ip
-   parameter set (NIST Level 1) for UOV.  That is, for the remainder of
-   this document, let n=119, m=45, and q=2^8.
+   VOLEitH.Verify() are defined as in [ACT-RATATOUILLE].  We adopt the
+   uov-Ip parameter set (NIST Level 1) for UOV.  That is, for the
+   remainder of this document, let n=119, m=45, and q=2^8.
 
-   Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
+   Moussaka also fixes the following parameters, named as in
+   [ACT-RATATOUILLE]:
 
    *  nf_len: the nullifier length in bytes.  Its value SHALL be 24.
 
@@ -280,7 +281,7 @@ Table of Contents
    A global constant VERSION in F_q is defined.  Its value SHALL be 0.
    This constant is used for domain separation and is meant to be kept
    in sync with revisions to this document.  The template for domain
-   separation is the same as [VOLE-ACT].
+   separation is the same as [ACT-RATATOUILLE].
 
    A global constant MAX_ANCHORS defines the maximum size of an Anchor
    Set. Its value SHALL be 64.
@@ -631,6 +632,11 @@ Table of Contents
 
 8.1.  Normative References
 
+   [ACT-RATATOUILLE]
+              "Ratatouille", n.d., <https://moderation-of-unlinkable-
+              endorsements.github.io/internet-drafts/draft-authors-mole-
+              act-ratatouille.html>.
+
    [FAEST]    Baum, C., Beullens, W., Braun, L., Delpech de Saint
               Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
               E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
@@ -673,8 +679,6 @@ Table of Contents
               Version 3.0, 30 August 2026,
               <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
               sig/documents/UOV_Specification_R3.pdf>.
-
-   [VOLE-ACT] "TODO I-D.draft-authors-mole-vole-act", n.d..
 
 8.2.  Informative References
 
