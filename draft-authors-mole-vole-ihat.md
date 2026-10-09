@@ -184,12 +184,12 @@ informative:
 --- abstract
 
 This document specifies Moussaka, a candidate post-quantum Issuer-Hiding
-Anonymous Token (IHAT). Moussaka is based on the UOV
-digital signature scheme and the VOLE-in-the-Head proof system (a component of
-the FAEST signature scheme). The anchor issues a token by signing a commitment
-to the client's state; to redeem a token, the client proves knowledge of the
-opening of this commitment and a signature produced by some anchor trusted by
-the moderator. The commitment is instantiated with `Keccak-p[800,12]`.
+Anonymous Token (IHAT). Moussaka is based on the UOV digital signature scheme
+and the VOLE-in-the-Head proof system (a component of the FAEST signature
+scheme). The anchor issues a token by signing a commitment to the client's
+state; to redeem a token, the client proves knowledge of the opening of this
+commitment and a signature produced by some anchor trusted by the moderator. The
+commitment is instantiated with `Keccak-p[800,12]`.
 
 --- middle
 
@@ -199,11 +199,11 @@ the moderator. The commitment is instantiated with `Keccak-p[800,12]`.
 > undergone significant security analysis. It's not yet suitable for real world
 > applications. Implement at your own risk.
 
-Rollatini {{ROLLATINI}}, an Issuer-Hiding Anonymous Token, allows a Client to
-redeem a token with a Moderator without revealing which Anchor issued the
-token. Instead, the client proves the token was issued by some Anchor in the
-Anchor Set trusted by the Moderator. Rollatini is also designed to be post-issuance
-unlinkable, meaning the redemption of a token cannot be linked to its issuance.
+An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
+Moderator without revealing which Anchor issued the token. Instead, the client
+proves the token was issued by some Anchor in the Anchor Set trusted by the
+Moderator. Rollatini is also designed to be post-issuance unlinkable, meaning
+the redemption of a token cannot be linked to its issuance.
 
 Rollatini meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
