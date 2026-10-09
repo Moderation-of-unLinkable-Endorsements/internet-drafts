@@ -1460,10 +1460,14 @@ revisions to this document. The template for domain separation is the same as
 value <span class="bcp14">SHALL</span> be <code>64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5-4.1">
-          <p id="section-5-4.1.1">NOTE Specifying the maximum number of Anchors is not strictly necessary. It's
-done so that the size of the redemption proof is independent of the number of
-Anchors: the witness is padded to <code>MAX_ANCHORS</code> with <code>0</code>s. Removing this
-padding would only save a few bytes.<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
+          <p id="section-5-4.1.1">NOTE(cjpatton) In our implementation, the length of the selector vector <code>b</code> is
+exactly <code>MAX_ANCHORS</code>: the last <code>MAX_ANCHORS - N</code> entries are padded with
+<code>0</code>s. This ensures the witness length is known at compile time, which is
+needed for <a href="https://github.com/faest-sign/faest-arch-opt">faest-arch-opt</a>. For
+<code>MAX_ANCHORS = 64</code>, the witness for the padded selector vector is only 8 bytes
+(in the implementation, the selector is stored as bits rather than bytes), so
+removing the padding doesn't actually save very much. Eventually the spec will
+be updated to match our implementation.<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="anchor-key-generation">

@@ -285,11 +285,15 @@ Table of Contents
    A global constant MAX_ANCHORS defines the maximum size of an Anchor
    Set. Its value SHALL be 64.
 
-      NOTE Specifying the maximum number of Anchors is not strictly
-      necessary.  It's done so that the size of the redemption proof is
-      independent of the number of Anchors: the witness is padded to
-      MAX_ANCHORS with 0s.  Removing this padding would only save a few
-      bytes.
+      NOTE(cjpatton) In our implementation, the length of the selector
+      vector b is exactly MAX_ANCHORS: the last MAX_ANCHORS - N entries
+      are padded with 0s.  This ensures the witness length is known at
+      compile time, which is needed for faest-arch-opt
+      (https://github.com/faest-sign/faest-arch-opt).  For MAX_ANCHORS =
+      64, the witness for the padded selector vector is only 8 bytes (in
+      the implementation, the selector is stored as bits rather than
+      bytes), so removing the padding doesn't actually save very much.
+      Eventually the spec will be updated to match our implementation.
 
 5.1.  Anchor Key Generation
 
