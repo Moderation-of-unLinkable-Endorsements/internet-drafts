@@ -3,7 +3,7 @@ title: "Ratatouille"
 abbrev: "Ratatouille"
 category: info
 
-docname: draft-authors-mole-vole-act-latest
+docname: draft-authors-mole-act-ratatouille-latest
 submissiontype: IETF
 number:
 date:
@@ -15,7 +15,7 @@ keyword:
   - privacy
 venue:
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html"
 
 author:
   -
@@ -131,7 +131,9 @@ normative:
 
 informative:
   ARCHITECTURE: I-D.draft-jms-mole-architecture
-  ACT: I-D.draft-schlesinger-cfrg-act-01
+  ACT:
+    title: "Anonymous Credit Tokens (ACT)"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
   SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
 
   PoMFRIT:
@@ -238,14 +240,14 @@ informative:
 
 --- abstract
 
-This document specifies Ratatouille, a candidate post-quantum variant of the
-Anonymous Credit Token (ACT) protocol. Ratatouille is based on the UOV digital
-signature scheme and the VOLE-in-the-Head proof system (a component of the
-FAEST signature scheme). The moderator issues a token by signing a commitment
-to the client's state; to present a token, the client proves knowledge of this
-signature and the opening of the commitment. Two variants of the protocol are
-specified, one in which the commitment is instantiated with `Keccak-p[800,12]`
-and another in which a UOV-friendly commitment scheme is used instead.
+This document specifies Ratatouille, a candidate post-quantum Anonymous Credit
+Token (ACT). Ratatouille is based on the UOV digital signature scheme and the
+VOLE-in-the-Head proof system (a component of the FAEST signature scheme). The
+moderator issues a token by signing a commitment to the client's state; to
+present a token, the client proves knowledge of this signature and the opening
+of the commitment. Two variants of the protocol are specified, one in which the
+commitment is instantiated with `Keccak-p[800,12]` and another in which a
+UOV-friendly commitment scheme is used instead.
 
 --- middle
 
@@ -262,19 +264,19 @@ fairly. However, traditional approaches require tracking user identities and
 creating detailed logs of user behavior, raising significant privacy concerns
 in an era of increasing data protection awareness and regulation.
 
-The Anonymous Credit Token (ACT) protocol {{ACT}} resolves this tension by
-enabling credit-based systems without user tracking: an Issuer can grant a
-Client a token worth some number of credits, and the Client can later spend
-those credits anonymously, in whole or in part, without the Issuer being able
-to link the spend to the issuance or to any other spend by the same Client.
+An Anonymous Credit Token (ACT) resolves this tension by enabling credit-based
+systems without user tracking: an Issuer can grant a Client a token worth some
+number of credits, and the Client can later spend those credits anonymously, in
+whole or in part, without the Issuer being able to link the spend to the
+issuance or to any other spend by the same Client.
 
-ACT achieves this privacy goal information-theoretically, meaning no attacker,
-regardless of its computational resources, can link the presentation of a token
-to its issuance. However, ACT is based on elliptic curve cryptography, which
-means a quantum attacker can forge a token by recovering the Issuer's secret
-key from its public key.
+The ACT specified in {{ACT}} achieves this privacy goal
+information-theoretically, meaning no attacker, regardless of its computational
+resources, can link the presentation of a token to its issuance. However, it is
+based on elliptic curve cryptography, which means a quantum attacker can forge a
+token by recovering the Issuer's secret key from its public key.
 
-This document specifies Ratatouille, a variant of ACT that is plausibly fully
+This document specifies Ratatouille, an ACT that is plausibly fully
 post-quantum secure. Its design is based on the PoMFRIT blind signature scheme
 {{PoMFRIT}}, which combines a post-quantum signature scheme with a suitable
 zero-knowledge proof system and commitment scheme. Specifically, the signer
@@ -301,7 +303,7 @@ communication cost than the hash-based variant.
 > cost is at or below hash-based commitments, then their relative simplicity
 > makes them a good choice.
 
-Both variants of Ratatouille have higher bandwidth cost than ACT:
+Both variants of Ratatouille have higher bandwidth cost than {{ACT}}:
 
 1. the Issuer's public key is 45.5 KB, which corresponds to the uov-Ip
    parameter set for UOV (the MQ instantiation has a larger public key in
@@ -315,7 +317,7 @@ Both variants of Ratatouille have higher bandwidth cost than ACT:
 In both the initial issuance and a spend, the Issuer's reply is a single UOV
 signature, which is below a couple of hundred bytes for both instantiations.
 
-Unlike ACT, Ratatouille tokens are publicly verifiable, meaning they can be
+Unlike {{ACT}}, Ratatouille tokens are publicly verifiable, meaning they can be
 presented to any party with the Issuer's public key. Of course, this has
 implications for privacy, since the token necessarily reveals the identity of
 the Moderator that issued it.

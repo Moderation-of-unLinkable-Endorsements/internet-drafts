@@ -43,12 +43,12 @@ author:
 
 
 normative:
-  ROLLATINI:
+  IHAT-ROLLATINI:
     title: "Rollatini: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html
     date: 2026
     seriesinfo:
-      Internet-Draft: draft-authors-mole-rollatini
+      Internet-Draft: draft-authors-mole-ihat-rollatini
     author:
       -
         ins: S. Schlesinger
@@ -169,13 +169,13 @@ The capitalized terms Client, Moderator, and Credential are used as
 defined in {{ARCH}}; a lowercase credential is the generic cryptographic
 notion. The message-encoding conventions, Python notation, and helpers
 `I2OSP`, `U16Prefixed`, `random`, and `Seed` are those of
-Section 2 of {{ROLLATINI}}. The algorithms use `bytes` for byte strings, `int`
-for integers, and `Sequence` and `NamedTuple` from Python's `typing` module.
-Record fields appear in the same order as their tuple representation.
+Section 2 of {{IHAT-ROLLATINI}}. The algorithms use `bytes` for byte strings,
+`int` for integers, and `Sequence` and `NamedTuple` from Python's `typing`
+module. Record fields appear in the same order as their tuple representation.
 
 The group `G`, protocol context `ctx_proto`, seed length `Nseed`,
 generators, and balance width `L` are globals fixed by the ACT
-configuration ({{act-config}}). Shared group methods from {{ROLLATINI}} use
+configuration ({{act-config}}). Shared group methods from {{IHAT-ROLLATINI}} use
 the ACT group instance `G`, which stores `ctx_proto` and applies ACT
 domain separation. Both schemes use `Nseed = 48`. Public byte-string
 inputs retain the length bounds
@@ -194,7 +194,7 @@ Group:
 
 Hash:
 : A cryptographic hash function, used by the `HashToGroup`, `HashToScalar`,
-  and derivation algorithms that the group of {{ROLLATINI}} provides.
+  and derivation algorithms that the group of {{IHAT-ROLLATINI}} provides.
 
 Sigma protocol:
 : The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
@@ -203,7 +203,7 @@ Sigma protocol:
 ## Prime-Order Group {#group}
 
 ACT uses the prime-order group interface and the `Element` and `Scalar`
-types of Section 3.1 of {{ROLLATINI}}, instantiated as in {{ciphersuites}}.
+types of Section 3.1 of {{IHAT-ROLLATINI}}, instantiated as in {{ciphersuites}}.
 The prime `p = G.Order()` is the group order and the scalar-field modulus.
 The Python interface provides `G.scalar(x)` for an integer `x` in
 `[0, G.Order())`, `s.isZero()` for a scalar, and `A.isIdentity()` for an
@@ -214,7 +214,7 @@ an element `A` is `G.Identity() - A`.
 ## Errors {#errors}
 
 `DeserializeError`, `VerifyError`, `DeriveError`, and `ValueError` have the
-meanings given in Section 3.2 of {{ROLLATINI}}. ACT additionally uses
+meanings given in Section 3.2 of {{IHAT-ROLLATINI}}. ACT additionally uses
 `AmountError` when a balance or amount is outside the range admitted by
 {{act-amounts}}:
 
@@ -228,10 +228,10 @@ An implementation that raises an error MUST abort the affected protocol run.
 ## Deriving Scalars {#derive-scalar}
 
 Use `G.DeriveScalars(rand: bytes, info: bytes, count: int) ->
-list[Scalar]` from Section 4.2 of {{ROLLATINI}}, using the ACT group instance
-initialized with `ctx_proto`. It rejects `rand` whose length is not `Nseed`
-with `ValueError`, and raises `DeriveError` in the negligible event that a
-derived scalar is zero. ACT applies the following requirements to this
+list[Scalar]` from Section 4.2 of {{IHAT-ROLLATINI}}, using the ACT group
+instance initialized with `ctx_proto`. It rejects `rand` whose length is not
+`Nseed` with `ValueError`, and raises `DeriveError` in the negligible event that
+a derived scalar is zero. ACT applies the following requirements to this
 shared algorithm.
 
 `rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
@@ -250,7 +250,7 @@ nonce vectors.
 ## Key Generation {#keygen}
 
 Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
-4.4 of {{ROLLATINI}}, with the ACT group instance of {{act-config}}. Both
+4.4 of {{IHAT-ROLLATINI}}, with the ACT group instance of {{act-config}}. Both
 return `tuple[Scalar, Element]`; ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
 `G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
@@ -493,9 +493,9 @@ recommends; the length prefixes keep the tag unambiguous.
 `ProveCompact` draws one nonce per witness scalar from its `rng`, in
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. The nonces are derived
-together with `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness,
-the session, the relation, and fresh randomness; see "Derived prover nonces"
-in {{act-security}}.
+together with `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the
+witness, the session, the relation, and fresh randomness; see "Derived prover
+nonces" in {{act-security}}.
 
 ~~~ python
 class ProverNonces:
@@ -604,7 +604,7 @@ class Credential(NamedTuple):
 
 `IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
 exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonces`
-(Section 4.3 of {{ROLLATINI}}) from the signing key, the group-element
+(Section 4.3 of {{IHAT-ROLLATINI}}) from the signing key, the group-element
 encoding of the signed attributes, and fresh randomness. Repeating these
 inputs reproduces the same signature. Changing the signed encoding changes
 the derivation input even when the random source repeats
@@ -1234,8 +1234,8 @@ SHA-256 for the hash function. The value of the ciphersuite
 identifier is `b"P256-SHA256"`.
 
 Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
-algorithms, and canonical encodings of Section 7.1 of {{ROLLATINI}}. ACT uses
-`Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
+algorithms, and canonical encodings of Section 7.1 of {{IHAT-ROLLATINI}}. ACT
+uses `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
 ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
 `G.DeriveScalars`, `G.ExpandScalars`, `G.DeriveNonces`, and
 `G.DeriveKeyPair`.
@@ -1250,10 +1250,10 @@ far below the group order ({{act-security}}).
 Every random value in this document is drawn with `random` and consumed in
 inputs of `Nseed` bytes, by `G.DeriveScalars` ({{derive-scalar}}), by
 `G.DeriveKeyPair` ({{keygen}}) for a key, or, for the values listed below, by
-`G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}); no scalar is sampled directly.
-Implementations MUST draw with a cryptographically secure random number
-generator and MUST NOT reuse randomness across derivations. Randomness is as
-sensitive as the values derived from it, and the constant-time requirement
+`G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}); no scalar is sampled
+directly. Implementations MUST draw with a cryptographically secure random
+number generator and MUST NOT reuse randomness across derivations. Randomness is
+as sensitive as the values derived from it, and the constant-time requirement
 of {{act-security}} covers both.
 
 The following values MUST be derived with `G.DeriveNonces`, with the inputs
@@ -1338,7 +1338,7 @@ Unlinkability:
   proof strategy replaces the derived vectors by independent random
   scalars, with a loss accounting for scalar-reduction bias,
   collisions, and queries to secret derivation inputs (Section 4.2 of
-  {{ROLLATINI}}). Concrete bounds for this replacement and its
+  {{IHAT-ROLLATINI}}). Concrete bounds for this replacement and its
   composition with the proofs remain to be established. The public
   amounts `s`, `a`, and `t`, and the configuration, determine which
   Credentials could have produced a presentation; {{PROTOCOLS}}
@@ -1372,9 +1372,9 @@ Randomness reuse:
   holding two Credentials with that exponent forge Credentials at any
   balance below `2^L`, each with a fresh nullifier, which the nullifier
   store cannot detect. Both values are therefore derived with
-  `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the key and the operation
-  ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled back
-  or snapshotted random source reproduces an earlier response instead of
+  `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the key and the
+  operation ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled
+  back or snapshotted random source reproduces an earlier response instead of
   yielding a second one. An implementation that draws either value
   directly MUST treat every repetition as a compromise of `skM`.
 
@@ -1428,7 +1428,7 @@ Constant time:
 
 Derived prover nonces:
 : `ProverNonces` derives the nonces of a proof together with
-  `G.DeriveNonces` (Section 4.3 of {{ROLLATINI}}) from the witness, the
+  `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the witness, the
   session, the relation, and `Nseed` bytes of fresh randomness. Its security
   analysis must establish that the nonce vector is indistinguishable from
   fresh uniform randomness to parties without the witness, as required by
