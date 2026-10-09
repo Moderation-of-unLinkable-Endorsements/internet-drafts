@@ -41,9 +41,9 @@ normative:
     title: "Anonymous Credit Tokens (ACT)"
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
   ARCHITECTURE: I-D.draft-jms-mole-architecture
-  ROLLATINI:
+  IHAT-ROLLATINI:
     title: "Rollatini: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html
   HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk
@@ -295,7 +295,7 @@ redemption made under another Moderator's challenge. This does not stop a
 Moderator that relays another Moderator's challenge to the Client.
 
 The `Challenge` algorithm and `ChallengeMessage` in Rollatini issuance are
-defined by {{ROLLATINI}} and are unrelated to a `ModeratorChallenge`.
+defined by {{IHAT-ROLLATINI}} and are unrelated to a `ModeratorChallenge`.
 
 ## Abstract Endorsement API
 
@@ -332,12 +332,12 @@ Moderator policy, for instance rate limiting.
 
 Endorsement type: 0x0002.
 
-This protocol uses Rollatini {{ROLLATINI}}, a pairing-free Issuer-Hiding
+This protocol uses Rollatini {{IHAT-ROLLATINI}}, a pairing-free Issuer-Hiding
 Anonymous Token (IHAT). The Anchor blindly signs a
 Client-chosen nullifier. The Client later proves,
 with an issuer-hiding proof, that its Endorsement verifies under one of the
 Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents and encodings of every message body, are defined in {{ROLLATINI}}.
+contents and encodings of every message body, are defined in {{IHAT-ROLLATINI}}.
 
 The following primitive types are ciphersuite-dependent:
 
@@ -351,11 +351,11 @@ opaque Element[Ne];
 The Client needs, from Anchor configuration ({{key-rotation}}):
 
 Rollatini Ciphersuite
-: A ciphersuite identifier defined by {{ROLLATINI}}. It determines `Element`,
-  `Scalar`, and all cryptographic encodings.
+: A ciphersuite identifier defined by {{IHAT-ROLLATINI}}. It determines
+  `Element`, `Scalar`, and all cryptographic encodings.
 
 Anchor Public Key
-: `pkA`, an `Element`, as generated in {{ROLLATINI}}, with a stable key ID.
+: `pkA`, an `Element`, as generated in {{IHAT-ROLLATINI}}, with a stable key ID.
 
 Issuance Context
 : `ctx_iss`, the canonical encoding of the issuance epoch. Endorsements are
@@ -365,13 +365,13 @@ Redemption Context
 : `ctx_red`, the ASCII string `"MoLE-Rollatini-ctx_red-v1"`, without a
   terminating NUL byte. This fixed, domain-separated value is the same for all
   Moderators. This is the cryptographic redemption Context defined by
-  {{ROLLATINI}}, not a Moderator Challenge. A specific redemption operation is
-  bound separately by `challenge_digest`.
+  {{IHAT-ROLLATINI}}, not a Moderator Challenge. A specific redemption operation
+  is bound separately by `challenge_digest`.
 
 ### Grant
 
 The grant takes two HTTP exchanges and three protocol messages. The Anchor
-speaks first, as specified by {{ROLLATINI}}:
+speaks first, as specified by {{IHAT-ROLLATINI}}:
 
 1. The Client sends an `EndorsementRequest` with an empty `body`. The Anchor
    runs `Commit(ctx_iss)`, stores the returned state under a fresh
@@ -385,22 +385,22 @@ speaks first, as specified by {{ROLLATINI}}:
    Tombstones are retained through session expiry. All later requests for the
    identifier fail without invoking `Respond`.
 3. The Client runs `Finalize(pkA, state, response)` as specified by
-   {{ROLLATINI}}. On failure it MUST discard the session state and MUST NOT
+   {{IHAT-ROLLATINI}}. On failure it MUST discard the session state and MUST NOT
    retry with that state.
 
 `CommitMessage`, `ChallengeMessage`, `ResponseMessage`, `session_id`, and the
-Endorsement encoding are defined by {{ROLLATINI}}. The session identifier is
-only transport correlation and is not bound into the Endorsement.
+Endorsement encoding are defined by {{IHAT-ROLLATINI}}. The session identifier
+is only transport correlation and is not bound into the Endorsement.
 
 The Anchor learns neither `nf` nor the final Endorsement. Under the statistical
-blindness claim in {{ROLLATINI}}, its protocol transcript does not let it
+blindness claim in {{IHAT-ROLLATINI}}, its protocol transcript does not let it
 recognize the Endorsement when it is later redeemed. Timing, network, and
 configuration metadata are outside that claim.
 
 ### Redemption
 
 The type-specific `Redemption` payload is the encoding of `Redemption` in
-{{ROLLATINI}}. `RedeemRequest` derives `challenge_digest` as in
+{{IHAT-ROLLATINI}}. `RedeemRequest` derives `challenge_digest` as in
 {{challenge-binding}} and calls
 `Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)`.
 The ordered `anchor_set` comes from Moderator configuration; `index` selects

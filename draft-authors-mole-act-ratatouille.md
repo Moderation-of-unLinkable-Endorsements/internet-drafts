@@ -3,7 +3,7 @@ title: "Ratatouille"
 abbrev: "Ratatouille"
 category: info
 
-docname: draft-authors-mole-vole-act-latest
+docname: draft-authors-mole-act-ratatouille-latest
 submissiontype: IETF
 number:
 date:
@@ -15,7 +15,7 @@ keyword:
   - privacy
 venue:
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html"
 
 author:
   -

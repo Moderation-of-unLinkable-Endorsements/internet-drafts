@@ -3,7 +3,7 @@ title: "Moussaka"
 abbrev: "Moussaka"
 category: info
 
-docname: draft-authors-mole-vole-ihat-latest
+docname: draft-authors-mole-ihat-moussaka-latest
 submissiontype: IETF
 number:
 date:
@@ -15,7 +15,7 @@ keyword:
   - privacy
 venue:
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-ihat.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-moussaka.html"
 
 author:
 
@@ -30,12 +30,13 @@ author:
     email: chrispatton+ietf@gmail.com
 
 normative:
-  ROLLATINI:
+  IHAT-ROLLATINI:
     title: "Rollatini: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html
 
-  VOLE-ACT:
-    title: "TODO I-D.draft-authors-mole-vole-act"
+  ACT-RATATOUILLE:
+    title: "Ratatouille"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html
 
   FIPS202:  # TurboShortSHAKE128(M,d) = Sponge[Keccak-p[800, 12], pad10*1, 800–256](M||1111,d)
     title: "SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"
@@ -155,6 +156,10 @@ normative:
         name: Bo-Yin Yang
 
 informative:
+  ACT:
+    title: "Anonymous Credit Tokens (ACT)"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
+
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
     target: https://eprint.iacr.org/2026/109
@@ -212,15 +217,15 @@ quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.
 
 This document specifies Moussaka, an Issuer-Hiding Anonymous Token that is
-plausibly fully post-quantum secure. Similar to {{VOLE-ACT}}, its design is
-based on the PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a
+plausibly fully post-quantum secure. Similar to {{ACT-RATATOUILLE}}, its design
+is based on the PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a
 post-quantum signature scheme with a suitable zero-knowledge proof system and
 commitment scheme. Specifically, the signer signs a commitment to the message,
-and the verifier checks a zero-knowledge proof-of-knowledge of the signature and
-the opening of the commitment. Moussaka extends this paradigm in the natural
-way: rather than prove knowledge of a signature under the public key of a
-particular Anchor, the Client proves knowledge of a signature under some public
-key in the Anchor Set.
+and the verifier checks a zero-knowledge proof-of-knowledge of the signature
+and the opening of the commitment. Moussaka extends this paradigm in the
+natural way: rather than prove knowledge of a signature under the public key of
+a particular Anchor, the Client proves knowledge of a signature under some
+public key in the Anchor Set.
 
 Moussaka has significantly higher bandwidth cost compared to Rollatini:
 
@@ -247,22 +252,22 @@ provides normative references for their specifications. {{protocol}} specifies
 the protocol in full detail. Finally, {{security}} enumerates some security
 considerations for implementers and adopters.
 
-> TODO(cjpatton) Resolve gaps with {{ROLLATINI}}:
+> TODO(cjpatton) Resolve gaps with {{IHAT-ROLLATINI}}:
 >
 > 1. The APIs are a bit misaligned. This is unavoidable to some extent for
 >    issuance, since our protocol is 2 moves and theirs is 3, but it should be
 >    possible to align redemption precisely.
 >
-> 2. Our pseudocode is derived from ACT, but theirs is more in line with VOPRF.
->    Perhaps all MoLE drafts should use the same pseudocode eventually?
->    Likewise for Ratatouille.
+> 2. (Likewise for Ratatouille) Our pseudocode is derived from an old version of
+>    ACT, but MoLE ACT {{ACT}} now uses Python, as does {{IHAT-ROLLATINI}}.
+>    Consider transcribing our pseudocode into Python.
 
 # Conventions and Definitions {#conventions}
 
 {::boilerplate bcp14-tagged}
 
 This document follows the same conventions and uses the same notation as
-{{VOLE-ACT}}.
+{{ACT-RATATOUILLE}}.
 
 # Overview {#overview}
 
@@ -284,11 +289,11 @@ for `P` that can be used to efficiently sample signatures for a given target.
 
 Issuance binds a token to an issuance context `ctx_iss` agreed upon by the
 Client, Anchor, and Moderator, and a redemption context `ctx_red` agreed upon
-by the Client and Moderator {{ROLLATINI}}. The protocol commits to both contexts
-during issuance: the Anchor verifies the `ctx_iss` binding during issuance, and
-the Moderator verifies both the `ctx_iss` and `ctx_red` binding during
-redemption. Note that Moussaka constrains how these values are chosen compared
-to {{ROLLATINI}}; see {{commitment}} for details.
+by the Client and Moderator {{IHAT-ROLLATINI}}. The protocol commits to both
+contexts during issuance: the Anchor verifies the `ctx_iss` binding during
+issuance, and the Moderator verifies both the `ctx_iss` and `ctx_red` binding
+during redemption. Note that Moussaka constrains how these values are chosen
+compared to {{IHAT-ROLLATINI}}; see {{commitment}} for details.
 
 The issuance protocol is as follows:
 
@@ -342,11 +347,11 @@ justification.
 
 The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
 `UOV.ExpandSK()`, `UOV.SPre()`, `PKDigest()`, `VOLEitH.Prove()`, and
-`VOLEitH.Verify()` are defined as in {{VOLE-ACT}}. We adopt the uov-Ip
+`VOLEitH.Verify()` are defined as in {{ACT-RATATOUILLE}}. We adopt the uov-Ip
 parameter set (NIST Level 1) for UOV. That is, for the remainder of this
 document, let `n=119`, `m=45`, and `q=2^8`.
 
-Moussaka also fixes the following parameters, named as in {{VOLE-ACT}}:
+Moussaka also fixes the following parameters, named as in {{ACT-RATATOUILLE}}:
 
 - `nf_len`: the nullifier length in bytes. Its value SHALL be `24`.
 
@@ -365,7 +370,7 @@ Moussaka also fixes the following parameters, named as in {{VOLE-ACT}}:
 A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The template for domain separation is the same as
-{{VOLE-ACT}}.
+{{ACT-RATATOUILLE}}.
 
 A global constant `MAX_ANCHORS` defines the maximum size of an Anchor Set. Its
 value SHALL be `64`.
@@ -423,12 +428,12 @@ Com(nf, ctx_iss, ctx_red, r):
 The layout of `state` is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 `state` is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to {{ROLLATINI}}: `nf_len` is 24 bytes, whereas {{ROLLATINI}}
-uses a 32-byte nullifier, and `ctx_len` is 16 bytes, whereas {{ROLLATINI}}
-allows the contexts to be arbitrary byte strings.
+inputs relative to {{IHAT-ROLLATINI}}: `nf_len` is 24 bytes, whereas
+{{IHAT-ROLLATINI}} uses a 32-byte nullifier, and `ctx_len` is 16 bytes, whereas
+{{IHAT-ROLLATINI}} allows the contexts to be arbitrary byte strings.
 
 > TODO(cjpatton) Consider bumping the nullifier length to `32` to match
-> {{ROLLATINI}} and guidelines for choosing the context strings. Honestly,
+> {{IHAT-ROLLATINI}} and guidelines for choosing the context strings. Honestly,
 > truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)
 
 ## Issuance
@@ -545,8 +550,8 @@ of a sequence of UOV public keys `P[0], ..., P[N-1]`. The Anchor Set MUST NOT
 be empty and MUST NOT have more than `MAX_ANCHORS` elements, that is, `0 < N
 <= MAX_ANCHORS`. They also agree on `challenge_digest`, which binds the
 redemption to the challenge that triggered it. It is computed from the
-Moderator's challenge as described in {{ROLLATINI}}; this document treats it
-as an opaque byte string of length `32`.
+Moderator's challenge as described in {{IHAT-ROLLATINI}}; this document treats
+it as an opaque byte string of length `32`.
 
 Let `i` in `[N]` be the index of the issuing Anchor. The witness for the
 redemption proof is the opening `r`, the signature `s`, and the selector vector

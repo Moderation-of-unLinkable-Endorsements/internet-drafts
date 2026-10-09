@@ -7,7 +7,7 @@ from rollatini import vectors
 
 def test_draft_vectors_are_reproducible():
     draft = (
-        Path(__file__).resolve().parents[2] / "draft-authors-mole-rollatini.md"
+        Path(__file__).resolve().parents[2] / "draft-authors-mole-ihat-rollatini.md"
     ).read_text()
     section = draft.split("## Ciphersuite {#rollatini-tv-suite}", 1)[1]
     section = "## Ciphersuite {#rollatini-tv-suite}" + section.split(

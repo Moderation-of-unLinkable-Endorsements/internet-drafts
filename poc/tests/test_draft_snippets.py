@@ -48,7 +48,7 @@ def test_act_snippets_match_implementation():
 
 
 def test_rollatini_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-rollatini.md").read_text()
+    draft = (ROOT / "draft-authors-mole-ihat-rollatini.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )

@@ -3,7 +3,7 @@ title: "Rollatini: An Issuer-Hiding Anonymous Token"
 abbrev: "Rollatini"
 category: info
 
-docname: draft-authors-mole-rollatini-latest
+docname: draft-authors-mole-ihat-rollatini-latest
 submissiontype: IETF
 number:
 date:
@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html"
 
 author:
  -
