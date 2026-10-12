@@ -5,23 +5,23 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 15 March 2027                                        Cloudflare
-                                                       11 September 2026
+Expires: 15 April 2027                                        Cloudflare
+                                                         12 October 2026
 
 
                                 Moussaka
-                  draft-authors-mole-vole-ihat-latest
+                draft-authors-mole-ihat-moussaka-latest
 
 Abstract
 
-   This document specifies Moussaka, a candidate post-quantum variant of
-   the Issuer-Hiding Anonymous Token (IHAT) protocol.  Moussaka is based
-   on the UOV digital signature scheme and the VOLE-in-the-Head proof
-   system (a component of the FAEST signature scheme).  The anchor
-   issues a token by signing a commitment to the client's state; to
-   redeem a token, the client proves knowledge of the opening of this
-   commitment and a signature produced by some anchor trusted by the
-   moderator.  The commitment is instantiated with Keccak-p[800,12].
+   This document specifies Moussaka, a candidate post-quantum Issuer-
+   Hiding Anonymous Token (IHAT).  Moussaka is based on the UOV digital
+   signature scheme and the VOLE-in-the-Head proof system (a component
+   of the FAEST signature scheme).  The anchor issues a token by signing
+   a commitment to the client's state; to redeem a token, the client
+   proves knowledge of the opening of this commitment and a signature
+   produced by some anchor trusted by the moderator.  The commitment is
+   instantiated with Keccak-p[800,12].
 
 About This Document
 
@@ -29,9 +29,9 @@ About This Document
 
    The latest revision of this draft can be found at https://moderation-
    of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-vole-ihat.html.  Status information for this document may be
-   found at https://datatracker.ietf.org/doc/draft-authors-mole-vole-
-   ihat/.
+   mole-ihat-moussaka.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-authors-mole-ihat-
+   moussaka/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 15 March 2027.
+   This Internet-Draft will expire on 15 April 2027.
 
 Copyright Notice
 
@@ -85,6 +85,7 @@ Table of Contents
        5.4.1.  Redeem Request
        5.4.2.  Finalization
    6.  Security Considerations
+     6.1.  Choice of Keccak-p[800,12]
    7.  IANA Considerations
    8.  References
      8.1.  Normative References
@@ -98,52 +99,48 @@ Table of Contents
       not yet undergone significant security analysis.  It's not yet
       suitable for real world applications.  Implement at your own risk.
 
-   The Issuer-Hiding Anonymous Token [IHAT] protocol allows a Client to
-   redeem a token with a Moderator without revealing which Anchor issued
-   the token.  Instead, the client proves the token was issued by some
-   Anchor in the Anchor Set trusted by the Moderator.  IHAT is also
+   An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a
+   token with a Moderator without revealing which Anchor issued the
+   token.  Instead, the client proves the token was issued by some
+   Anchor in the Anchor Set trusted by the Moderator.  Rollatini is also
    designed to be post-issuance unlinkable, meaning the redemption of a
    token cannot be linked to its issuance.
 
-   IHAT meets these privacy goals unconditionally, meaning regardless of
-   its computational resources, no attacker can learn which Anchor
-   issued a token or to which Client it was issued.  On the other hand,
-   it is well known that a quantum attacker can forge tokens by
-   recovering the Anchor's secret key from its public key.
+   Rollatini meets these privacy goals unconditionally, meaning
+   regardless of its computational resources, no attacker can learn
+   which Anchor issued a token or to which Client it was issued.  On the
+   other hand, it is well known that a quantum attacker can forge tokens
+   by recovering the Anchor's secret key from its public key.
 
-   This document specifies Moussaka, a variant of IHAT that is plausibly
-   fully post-quantum secure.  Similar to [VOLE-ACT], its design is
-   based on the PoMFRIT blind signature scheme [PoMFRIT], which combines
-   a post-quantum signature scheme with a suitable zero-knowledge proof
-   system and commitment scheme.  Specifically, the signer signs a
-   commitment to the message, and the verifier checks a zero-knowledge
-   proof-of-knowledge of the signature and the opening of the
-   commitment.  Moussaka extends this paradigm in the natural way:
-   rather than prove knowledge of a signature under the public key of a
-   particular Anchor, the Client proves knowledge of a signature under
-   some public key in the Anchor Set.
+   This document specifies Moussaka, an Issuer-Hiding Anonymous Token
+   that is plausibly fully post-quantum secure.  Similar to
+   [ACT-RATATOUILLE], its design is based on the PoMFRIT blind signature
+   scheme [PoMFRIT], which combines a post-quantum signature scheme with
+   a suitable zero-knowledge proof system and commitment scheme.
+   Specifically, the signer signs a commitment to the message, and the
+   verifier checks a zero-knowledge proof-of-knowledge of the signature
+   and the opening of the commitment.  Moussaka extends this paradigm in
+   the natural way: rather than prove knowledge of a signature under the
+   public key of a particular Anchor, the Client proves knowledge of a
+   signature under some public key in the Anchor Set.
 
-   Moussaka has significantly higher bandwidth cost compared to IHAT:
+   Moussaka has significantly higher bandwidth cost compared to
+   Rollatini:
 
-   1.  each Anchor public key is 42.6KB (this corresponds to the uov-Ip
+   1.  each Anchor public key is 45.5KB (this corresponds to the uov-Ip
        parameter set [UOV]);
 
-   2.  ~8KB are transmitted during issuance; and
+   2.  the Client uploads 7.1KB during issuance; and
 
-   3.  ~9KB are transmitted during redemption, plus a couple bytes per
-       Anchor in the Anchor Set.
-
-      NOTE(cjpatton) These numbers aren't based on an actual
-      implementation.  They are the result of an analysis from Claude
-      Opus 5 looking at the FAEST spec and an arithmetization of Keccak
-      in a work in progress implementation.
+   3.  the Client uploads 8.6KB during redemption for an Anchor Set of
+       up to 64 Anchors.
 
       NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH
       proofs (one for issuance and another for redemption) using the
       more invasive techniques from [PoMFRIT], Algorithm 2.
 
    On the other hand, Moussaka is round optimal: only two moves are
-   required for issuance, whereas IHAT requires three.
+   required for issuance, whereas Rollatini requires three.
 
    The remainder of this document is structured as follows.  Section 2
    defines some conventions and notation.  Section 3 provides a high-
@@ -154,25 +151,10 @@ Table of Contents
    Finally, Section 6 enumerates some security considerations for
    implementers and adopters.
 
-      TODO(cjpatton) Resolve gaps with [IHAT]:
-
-      1.  The protocol wants to bind the challenge that triggered
-          redemption to the redemption process so that the Client and
-          Moderator confirm agreement.  This is a 32-byte
-          challenge_digest.  Since this value isn't determined until
-          redemption time, we can't include it in the commitment.  The
-          most natural solution is analogous to IHAT: include
-          challenge_digest in the VOLEitH transcript.  This is mildly
-          invasive, but shouldn't be too bad to support.  PoMFRIT does a
-          similar thing with the public key.
-
-      2.  The APIs are a bit misaligned.  This is unavoidable to some
-          extent for issuance, since our protocol is 2 moves and theirs
-          is 3, but it should be possible to align redemption precisely.
-
-      3.  Our pseudocode is derived from ACT, but theirs is more in line
-          with VOPRF.  Perhaps all MoLE drafts should use the same
-          pseudocode eventually?  Likewise for Ratatouille.
+      TODO(cjpatton) Our pseudocode is derived from an old version of
+      ACT, but MoLE ACT [ACT] now uses Python, as does [IHAT-ROLLATINI].
+      Consider transcribing our pseudocode into Python.  (Likewise for
+      Ratatouille.)
 
 2.  Conventions and Definitions
 
@@ -183,7 +165,7 @@ Table of Contents
    capitals, as shown here.
 
    This document follows the same conventions and uses the same notation
-   as [VOLE-ACT].
+   as [ACT-RATATOUILLE].
 
 3.  Overview
 
@@ -207,12 +189,12 @@ Table of Contents
 
    Issuance binds a token to an issuance context ctx_iss agreed upon by
    the Client, Anchor, and Moderator, and a redemption context ctx_red
-   agreed upon by the Client and Moderator [IHAT].  The protocol commits
-   to both contexts during issuance: the Anchor verifies the ctx_iss
-   binding during issuance, and the Moderator verifies both the ctx_iss
-   and ctx_red binding during redemption.  Note that Moussaka constrains
-   how these values are chosen compared to [IHAT]; see Section 5.2 for
-   details.
+   agreed upon by the Client and Moderator [IHAT-ROLLATINI].  The
+   protocol commits to both contexts during issuance: the Anchor
+   verifies the ctx_iss binding during issuance, and the Moderator
+   verifies both the ctx_iss and ctx_red binding during redemption.
+   Note that Moussaka constrains how these values are chosen compared to
+   [IHAT-ROLLATINI]; see Section 5.2 for details.
 
    The issuance protocol is as follows:
 
@@ -253,26 +235,23 @@ Table of Contents
    by either SHA-3 or TurboSHAKE.  This helps reduce the size of the
    VOLEitH proof.  See Section 6 for justification.
 
-      NOTE Both issuance and redemption involve a Com() evaluation.  An
-      alternative is to have the Anchor bind the issuance context by
-      applying an outer commit, like Com(Com(nf, ctx_red, r_red),
-      ctx_iss, r_iss).  This way no issuance proof is required.  It
-      would also have the benefit of not requiring the stronger one-
-      more-UOV assumption.  See Section 6 for details.
-
       NOTE We can add multishow and late binding of redemption context
-      by adding another hash evaluation to the redemption proof.  See
-      issue 45.
+      by adding another hash evaluation to the redemption proof.
+      Basically, we would use Keccak-p[800,12] to construct a PRF from
+      which we derive the nullifier as PRF(K, red_ctx) where K is a key
+      committed to during issuance.  See issue 45 (https://github.com/
+      Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45).
 
 4.  Preliminaries
 
    The procedures KP800(), UOV.CompactKeyGen(), UOV.ExpandPK(),
-   UOV.ExpandSK(), UOV.SPre(), VOLEitH.Prove(), and VOLEitH.Verify() are
-   defined as in [VOLE-ACT].  We adopt the uov-Ip parameter set (NIST
-   Level 1) for UOV.  That is, for the remainder of this document, let
-   n=112, m=44, and q=2^8.
+   UOV.ExpandSK(), UOV.DerivePreimage(), PKDigest(), VOLEitH.Prove(),
+   and VOLEitH.Verify() are defined as in [ACT-RATATOUILLE].  We adopt
+   the uov-Ip parameter set (NIST Level 1) for UOV.  That is, for the
+   remainder of this document, let n=119, m=45, and q=2^8.
 
-   Moussaka also fixes the following parameters, named as in [VOLE-ACT]:
+   Moussaka also fixes the following parameters, named as in
+   [ACT-RATATOUILLE]:
 
    *  nf_len: the nullifier length in bytes.  Its value SHALL be 24.
 
@@ -294,7 +273,20 @@ Table of Contents
    A global constant VERSION in F_q is defined.  Its value SHALL be 0.
    This constant is used for domain separation and is meant to be kept
    in sync with revisions to this document.  The template for domain
-   separation is the same as [VOLE-ACT].
+   separation is the same as [ACT-RATATOUILLE].
+
+   A global constant MAX_ANCHORS defines the maximum size of an Anchor
+   Set. Its value SHALL be 64.
+
+      NOTE(cjpatton) In our implementation, the length of the selector
+      vector b is exactly MAX_ANCHORS: the last MAX_ANCHORS - N entries
+      are padded with 0s.  This ensures the witness length is known at
+      compile time, which is needed for faest-arch-opt
+      (https://github.com/faest-sign/faest-arch-opt).  For MAX_ANCHORS =
+      64, the witness for the padded selector vector is only 8 bytes (in
+      the implementation, the selector is stored as bits rather than
+      bytes), so removing the padding doesn't actually save very much.
+      Eventually the spec will be updated to match our implementation.
 
 5.1.  Anchor Key Generation
 
@@ -338,14 +330,14 @@ Table of Contents
    The layout of state is chosen so that the entire commitment is
    computed with a single application of the permutation.  The zero
    padding is sized so that state is always 100 bytes.  This layout also
-   constrains the lengths of the inputs relative to [IHAT]: nf_len is 24
-   bytes, whereas [IHAT] uses a 32-byte nullifier, and ctx_len is 16
-   bytes, whereas [IHAT] allows the contexts to be arbitrary byte
-   strings.
+   constrains the lengths of the inputs relative to [IHAT-ROLLATINI]:
+   nf_len is 24 bytes, whereas [IHAT-ROLLATINI] uses a 32-byte
+   nullifier, and ctx_len is 16 bytes, whereas [IHAT-ROLLATINI] allows
+   the contexts to be arbitrary byte strings.
 
       TODO(cjpatton) Consider bumping the nullifier length to 32 to
-      match [IHAT] and guidelines for choosing the context strings.
-      Honestly, truncating a hash to 16 bytes is not terrible.
+      match [IHAT-ROLLATINI] and guidelines for choosing the context
+      strings.  Honestly, truncating a hash to 16 bytes is not terrible.
       (Likewise for Ratatouille.)
 
 5.3.  Issuance
@@ -366,6 +358,9 @@ Table of Contents
 
      Constraints:
        - t = Com(nf, ctx_iss, ctx_red, r)
+
+   Let "mous" || VERSION || "i0" be the domain separation tag for this
+   instance.  The encoding of the instance is defined as t || ctx_iss.
 
       TODO Expand Com() into a set of polynomial constraints.  An
       optimization that will be important for practice is to commit
@@ -421,7 +416,7 @@ Table of Contents
             pf_iss,
           )
        3. if v = 0: return INVALID
-       4. s := UOV.SPre(td, t)
+       4. s := UOV.DerivePreimage(td, t)
        5. return s
 
 5.3.3.  Finalization
@@ -450,7 +445,12 @@ Table of Contents
 
    Before redemption, the Client and Moderator agree on an Anchor Set
    consisting of a sequence of UOV public keys P[0], ..., P[N-1].  The
-   Anchor Set MUST NOT be empty, that is, N > 0.
+   Anchor Set MUST NOT be empty and MUST NOT have more than MAX_ANCHORS
+   elements, that is, 0 < N <= MAX_ANCHORS.  They also agree on
+   challenge_digest, which binds the redemption to the challenge that
+   triggered it.  It is computed from the Moderator's challenge as
+   described in [IHAT-ROLLATINI]; this document treats it as an opaque
+   byte string of length 32.
 
    Let i in [N] be the index of the issuing Anchor.  The witness for the
    redemption proof is the opening r, the signature s, and the selector
@@ -501,18 +501,26 @@ Table of Contents
        - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
        - sum(b) = 1
 
+   Let "mous" || VERSION || "r0" be the domain separation tag for this
+   relation.  The encoding of the instance is defined as
+
+       <MAX_ANCHORS>_4 || <N>_4
+       || PKDigest(P[0]) || ... || PKDigest(P[N-1])
+       || nf || ctx_iss || ctx_red
+
 5.4.1.  Redeem Request
 
    To redeem a token token = (nf, r, s) issued by Anchor P[i], the
    Client runs the following procedure.
 
-   RedeemRequest(P, i, token, ctx_iss, ctx_red):
+   RedeemRequest(P, i, token, ctx_iss, ctx_red, challenge_digest):
      Input:
        - P: Anchor Set of length N
        - i: index of the issuing Anchor, in [N]
        - token: the issued token
        - ctx_iss: issuance context, in F_q^ctx_len
        - ctx_red: redemption context, in F_q^ctx_len
+       - challenge_digest: challenge digest, in F_q^32
 
      Output:
        - request: redemption request
@@ -525,6 +533,7 @@ Table of Contents
             RedeemRelation,             // relation
             (P, nf, ctx_iss, ctx_red),  // instance
             (r, s, b),                  // witness
+            challenge_digest,           // message
           )
        5. request := (nf, pf_red)
        6. return request
@@ -534,12 +543,13 @@ Table of Contents
    To complete the redemption request, the Moderator runs the following
    procedure.
 
-   FinalizeRedeem(P, request, ctx_iss, ctx_red):
+   FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
      Input:
        - P: Anchor Set of length N
        - request: redemption request
        - ctx_iss: issuance context, in F_q^ctx_len
        - ctx_red: redemption context, in F_q^ctx_len
+       - challenge_digest: challenge digest, in F_q^32
 
      Output:
        - nf: the nullifier of the redeemed token, in F_q^nf_len, or INVALID
@@ -550,6 +560,7 @@ Table of Contents
             RedeemRelation,             // relation
             (P, nf, ctx_iss, ctx_red),  // instance
             pf_red,
+            challenge_digest,           // message
           )
        3. if v = 0: return INVALID
        4. return nf
@@ -567,23 +578,29 @@ Table of Contents
    Definition 2) that requires some scrutiny before we rely on it too
    heavily.
 
-      NOTE Here's a sketch of the reduction to one-more-UOV.  We
-      consider a simplified version of Moussaka, similar to PoMFRIT.
-      During redemption, the Client proves knowledge of s, r for which
-      P(s) = c and c = Com(nf, r).
+      NOTE Here's a sketch of the reduction to one-more-UOV.  The same
+      idea seems to apply to Ratatouille [ACT-RATATOUILLE] as well.
+
+      We consider a simplified version of the protocol, basically a
+      blind signature built in the same framework.  During redemption,
+      the Client proves knowledge of s, r for which P(s) = c and c =
+      Com(nf, r).
 
       Our goal is to transform a one-more-redemption forger B into a
       one-more-UOV forger A.  We simulate B's RO queries using the
       random targets we got as input to our one-more-UOV instance; when
-      B requests issuance, we forward the target to our own SPre oracle.
+      B requests issuance, we forward the target to our own
+      DerivePreimage oracle.
 
-      On input P, t[0], ..., t[Q-1] and with oracle SPre: Run B with P
-      as the issuer public key and respond to its queries as follows:
+      On input P, t[0], ..., t[Q-1] and with oracle DerivePreimage: Run
+      B with P as the issuer public key and respond to its queries as
+      follows:
 
       -  When B asks Com(nf, r): for the i-th such query, counting from
          zero, respond with c = t[i].
 
-      -  When B requests issuance for c: respond with s = SPre(c).
+      -  When B requests issuance for c: respond with s =
+         DerivePreimage(c).
 
       -  When B requests redemption for nf, pf: extract the witness s, r
          for pf and let c = Com(nf, r).  (If this fails, then witness
@@ -602,8 +619,25 @@ Table of Contents
       prefix it wants.  It now only needs to find a collision in the
       remaining bits of the image.
 
-      TODO Justify halving the Keccak state from 1600 to 800 (relative
-      to TurboSHAKE).
+      NOTE Both Moussaka and Ratatouille can avoid the stronger one-
+      more-UOV assumption by having the Anchor (resp. Issuer) produce a
+      proper UOV signature by sampling a signing salt and using Keccak-
+      p[800,12] to hash the input and the salt.
+
+      For Moussaka, the cost of this would be an additional hash
+      evaluation in the circuit.  For Ratatouille, we would just need to
+      add a salt to Tag(), which adds a little bit to the witness.
+
+      NOTE Nothing ties the issuance of a token to the Anchor.  We could
+      consider adding the Anchor public key to the encoding of the
+      instance, like we do for the redemption proof.  (Likewise for
+      Ratatouille.)
+
+6.1.  Choice of Keccak-p[800,12]
+
+   The commitment Com() uses Keccak-p[800,12] for the same reasons as
+   the commitment of Ratatouille-KP800, namely to reduce the size of the
+   VOLEitH proofs.  See [ACT-RATATOUILLE] for discussion.
 
 7.  IANA Considerations
 
@@ -613,24 +647,36 @@ Table of Contents
 
 8.1.  Normative References
 
-   [FAEST]    Baum, C., Braun, L., Beullens, W., Delpech de Saint
+   [ACT-RATATOUILLE]
+              "Ratatouille", n.d., <https://moderation-of-unlinkable-
+              endorsements.github.io/internet-drafts/draft-authors-mole-
+              act-ratatouille.html>.
+
+   [FAEST]    Baum, C., Beullens, W., Braun, L., Delpech de Saint
               Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,
               E., Ramacher, S., Rechberger, C., Roy, L., and P. Scholl,
-              "The FAEST Signature Scheme", Version 2.0, 2025,
-              <https://faest.info/faest-spec-v2.0.pdf>.
+              "FAEST v3: Algorithm Specifications", NIST PQC Additional
+              Digital Signatures Round 3 Submission, Version 3.0, 1
+              September 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/FAEST_specifications.pdf>.
 
    [FIPS202]  National Institute of Standards and Technology (NIST),
               "SHA-3 Standard: Permutation-Based Hash and Extendable-
               Output Functions", FIPS PUB 202, August 2015,
               <https://doi.org/10.6028/NIST.FIPS.202>.
 
-   [IHAT]     "TODO Publish I-D.draft-authors-mole-crypto", n.d..
+   [IHAT-ROLLATINI]
+              "Rollatini: An Issuer-Hiding Anonymous Token", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ihat-rollatini.html>.
 
    [MAYO]     Beullens, W., Campos, F., Celi, S., Hess, B., and M. J.
               Kannwischer, "MAYO: Practical Post-Quantum Signatures from
               Oil-and-Vinegar Maps", NIST PQC Additional Digital
-              Signatures Round 2 Submission, 5 February 2025,
-              <https://pqmayo.org/assets/specs/mayo-round2.pdf>.
+              Signatures Round 3 Submission, 31 August 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/mayo_specification.pdf>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
@@ -644,14 +690,16 @@ Table of Contents
    [UOV]      Beullens, W., Chen, M., Ding, J., Gong, B., Kannwischer,
               M. J., Patarin, J., Peng, B., Schmidt, D., Shih, C., Tao,
               C., and B. Yang, "UOV: Unbalanced Oil and Vinegar", NIST
-              PQC Additional Digital Signatures Round 2 Submission,
-              February 2025, <https://csrc.nist.gov/csrc/media/Projects/
-              pqc-dig-sig/documents/round-2/spec-files/uov-spec-
-              round2-web.pdf>.
-
-   [VOLE-ACT] "TODO I-D.draft-authors-mole-vole-act", n.d..
+              PQC Additional Digital Signatures Round 3 Submission,
+              Version 3.0, 30 August 2026,
+              <https://csrc.nist.gov/csrc/media/Projects/pqc-dig-
+              sig/documents/UOV_Specification_R3.pdf>.
 
 8.2.  Informative References
+
+   [ACT]      "Anonymous Credit Tokens (ACT)", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-act.html>.
 
    [PoMFRIT]  Baum, C., Beckmann, M., Beullens, W., Mukherjee, S., and
               C. Rechberger, "Concretely Efficient Blind Signatures
