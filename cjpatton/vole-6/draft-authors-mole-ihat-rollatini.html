@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 12 April 2027</td>
+<td class="center">Expires 15 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-ihat-rollatini-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-09" class="published">9 October 2026</time>
+<time datetime="2026-10-12" class="published">12 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-12">12 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-15">15 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1133,7 +1133,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 12 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 15 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1401,43 +1401,49 @@ order. This document also uses the variable-size vector convention <code>&lt;V&g
 defined in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">Algorithms are specified in Python and use the following functions, types, and
-notation.<a href="#section-2-4" class="pilcrow">¶</a></p>
-<p id="section-2-5">Type <code>bytes</code> is used for byte strings, <code>int</code> for integers, and <code>Sequence</code> for a
-read-only sequence.<a href="#section-2-5" class="pilcrow">¶</a></p>
-<p id="section-2-6">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-6" class="pilcrow">¶</a></p>
-<p id="section-2-7">For two byte strings <code>x</code> and <code>y</code>, <code>x + y</code> denotes their concatenation, and,
-if they are of equal length, <code>_xor(x, y)</code> denotes their bytewise exclusive or.<a href="#section-2-7" class="pilcrow">¶</a></p>
-<p id="section-2-8">For a byte string <code>x</code>, <code>x[i:j]</code> denotes the substring of <code>x</code> that begins at
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-2-4.1">
+          <p id="section-2-4.1.1">NOTE we're currently not using QUIC-style length prefixes, but we might switch
+to this in the future. See <a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/103">issue 103</a>.<a href="#section-2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-2-5">Algorithms are specified in Python and use the following functions, types, and
+notation.<a href="#section-2-5" class="pilcrow">¶</a></p>
+<p id="section-2-6">Type <code>bytes</code> is used for byte strings, <code>int</code> for integers, and <code>Sequence</code> for a
+read-only sequence.<a href="#section-2-6" class="pilcrow">¶</a></p>
+<p id="section-2-7">For any byte string <code>x</code>, <code>len(x)</code> denotes its length in bytes.<a href="#section-2-7" class="pilcrow">¶</a></p>
+<p id="section-2-8">For two byte strings <code>x</code> and <code>y</code>, <code>x + y</code> denotes their concatenation, and,
+if they are of equal length, <code>_xor(x, y)</code> denotes their bytewise exclusive or.<a href="#section-2-8" class="pilcrow">¶</a></p>
+<p id="section-2-9">For a byte string <code>x</code>, <code>x[i:j]</code> denotes the substring of <code>x</code> that begins at
 its byte with index <code>i</code> and ends just before its byte with index <code>j</code>, where
-indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-8" class="pilcrow">¶</a></p>
-<p id="section-2-9">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
+indices start at zero. Its length is <code>j - i</code> bytes.<a href="#section-2-9" class="pilcrow">¶</a></p>
+<p id="section-2-10">For a list <code>x</code>, <code>x[i]</code> denotes its element at index <code>i</code>, counting from zero,
 <code>x[i:j]</code> denotes the sublist from index <code>i</code> up to but not including index <code>j</code>,
-and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-9" class="pilcrow">¶</a></p>
-<p id="section-2-10"><code>I2OSP(value, length)</code> converts a nonnegative integer into a byte string of the
+and <code>len(x)</code> denotes the number of elements it holds.<a href="#section-2-10" class="pilcrow">¶</a></p>
+<p id="section-2-11"><code>I2OSP(value, length)</code> converts a nonnegative integer into a byte string of the
 requested length in big-endian byte order, as described in <span>[<a href="#I2OSP" class="cite xref">I2OSP</a>]</span>. We write
 <code>U16Prefixed(value)</code> for the concatenation of <code>I2OSP(len(value), 2)</code> and
-byte string <code>value</code>.<a href="#section-2-10" class="pilcrow">¶</a></p>
-<p id="section-2-11"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
+byte string <code>value</code>.<a href="#section-2-11" class="pilcrow">¶</a></p>
+<p id="section-2-12"><code>random(n)</code> returns <code>n</code> uniformly random bytes. Implementations <span class="bcp14">MUST</span> generate
 them with a cryptographically secure random number generator. It is the only
 source of randomness in this document: every other value that has to be
-unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-11" class="pilcrow">¶</a></p>
-<p id="section-2-12"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
+unpredictable is derived from its output (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>).<a href="#section-2-12" class="pilcrow">¶</a></p>
+<p id="section-2-13"><code>Seed(x, k)</code> denotes the <code>k</code>-th seed in a byte string of concatenated seeds,
 that is <code>x[k * Nseed:(k + 1) * Nseed]</code>, with <code>k</code> counted from zero.
 <a href="#ciphersuites" class="auto internal xref">Section 7</a> fixes the seed length <code>Nseed</code>. This function is defined as
-follows:<a href="#section-2-12" class="pilcrow">¶</a></p>
-<div class="lang-python sourcecode" id="section-2-13">
+follows:<a href="#section-2-13" class="pilcrow">¶</a></p>
+<div class="lang-python sourcecode" id="section-2-14">
 <pre>
 def Seed(value: bytes, index: int) -&gt; bytes:
     return value[index * Nseed : (index + 1) * Nseed]
-</pre><a href="#section-2-13" class="pilcrow">¶</a>
+</pre><a href="#section-2-14" class="pilcrow">¶</a>
 </div>
-<p id="section-2-14">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
-do not include a terminating NUL byte.<a href="#section-2-14" class="pilcrow">¶</a></p>
-<p id="section-2-15">The definitions of the record types named in function signatures are implicit.
+<p id="section-2-15">Byte strings such as <code>b"Challenge"</code> contain the corresponding ASCII bytes and
+do not include a terminating NUL byte.<a href="#section-2-15" class="pilcrow">¶</a></p>
+<p id="section-2-16">The definitions of the record types named in function signatures are implicit.
 Parameters become constant values once the ciphersuite is fixed. An algorithm
 that can fail raises an error; the errors used in this document are listed in
-<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-15" class="pilcrow">¶</a></p>
+<a href="#errors" class="auto internal xref">Section 3.2</a>.<a href="#section-2-16" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="preliminaries">
@@ -1949,10 +1955,10 @@ shown in <a href="#fig-issuance" class="auto internal xref">Figure 1</a>.<a href
 run by the Client. Both parties input the issuance context <code>ctx_iss</code>; only the
 Client inputs the redemption context <code>ctx_red</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <p id="section-5-4">Each of the first three algorithms outputs one protocol message, and the next
-algorithm takes that message as a single input. The messages are the
-commitment, the pair <code>(A, C)</code>; the challenge, a single scalar; and the
-response, the triple <code>(s, y, t)</code>. The types <code>Commitment</code> and <code>Response</code> denote
-the first and the last of these. The wire format of each message is defined in
+algorithm takes that message as a single input. The messages are the commitment,
+a pair of points <code>(A, C)</code>; the challenge, a single scalar; and the response, a
+triple of scalars <code>(s, y, t)</code>. The types <code>Commitment</code> and <code>Response</code> denote the
+first and the last of these. The wire format of each message is defined in
 <a href="#wire" class="auto internal xref">Section 5.6</a>. All four algorithms treat <code>G</code>, <code>ctx_proto</code>, <code>Nn</code>, and <code>Nseed</code> as
 global variables.<a href="#section-5-4" class="pilcrow">¶</a></p>
 <div id="commit">
@@ -1972,15 +1978,14 @@ def Commit(ctx_iss: bytes) -&gt; tuple[AnchorState, Commitment]:
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
 
-    return (AnchorState(a, y, t), Commitment(A, C))
+    state = AnchorState(a, y, t)
+    commitment = Commitment(A, C)
+    return (state, commitment)
 </pre><a href="#section-5.1-2" class="pilcrow">¶</a>
 </div>
 <p id="section-5.1-3">The Anchor stores <code>state</code> for the duration of the session and sends <code>commitment</code>
 to the Client in a <code>CommitMessage</code> (<a href="#wire" class="auto internal xref">Section 5.6</a>). The signing key is not needed
 until <code>Respond</code>.<a href="#section-5.1-3" class="pilcrow">¶</a></p>
-<p id="section-5.1-4"><code>Commit</code> draws all of its randomness in one call and derives its three
-scalars from it together (<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>). A test vector fixes the single
-value <code>rand</code>; <code>y</code> is nonzero by construction.<a href="#section-5.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="challenge">
@@ -2035,9 +2040,7 @@ def Challenge(
     return (state, challenge)
 </pre><a href="#section-5.2-2" class="pilcrow">¶</a>
 </div>
-<p id="section-5.2-3">As in <code>Commit</code>, all randomness is drawn in one call: the first <code>Nn</code> bytes are
-the nullifier, and the remaining <code>Nseed</code> bytes derive the four blinding
-scalars. <code>ComputeChallenge</code> is as follows:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<p id="section-5.2-3"><code>ComputeChallenge</code> is as follows:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-5.2-4">
 <pre>
 def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -&gt; Scalar:
@@ -2239,13 +2242,13 @@ whose transport is HTTP. The first request is empty, and the corresponding
 response contains the <code>CommitMessage</code>; the second request contains the
 <code>ChallengeMessage</code>, and the corresponding response contains the
 <code>ResponseMessage</code>.<a href="#section-5.6.1-1" class="pilcrow">¶</a></p>
-<p id="section-5.6.1-2">The messages include a session identifier that allows the Anchor to correlate
-the Client's challenge with the state corresponding to the Anchor's commitment.
-The Anchor opens the session with its commitment:<a href="#section-5.6.1-2" class="pilcrow">¶</a></p>
+<p id="section-5.6.1-2">The messages include a session identifier of <code>Nn</code> bytes that allows the Anchor
+to correlate the Client's challenge with the state corresponding to the
+Anchor's commitment. The Anchor opens the session with its commitment:<a href="#section-5.6.1-2" class="pilcrow">¶</a></p>
 <div class="lang-tls-presentation sourcecode" id="section-5.6.1-3">
 <pre>
 struct {
-  opaque session_id&lt;V&gt;;
+  opaque session_id[Nn];
   Element A;
   Element C;
 } CommitMessage;
@@ -2255,7 +2258,7 @@ struct {
 <div class="lang-tls-presentation sourcecode" id="section-5.6.1-5">
 <pre>
 struct {
-  opaque session_id&lt;V&gt;;
+  opaque session_id[Nn];
   Scalar challenge;
 } ChallengeMessage;
 </pre><a href="#section-5.6.1-5" class="pilcrow">¶</a>
@@ -2270,7 +2273,7 @@ struct {
 } ResponseMessage;
 </pre><a href="#section-5.6.1-7" class="pilcrow">¶</a>
 </div>
-<p id="section-5.6.1-8">An Anchor <span class="bcp14">MUST NOT</span> have two open sessions with the same <code>session_id</code>, and <span class="bcp14">SHOULD</span>
+<p id="section-5.6.1-8">An Anchor <span class="bcp14">MUST NOT</span> have two open sessions with the same <code>session_id</code>, and <span class="bcp14">MUST</span>
 generate it with a cryptographically secure random number generator so that a
 Client cannot guess, and so collide with, another Client's session. An Anchor
 that receives a <code>ChallengeMessage</code> whose <code>session_id</code> does not correspond to one
@@ -3900,7 +3903,7 @@ issue.Z =
     0371e34b3816dbda52ab5249e1a5192ae9a097d8475e66aea5c56748c7a4ae59
     d1
 issue.session_id =
-    526f6c6c6174696e69207465737420766563746f72732073657373696f6e
+    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
 issue.commit.rand =
     34f8d290513e7ee4b333809f8468084d625e481f88467d66441fc84823863262
     2425cece0fcf97086b853bd5ab9450a8
@@ -3909,10 +3912,10 @@ issue.commit.state =
     0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
     aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
 issue.commit.message =
-    1e526f6c6c6174696e69207465737420766563746f72732073657373696f6e03
-    1112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da694f
-    032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524b2
-    89
+    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
+    031112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da69
+    4f032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524
+    b289
 issue.challenge.rand =
     814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
     fcd7b4dab3af98a5efd69ba6733ea379906dbfcbc9d3337a4fbf3021a6d1cc15
@@ -3925,8 +3928,8 @@ issue.challenge.state =
     2ea7756101a348c56b54b240d0df324d808a477e612dd530276896e85d832b6d
     e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
 issue.challenge.message =
-    1e526f6c6c6174696e69207465737420766563746f72732073657373696f6ec4
-    c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
+    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
+    c4c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
 issue.response.message =
     c13f29a8276124c478e0becdbc59a1533e908bbee01b5cff12fb4e698ab91de6
     0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
