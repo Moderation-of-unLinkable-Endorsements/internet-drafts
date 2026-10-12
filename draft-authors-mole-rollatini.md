@@ -1040,19 +1040,19 @@ challenge; the Client learns it there and locates its own Anchor in it. Both
 parties input the two contexts.
 
 ~~~ aasvg
-+--------+                           +-----------+
-| Client |                           | Moderator |
-+---+----+                           +-----+-----+
-    |                                      |
-    |<----- challenge (anchor_set) --------+
-    |                                      |
-Redeem                                     |
-    |                                      |
-    +------------- redemption ------------>|
-    |                                      |
-    |                               VerifyRedemption
-    |                                      |
-    |                                      nf
++--------+                                           +-----------+
+| Client |                                           | Moderator |
++---+----+                                           +-----+-----+
+    |                                                      |
+    |<----- challenge (anchor_set, challenge_digest) ------+
+    |                                                      |
+Redeem                                                     |
+    |                                                      |
+    +-------------------- redemption --------------------->|
+    |                                                      |
+    |                                               VerifyRedemption
+    |                                                      |
+    |                                                      nf
 ~~~
 {: #fig-redemption title="Endorsement redemption overview"}
 
@@ -1066,10 +1066,8 @@ this document treats it as an opaque byte string. Note that this challenge is
 the Moderator's, and has nothing to do with the issuance challenge of
 {{challenge}}.
 
-`index` is the position in `anchor_set` of the public key of the Anchor that
-issued the Endorsement. A Client whose Anchor does not appear in `anchor_set`
-cannot redeem at this Moderator and MUST NOT try: the Endorsement will not
-verify under any key it can prove membership for.
+In the remainder, let `index` denote the index of the issuing Anchor in
+`anchor_set`.
 
 ## Key Rerandomization {#rerandomization}
 
@@ -1166,9 +1164,9 @@ def Statements(
     return [X_hat - pkA for pkA in anchor_set]
 ~~~
 
-Two properties make this branch proof *stackable* in the sense of
+Two properties make this branch proof stackable in the sense of
 {{STACKSIG}}. First, a
-verifying commitment can be computed for *any* statement from a challenge and a
+verifying commitment can be computed for any statement from a challenge and a
 response, by the function above, without knowing a witness; this is the
 extended honest-verifier zero-knowledge property. Second, the response is
 a fixed shift of the derived nonce `r`, and so is statistically close to
@@ -1197,10 +1195,11 @@ This document uses the commitment of the appendix of {{STACKSIG}} over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.
 
-The commitment to a pair uses a permutation `P` on group elements, with
-inverse `Pinv` ({{permutation}}). Its key is a point `Q`, and an opening is a
-single scalar, the `randomness` argument of `CommitStep`. The two values are
-hashed to scalars and committed under the bases `Q` and `P(Q)`:
+The commitment to a pair uses a permutation `P` on group elements. The inverse
+of this permutation is denoted `Pinv` ({{permutation}}). Its key is a point `Q`,
+and an opening is a single scalar, the `randomness` argument of `CommitStep`.
+The two values are hashed to scalars and committed under the bases `Q` and
+`P(Q)`:
 
 ~~~python
 def CommitStep(
