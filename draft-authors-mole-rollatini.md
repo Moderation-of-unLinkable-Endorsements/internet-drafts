@@ -219,9 +219,6 @@ defined in {{HTTP-TRANSPORT}}: the length prefix of such a vector is a
 variable-length integer in its minimum-size encoding, so its width depends on
 the length of the contents it carries.
 
-> NOTE we're currently not using QUIC-style length prefixes, but we might switch
-> to this in the future. See [issue 103](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/103).
-
 Algorithms are specified in Python and use the following functions, types, and
 notation.
 
@@ -1394,8 +1391,9 @@ are inverse to each other.
 The following direct implementations define the permutation and its inverse.
 They MAY be used on public points, including the commitment keys in
 `CommitStep`. Key generation instead uses `G.PermutationPair`
-({{permutation-pair}}), whose execution does not distinguish the two binding
-directions when its outputs are fixed.
+({{permutation-pair}}), which is designed to be side-channel resistant. In
+particular, its execution does not distinguish the two binding directions when
+its outputs are fixed.
 
 ~~~python
 def P(self, element: Element) -> Element:
@@ -1563,10 +1561,10 @@ permutations MUST be computed on each iteration of the selected walk.
 ### Challenge Computation {#proof-challenge}
 
 `ProofStatement` encodes the statement being proven: the Anchor Set, the
-rerandomized key, the signature being presented, the two contexts, and the
-Moderator's challenge digest. The Fiat-Shamir challenge covers it together
-with the first move of the proof, which is the commitment keys and the root
-of the tree.
+rerandomized key `X_hat`, the signature being presented (encoded by the
+endorsement), the issuance and redemption context, and the challenge digest. The
+Fiat-Shamir challenge covers it together with the first move of the proof, which
+is the commitment keys and the root of the tree.
 
 ~~~python
 def ProofStatement(
@@ -1635,8 +1633,6 @@ fixed-length, so `anchor_set_enc` and `ck_enc` are unambiguous without length
 prefixes of their own; the number of commitment keys, `q = Depth(n)`, is
 determined by `n`. The label `"IssuerProof"` separates this transcript from the
 issuance transcript of {{challenge}}, which is hashed with the same function.
-
-A challenge of zero is valid here: the proof verifies and favors no branch.
 
 ### Proving {#prove-issuer}
 
@@ -1720,7 +1716,7 @@ and the proof statement as the instance.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
-on the other, having generated that level's key so that the *other* side is
+on the other, having generated that level's key so that the other side is
 the equivocal one. The third move then computes the branch commitment of
 every statement from the single response, equivocates each level to the
 value its sibling subtree now has, and rebuilds the tree with the
@@ -1858,10 +1854,6 @@ def Redeem(
     )
 ~~~
 
-`delta` MUST be freshly derived for every redemption, and MUST NOT be derived
-from the Endorsement or from any other value a Client reuses. It hides the
-Anchor, and reusing it would link two redemptions to each other.
-
 ## Redemption Verification {#verify-redemption}
 
 The Moderator checks the signature under the rerandomized key and the proof
@@ -1942,9 +1934,9 @@ struct {
 ~~~
 
 `shown_endorsement` uses the `Endorsement` structure of
-{{endorsement-encoding}}, with `s` carrying `s_hat`. It is a valid Endorsement
-under `rerandomized_key` ({{rerandomization}}), not the Endorsement the Client
-stored, which the Client MUST NOT send.
+{{endorsement-encoding}}, with `s` carrying `s_hat`, but is rerandomized such
+that it verifies under `rerandomized_key` ({{rerandomization}}), not the
+Endorsement the Client stored, which the Client MUST NOT send.
 
 A Moderator deserializes a `Redemption` against its Anchor Set of `n` keys, as
 in {{wire}}. It MUST raise a `DeserializeError` unless `commitment_keys` is
