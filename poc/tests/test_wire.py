@@ -5,7 +5,7 @@ from rollatini import wire
 from rollatini.ciphersuite import DeserializeError, ORDER
 
 G = protocol.G
-SESSION_ID = b"session-7"
+SESSION_ID = bytes(range(protocol.Nn))
 
 
 def _issue_over_the_wire():
@@ -45,10 +45,9 @@ def _redemption(size):
 
 def test_message_sizes():
     _, _, messages = _issue_over_the_wire()
-    header = 1 + len(SESSION_ID)
     assert [len(m) for m in messages] == [
-        header + 2 * G.Ne,
-        header + G.Ns,
+        protocol.Nn + 2 * G.Ne,
+        protocol.Nn + G.Ns,
         3 * G.Ns,
         4 * G.Ns + protocol.Nn,
     ]
@@ -100,7 +99,7 @@ def test_truncated_and_padded_messages_are_rejected():
 def test_invalid_elements_and_scalars_are_rejected():
     _, _, messages = _issue_over_the_wire()
     commit_message, _, response_message, _ = messages
-    offset = 1 + len(SESSION_ID)
+    offset = protocol.Nn
     for element in (bytes(G.Ne), b"\x02" + b"\xff" * 32):
         bad = commit_message[:offset] + element + commit_message[offset + G.Ne :]
         with pytest.raises(DeserializeError):
