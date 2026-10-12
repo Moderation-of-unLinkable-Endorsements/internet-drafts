@@ -1141,9 +1141,9 @@ The disjunction is proved over the statements
 of which the Client can answer branch `index`, where `Y[index] = delta * B`.
 
 A single branch is proved by the usual three moves: the Client draws a nonce
-`r` and commits `T = r * B`; the verifier sends a challenge `c`; the Client
-answers `z = r - c * delta`; and the verifier checks that
-`T = c * Y[index] + z * B`.
+`r` and commits `T = r * B`; the verifier sends a challenge `proof_challenge`;
+the Client answers `response = r - proof_challenge * delta`; and the verifier
+checks that `T = proof_challenge * Y[index] + response * B`.
 
 Read the other way round, that check determines the commitment from the
 challenge and the response:
@@ -1253,20 +1253,24 @@ a vector of odd length carries its last element up unchanged.
 ~~~python
 def VecCommit(
     V: Sequence[bytes],
-    Qi: Sequence[Element],
-    rands: Sequence[Scalar],
+    commitment_keys: Sequence[Element],
+    openings: Sequence[Scalar],
 ) -> bytes:
     if len(V) == 1:
         return V[0]
 
     V_prime = []
     for i in range(len(V) // 2):
-        V_prime.append(CommitStep(Qi[0], V[2 * i], V[2 * i + 1], rands[0]))
+        V_prime.append(
+            CommitStep(
+                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+            )
+        )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, Qi[1:], rands[1:])
+    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
 ~~~
 
 A vector of `n` values has `Depth(n)` levels, each with one key and one
@@ -1628,7 +1632,7 @@ def ComputeProofChallenge(
 
 The length of the Anchor Set `n` is prefixed and `Element` encodings are
 fixed-length, so `anchor_set_enc` and `ck_enc` are unambiguous without length
-prefixes of their own; `q`, and with it the number of commitment keys, is
+prefixes of their own; the number of commitment keys, `q = Depth(n)`, is
 determined by `n`. The label `"IssuerProof"` separates this transcript from the
 issuance transcript of {{challenge}}, which is hashed with the same function.
 
@@ -1673,7 +1677,7 @@ def ProveIssuer(
     r = derived[0]
     trapdoors = derived[1 : q + 1]
     first_openings = derived[q + 1 :]
-    A = B * r
+    T = r * B
 
     commitment_keys = GenerateVecBind(index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
@@ -1681,7 +1685,7 @@ def ProveIssuer(
         commitment_keys,
         len(Y),
         index,
-        G.SerializeElement(A),
+        G.SerializeElement(T),
         first_openings,
     )
 
@@ -1749,14 +1753,14 @@ def VerifyIssuer(
     if len(openings) != q:
         return False
 
-    T = []
+    V = []
     for i in range(n):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         if commitment.isIdentity():
             return False
-        T.append(G.SerializeElement(commitment))
+        V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(T, commitment_keys, openings)
+    root = VecCommit(V, commitment_keys, openings)
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
@@ -2294,9 +2298,9 @@ nullifier and then the `Nseed` bytes of the blinding factors; and for
 `Redeem`, the `Nseed` bytes of `delta` and then the `Nseed` bytes of the
 issuer-hiding proof. The `commit.state` entry is the
 `AnchorState` `(a, y, t)` as
-`SerializeScalar(a) || SerializeScalar(y) || SerializeScalar(t)`, and the
-`challenge.state` entry is `nf || SerializeScalar(r1) || SerializeScalar(r2)`
-followed by `SerializeScalar(gamma1) || SerializeScalar(gamma2) ||
+`SerializeScalar(a) + SerializeScalar(y) + SerializeScalar(t)`, and the
+`challenge.state` entry is `nf + SerializeScalar(r1) + SerializeScalar(r2)`
+followed by `SerializeScalar(gamma1) + SerializeScalar(gamma2) +
 SerializeScalar(c)`. `issue.Z` is `CreateContextBase(ctx_iss)`, and
 `key.P_pkA` is `P(pkA)`. Every message and `endorsement` entry is an encoding
 of {{wire}} or {{redemption-wire}}, and the commit and challenge messages

@@ -264,20 +264,24 @@ def EquivocateStep(
 
 def VecCommit(
     V: Sequence[bytes],
-    Qi: Sequence[Element],
-    rands: Sequence[Scalar],
+    commitment_keys: Sequence[Element],
+    openings: Sequence[Scalar],
 ) -> bytes:
     if len(V) == 1:
         return V[0]
 
     V_prime = []
     for i in range(len(V) // 2):
-        V_prime.append(CommitStep(Qi[0], V[2 * i], V[2 * i + 1], rands[0]))
+        V_prime.append(
+            CommitStep(
+                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+            )
+        )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, Qi[1:], rands[1:])
+    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
 
 
 def Depth(n: int) -> int:
@@ -468,7 +472,7 @@ def ProveIssuer(
     r = derived[0]
     trapdoors = derived[1 : q + 1]
     first_openings = derived[q + 1 :]
-    A = B * r
+    T = r * B
 
     commitment_keys = GenerateVecBind(index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
@@ -476,7 +480,7 @@ def ProveIssuer(
         commitment_keys,
         len(Y),
         index,
-        G.SerializeElement(A),
+        G.SerializeElement(T),
         first_openings,
     )
 
@@ -527,14 +531,14 @@ def VerifyIssuer(
     if len(openings) != q:
         return False
 
-    T = []
+    V = []
     for i in range(n):
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         if commitment.isIdentity():
             return False
-        T.append(G.SerializeElement(commitment))
+        V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(T, commitment_keys, openings)
+    root = VecCommit(V, commitment_keys, openings)
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
