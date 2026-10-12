@@ -679,10 +679,10 @@ run by the Client. Both parties input the issuance context `ctx_iss`; only the
 Client inputs the redemption context `ctx_red`.
 
 Each of the first three algorithms outputs one protocol message, and the next
-algorithm takes that message as a single input. The messages are the
-commitment, the pair `(A, C)`; the challenge, a single scalar; and the
-response, the triple `(s, y, t)`. The types `Commitment` and `Response` denote
-the first and the last of these. The wire format of each message is defined in
+algorithm takes that message as a single input. The messages are the commitment,
+a pair of points `(A, C)`; the challenge, a single scalar; and the response, a
+triple of scalars `(s, y, t)`. The types `Commitment` and `Response` denote the
+first and the last of these. The wire format of each message is defined in
 {{wire}}. All four algorithms treat `G`, `ctx_proto`, `Nn`, and `Nseed` as
 global variables.
 
@@ -700,16 +700,14 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
 
-    return (AnchorState(a, y, t), Commitment(A, C))
+    state = AnchorState(a, y, t)
+    commitment = Commitment(A, C)
+    return (state, commitment)
 ~~~
 
 The Anchor stores `state` for the duration of the session and sends `commitment`
 to the Client in a `CommitMessage` ({{wire}}). The signing key is not needed
 until `Respond`.
-
-`Commit` draws all of its randomness in one call and derives its three
-scalars from it together ({{derive-scalar}}). A test vector fixes the single
-value `rand`; `y` is nonzero by construction.
 
 ## Client Challenge {#challenge}
 
@@ -760,9 +758,7 @@ def Challenge(
     return (state, challenge)
 ~~~
 
-As in `Commit`, all randomness is drawn in one call: the first `Nn` bytes are
-the nullifier, and the remaining `Nseed` bytes derive the four blinding
-scalars. `ComputeChallenge` is as follows:
+`ComputeChallenge` is as follows:
 
 ~~~python
 def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -> Scalar:
