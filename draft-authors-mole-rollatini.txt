@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                   W. Ladd
-Expires: 12 April 2027                               Akamai Technologies
+Expires: 15 April 2027                               Akamai Technologies
                                                              D. I. Mohan
                                          Georgia Institute of Technology
-                                                          9 October 2026
+                                                         12 October 2026
 
 
               Rollatini: An Issuer-Hiding Anonymous Token
@@ -56,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 12 April 2027.
+   This Internet-Draft will expire on 15 April 2027.
 
 Copyright Notice
 
@@ -191,6 +191,11 @@ Table of Contents
    of such a vector is a variable-length integer in its minimum-size
    encoding, so its width depends on the length of the contents it
    carries.
+
+      NOTE we're currently not using QUIC-style length prefixes, but we
+      might switch to this in the future.  See issue 103
+      (https://github.com/Moderation-of-unLinkable-Endorsements/
+      internet-drafts/issues/103).
 
    Algorithms are specified in Python and use the following functions,
    types, and notation.
@@ -634,11 +639,12 @@ Table of Contents
 
    Each of the first three algorithms outputs one protocol message, and
    the next algorithm takes that message as a single input.  The
-   messages are the commitment, the pair (A, C); the challenge, a single
-   scalar; and the response, the triple (s, y, t).  The types Commitment
-   and Response denote the first and the last of these.  The wire format
-   of each message is defined in Section 5.6.  All four algorithms treat
-   G, ctx_proto, Nn, and Nseed as global variables.
+   messages are the commitment, a pair of points (A, C); the challenge,
+   a single scalar; and the response, a triple of scalars (s, y, t).
+   The types Commitment and Response denote the first and the last of
+   these.  The wire format of each message is defined in Section 5.6.
+   All four algorithms treat G, ctx_proto, Nn, and Nseed as global
+   variables.
 
 5.1.  Anchor Commitment
 
@@ -654,15 +660,13 @@ Table of Contents
        A = G.ScalarMultGen(a)
        C = G.ScalarMultGen(t) + y * Z
 
-       return (AnchorState(a, y, t), Commitment(A, C))
+       state = AnchorState(a, y, t)
+       commitment = Commitment(A, C)
+       return (state, commitment)
 
    The Anchor stores state for the duration of the session and sends
    commitment to the Client in a CommitMessage (Section 5.6).  The
    signing key is not needed until Respond.
-
-   Commit draws all of its randomness in one call and derives its three
-   scalars from it together (Section 4.2).  A test vector fixes the
-   single value rand; y is nonzero by construction.
 
 5.2.  Client Challenge
 
@@ -711,9 +715,7 @@ Table of Contents
        )
        return (state, challenge)
 
-   As in Commit, all randomness is drawn in one call: the first Nn bytes
-   are the nullifier, and the remaining Nseed bytes derive the four
-   blinding scalars.  ComputeChallenge is as follows:
+   ComputeChallenge is as follows:
 
    def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -> Scalar:
        (A, C) = commitment
@@ -900,13 +902,13 @@ Table of Contents
    request contains the ChallengeMessage, and the corresponding response
    contains the ResponseMessage.
 
-   The messages include a session identifier that allows the Anchor to
-   correlate the Client's challenge with the state corresponding to the
-   Anchor's commitment.  The Anchor opens the session with its
-   commitment:
+   The messages include a session identifier of Nn bytes that allows the
+   Anchor to correlate the Client's challenge with the state
+   corresponding to the Anchor's commitment.  The Anchor opens the
+   session with its commitment:
 
    struct {
-     opaque session_id<V>;
+     opaque session_id[Nn];
      Element A;
      Element C;
    } CommitMessage;
@@ -915,7 +917,7 @@ Table of Contents
    identifier:
 
    struct {
-     opaque session_id<V>;
+     opaque session_id[Nn];
      Scalar challenge;
    } ChallengeMessage;
 
@@ -928,7 +930,7 @@ Table of Contents
    } ResponseMessage;
 
    An Anchor MUST NOT have two open sessions with the same session_id,
-   and SHOULD generate it with a cryptographically secure random number
+   and MUST generate it with a cryptographically secure random number
    generator so that a Client cannot guess, and so collide with, another
    Client's session.  An Anchor that receives a ChallengeMessage whose
    session_id does not correspond to one of its open sessions MUST raise
@@ -2376,7 +2378,7 @@ A.4.  Issuance
        0371e34b3816dbda52ab5249e1a5192ae9a097d8475e66aea5c56748c7a4ae59
        d1
    issue.session_id =
-       526f6c6c6174696e69207465737420766563746f72732073657373696f6e
+       526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
    issue.commit.rand =
        34f8d290513e7ee4b333809f8468084d625e481f88467d66441fc84823863262
        2425cece0fcf97086b853bd5ab9450a8
@@ -2385,10 +2387,10 @@ A.4.  Issuance
        0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
        aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
    issue.commit.message =
-       1e526f6c6c6174696e69207465737420766563746f72732073657373696f6e03
-       1112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da694f
-       032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524b2
-       89
+       526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
+       031112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da69
+       4f032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524
+       b289
    issue.challenge.rand =
        814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
        fcd7b4dab3af98a5efd69ba6733ea379906dbfcbc9d3337a4fbf3021a6d1cc15
@@ -2401,8 +2403,8 @@ A.4.  Issuance
        2ea7756101a348c56b54b240d0df324d808a477e612dd530276896e85d832b6d
        e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
    issue.challenge.message =
-       1e526f6c6c6174696e69207465737420766563746f72732073657373696f6ec4
-       c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
+       526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
+       c4c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
    issue.response.message =
        c13f29a8276124c478e0becdbc59a1533e908bbee01b5cff12fb4e698ab91de6
        0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
