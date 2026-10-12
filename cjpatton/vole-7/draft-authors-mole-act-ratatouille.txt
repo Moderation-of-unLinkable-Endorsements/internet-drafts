@@ -367,8 +367,9 @@ Table of Contents
 
    We write s := UOV.DerivePreimage(td, t) to denote deriving the
    preimage of target t under P, i.e., an s for which P(s) = t.  Similar
-   to UOV signing procedure (Figure 2 of [UOV]), the preimate is derived
-   deterministically by hashing the target together with the salt.
+   to the UOV signing procedure (Figure 2 of [UOV]), the preimage is
+   derived deterministically by hashing the target together with the
+   secret key seed.
 
       TODO(cjpatton) Define preimage sampling precisely.  In UOV, the
       target is: t := Hash(mu || salt)

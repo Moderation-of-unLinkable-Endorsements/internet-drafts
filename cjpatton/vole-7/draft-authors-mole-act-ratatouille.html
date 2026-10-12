@@ -1575,9 +1575,9 @@ UOV map <code>P : F_q^n -&gt; F_q^m</code> using the procedure in <span>[<a href
 Likewise, we write <code>td := UOV.ExpandSK(csk)</code> to denote expansion of the secret
 key into the trapdoor <code>td</code> for <code>P</code>.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">We write <code>s := UOV.DerivePreimage(td, t)</code> to denote deriving the preimage of
-target <code>t</code> under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. Similar to UOV signing
-procedure (Figure 2 of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>), the preimate is derived deterministically by
-hashing the target together with the salt.<a href="#section-4-5" class="pilcrow">¶</a></p>
+target <code>t</code> under <code>P</code>, i.e., an <code>s</code> for which <code>P(s) = t</code>. Similar to the UOV signing
+procedure (Figure 2 of <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>), the preimage is derived deterministically by
+hashing the target together with the secret key seed.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-4-6.1">
           <p id="section-4-6.1.1">TODO(cjpatton) Define preimage sampling precisely. In UOV, the target is:
