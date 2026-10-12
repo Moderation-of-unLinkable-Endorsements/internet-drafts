@@ -115,25 +115,31 @@ def DecodeCredential(data: bytes) -> act.Credential:
     return result
 
 
+def SpendCommitmentCount(s: int, a: int) -> int:
+    if s + a >= 2**act.L:
+        raise act.AmountError
+    return len(act.RangeWeights(2**act.L - 1 - (s + a)))
+
+
 def SpendWitnessCount(s: int, a: int) -> int:
-    return 7 + (3 * act.L if s > 0 else 1) + (3 * act.L if a > 0 else 0)
+    if s + a == 0:
+        return 8
+    return 7 + 3 * SpendCommitmentCount(s, a)
 
 
 def EncodeSpend(message: act.SpendMessage) -> bytes:
     s, a = message.s, message.a
     amounts = _amount(s) + _amount(a)
-    if (
-        len(message.Com1) != (act.L if s > 0 else 0)
-        or (message.Com_c is None) != (s > 0)
-        or len(message.Com2) != (act.L if a > 0 else 0)
-    ):
+    refresh = s + a == 0
+    if len(message.Com1) != (
+        0 if refresh else SpendCommitmentCount(s, a)
+    ) or (message.Com_c is None) == refresh:
         raise DeserializeError(
             "ACT spend shape does not match its amounts"
         )
     commitments = list(message.Com1)
     if message.Com_c is not None:
         commitments.append(message.Com_c)
-    commitments.extend(message.Com2)
     points = [message.A_prime, message.B_bar, message.K_n, *commitments]
     return (
         act.G.SerializeScalar(message.k)
@@ -146,18 +152,19 @@ def EncodeSpend(message: act.SpendMessage) -> bytes:
 def DecodeSpend(data: bytes) -> act.SpendMessage:
     reader = Reader(data)
     k, s, a = reader.scalar(), reader.amount(), reader.amount()
+    refresh = s + a == 0
+    n = 0 if refresh else SpendCommitmentCount(s, a)
     A_prime, B_bar, K_n = (
         reader.element(),
         reader.element(),
         reader.element(),
     )
-    Com1 = [reader.element() for _ in range(act.L)] if s > 0 else []
-    Com_c = reader.element() if s == 0 else None
-    Com2 = [reader.element() for _ in range(act.L)] if a > 0 else []
+    Com1 = [reader.element() for _ in range(n)]
+    Com_c = reader.element() if refresh else None
     pok = reader.proof(SpendWitnessCount(s, a))
     reader.finish()
     return act.SpendMessage(
-        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
+        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok
     )
 
 

@@ -1,4 +1,4 @@
-"""Run issuance and all four spend/refund shapes: python -m act.demo."""
+"""Run issuance and four spend/refund flows: python -m act.demo."""
 
 from . import protocol as act, wire
 

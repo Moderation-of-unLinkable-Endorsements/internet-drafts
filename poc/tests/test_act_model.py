@@ -23,7 +23,28 @@ def test_act_context_and_generators():
     assert act.CreateContextScalar(b"epoch") != act.CreateContextScalar(
         b"epoch2"
     )
-    assert [int(b) for b in act.Bits(129)] == [1, 0, 0, 0, 0, 0, 0, 1]
+    weights = act.RangeWeights(2**act.L - 1)
+    assert weights == [2**j for j in range(act.L)]
+    assert [int(b) for b in act.Bits(129, weights)] == [1, 0, 0, 0, 0, 0, 0, 1]
+
+
+@pytest.mark.parametrize("m", range(2**6))
+def test_range_weights_cover_exactly_the_range(monkeypatch, m):
+    monkeypatch.setattr(act, "L", 6)
+    weights = act.RangeWeights(m)
+    assert len(weights) == m.bit_length()
+    assert all(w > 0 for w in weights)
+    assert sum(weights) == m
+    for x in range(m + 1):
+        bits = [int(b) for b in act.Bits(x, weights)]
+        assert set(bits) <= {0, 1}
+        assert sum(b * w for b, w in zip(bits, weights)) == x
+
+
+def test_range_weights_reject_out_of_range_bounds():
+    for m in (-1, 2**act.L):
+        with pytest.raises(act.AmountError):
+            act.RangeWeights(m)
 
 
 def test_shared_derivation_preserves_domain_separation(monkeypatch):
