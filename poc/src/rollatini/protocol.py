@@ -89,7 +89,9 @@ def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
     A = G.ScalarMultGen(a)
     C = G.ScalarMultGen(t) + y * Z
 
-    return (AnchorState(a, y, t), Commitment(A, C))
+    state = AnchorState(a, y, t)
+    commitment = Commitment(A, C)
+    return (state, commitment)
 
 
 def Challenge(
