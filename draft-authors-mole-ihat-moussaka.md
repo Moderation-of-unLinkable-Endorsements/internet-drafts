@@ -337,7 +337,7 @@ justification.
 # Preliminaries {#preliminaries}
 
 The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
-`UOV.ExpandSK()`, `UOV.SPre()`, `PKDigest()`, `VOLEitH.Prove()`, and
+`UOV.ExpandSK()`, `UOV.DerivePreimage()`, `PKDigest()`, `VOLEitH.Prove()`, and
 `VOLEitH.Verify()` are defined as in {{ACT-RATATOUILLE}}. We adopt the uov-Ip
 parameter set (NIST Level 1) for UOV. That is, for the remainder of this
 document, let `n=119`, `m=45`, and `q=2^8`.
@@ -506,7 +506,7 @@ IssueResponse(td, request, ctx_iss):
          pf_iss,
        )
     3. if v = 0: return INVALID
-    4. s := UOV.SPre(td, t)
+    4. s := UOV.DerivePreimage(td, t)
     5. return s
 ~~~~
 
@@ -687,15 +687,15 @@ scrutiny before we rely on it too heavily.
 > Our goal is to transform a one-more-redemption forger `B` into a one-more-UOV
 > forger `A`. We simulate `B`'s RO queries using the random targets we got as
 > input to our one-more-UOV instance; when `B` requests issuance, we forward
-> the target to our own `SPre` oracle.
+> the target to our own `DerivePreimage` oracle.
 >
-> On input `P, t[0], ..., t[Q-1]` and with oracle `SPre`: Run `B` with `P` as
-> the issuer public key and respond to its queries as follows:
+> On input `P, t[0], ..., t[Q-1]` and with oracle `DerivePreimage`: Run `B` with
+> `P` as the issuer public key and respond to its queries as follows:
 >
 > * When `B` asks `Com(nf, r)`: for the `i`-th such query, counting from zero,
 >   respond with `c = t[i]`.
 >
-> * When `B` requests issuance for `c`: respond with `s = SPre(c)`.
+> * When `B` requests issuance for `c`: respond with `s = DerivePreimage(c)`.
 >
 > * When `B` requests redemption for `nf, pf`: extract the witness `s, r` for
 >   `pf` and let `c = Com(nf, r)`. (If this fails, then witness extractability

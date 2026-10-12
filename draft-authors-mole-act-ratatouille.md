@@ -513,9 +513,19 @@ UOV map `P : F_q^n -> F_q^m` using the procedure in {{UOV}}, Figure 2.
 Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of the secret
 key into the trapdoor `td` for `P`.
 
-We write `s := UOV.SPre(td, t)` to denote sampling a preimage of target `t`
-under `P`, i.e., an `s` for which `P(s) = t`. This is the same procedure as used
-in the signing algorithm in {{UOV}}, Figure 2.
+We write `s := UOV.DerivePreimage(td, t)` to denote deriving the preimage of
+target `t` under `P`, i.e., an `s` for which `P(s) = t`. Similar to the UOV signing
+procedure (Figure 2 of {{UOV}}), the preimage is derived deterministically by
+hashing the target together with the secret key seed.
+
+> TODO(cjpatton) Define preimage sampling precisely. In UOV, the target is:
+> t := Hash(mu || salt)
+>
+> To compute the preimage, we start by computing a vector v by:
+> v := Expand_v(mu || salt || seed_sk || ctr)
+>
+> We instead would compute v as:
+> v := Expand_v(t || seed_sk || ctr)
 
 We write `PKDigest(P)` to denote the 32-byte SHAKE256 {{FIPS202}} digest of the
 compact public key `cpk` from which `P` was expanded, i.e., `SHAKE256(cpk)`
@@ -745,7 +755,7 @@ IssueResponse(td, request, T_init, ctx_iss):
          pf_iss,
        )
     4. if v = 0: return INVALID
-    5. s := UOV.SPre(td, Tag(c, 0))
+    5. s := UOV.DerivePreimage(td, Tag(c, 0))
     6. return s
 ~~~~
 
@@ -888,7 +898,7 @@ SpendResponse(P, td, request, ctx_iss, x'):
          pf_spend,
        )
     5. if v = 0: return INVALID
-    6. s' := UOV.SPre(td, Tag(c', x'))
+    6. s' := UOV.DerivePreimage(td, Tag(c', x'))
     7. response := (x', s')
     8. return (response, nf, d)
 ~~~~
