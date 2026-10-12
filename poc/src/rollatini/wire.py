@@ -58,6 +58,9 @@ class Reader:
     def vector(self) -> bytes:
         return self.take(self.length())
 
+    def session_id(self) -> bytes:
+        return self.take(Nn)
+
     def element(self) -> Element:
         return G.DeserializeElement(self.take(G.Ne))
 
@@ -78,7 +81,7 @@ class Reader:
 
 def EncodeCommitMessage(session_id: bytes, commitment: Commitment) -> bytes:
     return (
-        _vector(session_id)
+        session_id
         + G.SerializeElement(commitment.A)
         + G.SerializeElement(commitment.C)
     )
@@ -86,7 +89,7 @@ def EncodeCommitMessage(session_id: bytes, commitment: Commitment) -> bytes:
 
 def DecodeCommitMessage(data: bytes) -> tuple[bytes, Commitment]:
     reader = Reader(data)
-    session_id = reader.vector()
+    session_id = reader.session_id()
     A = reader.element()
     C = reader.element()
     reader.finish()
@@ -94,12 +97,12 @@ def DecodeCommitMessage(data: bytes) -> tuple[bytes, Commitment]:
 
 
 def EncodeChallengeMessage(session_id: bytes, challenge: Scalar) -> bytes:
-    return _vector(session_id) + G.SerializeScalar(challenge)
+    return session_id + G.SerializeScalar(challenge)
 
 
 def DecodeChallengeMessage(data: bytes) -> tuple[bytes, Scalar]:
     reader = Reader(data)
-    session_id = reader.vector()
+    session_id = reader.session_id()
     challenge = reader.scalar()
     reader.finish()
     return (session_id, challenge)

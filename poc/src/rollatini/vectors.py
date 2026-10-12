@@ -15,7 +15,7 @@ from . import common, protocol as rollatini, wire
 DERIVE_INFO = b"Rollatini test vectors"
 CTX_ISS = b"Rollatini test vectors issuance context"
 CTX_RED = b"Rollatini test vectors redemption context"
-SESSION_ID = b"Rollatini test vectors session"
+SESSION_ID = b"Rollatini test vector session id"
 CHALLENGE_DIGEST = b"Rollatini test vectors challenge digest"
 # Anchor Set sizes and the position of the issuing Anchor in each.
 REDEMPTIONS = [(2, 1), (5, 3), (1, 0)]
