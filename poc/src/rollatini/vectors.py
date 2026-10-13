@@ -69,7 +69,6 @@ def _render(source: Source) -> str:
     G = rollatini.G
     out = "## Ciphersuite {#rollatini-tv-suite}\n\n" + block(
         entry("suite.identifier", b"P256-SHA256")
-        + entry("suite.ctx_proto", rollatini.ctx_proto)
     )
 
     scalars = G.DeriveScalars(source(rollatini.Nseed), DERIVE_INFO, 3)
