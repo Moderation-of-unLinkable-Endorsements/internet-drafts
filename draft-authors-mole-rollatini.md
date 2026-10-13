@@ -2022,46 +2022,17 @@ Blindness:
   With uniform blinding factors, the blinded challenge is uniformly
   distributed and independent of the message and of the resulting signature,
   and the underlying scheme is perfectly blind {{FFKLLS26}}. The blinding factors
-  of this document are  derived by hashing ("Derived blinding factors" below), so in
+  of this document are derived by hashing ("Derived blinding factors" below), so in
   the random oracle model the scheme is statistically blind: an Anchor can
   link an Endorsement to the session that produced it only by evaluating the
   hash function on one of the secret inputs from which the Client derives
-  its blinding factors ({{derive-scalar}}). Finding one by search takes about
-  `2^256` evaluations, or `2^128` on a quantum computer. Endorsement grants and redemptions are therefore unlinkable, as
-  {{ARCH}} requires, even to an attacker who records transcripts for a future
-  quantum computer.
-
-Derived blinding factors:
-: `Challenge` derives its four blinding factors with `G.DeriveScalars`, and
-  `Redeem` derives `delta` the same way and the `2 * q + 1` scalars of its
-  proof with `G.DeriveNonces` ({{derive-nonce}}). Short of an evaluation of
-  the hash function on one of their secret inputs, each is within about
-  `2^-128` of uniform ({{derive-scalar}}), so the four blinding factors of a
-  session are jointly within about `2^-126` of uniform, and blindness holds
-  up to that distance.
-
-Derived first move:
-: In `ProveIssuer`, the nonce `r` reused under a different challenge reveals
-  `delta`, which names the Anchor, and a commitment key reused with its first
-  opening under a different challenge can reveal the key's trapdoor and with
-  it a bit of `index`. `ProveIssuer` therefore derives all of these together
-  with `G.DeriveNonces`, from `delta`, `index`, and the proof statement as
-  well as fresh randomness ({{prove-issuer}}), so that a failed random source
-  does not cause any of them to be reused under a different challenge
-  ({{derive-nonce}}). The Anchor's signing nonce `a` in `Commit` cannot be
-  protected this way, since
-  it is fixed before the Client's challenge exists and no input distinguishes
-  two sessions at that point. `Commit` derives `a` together with `t` and `y`
-  ({{derive-scalar}}), so a random source that repeats part of its output
-  still changes `a`, but only fresh randomness or persistent per-session
-  state prevents a full repetition. An Anchor that reuses `a` across two
-  challenges reveals `y * skA`, and hence `skA`, since `y` is public in the
-  Endorsement.
+  its blinding factors ({{derive-scalar}}). Endorsement grants and redemptions are therefore unlinkable, as
+  {{ARCH}} requires.
 
 One-more unforgeability:
 : A Client that completes `k` issuance sessions under a given issuance context
   cannot produce `k+1` distinct valid Endorsements under that context,
-  regardless of how many sessions it has completed under *other* issuance
+  regardless of how many sessions it has completed under other issuance
   contexts {{TESSZHU}}. This is what allows a Moderator to conclude that an
   accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
   This security guarantee holds even with concurrent sessions.
@@ -2077,7 +2048,7 @@ Unforgeability under rerandomization:
 
 Issuer hiding:
 : Theorem 2 of {{FFKLLS26}} establishes issuer-hiding blindness from perfect
-  blindness of issuance, strong key randomizability, and perfect zero knowledge
+  blindness of issuance, strong key randomizability (as defined by {{FFKLLS26}}), and perfect zero knowledge
   of the issuer-hiding proof, assuming uniform randomness. Up to the statistical
   distance given below, a redemption reveals nothing
   about which Anchor in `anchor_set` issued the Endorsement, so a Moderator, an
@@ -2088,15 +2059,7 @@ Issuer hiding:
   key is distributed independently of that position, and an opening
   independently of whether the value it opens to was committed or
   equivocated. The stacked composition is therefore witness indistinguishable
-  (appendix and Section 7 of {{STACKSIG}}). These results assume uniform
-  randomness; in the random oracle model, each of the `2 * q + 2` scalars a
-  redemption derives is within about `2^-128` of uniform ("Derived blinding
-  factors" above), a statistical distance of at most `(2 * q + 2) * 2^-128`.
-  Like blindness, issuer hiding therefore holds in that model against an
-  adversary that does not find those inputs, including a quantum computer
-  that records transcripts today. The *binding* property of the commitment,
-  not its hiding, rests on the discrete logarithm, which is the direction
-  {{ARCH}} requires.
+  (appendix and Section 7 of {{STACKSIG}}).
 
 Partially binding commitments:
 : The soundness of the issuer-hiding proof rests on two things: the
@@ -2110,47 +2073,14 @@ Partially binding commitments:
   positions would require both logarithms. That a `Q` with both known is as
   hard to find as a discrete logarithm when `P` is modelled as a random
   permutation ({{permutation}}) is the assumption under which the pair
-  commitment of the appendix of {{STACKSIG}} binds. `P` MUST therefore be the
-  permutation specified in {{permutation}} and MUST NOT be chosen or
-  negotiated by any party: a Client that could choose `P` could take
-  `P(Q) = 2 * Q`, equivocate every position of every node, and forge
-  redemptions without an Endorsement.
-
-Anchor Set size:
-: Issuer hiding hides the Anchor *within the Anchor Set*, so the set is the
-  anonymity set, and a redemption against a set of one key names its Anchor
-  ({{verify-redemption}}); blindness still keeps it unlinkable to the session
-  that produced the Endorsement. A Moderator that offers different Anchor Sets
-  to different Clients partitions them, and one that reorders the set between
-  Clients does the same; the set and its order MUST be the same for every
-  Client offered a given `ctx_iss`. See {{ARCH}} for how set size interacts
-  with Anchor diversity.
-
-Proof size and cost:
-: The proof is logarithmic in the size of the Anchor Set: two scalars, plus one
-  element and one scalar for each of the `q` levels of the tree
-  ({{redemption-wire}}), but computation is linear in `n`. The prover and the
-  verifier each evaluate all `n` branch commitments and build a tree of
-  `n - 1` node commitments over them. The tree of the prover's first move,
-  which is also the old tree of `VecEquivocate`, has empty leaves off the
-  binding path, so at most three of its node commitments at each level are
-  distinct. The node commitments of a level share `randomness * B` and
-  `P(Q)`, and the branch commitments share `proof_challenge * X_hat +
-  response * B`, terms an implementation computes once. Each party performs
-  a number of scalar multiplications linear in `n`, so a large Anchor Set is
-  cheap in bandwidth and not in CPU, which reverses the tradeoff of the
-  linear disjunction {{CDS94}} for bandwidth but not for work; {{FFKLLS26}}
-  notes the same for its own instantiations. For deployments, the linear
-  disjunction is smaller for Anchor Sets of three keys or fewer, and since
-  the depth `q = Depth(n)` is `ceil(log2 n)`, an Anchor Set of `2^q + 1` keys
-  costs a whole extra level while adding one Anchor to the anonymity set.
+  commitment of the appendix of {{STACKSIG}} binds.
 
 Constant-time proving:
 : `ProveIssuer` treats one leaf, and one side of each node on the path to it,
   differently from the others, and that leaf is the secret the proof hides.
   Implementations MUST NOT allow the binding path to be distinguished by
-  timing, memory access patterns, or the amount of randomness consumed; the
-  randomness a redemption consumes is `2 * Nseed` bytes ({{redeem}}). The first
+  timing or memory access patterns.
+  The first
   move places the real branch commitment at `index` and empty values at every
   other leaf; both commitment passes visit every node of the tree. That
   placement and the later equivocation MUST avoid observable secret-dependent
@@ -2164,12 +2094,11 @@ Constant-time proving:
   both binding directions execute the same operation schedule for that key.
   This addresses the permutation walk only: secret-index selection,
   scalar arithmetic, and the rest of the proving algorithm still require
-  constant-time implementations. In particular, source-level masking in
-  the Python reference implementation is not a constant-time guarantee.
+  constant-time implementations.
 
 Single-use sessions:
-: **Implementations MUST ensure that the session state produced by `Commit` is
-  never used more than once.** If an Anchor answers two distinct challenges
+: Implementations MUST ensure that the session state produced by `Commit` is
+  never used more than once. If an Anchor answers two distinct challenges
   `c1 != c2` on one `Commit` state, then from the two responses
   `s1 = a + c1*y*skA` and `s2 = a + c2*y*skA`, with `y` revealed in both,
   anyone recovers the signing key as
@@ -2178,23 +2107,7 @@ Single-use sessions:
   replay of a `ChallengeMessage`: an Anchor MUST treat a session as closed the
   moment it emits a response, and MUST answer a repeated `session_id` with a
   `SessionError` rather than recomputing. Anchors are stateful for this
-  reason. Sealing the state into a cookie handed to the Client keeps
-  `(a, y, t)` secret but does not make it single-use, so it does not remove
-  the need for this state.
-
-Challenge binding:
-: `challenge_digest` enters the proof transcript ({{proof-challenge}}), so a
-  proof produced for one challenge does not verify under any other. Whether that
-  amounts to replay protection depends on the challenge being fresh, which this
-  document does not control: {{PROTOCOLS}} fixes what the Moderator's challenge
-  contains, and a challenge that carries only the Moderator's configuration
-  takes the same value for every Client and every session. Under such a
-  challenge, `challenge_digest` binds a proof to the Moderator rather than to a
-  session, and it is the nullifier check of {{verify-redemption}} that prevents
-  a redemption from being replayed. A deployment that wants challenge binding to
-  carry session freshness needs the challenge to include a value that varies per
-  session. The signature itself does not depend on the challenge, so single
-  use rests on the nullifier check.
+  reason.
 
 Context binding:
 : The issuance context enters both the commitment base and the challenge
@@ -2205,12 +2118,6 @@ Context binding:
   against. A Client also cannot select the issuance context unilaterally: it is
   never sent from the Client to the Anchor, and using a value other than the one
   the Anchor committed under fails the opening check in `Finalize`.
-
-Nullifier reuse:
-: A Client that reuses a nullifier across Endorsements links those Endorsements
-  to each other at redemption and, depending on the Moderator's nullifier
-  store, causes all but the first redemption to be rejected. Nullifiers MUST be
-  freshly generated.
 
 Aborts on zero:
 : `Challenge` aborts when the challenge hashes to zero and `Respond` aborts on
@@ -2223,17 +2130,13 @@ Context granularity:
   operate over is set by the contexts. Both contexts are visible at redemption,
   the issuance context directly and the redemption context through the fact
   that the Endorsement verifies under it, so each partitions Clients into the
-  set that shares its value. Both values, which {{PROTOCOLS}} specifies
-  ({{context-binding}}), must therefore be **coarse**. Every Client
-  holding an Endorsement issued under a given issuance context MUST derive the
-  byte-identical `ctx_iss`, and every Client redeeming under a given
-  redemption context MUST derive the byte-identical `ctx_red`. A deployment
+  set that shares its value.
+  A deployment
   that refines either value, for instance by using a per-request timestamp
   rather than a shared epoch, or a per-Client identifier rather than a value
   shared by every Client redeeming in the same place, reduces the anonymity set
   accordingly, down to a single Client, without violating any cryptographic
-  property of the construction. Implementations MUST NOT do
-  so.
+  property of the construction.
 
 Session identifiers:
 : The `session_id` of {{wire}} is chosen by the Anchor and so is a value
