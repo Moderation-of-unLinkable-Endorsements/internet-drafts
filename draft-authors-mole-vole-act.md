@@ -282,6 +282,9 @@ UOV-friendly commitment scheme is used instead.
 
 # Introduction
 
+> NOTE An implementation is available at
+> [vole-mole](https://github.com/cloudflareresearch/vole-mole).
+
 > WARNING This document specifies a cryptographic protocol that has not yet
 > undergone significant security analysis. It's not yet suitable for real world
 > applications. Implement at your own risk.
