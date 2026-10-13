@@ -2016,139 +2016,150 @@ input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
 under the discrete logarithm assumption.
 
+## Blindness {#sec-blindness}
 
-Blindness:
-: All the Anchor receives in a session is the blinded challenge `c * gamma2`.
-  With uniform blinding factors, the blinded challenge is uniformly
-  distributed and independent of the message and of the resulting signature,
-  and the underlying scheme is perfectly blind {{FFKLLS26}}. The blinding factors
-  of this document are derived by hashing ("Derived blinding factors" below), so in
-  the random oracle model the scheme is statistically blind: an Anchor can
-  link an Endorsement to the session that produced it only by evaluating the
-  hash function on one of the secret inputs from which the Client derives
-  its blinding factors ({{derive-scalar}}). Endorsement grants and redemptions are therefore unlinkable, as
-  {{ARCH}} requires.
+All the Anchor receives in a session is the blinded challenge `c * gamma2`.
+With uniform blinding factors, the blinded challenge is uniformly
+distributed and independent of the message and of the resulting signature,
+and the underlying scheme is perfectly blind {{FFKLLS26}}. The blinding factors
+of this document are derived by hashing ("Derived blinding factors" below), so in
+the random oracle model the scheme is statistically blind: an Anchor can
+link an Endorsement to the session that produced it only by evaluating the
+hash function on one of the secret inputs from which the Client derives
+its blinding factors ({{derive-scalar}}). Endorsement grants and redemptions are therefore unlinkable, as
+{{ARCH}} requires.
 
-One-more unforgeability:
-: A Client that completes `k` issuance sessions under a given issuance context
-  cannot produce `k+1` distinct valid Endorsements under that context,
-  regardless of how many sessions it has completed under other issuance
-  contexts {{TESSZHU}}. This is what allows a Moderator to conclude that an
-  accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
-  This security guarantee holds even with concurrent sessions.
+## One-More Unforgeability {#sec-one-more-unforgeability}
 
-Unforgeability under rerandomization:
-: Lemma 1 of {{FFKLLS26}} establishes strong key randomizability of {{TESSZHU}}.
-  Thus, Theorem 1 of {{FFKLLS26}} reduces issuer-hiding one-more unforgeability
-  to {{TESSZHU}}, provided the issuer-hiding proof is straight-line extractable.
+A Client that completes `k` issuance sessions under a given issuance context
+cannot produce `k+1` distinct valid Endorsements under that context,
+regardless of how many sessions it has completed under other issuance
+contexts {{TESSZHU}}. This is what allows a Moderator to conclude that an
+accepted Endorsement corresponds to exactly one grant by a trusted Anchor.
+This security guarantee holds even with concurrent sessions.
 
-  > TODO Appendix C claims straight-line extractability for {{SIGMA}}, but not
-  > {{STACKSIG}}. Decide how to justify this gap. Perhaps we expect a direct
-  > proof (rather than composition via Theorem 1) to be possible.
+## Unforgeability under Rerandomization {#sec-unforgeability-under-rerandomization}
 
-Issuer hiding:
-: Theorem 2 of {{FFKLLS26}} establishes issuer-hiding blindness from perfect
-  blindness of issuance, strong key randomizability (as defined by {{FFKLLS26}}), and perfect zero knowledge
-  of the issuer-hiding proof, assuming uniform randomness. Up to the statistical
-  distance given below, a redemption reveals nothing
-  about which Anchor in `anchor_set` issued the Endorsement, so a Moderator, an
-  Anchor, and the two colluding learn only that some key in `anchor_set` was
-  used. `X_hat` and the `response` of the single branch proof are
-  statistically close to uniform independently of the branch ({{branch}}),
-  and the commitment of {{pbvc}} hides which position it binds: a commitment
-  key is distributed independently of that position, and an opening
-  independently of whether the value it opens to was committed or
-  equivocated. The stacked composition is therefore witness indistinguishable
-  (appendix and Section 7 of {{STACKSIG}}).
+Lemma 1 of {{FFKLLS26}} establishes strong key randomizability of {{TESSZHU}}.
+Thus, Theorem 1 of {{FFKLLS26}} reduces issuer-hiding one-more unforgeability
+to {{TESSZHU}}, provided the issuer-hiding proof is straight-line extractable.
 
-Partially binding commitments:
-: The soundness of the issuer-hiding proof rests on two things: the
-  commitment of {{pbvc}} binding one position of each node, and the
-  collision resistance of `HashToScalar` on the leaf and node encodings,
-  without which a position could be opened to a colliding value and no
-  discrete logarithm would be extractable. Binding is computational. A
-  Client that opens the value under base `Q` two ways knows the discrete
-  logarithm of `Q`, and one that opens the value under `P(Q)` two ways knows
-  that of `P(Q)`; the key generation gives it one of the two. Opening both
-  positions would require both logarithms. That a `Q` with both known is as
-  hard to find as a discrete logarithm when `P` is modelled as a random
-  permutation ({{permutation}}) is the assumption under which the pair
-  commitment of the appendix of {{STACKSIG}} binds.
+> TODO Appendix C claims straight-line extractability for {{SIGMA}}, but not
+> {{STACKSIG}}. Decide how to justify this gap. Perhaps we expect a direct
+> proof (rather than composition via Theorem 1) to be possible.
 
-Constant-time proving:
-: `ProveIssuer` treats one leaf, and one side of each node on the path to it,
-  differently from the others, and that leaf is the secret the proof hides.
-  Implementations MUST NOT allow the binding path to be distinguished by
-  timing or memory access patterns.
-  The first
-  move places the real branch commitment at `index` and empty values at every
-  other leaf; both commitment passes visit every node of the tree. That
-  placement and the later equivocation MUST avoid observable secret-dependent
-  branches and memory accesses. The number of distinct node commitments at a
-  level of the first move depends on `index`, so an implementation that
-  computes each only once MUST compute the same number at every level for
-  every `index`.
+## Issuer Hiding {#sec-issuer-hiding}
 
-: Commitment key generation uses the balanced walk of {{permutation-pair}}.
-  Its iteration count is determined by the published commitment key, and
-  both binding directions execute the same operation schedule for that key.
-  This addresses the permutation walk only: secret-index selection,
-  scalar arithmetic, and the rest of the proving algorithm still require
-  constant-time implementations.
+Theorem 2 of {{FFKLLS26}} establishes issuer-hiding blindness from perfect
+blindness of issuance, strong key randomizability (as defined by {{FFKLLS26}}), and perfect zero knowledge
+of the issuer-hiding proof, assuming uniform randomness. Up to the statistical
+distance given below, a redemption reveals nothing
+about which Anchor in `anchor_set` issued the Endorsement, so a Moderator, an
+Anchor, and the two colluding learn only that some key in `anchor_set` was
+used. `X_hat` and the `response` of the single branch proof are
+statistically close to uniform independently of the branch ({{branch}}),
+and the commitment of {{pbvc}} hides which position it binds: a commitment
+key is distributed independently of that position, and an opening
+independently of whether the value it opens to was committed or
+equivocated. The stacked composition is therefore witness indistinguishable
+(appendix and Section 7 of {{STACKSIG}}).
 
-Single-use sessions:
-: Implementations MUST ensure that the session state produced by `Commit` is
-  never used more than once. If an Anchor answers two distinct challenges
-  `c1 != c2` on one `Commit` state, then from the two responses
-  `s1 = a + c1*y*skA` and `s2 = a + c2*y*skA`, with `y` revealed in both,
-  anyone recovers the signing key as
-  `skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. The requirement extends to
-  process restarts, to replicas sharing a signing key, and to any retry or
-  replay of a `ChallengeMessage`: an Anchor MUST treat a session as closed the
-  moment it emits a response, and MUST answer a repeated `session_id` with a
-  `SessionError` rather than recomputing. Anchors are stateful for this
-  reason.
+## Partially Binding Commitments {#sec-partially-binding-commitments}
 
-Context binding:
-: The issuance context enters both the commitment base and the challenge
-  transcript, and the redemption context enters the signed message, so an
-  Endorsement does not verify under any other pair of contexts. Neither context
-  is carried in the Endorsement; both are supplied by the verifier
-  ({{verify}}), so a Client cannot assert the pair its Endorsement is checked
-  against. A Client also cannot select the issuance context unilaterally: it is
-  never sent from the Client to the Anchor, and using a value other than the one
-  the Anchor committed under fails the opening check in `Finalize`.
+The soundness of the issuer-hiding proof rests on two things: the
+commitment of {{pbvc}} binding one position of each node, and the
+collision resistance of `HashToScalar` on the leaf and node encodings,
+without which a position could be opened to a colliding value and no
+discrete logarithm would be extractable. Binding is computational. A
+Client that opens the value under base `Q` two ways knows the discrete
+logarithm of `Q`, and one that opens the value under `P(Q)` two ways knows
+that of `P(Q)`; the key generation gives it one of the two. Opening both
+positions would require both logarithms. That a `Q` with both known is as
+hard to find as a discrete logarithm when `P` is modelled as a random
+permutation ({{permutation}}) is the assumption under which the pair
+commitment of the appendix of {{STACKSIG}} binds.
 
-Aborts on zero:
-: `Challenge` aborts when the challenge hashes to zero and `Respond` aborts on
-  a zero challenge. Both events occur with probability approximately `1/p` for
-  honest parties, where `p` is the order of the group. A Client that observes
-  such an abort learns nothing and SHOULD start a fresh session.
+## Constant-Time Proving {#sec-constant-time-proving}
 
-Context granularity:
-: The unlinkability arguments above are cryptographic; the anonymity set they
-  operate over is set by the contexts. Both contexts are visible at redemption,
-  the issuance context directly and the redemption context through the fact
-  that the Endorsement verifies under it, so each partitions Clients into the
-  set that shares its value.
-  A deployment
-  that refines either value, for instance by using a per-request timestamp
-  rather than a shared epoch, or a per-Client identifier rather than a value
-  shared by every Client redeeming in the same place, reduces the anonymity set
-  accordingly, down to a single Client, without violating any cryptographic
-  property of the construction.
+`ProveIssuer` treats one leaf, and one side of each node on the path to it,
+differently from the others, and that leaf is the secret the proof hides.
+Implementations MUST NOT allow the binding path to be distinguished by
+timing or memory access patterns.
+The first
+move places the real branch commitment at `index` and empty values at every
+other leaf; both commitment passes visit every node of the tree. That
+placement and the later equivocation MUST avoid observable secret-dependent
+branches and memory accesses. The number of distinct node commitments at a
+level of the first move depends on `index`, so an implementation that
+computes each only once MUST compute the same number at every level for
+every `index`.
 
-Session identifiers:
-: The `session_id` of {{wire}} is chosen by the Anchor and so is a value
-  the Anchor recognises. It is confined to the transport: it is not an input to
-  any algorithm of {{issuance}}, nor is it included in the challenge transcript.
-  Were it bound into the Endorsement, the Anchor could recognise its own
-  identifier at redemption and link the redemption to the issuance session.
+Commitment key generation uses the balanced walk of {{permutation-pair}}.
+Its iteration count is determined by the published commitment key, and
+both binding directions execute the same operation schedule for that key.
+This addresses the permutation walk only: secret-index selection,
+scalar arithmetic, and the rest of the proving algorithm still require
+constant-time implementations.
 
-Anonymity sets:
-: The effective privacy a Client obtains also depends on deployment properties
-  beyond this document, in particular the number of Clients an Anchor serves per
-  epoch and the size of a Moderator's Anchor Set; see {{ARCH}}.
+## Single-Use Sessions {#sec-single-use-sessions}
+
+Implementations MUST ensure that the session state produced by `Commit` is
+never used more than once. If an Anchor answers two distinct challenges
+`c1 != c2` on one `Commit` state, then from the two responses
+`s1 = a + c1*y*skA` and `s2 = a + c2*y*skA`, with `y` revealed in both,
+anyone recovers the signing key as
+`skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. The requirement extends to
+process restarts, to replicas sharing a signing key, and to any retry or
+replay of a `ChallengeMessage`: an Anchor MUST treat a session as closed the
+moment it emits a response, and MUST answer a repeated `session_id` with a
+`SessionError` rather than recomputing. Anchors are stateful for this
+reason.
+
+## Context Binding {#sec-context-binding}
+
+The issuance context enters both the commitment base and the challenge
+transcript, and the redemption context enters the signed message, so an
+Endorsement does not verify under any other pair of contexts. Neither context
+is carried in the Endorsement; both are supplied by the verifier
+({{verify}}), so a Client cannot assert the pair its Endorsement is checked
+against. A Client also cannot select the issuance context unilaterally: it is
+never sent from the Client to the Anchor, and using a value other than the one
+the Anchor committed under fails the opening check in `Finalize`.
+
+## Aborts on Zero {#sec-aborts-on-zero}
+
+`Challenge` aborts when the challenge hashes to zero and `Respond` aborts on
+a zero challenge. Both events occur with probability approximately `1/p` for
+honest parties, where `p` is the order of the group. A Client that observes
+such an abort learns nothing and SHOULD start a fresh session.
+
+## Context Granularity {#sec-context-granularity}
+
+The unlinkability arguments above are cryptographic; the anonymity set they
+operate over is set by the contexts. Both contexts are visible at redemption,
+the issuance context directly and the redemption context through the fact
+that the Endorsement verifies under it, so each partitions Clients into the
+set that shares its value.
+A deployment
+that refines either value, for instance by using a per-request timestamp
+rather than a shared epoch, or a per-Client identifier rather than a value
+shared by every Client redeeming in the same place, reduces the anonymity set
+accordingly, down to a single Client, without violating any cryptographic
+property of the construction.
+
+## Session Identifiers {#sec-session-identifiers}
+
+The `session_id` of {{wire}} is chosen by the Anchor and so is a value
+the Anchor recognises. It is confined to the transport: it is not an input to
+any algorithm of {{issuance}}, nor is it included in the challenge transcript.
+Were it bound into the Endorsement, the Anchor could recognise its own
+identifier at redemption and link the redemption to the issuance session.
+
+## Anonymity Sets {#sec-anonymity-sets}
+
+The effective privacy a Client obtains also depends on deployment properties
+beyond this document, in particular the number of Clients an Anchor serves per
+epoch and the size of a Moderator's Anchor Set; see {{ARCH}}.
 
 # IANA Considerations {#iana}
 
