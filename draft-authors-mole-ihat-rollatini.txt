@@ -109,7 +109,6 @@ Table of Contents
      6.5.  Encodings
    7.  Ciphersuites
      7.1.  Rollatini(P-256, SHA-256)
-     7.2.  Randomness
    8.  Security Considerations
    9.  IANA Considerations
    10. References
@@ -191,11 +190,6 @@ Table of Contents
    of such a vector is a variable-length integer in its minimum-size
    encoding, so its width depends on the length of the contents it
    carries.
-
-      NOTE we're currently not using QUIC-style length prefixes, but we
-      might switch to this in the future.  See issue 103
-      (https://github.com/Moderation-of-unLinkable-Endorsements/
-      internet-drafts/issues/103).
 
    Algorithms are specified in Python and use the following functions,
    types, and notation.
@@ -435,10 +429,10 @@ Table of Contents
 
    expand_message_xmd is that of Section 5.3.1 of [HASH2CURVE], over the
    hash function of the ciphersuite. rand MUST be Nseed bytes of output
-   of random and MUST NOT be used for more than one derivation.  See
-   Section 7.2.  An A derived scalar is zero, and DeriveError raised,
-   with negligible probability; implementations might choose to panic
-   rather than handle the exception.
+   of random and MUST NOT be used for more than one derivation.  A
+   derived scalar is zero, and DeriveError raised, with negligible
+   probability; implementations might choose to panic rather than handle
+   the exception.
 
    The two-stage derivation used here and in Section 4.3 avoids the
    output-length limit of a single hash_to_field call using
@@ -986,19 +980,19 @@ Table of Contents
    carries it in that challenge; the Client learns it there and locates
    its own Anchor in it.  Both parties input the two contexts.
 
-   +--------+                           +-----------+
-   | Client |                           | Moderator |
-   +---+----+                           +-----+-----+
-       |                                      |
-       |<----- challenge (anchor_set) --------+
-       |                                      |
-   Redeem                                     |
-       |                                      |
-       +------------- redemption ------------>|
-       |                                      |
-       |                               VerifyRedemption
-       |                                      |
-       |                                      nf
+   +--------+                                           +-----------+
+   | Client |                                           | Moderator |
+   +---+----+                                           +-----+-----+
+       |                                                      |
+       |<----- challenge (anchor_set, challenge_digest) ------+
+       |                                                      |
+   Redeem                                                     |
+       |                                                      |
+       +-------------------- redemption --------------------->|
+       |                                                      |
+       |                                               VerifyRedemption
+       |                                                      |
+       |                                                      nf
 
                  Figure 2: Endorsement redemption overview
 
@@ -1012,11 +1006,8 @@ Table of Contents
    Note that this challenge is the Moderator's, and has nothing to do
    with the issuance challenge of Section 5.2.
 
-   index is the position in anchor_set of the public key of the Anchor
-   that issued the Endorsement.  A Client whose Anchor does not appear
-   in anchor_set cannot redeem at this Moderator and MUST NOT try: the
-   Endorsement will not verify under any key it can prove membership
-   for.
+   In the remainder, let index denote the index of the issuing Anchor in
+   anchor_set.
 
 6.1.  Key Rerandomization
 
@@ -1052,9 +1043,9 @@ Table of Contents
 6.2.  The Issuer-Hiding Proof
 
    The Client proves knowledge of delta such that X_hat - anchor_set[i]
-   = delta * B for at least one i, without revealing i.  This is a one-
-   out-of-n disjunction of proofs of knowledge of a discrete logarithm,
-   all over the base B = G.Generator().
+   = delta * B for at least one i, without revealing which.  This is a
+   one-out-of-n disjunction of proofs of knowledge of a discrete
+   logarithm, all over the base B = G.Generator().
 
    Such a disjunction is classically composed with the technique of
    Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
@@ -1089,9 +1080,10 @@ Table of Contents
    B.
 
    A single branch is proved by the usual three moves: the Client draws
-   a nonce r and commits T = r * B; the verifier sends a challenge c;
-   the Client answers z = r - c * delta; and the verifier checks that T
-   = c * Y[index] + z * B.
+   a nonce r and commits T = r * B; the verifier sends a challenge
+   proof_challenge; the Client answers response = r - proof_challenge *
+   delta; and the verifier checks that T = proof_challenge * Y[index] +
+   response * B.
 
    Read the other way round, that check determines the commitment from
    the challenge and the response:
@@ -1110,8 +1102,8 @@ Table of Contents
    ) -> list[Element]:
        return [X_hat - pkA for pkA in anchor_set]
 
-   Two properties make this branch proof _stackable_ in the sense of
-   [STACKSIG].  First, a verifying commitment can be computed for _any_
+   Two properties make this branch proof stackable in the sense of
+   [STACKSIG].  First, a verifying commitment can be computed for any
    statement from a challenge and a response, by the function above,
    without knowing a witness; this is the extended honest-verifier zero-
    knowledge property.  Second, the response is a fixed shift of the
@@ -1144,11 +1136,11 @@ Table of Contents
    commitments are arbitrary strings of bytes, and the outputs are
    compressed group elements.
 
-   The commitment to a pair uses a permutation P on group elements, with
-   inverse Pinv (Section 6.2.3).  Its key is a point Q, and an opening
-   is a single scalar, the randomness argument of CommitStep.  The two
-   values are hashed to scalars and committed under the bases Q and
-   P(Q):
+   The commitment to a pair uses a permutation P on group elements.  The
+   inverse of this permutation is denoted Pinv (Section 6.2.3).  Its key
+   is a point Q, and an opening is a single scalar, the randomness
+   argument of CommitStep.  The two values are hashed to scalars and
+   committed under the bases Q and P(Q):
 
    def CommitStep(
        Q: Element,
@@ -1198,20 +1190,24 @@ Table of Contents
 
    def VecCommit(
        V: Sequence[bytes],
-       Qi: Sequence[Element],
-       rands: Sequence[Scalar],
+       commitment_keys: Sequence[Element],
+       openings: Sequence[Scalar],
    ) -> bytes:
        if len(V) == 1:
            return V[0]
 
        V_prime = []
        for i in range(len(V) // 2):
-           V_prime.append(CommitStep(Qi[0], V[2 * i], V[2 * i + 1], rands[0]))
+           V_prime.append(
+               CommitStep(
+                   commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+               )
+           )
 
        if len(V) % 2 == 1:
            V_prime.append(V[-1])
 
-       return VecCommit(V_prime, Qi[1:], rands[1:])
+       return VecCommit(V_prime, commitment_keys[1:], openings[1:])
 
    A vector of n values has Depth(n) levels, each with one key and one
    opening:
@@ -1326,8 +1322,9 @@ Table of Contents
    The following direct implementations define the permutation and its
    inverse.  They MAY be used on public points, including the commitment
    keys in CommitStep.  Key generation instead uses G.PermutationPair
-   (Section 6.2.3.1), whose execution does not distinguish the two
-   binding directions when its outputs are fixed.
+   (Section 6.2.3.1), which is designed to be side-channel resistant.
+   In particular, its execution does not distinguish the two binding
+   directions when its outputs are fixed.
 
    def P(self, element: Element) -> Element:
        buf = bytearray(self.SerializeElement(element))
@@ -1491,10 +1488,11 @@ Table of Contents
 6.2.4.  Challenge Computation
 
    ProofStatement encodes the statement being proven: the Anchor Set,
-   the rerandomized key, the signature being presented, the two
-   contexts, and the Moderator's challenge digest.  The Fiat-Shamir
-   challenge covers it together with the first move of the proof, which
-   is the commitment keys and the root of the tree.
+   the rerandomized key X_hat, the signature being presented (encoded by
+   the endorsement), the issuance and redemption context, and the
+   challenge digest.  The Fiat-Shamir challenge covers it together with
+   the first move of the proof, which is the commitment keys and the
+   root of the tree.
 
    def ProofStatement(
        anchor_set: Sequence[Element],
@@ -1558,13 +1556,10 @@ Table of Contents
 
    The length of the Anchor Set n is prefixed and Element encodings are
    fixed-length, so anchor_set_enc and ck_enc are unambiguous without
-   length prefixes of their own; q, and with it the number of commitment
-   keys, is determined by n.  The label "IssuerProof" separates this
+   length prefixes of their own; the number of commitment keys, q =
+   Depth(n), is determined by n.  The label "IssuerProof" separates this
    transcript from the issuance transcript of Section 5.2, which is
    hashed with the same function.
-
-   A challenge of zero is valid here: the proof verifies and favors no
-   branch.
 
 6.2.5.  Proving
 
@@ -1604,7 +1599,7 @@ Table of Contents
        r = derived[0]
        trapdoors = derived[1 : q + 1]
        first_openings = derived[q + 1 :]
-       A = B * r
+       T = r * B
 
        commitment_keys = GenerateVecBind(index, trapdoors)
        # First move: commit along the binding path; other leaves empty.
@@ -1612,7 +1607,7 @@ Table of Contents
            commitment_keys,
            len(Y),
            index,
-           G.SerializeElement(A),
+           G.SerializeElement(T),
            first_openings,
        )
 
@@ -1647,7 +1642,7 @@ Table of Contents
    The first move commits only the path from leaf index to the root: at
    each level the Client commits the value it holds on one side and an
    empty value on the other, having generated that level's key so that
-   the _other_ side is the equivocal one.  The third move then computes
+   the other side is the equivocal one.  The third move then computes
    the branch commitment of every statement from the single response,
    equivocates each level to the value its sibling subtree now has, and
    rebuilds the tree with the equivocated openings.  The root is
@@ -1678,14 +1673,14 @@ Table of Contents
        if len(openings) != q:
            return False
 
-       T = []
+       V = []
        for i in range(n):
            commitment = BranchCommitment(proof_challenge, response, Y[i])
            if commitment.isIdentity():
                return False
-           T.append(G.SerializeElement(commitment))
+           V.append(G.SerializeElement(commitment))
 
-       root = VecCommit(T, commitment_keys, openings)
+       root = VecCommit(V, commitment_keys, openings)
 
        return proof_challenge == ComputeProofChallenge(
            anchor_set,
@@ -1782,11 +1777,6 @@ Table of Contents
            openings,
        )
 
-   delta MUST be freshly derived for every redemption, and MUST NOT be
-   derived from the Endorsement or from any other value a Client reuses.
-   It hides the Anchor, and reusing it would link two redemptions to
-   each other.
-
 6.4.  Redemption Verification
 
    The Moderator checks the signature under the rerandomized key and the
@@ -1864,8 +1854,8 @@ Table of Contents
    } Redemption;
 
    shown_endorsement uses the Endorsement structure of Section 5.6.2,
-   with s carrying s_hat.  It is a valid Endorsement under
-   rerandomized_key (Section 6.1), not the Endorsement the Client
+   with s carrying s_hat, but is rerandomized such that it verifies
+   under rerandomized_key (Section 6.1), not the Endorsement the Client
    stored, which the Client MUST NOT send.
 
    A Moderator deserializes a Redemption against its Anchor Set of n
@@ -1875,8 +1865,8 @@ Table of Contents
 
 7.  Ciphersuites
 
-   A ciphersuite fixes the group, the hash functions, and the associated
-   encodings and domain separation tags.  Both parties are assumed to
+   A ciphersuite fixes the group, the hash function, the associated
+   encodings, and a ciphersuite identifier.  Both parties are assumed to
    agree on the ciphersuite in use (Section 4.1).
 
    For each ciphersuite, ctx_proto is as computed in Section 4.1.  The
@@ -1932,22 +1922,6 @@ Table of Contents
       commitment key generation.  For a random encoding permutation, the
       walk takes about two iterations on average.
 
-7.2.  Randomness
-
-   Every random value in this document is drawn with random.  Apart from
-   the nullifier, it is consumed in inputs of Nseed bytes, by
-   G.DeriveScalars (Section 4.2), by G.DeriveNonces (Section 4.3) for
-   the values of the issuer-hiding proof, or by G.DeriveKeyPair
-   (Section 4.4) for a key; no scalar is sampled directly.
-   Implementations MUST draw this randomness with a cryptographically
-   secure random number generator and MUST NOT reuse it across
-   derivations.  They SHOULD treat it as being as sensitive as the
-   values derived from it, and SHOULD handle both in constant time: the
-   randomness drawn in Commit determines the Anchor's session state,
-   that drawn in Challenge the Client's blinding factors, and that drawn
-   in Redeem every value of the issuer-hiding proof, so recovering any
-   of it undoes the property that algorithm provides.
-
 8.  Security Considerations
 
    The security of Rollatini is studied in [FFKLLS26].  The underlying
@@ -1962,50 +1936,20 @@ Table of Contents
       challenge is uniformly distributed and independent of the message
       and of the resulting signature, and the underlying scheme is
       perfectly blind [FFKLLS26].  The blinding factors of this document
-      are derived by hashing ("Derived blinding factors" below), so in
-      the random oracle model the scheme is statistically blind: an
-      Anchor can link an Endorsement to the session that produced it
-      only by evaluating the hash function on one of the secret inputs
-      from which the Client derives its blinding factors (Section 4.2).
-      Finding one by search takes about 2^256 evaluations, or 2^128 on a
-      quantum computer.  Endorsement grants and redemptions are
-      therefore unlinkable, as [ARCH] requires, even to an attacker who
-      records transcripts for a future quantum computer.
-
-   Derived blinding factors:  Challenge derives its four blinding
-      factors with G.DeriveScalars, and Redeem derives delta the same
-      way and the 2 * q + 1 scalars of its proof with G.DeriveNonces
-      (Section 4.3).  Short of an evaluation of the hash function on one
-      of their secret inputs, each is within about 2^-128 of uniform
-      (Section 4.2), so the four blinding factors of a session are
-      jointly within about 2^-126 of uniform, and blindness holds up to
-      that distance.
-
-   Derived first move:  In ProveIssuer, the nonce r reused under a
-      different challenge reveals delta, which names the Anchor, and a
-      commitment key reused with its first opening under a different
-      challenge can reveal the key's trapdoor and with it a bit of
-      index.  ProveIssuer therefore derives all of these together with
-      G.DeriveNonces, from delta, index, and the proof statement as well
-      as fresh randomness (Section 6.2.5), so that a failed random
-      source does not cause any of them to be reused under a different
-      challenge (Section 4.3).  The Anchor's signing nonce a in Commit
-      cannot be protected this way, since it is fixed before the
-      Client's challenge exists and no input distinguishes two sessions
-      at that point.  Commit derives a together with t and y
-      (Section 4.2), so a random source that repeats part of its output
-      still changes a, but only fresh randomness or persistent per-
-      session state prevents a full repetition.  An Anchor that reuses a
-      across two challenges reveals y * skA, and hence skA, since y is
-      public in the Endorsement.
+      are derived by hashing, so in the random oracle model the scheme
+      is statistically blind: an Anchor can link an Endorsement to the
+      session that produced it only by evaluating the hash function on
+      one of the secret inputs from which the Client derives its
+      blinding factors (Section 4.2).  Endorsement grants and
+      redemptions are therefore unlinkable, as [ARCH] requires.
 
    One-more unforgeability:  A Client that completes k issuance sessions
       under a given issuance context cannot produce k+1 distinct valid
       Endorsements under that context, regardless of how many sessions
-      it has completed under _other_ issuance contexts [TESSZHU].  This
-      is what allows a Moderator to conclude that an accepted
-      Endorsement corresponds to exactly one grant by a trusted Anchor.
-      This security guarantee holds even with concurrent sessions.
+      it has completed under other issuance contexts [TESSZHU].  This is
+      what allows a Moderator to conclude that an accepted Endorsement
+      corresponds to exactly one grant by a trusted Anchor.  This
+      security guarantee holds even with concurrent sessions.
 
    Unforgeability under rerandomization:  Lemma 1 of [FFKLLS26]
       establishes strong key randomizability of [TESSZHU].  Thus,
@@ -2020,28 +1964,19 @@ Table of Contents
 
    Issuer hiding:  Theorem 2 of [FFKLLS26] establishes issuer-hiding
       blindness from perfect blindness of issuance, strong key
-      randomizability, and perfect zero knowledge of the issuer-hiding
-      proof, assuming uniform randomness.  Up to the statistical
-      distance given below, a redemption reveals nothing about which
-      Anchor in anchor_set issued the Endorsement, so a Moderator, an
-      Anchor, and the two colluding learn only that some key in
-      anchor_set was used.  X_hat and the response of the single branch
-      proof are statistically close to uniform independently of the
-      branch (Section 6.2.1), and the commitment of Section 6.2.2 hides
-      which position it binds: a commitment key is distributed
-      independently of that position, and an opening independently of
-      whether the value it opens to was committed or equivocated.  The
-      stacked composition is therefore witness indistinguishable
-      (appendix and Section 7 of [STACKSIG]).  These results assume
-      uniform randomness; in the random oracle model, each of the 2 * q
-      + 2 scalars a redemption derives is within about 2^-128 of uniform
-      ("Derived blinding factors" above), a statistical distance of at
-      most (2 * q + 2) * 2^-128.  Like blindness, issuer hiding
-      therefore holds in that model against an adversary that does not
-      find those inputs, including a quantum computer that records
-      transcripts today.  The _binding_ property of the commitment, not
-      its hiding, rests on the discrete logarithm, which is the
-      direction [ARCH] requires.
+      randomizability (as defined by [FFKLLS26]), and perfect zero
+      knowledge of the issuer-hiding proof, assuming uniform randomness.
+      Up to a negligible statistical distance, a redemption reveals
+      nothing about which Anchor in anchor_set issued the Endorsement,
+      so a Moderator, an Anchor, and the two colluding learn only that
+      some key in anchor_set was used.  X_hat and the response of the
+      single branch proof are statistically close to uniform
+      independently of the branch (Section 6.2.1), and the commitment of
+      Section 6.2.2 hides which position it binds: a commitment key is
+      distributed independently of that position, and an opening
+      independently of whether the value it opens to was committed or
+      equivocated.  The stacked composition is therefore witness
+      indistinguishable (appendix and Section 7 of [STACKSIG]).
 
    Partially binding commitments:  The soundness of the issuer-hiding
       proof rests on two things: the commitment of Section 6.2.2 binding
@@ -2056,55 +1991,19 @@ Table of Contents
       That a Q with both known is as hard to find as a discrete
       logarithm when P is modelled as a random permutation
       (Section 6.2.3) is the assumption under which the pair commitment
-      of the appendix of [STACKSIG] binds.  P MUST therefore be the
-      permutation specified in Section 6.2.3 and MUST NOT be chosen or
-      negotiated by any party: a Client that could choose P could take
-      P(Q) = 2 * Q, equivocate every position of every node, and forge
-      redemptions without an Endorsement.
-
-   Anchor Set size:  Issuer hiding hides the Anchor _within the Anchor
-      Set_, so the set is the anonymity set, and a redemption against a
-      set of one key names its Anchor (Section 6.4); blindness still
-      keeps it unlinkable to the session that produced the Endorsement.
-      A Moderator that offers different Anchor Sets to different Clients
-      partitions them, and one that reorders the set between Clients
-      does the same; the set and its order MUST be the same for every
-      Client offered a given ctx_iss.  See [ARCH] for how set size
-      interacts with Anchor diversity.
-
-   Proof size and cost:  The proof is logarithmic in the size of the
-      Anchor Set: two scalars, plus one element and one scalar for each
-      of the q levels of the tree (Section 6.5), but computation is
-      linear in n.  The prover and the verifier each evaluate all n
-      branch commitments and build a tree of n - 1 node commitments over
-      them.  The tree of the prover's first move, which is also the old
-      tree of VecEquivocate, has empty leaves off the binding path, so
-      at most three of its node commitments at each level are distinct.
-      The node commitments of a level share randomness * B and P(Q), and
-      the branch commitments share proof_challenge * X_hat + response *
-      B, terms an implementation computes once.  Each party performs a
-      number of scalar multiplications linear in n, so a large Anchor
-      Set is cheap in bandwidth and not in CPU, which reverses the
-      tradeoff of the linear disjunction [CDS94] for bandwidth but not
-      for work; [FFKLLS26] notes the same for its own instantiations.
-      For deployments, the linear disjunction is smaller for Anchor Sets
-      of three keys or fewer, and since the depth q = Depth(n) is
-      ceil(log2 n), an Anchor Set of 2^q + 1 keys costs a whole extra
-      level while adding one Anchor to the anonymity set.
+      of the appendix of [STACKSIG] binds.
 
    Constant-time proving:  ProveIssuer treats one leaf, and one side of
       each node on the path to it, differently from the others, and that
       leaf is the secret the proof hides.  Implementations MUST NOT
-      allow the binding path to be distinguished by timing, memory
-      access patterns, or the amount of randomness consumed; the
-      randomness a redemption consumes is 2 * Nseed bytes (Section 6.3).
-      The first move places the real branch commitment at index and
-      empty values at every other leaf; both commitment passes visit
-      every node of the tree.  That placement and the later equivocation
-      MUST avoid observable secret-dependent branches and memory
-      accesses.  The number of distinct node commitments at a level of
-      the first move depends on index, so an implementation that
-      computes each only once MUST compute the same number at every
+      allow the binding path to be distinguished by timing or memory
+      access patterns.  The first move places the real branch commitment
+      at index and empty values at every other leaf; both commitment
+      passes visit every node of the tree.  That placement and the later
+      equivocation MUST avoid observable secret-dependent branches and
+      memory accesses.  The number of distinct node commitments at a
+      level of the first move depends on index, so an implementation
+      that computes each only once MUST compute the same number at every
       level for every index.
 
       Commitment key generation uses the balanced walk of
@@ -2113,11 +2012,10 @@ Table of Contents
       same operation schedule for that key.  This addresses the
       permutation walk only: secret-index selection, scalar arithmetic,
       and the rest of the proving algorithm still require constant-time
-      implementations.  In particular, source-level masking in the
-      Python reference implementation is not a constant-time guarantee.
+      implementations.
 
-   Single-use sessions:  *Implementations MUST ensure that the session
-      state produced by Commit is never used more than once.* If an
+   Single-use sessions:  Implementations MUST ensure that the session
+      state produced by Commit is never used more than once.  If an
       Anchor answers two distinct challenges c1 != c2 on one Commit
       state, then from the two responses s1 = a + c1*y*skA and s2 = a +
       c2*y*skA, with y revealed in both, anyone recovers the signing key
@@ -2127,24 +2025,7 @@ Table of Contents
       Anchor MUST treat a session as closed the moment it emits a
       response, and MUST answer a repeated session_id with a
       SessionError rather than recomputing.  Anchors are stateful for
-      this reason.  Sealing the state into a cookie handed to the Client
-      keeps (a, y, t) secret but does not make it single-use, so it does
-      not remove the need for this state.
-
-   Challenge binding:  challenge_digest enters the proof transcript
-      (Section 6.2.4), so a proof produced for one challenge does not
-      verify under any other.  Whether that amounts to replay protection
-      depends on the challenge being fresh, which this document does not
-      control: [PROTOCOLS] fixes what the Moderator's challenge
-      contains, and a challenge that carries only the Moderator's
-      configuration takes the same value for every Client and every
-      session.  Under such a challenge, challenge_digest binds a proof
-      to the Moderator rather than to a session, and it is the nullifier
-      check of Section 6.4 that prevents a redemption from being
-      replayed.  A deployment that wants challenge binding to carry
-      session freshness needs the challenge to include a value that
-      varies per session.  The signature itself does not depend on the
-      challenge, so single use rests on the nullifier check.
+      this reason.
 
    Context binding:  The issuance context enters both the commitment
       base and the challenge transcript, and the redemption context
@@ -2157,12 +2038,6 @@ Table of Contents
       other than the one the Anchor committed under fails the opening
       check in Finalize.
 
-   Nullifier reuse:  A Client that reuses a nullifier across
-      Endorsements links those Endorsements to each other at redemption
-      and, depending on the Moderator's nullifier store, causes all but
-      the first redemption to be rejected.  Nullifiers MUST be freshly
-      generated.
-
    Aborts on zero:  Challenge aborts when the challenge hashes to zero
       and Respond aborts on a zero challenge.  Both events occur with
       probability approximately 1/p for honest parties, where p is the
@@ -2174,18 +2049,12 @@ Table of Contents
       contexts.  Both contexts are visible at redemption, the issuance
       context directly and the redemption context through the fact that
       the Endorsement verifies under it, so each partitions Clients into
-      the set that shares its value.  Both values, which [PROTOCOLS]
-      specifies (Section 4.5), must therefore be *coarse*. Every Client
-      holding an Endorsement issued under a given issuance context MUST
-      derive the byte-identical ctx_iss, and every Client redeeming
-      under a given redemption context MUST derive the byte-identical
-      ctx_red.  A deployment that refines either value, for instance by
-      using a per-request timestamp rather than a shared epoch, or a
-      per-Client identifier rather than a value shared by every Client
-      redeeming in the same place, reduces the anonymity set
-      accordingly, down to a single Client, without violating any
-      cryptographic property of the construction.  Implementations MUST
-      NOT do so.
+      the set that shares its value.  A deployment that refines either
+      value, for instance by using a per-request timestamp rather than a
+      shared epoch, or a per-Client identifier rather than a value
+      shared by every Client redeeming in the same place, reduces the
+      anonymity set accordingly, down to a single Client, without
+      violating any cryptographic property of the construction.
 
    Session identifiers:  The session_id of Section 5.6 is chosen by the
       Anchor and so is a value the Anchor recognises.  It is confined to
@@ -2324,10 +2193,10 @@ Appendix A.  Test Vectors
    nullifier and then the Nseed bytes of the blinding factors; and for
    Redeem, the Nseed bytes of delta and then the Nseed bytes of the
    issuer-hiding proof.  The commit.state entry is the AnchorState (a,
-   y, t) as SerializeScalar(a) || SerializeScalar(y) ||
-   SerializeScalar(t), and the challenge.state entry is nf ||
-   SerializeScalar(r1) || SerializeScalar(r2) followed by
-   SerializeScalar(gamma1) || SerializeScalar(gamma2) ||
+   y, t) as SerializeScalar(a) + SerializeScalar(y) +
+   SerializeScalar(t), and the challenge.state entry is nf +
+   SerializeScalar(r1) + SerializeScalar(r2) followed by
+   SerializeScalar(gamma1) + SerializeScalar(gamma2) +
    SerializeScalar(c). issue.Z is CreateContextBase(ctx_iss), and
    key.P_pkA is P(pkA).  Every message and endorsement entry is an
    encoding of Section 5.6 or Section 6.5, and the commit and challenge
@@ -2339,7 +2208,6 @@ Appendix A.  Test Vectors
 A.1.  Ciphersuite
 
    suite.identifier = 503235362d534841323536
-   suite.ctx_proto = 526f6c6c6174696e6976312d503235362d534841323536
 
 A.2.  Scalar Derivation
 
