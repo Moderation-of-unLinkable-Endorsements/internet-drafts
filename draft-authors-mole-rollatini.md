@@ -1945,8 +1945,8 @@ in {{wire}}. It MUST raise a `DeserializeError` unless `commitment_keys` is
 
 # Ciphersuites {#ciphersuites}
 
-A ciphersuite fixes the group, the hash functions, and the associated encodings
-and domain separation tags. Both parties are assumed to agree on the
+A ciphersuite fixes the group, the hash function, the associated encodings,
+and a ciphersuite identifier. Both parties are assumed to agree on the
 ciphersuite in use ({{config}}).
 
 For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
@@ -2305,7 +2305,6 @@ output of `VerifyRedemption`.
 
 ~~~
 suite.identifier = 503235362d534841323536
-suite.ctx_proto = 526f6c6c6174696e6976312d503235362d534841323536
 ~~~
 
 ## Scalar Derivation {#rollatini-tv-derive}
