@@ -109,7 +109,6 @@ Table of Contents
      6.5.  Encodings
    7.  Ciphersuites
      7.1.  Rollatini(P-256, SHA-256)
-     7.2.  Randomness
    8.  Security Considerations
    9.  IANA Considerations
    10. References
@@ -430,10 +429,10 @@ Table of Contents
 
    expand_message_xmd is that of Section 5.3.1 of [HASH2CURVE], over the
    hash function of the ciphersuite. rand MUST be Nseed bytes of output
-   of random and MUST NOT be used for more than one derivation.  See
-   Section 7.2.  An A derived scalar is zero, and DeriveError raised,
-   with negligible probability; implementations might choose to panic
-   rather than handle the exception.
+   of random and MUST NOT be used for more than one derivation.  A
+   derived scalar is zero, and DeriveError raised, with negligible
+   probability; implementations might choose to panic rather than handle
+   the exception.
 
    The two-stage derivation used here and in Section 4.3 avoids the
    output-length limit of a single hash_to_field call using
@@ -1922,22 +1921,6 @@ Table of Contents
       the walk.  PermutationPair (Section 6.2.3.1) is used during
       commitment key generation.  For a random encoding permutation, the
       walk takes about two iterations on average.
-
-7.2.  Randomness
-
-   Every random value in this document is drawn with random.  Apart from
-   the nullifier, it is consumed in inputs of Nseed bytes, by
-   G.DeriveScalars (Section 4.2), by G.DeriveNonces (Section 4.3) for
-   the values of the issuer-hiding proof, or by G.DeriveKeyPair
-   (Section 4.4) for a key; no scalar is sampled directly.
-   Implementations MUST draw this randomness with a cryptographically
-   secure random number generator and MUST NOT reuse it across
-   derivations.  They SHOULD treat it as being as sensitive as the
-   values derived from it, and SHOULD handle both in constant time: the
-   randomness drawn in Commit determines the Anchor's session state,
-   that drawn in Challenge the Client's blinding factors, and that drawn
-   in Redeem every value of the issuer-hiding proof, so recovering any
-   of it undoes the property that algorithm provides.
 
 8.  Security Considerations
 

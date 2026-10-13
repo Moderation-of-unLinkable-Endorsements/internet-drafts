@@ -1279,9 +1279,6 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
                 <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-rollatinip-256-sha-256" class="internal xref">Rollatini(P-256, SHA-256)</a></p>
 </li>
-              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
-                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-randomness" class="internal xref">Randomness</a></p>
-</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
@@ -1704,9 +1701,9 @@ def ExpandScalars(self, key: bytes, count: int) -&gt; list[Scalar]:
 </div>
 <p id="section-4.2-5"><code>expand_message_xmd</code> is that of <span><a href="https://rfc-editor.org/rfc/rfc9380#section-5.3.1" class="relref">Section 5.3.1</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>, over the hash
 function of the ciphersuite. <code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code>
-and <span class="bcp14">MUST NOT</span> be used for more than one derivation. See <a href="#randomness" class="auto internal xref">Section 7.2</a>. An A
-derived scalar is zero, and <code>DeriveError</code> raised, with negligible probability;
-implementations might choose to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
+and <span class="bcp14">MUST NOT</span> be used for more than one derivation. A derived scalar is zero, and
+<code>DeriveError</code> raised, with negligible probability; implementations might choose
+to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcrow">¶</a></p>
 <p id="section-4.2-6">The two-stage derivation used here and in <a href="#derive-nonce" class="auto internal xref">Section 4.3</a> avoids the
 output-length limit of a single <code>hash_to_field</code> call using <code>expand_message_xmd</code>.
 XMD produces at most <code>255 * Nh</code> bytes per call, which allows at most 170 scalars
@@ -3381,25 +3378,6 @@ two iterations on average.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></
 </dd>
         <dd class="break"></dd>
 </dl>
-</section>
-</div>
-<div id="randomness">
-<section id="section-7.2">
-        <h3 id="name-randomness">
-<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-randomness" class="section-name selfRef">Randomness</a>
-        </h3>
-<p id="section-7.2-1">Every random value in this document is drawn with <code>random</code>. Apart from the
-nullifier, it is consumed in inputs of <code>Nseed</code> bytes, by <code>G.DeriveScalars</code>
-(<a href="#derive-scalar" class="auto internal xref">Section 4.2</a>), by <code>G.DeriveNonces</code> (<a href="#derive-nonce" class="auto internal xref">Section 4.3</a>) for the values of
-the issuer-hiding proof, or by <code>G.DeriveKeyPair</code> (<a href="#keygen" class="auto internal xref">Section 4.4</a>) for a key; no
-scalar is sampled directly. Implementations <span class="bcp14">MUST</span> draw this randomness with a
-cryptographically secure random number generator and <span class="bcp14">MUST NOT</span> reuse it across
-derivations. They <span class="bcp14">SHOULD</span> treat it as being as sensitive as the values derived
-from it, and <span class="bcp14">SHOULD</span> handle both in constant time: the randomness drawn in
-<code>Commit</code> determines the Anchor's session state, that drawn in <code>Challenge</code> the
-Client's blinding factors, and that drawn in <code>Redeem</code> every value of the
-issuer-hiding proof, so recovering any of it undoes the property that
-algorithm provides.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
