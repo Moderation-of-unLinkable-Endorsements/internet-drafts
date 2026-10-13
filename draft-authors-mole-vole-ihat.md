@@ -330,7 +330,7 @@ justification.
 
 > NOTE We can add multishow and late binding of redemption context by adding
 > another hash evaluation to the redemption proof. Basically, we would use
-> Keccak-p[800,12] to construct a PRF from which we derive the nullifier as
+> `Keccak-p[800,12]` to construct a PRF from which we derive the nullifier as
 > PRF(K, red_ctx) where K is a key committed to during issuance. See [issue
 > 45](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45).
 
@@ -720,7 +720,7 @@ scrutiny before we rely on it too heavily.
 
 > NOTE Both VOLE-IHAT and VOLE-ACT can avoid the stronger one-more-UOV
 > assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
-> by sampling a signing salt and using Keccak-p[800,12] to hash the input and
+> by sampling a signing salt and using `Keccak-p[800,12]` to hash the input and
 > the salt.
 >
 > For VOLE-IHAT, the cost of this would be an additional hash evaluation in the
@@ -731,11 +731,13 @@ scrutiny before we rely on it too heavily.
 > adding the Anchor public key to the encoding of the instance, like we do for
 > the redemption proof. (Likewise for VOLE-ACT.)
 
-## Choice of Keccak-p[800,12]
+## Choice of `Keccak-p[800,12]`
 
 The commitment `Com()` uses `Keccak-p[800,12]` for the same reasons as the
-commitment of VOLE-ACT-KP800, namely to reduce the size of the VOLEitH
-proofs. See {{VOLE-ACT}} for discussion.
+commitment of VOLE-ACT, namely to reduce the size of the VOLEitH
+proofs. See {{VOLE-ACT}} for discussion. Likewise, `Com()` reserves at least
+`128` bits of the initial state as constants in order to prevent the inversion
+attack described in {{VOLE-ACT}}.
 
 # IANA Considerations
 

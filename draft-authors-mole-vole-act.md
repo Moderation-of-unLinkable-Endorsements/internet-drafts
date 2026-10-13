@@ -1182,7 +1182,7 @@ is an output translation, so it does not establish the hiding or binding of the
 MQ commitment, the security of the selected parameters, or the security of the
 composition with UOV and VOLEitH.
 
-## Choice of Keccak-p[800,12] {#kp800-choice}
+## Choice of `Keccak-p[800,12]` {#kp800-choice}
 
 VOLE-ACT uses `Keccak-p[800,12]` for hashing rather than the more
 conventional 1600-bit permutation underlying SHA-3 and TurboSHAKE {{RFC9861}}.
@@ -1198,6 +1198,26 @@ state, so one evaluation of the permutation suffices. The number of rounds, 12,
 is the same as in TurboSHAKE. `Keccak-p[800,12]` is the permutation underlying
 MiniSHAKE {{MiniSHAKE}}, a family of Keccak instances defined by the designers
 of Keccak for applications that hash many very short messages.
+
+`Com()` reserves at least `128` bits of the initial state as constants, namely
+the domain separation tag and the zero padding. (Likewise for `Tag()`.) This
+ensures the following attack on binding is not feasible. The attacker's goal is
+to find a second opening of a commitment `c`, for example, a different
+nullifier for the same commitment, which would allow a token to be spent twice.
+Recall that `c` is the first 32 bytes of the final state, i.e., the output of
+the permutation; the remaining 68 bytes of the final state are discarded. The
+attacker sets the first 32 bytes of the final state to `c`, chooses the
+remaining 68 bytes arbitrarily, and applies the inverse of the permutation. The
+result is an initial state that maps to `c`, but it is an opening of `c` only
+if its reserved bits match the expected constants.
+
+> TODO(cjpatton) We may want to reserve more bits of the initial state as
+> constants, perhaps `>= 256`.
+
+The same reasoning applies to `Tag()`, whose output is the first `m_uov` bytes
+of the final state. There, the attacker's goal is to find a commitment and
+refund `(c', x') != (c, x)` for which `Tag(c', x') = Tag(c, x)`, so that the
+Issuer's signature over one also certifies the other.
 
 ## Proof status {#proof-status}
 
