@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-11T04:48:30.427054+00:00",
+  "timestamp": "2026-10-13T06:03:35.105512+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -11138,7 +11138,7 @@
       "labels": [],
       "body": "NOT READY FOR REVIEW",
       "createdAt": "2026-10-08T00:07:36Z",
-      "updatedAt": "2026-10-08T18:14:04Z",
+      "updatedAt": "2026-10-12T20:35:24Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "51c51ffdd4364338584ec1c5037ff9b51110d87c",
@@ -11195,7 +11195,7 @@
       ],
       "body": "Simplify a bit, and use aasvg to make them prettier.",
       "createdAt": "2026-10-08T18:20:40Z",
-      "updatedAt": "2026-10-08T20:45:46Z",
+      "updatedAt": "2026-10-12T20:35:22Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "51c51ffdd4364338584ec1c5037ff9b51110d87c",
@@ -11237,7 +11237,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-10-09T00:36:41Z",
-      "updatedAt": "2026-10-09T00:50:58Z",
+      "updatedAt": "2026-10-12T20:35:21Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "038600e21ee80f97c648f7fc3a98fc932f5268a7",
@@ -11272,7 +11272,7 @@
       "id": "PR_kwDOSX6krs8AAAABHm3knw",
       "title": "vole: Specify challenge binding and instance encoding",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/110",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11281,17 +11281,19 @@
       ],
       "body": "In Moussaka, the challenge digest is bound to the VOLEitH proof alongside the encoding of the instance, analogously to how FAEST binds signature to be signed. Whereas in Figure 8.2, Line 1 of {{FAEST}} we have\r\n\r\n```\r\nmu := H_2^0(pk || msg)\r\n```\r\n\r\nin our more general framework we will instead do\r\n\r\n```\r\nmu := H_2^0(R.encodeInstance(X) || msg || R.DST)\r\n```\r\n\r\nwhere `R.DST` is a domain separator defined by the relation. Accordingly, define the domain separator and instance encoding for each relation in both Moussaka and Ratatouille.\r\n\r\nThis entails the document specifying the maximum number of anchors in the anchor set, which our implementation includes in the encoding of the redemption instance.\r\n\r\nWhile at it, update the endianness of `<x>_L` to match what's used internally by VOLEitH.",
       "createdAt": "2026-10-09T20:24:52Z",
-      "updatedAt": "2026-10-09T21:04:58Z",
+      "updatedAt": "2026-10-13T01:04:06Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "b1449df4d1c8f15570f22edbf40e8dd6980197b9",
+      "baseRefOid": "dbf8dbf3ba1b08796811a45eb5bbb95c720b9181",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-2",
-      "headRefOid": "cce6da2ff050eb06632d8c0e3c23dc4ff58f1151",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "3cc17a8b57291da3ba9266359902ba23a259a7e5",
+      "closedAt": "2026-10-13T01:04:05Z",
+      "mergedAt": "2026-10-13T01:04:05Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "d49326c47bb7c7941285cd40f3ec3e752f5e5627"
+      },
       "comments": [],
       "reviews": [
         {
@@ -11313,6 +11315,124 @@
               "updatedAt": "2026-10-09T20:25:23Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6qnnQ",
+          "commit": {
+            "abbreviatedOid": "3cc17a8"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-13T00:21:48Z",
+          "updatedAt": "2026-10-13T00:28:43Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "nits: why?",
+              "createdAt": "2026-10-13T00:21:48Z",
+              "updatedAt": "2026-10-13T00:28:43Z"
+            },
+            {
+              "originalPosition": 14,
+              "body": "`KeyGen()` returns only `(P, td)`. we probably should have an interface to go from `P` to `cpk`, or pass `cpk` all along",
+              "createdAt": "2026-10-13T00:27:50Z",
+              "updatedAt": "2026-10-13T00:28:43Z"
+            },
+            {
+              "originalPosition": 51,
+              "body": "should this be `i1` instead?",
+              "createdAt": "2026-10-13T00:28:29Z",
+              "updatedAt": "2026-10-13T00:28:43Z"
+            },
+            {
+              "originalPosition": 61,
+              "body": "same question for `p1`",
+              "createdAt": "2026-10-13T00:28:38Z",
+              "updatedAt": "2026-10-13T00:28:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6y_Sg",
+          "commit": {
+            "abbreviatedOid": "3cc17a8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-13T00:38:17Z",
+          "updatedAt": "2026-10-13T00:38:18Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "Little endian is preferred by VOLEitH internally. By being consistent we hopefully reduce the amount of code we need to implement. (Marginally, but still.)",
+              "createdAt": "2026-10-13T00:38:17Z",
+              "updatedAt": "2026-10-13T00:38:18Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6zi8A",
+          "commit": {
+            "abbreviatedOid": "3cc17a8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-13T00:39:22Z",
+          "updatedAt": "2026-10-13T00:39:22Z",
+          "comments": [
+            {
+              "originalPosition": 51,
+              "body": "`0` denotes the variant, either KP800 or MQ. The former is what we've implemented. We're uncertain about the security of the MQ variant, but @SamuelSchlesinger is still digging :)",
+              "createdAt": "2026-10-13T00:39:22Z",
+              "updatedAt": "2026-10-13T00:39:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6zpUg",
+          "commit": {
+            "abbreviatedOid": "3cc17a8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-13T00:39:31Z",
+          "updatedAt": "2026-10-13T00:39:31Z",
+          "comments": [
+            {
+              "originalPosition": 61,
+              "body": "See above.",
+              "createdAt": "2026-10-13T00:39:31Z",
+              "updatedAt": "2026-10-13T00:39:31Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR60cOw",
+          "commit": {
+            "abbreviatedOid": "3cc17a8"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-13T00:40:59Z",
+          "updatedAt": "2026-10-13T00:40:59Z",
+          "comments": [
+            {
+              "originalPosition": 14,
+              "body": "Agreed, we'll definitely do this eventually. ",
+              "createdAt": "2026-10-13T00:40:59Z",
+              "updatedAt": "2026-10-13T00:41:00Z"
+            }
+          ]
         }
       ]
     },
@@ -11328,7 +11448,7 @@
       "labels": [],
       "body": "Presumably this is related to\n<https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/86>.",
       "createdAt": "2026-10-09T21:24:42Z",
-      "updatedAt": "2026-10-09T21:25:35Z",
+      "updatedAt": "2026-10-12T20:35:19Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "b1449df4d1c8f15570f22edbf40e8dd6980197b9",
@@ -11363,7 +11483,7 @@
       "id": "PR_kwDOSX6krs8AAAABHnaaAw",
       "title": "ratatouille: Add a runtime check, nit pick naming",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/112",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11372,26 +11492,42 @@
       ],
       "body": "Add a runtime check to `ProveSpend()` to enforce that the updated state can be encoded. While we're nit-picking Ratatouille, rename `pf_init` to `pf_iss` to match Moussaka.",
       "createdAt": "2026-10-09T21:29:06Z",
-      "updatedAt": "2026-10-09T21:29:06Z",
+      "updatedAt": "2026-10-13T01:04:07Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-2",
-      "baseRefOid": "cce6da2ff050eb06632d8c0e3c23dc4ff58f1151",
+      "baseRefOid": "3cc17a8b57291da3ba9266359902ba23a259a7e5",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-3",
-      "headRefOid": "52adfbd3c115e8d6a68d2ab54cfbabb3f64e8753",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "ce0b7817db06f4fce8ed0ef533ce6a33ea9773a5",
+      "closedAt": "2026-10-13T01:04:07Z",
+      "mergedAt": "2026-10-13T01:04:07Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "e2eddc796c5f36a5342e162df6570c6057f2159e"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6umZA",
+          "commit": {
+            "abbreviatedOid": "ce0b781"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "looks good. rename and overflow are consistent",
+          "createdAt": "2026-10-13T00:30:00Z",
+          "updatedAt": "2026-10-13T00:30:00Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 114,
       "id": "PR_kwDOSX6krs8AAAABHn0vzw",
       "title": "Alignment of VOLE with EC drafts",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/114",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11400,17 +11536,19 @@
       ],
       "body": "1. Say that Moussaka and Ratatouille are instances of types (IHAT and ACT respectively).\r\n2. Prefix each crypto draft with its token type. (We still need a name for EC-ACT!)",
       "createdAt": "2026-10-09T22:22:44Z",
-      "updatedAt": "2026-10-09T22:48:31Z",
+      "updatedAt": "2026-10-13T01:04:08Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-3",
-      "baseRefOid": "52adfbd3c115e8d6a68d2ab54cfbabb3f64e8753",
+      "baseRefOid": "ce0b7817db06f4fce8ed0ef533ce6a33ea9773a5",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-4",
-      "headRefOid": "2e664bbfdacc5638f96d56853993c8d02400c3a1",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "7364b92a41cbc7c7a0737da9489b7c4479d5e7fc",
+      "closedAt": "2026-10-13T01:04:08Z",
+      "mergedAt": "2026-10-13T01:04:08Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "a8291b0b2d19c9cbab4d79f65d37b7c9123b08ee"
+      },
       "comments": [],
       "reviews": [
         {
@@ -11473,7 +11611,7 @@
       "id": "PR_kwDOSX6krs8AAAABHn_5IQ",
       "title": "ratatouille: Align with implementation",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/115",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11482,17 +11620,19 @@
       ],
       "body": "We will soon open source an implementation of Ratatouille. This change aligns some conventions with that implementation:\n\n1. Align function names. The spend flow now mirrors the issuance flow: `SpendRequest()`, `SpendResponse()`, and `FinalizeSpend()` mirror the corresponding calls in issuance.\n\n2. Make double spend protection the caller's responsibility. This separates this deployment consideration from the crypto. It also aligns with {{ACT}}.\n\n3. Change the pending state so that the caller doesn't have to recompute the commitment.\n\n4. Add additional input validation checks.",
       "createdAt": "2026-10-09T22:46:29Z",
-      "updatedAt": "2026-10-09T22:49:47Z",
+      "updatedAt": "2026-10-13T01:04:09Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-4",
-      "baseRefOid": "2e664bbfdacc5638f96d56853993c8d02400c3a1",
+      "baseRefOid": "7364b92a41cbc7c7a0737da9489b7c4479d5e7fc",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-5",
-      "headRefOid": "d2c57fbb5cb965b1ccafb81c9d37a70d2df1f0eb",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "de7f5cc562b2ead1c9af84e6d9d720b5f9cfeb00",
+      "closedAt": "2026-10-13T01:04:09Z",
+      "mergedAt": "2026-10-13T01:04:09Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "dd8aeb700c09ce4855d0b4174100f25a04b3deaf"
+      },
       "comments": [],
       "reviews": [
         {
@@ -11514,6 +11654,32 @@
               "updatedAt": "2026-10-09T22:47:36Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6ZxBA",
+          "commit": {
+            "abbreviatedOid": "de7f5cc"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T23:32:20Z",
+          "updatedAt": "2026-10-12T23:32:20Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6jGjw",
+          "commit": {
+            "abbreviatedOid": "de7f5cc"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "looks good to me\n\nnote: i like that the file is named act-ratatouille, makes it easier to follow",
+          "createdAt": "2026-10-12T23:59:48Z",
+          "updatedAt": "2026-10-12T23:59:48Z",
+          "comments": []
         }
       ]
     },
@@ -11522,7 +11688,7 @@
       "id": "PR_kwDOSX6krs8AAAABHoRyFQ",
       "title": "vole: Pass of TODOs",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/117",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -11531,19 +11697,417 @@
       ],
       "body": "1. Add reference for Keccak-p[800,12]\n\n2. Update framing on one-more unforgeability and how to get around this assumption. Note that it's relatively cheap to do for Ratattouille: just add a salt to the `Tag()`.\n\n3. Note that nothing ties token issuance to a particular issuer. It might be worthwhile to add the issuer public key to the encoding of the witness. (Both protocols.)",
       "createdAt": "2026-10-09T23:31:07Z",
-      "updatedAt": "2026-10-09T23:31:28Z",
+      "updatedAt": "2026-10-13T01:04:10Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-5",
-      "baseRefOid": "d2c57fbb5cb965b1ccafb81c9d37a70d2df1f0eb",
+      "baseRefOid": "de7f5cc562b2ead1c9af84e6d9d720b5f9cfeb00",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-6",
-      "headRefOid": "30201bb9c5b91700280f9b2df23f48bccfa5119a",
+      "headRefOid": "e572a6d2e9bf8196434778ba62fcd74765bc0e1e",
+      "closedAt": "2026-10-13T01:04:10Z",
+      "mergedAt": "2026-10-13T01:04:10Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "4994d0f3110a31bb80eb99d08ff79a93cc8bc91e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6Zp6g",
+          "commit": {
+            "abbreviatedOid": "e572a6d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T23:32:01Z",
+          "updatedAt": "2026-10-12T23:32:01Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 119,
+      "id": "PR_kwDOSX6krs8AAAABIAeXZg",
+      "title": "vole: Say \"derive\" UOV preimage instead of \"sample\"",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/119",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "In the UOV signing procedure, the preimage is not actually random, but instead derived from the secret key seed. This ensures that a secret key derives one and only one preimage per target. We would do the same thing here.",
+      "createdAt": "2026-10-12T16:39:51Z",
+      "updatedAt": "2026-10-13T01:04:12Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/vole-6",
+      "baseRefOid": "e572a6d2e9bf8196434778ba62fcd74765bc0e1e",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/vole-7",
+      "headRefOid": "5d586749df2227184a761bfc0af60d4e9676fa7f",
+      "closedAt": "2026-10-13T01:04:11Z",
+      "mergedAt": "2026-10-13T01:04:11Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "70c7839be7f74072a9f4a6fb804c26efa06e1c5c"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR4TqQg",
+          "commit": {
+            "abbreviatedOid": "136744b"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T18:54:37Z",
+          "updatedAt": "2026-10-12T18:54:37Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 120,
+      "id": "PR_kwDOSX6krs8AAAABIBu7KA",
+      "title": "act: prove the spend with a single range proof",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/120",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Replace the two range proofs of the spend, one showing c - s >= 0 and one showing c + a < 2^L, with one proof that 0 <= c - s <= m, where m = 2^L - 1 - (s + a). The remainder is decomposed into bits weighted by the powers of two below the leading power of m, with the top weight replaced by m - 2^(n-1) + 1 so that all bits set sum to exactly m.\n\nThe spend message now has a single shape: n = bit_length(m) bit commitments, with Com_c and Com2 removed, and is 129 * n + 403 bytes. VerifySpend and DecodeSpend reject s + a >= 2^L. The amount-validation argument no longer needs the balance bound from earlier refunds.\n\nUpdate the reference implementation, tests, and test vectors to match.\n\nThis was made via copilot. There is some oddness from SIGMA rejecting the identity which I am told they will fix.",
+      "createdAt": "2026-10-12T18:49:14Z",
+      "updatedAt": "2026-10-12T19:56:42Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "67934d8903da4de08101c1ea8261ec5283501c6d",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/one-bit-expansion-always",
+      "headRefOid": "1c1ab2d5872ee23f3dd5628c183ea6b9b3a3a522",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
       "comments": [],
       "reviews": []
+    },
+    {
+      "number": 121,
+      "id": "PR_kwDOSX6krs8AAAABIB7_mw",
+      "title": "ihat: Pass of issuance",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/121",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "Various editorial improvements for issuance:\n\n1. `Commit()` state and outbound message are referenced without being defined.\n2. Prose reiterates how scalars are derived.\n3. Overview refers to the commitment tuple `(A, C)` without saying what `A` and `C`. (Likewise for response.)",
+      "createdAt": "2026-10-12T19:09:02Z",
+      "updatedAt": "2026-10-12T20:35:17Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "67934d8903da4de08101c1ea8261ec5283501c6d",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-9-issue-editorial",
+      "headRefOid": "f4cbaf88cef11c0b5d0d15d43f6ec2e7e0cf0ed5",
+      "closedAt": "2026-10-12T19:56:17Z",
+      "mergedAt": "2026-10-12T19:56:17Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "92b273f0a4e3345496a534be0fbf53bdbe6996e0"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR4rI3Q",
+          "commit": {
+            "abbreviatedOid": "f4cbaf8"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T19:38:45Z",
+          "updatedAt": "2026-10-12T19:38:45Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 122,
+      "id": "PR_kwDOSX6krs8AAAABICHwKg",
+      "title": "rollatini: Fix the length of the session identifier",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/122",
+      "state": "MERGED",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "The session identifier MUST be unique. We currently recommend choosing it random, but we don't mandate or even recommend a length. Fix the length of the session identifier to be the length of the nullifier. Remove the length prefix, since it's no longer needed.",
+      "createdAt": "2026-10-12T19:28:16Z",
+      "updatedAt": "2026-10-12T19:56:19Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-9-issue-editorial",
+      "baseRefOid": "f4cbaf88cef11c0b5d0d15d43f6ec2e7e0cf0ed5",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-10-session-id",
+      "headRefOid": "631ae2298e0a430f7546e662d16560141d83e7a0",
+      "closedAt": "2026-10-12T19:56:19Z",
+      "mergedAt": "2026-10-12T19:56:18Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "dbf8dbf3ba1b08796811a45eb5bbb95c720b9181"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR4rZng",
+          "commit": {
+            "abbreviatedOid": "631ae22"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T19:39:16Z",
+          "updatedAt": "2026-10-12T19:39:16Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 124,
+      "id": "PR_kwDOSX6krs8AAAABIC21hg",
+      "title": "rollatini: Editorial pass of redemption",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/124",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "1. Overview: Add challenge_digest to ladder diagram\n2. Overview: Say where `index` comes from",
+      "createdAt": "2026-10-12T20:49:32Z",
+      "updatedAt": "2026-10-13T04:11:48Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "70c7839be7f74072a9f4a6fb804c26efa06e1c5c",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-11",
+      "headRefOid": "a53c531a0947ce1f0c29fa1964279174600c2a1b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6Zjeg",
+          "commit": {
+            "abbreviatedOid": "9ba2efa"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-12T23:31:44Z",
+          "updatedAt": "2026-10-12T23:31:44Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR8AKwA",
+          "commit": {
+            "abbreviatedOid": "a53c531"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-13T04:11:48Z",
+          "updatedAt": "2026-10-13T04:11:48Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 125,
+      "id": "PR_kwDOSX6krs8AAAABID571w",
+      "title": "rollatini: Align notation between spec and prose",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/125",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "For example, use `proof_challenge` in prose instead of `c`.",
+      "createdAt": "2026-10-12T22:52:54Z",
+      "updatedAt": "2026-10-13T04:11:30Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-11",
+      "baseRefOid": "a53c531a0947ce1f0c29fa1964279174600c2a1b",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-12",
+      "headRefOid": "9166650c90dff1fe5c80e59a6bc160b4a6a913b7",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR8AEPg",
+          "commit": {
+            "abbreviatedOid": "9166650"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-13T04:11:30Z",
+          "updatedAt": "2026-10-13T04:11:30Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 126,
+      "id": "PR_kwDOSX6krs8AAAABIEOEsA",
+      "title": "rollatini: Finish editorial pass of redemption",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/126",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "",
+      "createdAt": "2026-10-12T23:38:13Z",
+      "updatedAt": "2026-10-13T01:12:17Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-12",
+      "baseRefOid": "9166650c90dff1fe5c80e59a6bc160b4a6a913b7",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-13",
+      "headRefOid": "db922663692a74a6c35f6e2fde4fe6f54e193d2e",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 128,
+      "id": "PR_kwDOSX6krs8AAAABIEdUOw",
+      "title": "rollatini: Pass of cipher suites",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/128",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "This is derived internally from the ciphersuite identifier.",
+      "createdAt": "2026-10-13T00:13:22Z",
+      "updatedAt": "2026-10-13T01:13:19Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-13",
+      "baseRefOid": "db922663692a74a6c35f6e2fde4fe6f54e193d2e",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-14",
+      "headRefOid": "72201f495a75f802080a0170d3aa1e744e195831",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6orAg",
+          "commit": {
+            "abbreviatedOid": "722fc65"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-13T00:15:27Z",
+          "updatedAt": "2026-10-13T00:15:27Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 129,
+      "id": "PR_kwDOSX6krs8AAAABIEwr2A",
+      "title": "rollatini: Prune security considerations",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/129",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "1. We don't need to claim concrete bounds in the draft. In fact, arguably, this should be left for a theorem in a paper once the spec stabilizes. It's easier for stuff like this to bit rot. \"Statistically close\" or \"negligible\" is sufficient.\n\n2. \"Derived first move\" / \"Derived blind factors\": These are arguments about defense-in-depth in case per-issuance or -redemption randomness goes bad. We don't need this much detail: it's good enough to state the requirement that the randomness needs to be high quality. Lots of IETF documents do the same.\n\n3. I'm a bit nervous about making claims about ROM versus QROM.\n\n4. \"Challenge binding\": The analysis here seems irrelevant to what the challenge_digest is intended to do. Perhaps just leave this to {{PROTOCOLS}}. If we say anything here, we should just concisely say what the challenging binding achieves: if the Client redeems with a MOLE challenge other than what the Moderator expects, then redemption will fail.\n\n5. There is some discussion about how \"coarse grained\" the context strings are. This is useful, but the MOST NOT here is not enforceable. Just remove it.\n\nSome discussions I think are irrelevant:\n\n1. There is some text about how to choose `P`. Since we specify `P`, the risks discussed here are irrelevant.\n\n2. There is a large paragraph about proof size and runtime, which is not relevant at all.\n\n3. \"Nullifier reuse\": Nullifier generation is internal, so this is already implied by using good randomness.\n\nRedundancies: There are two sections on the anonymity set.",
+      "createdAt": "2026-10-13T00:56:58Z",
+      "updatedAt": "2026-10-13T04:02:58Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "cjpatton/ihat-14",
+      "baseRefOid": "72201f495a75f802080a0170d3aa1e744e195831",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-15",
+      "headRefOid": "07c2056853f6f0365f9d2fc0e233a42c1973f3a0",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR6_ypA",
+          "commit": {
+            "abbreviatedOid": "f7602e2"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Nice. The fewer claims we need to make the better, I agree it makes more sense for a paper to argue these things in the future.",
+          "createdAt": "2026-10-13T01:06:44Z",
+          "updatedAt": "2026-10-13T01:06:44Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABR78tOQ",
+          "commit": {
+            "abbreviatedOid": "07c2056"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-13T04:02:58Z",
+          "updatedAt": "2026-10-13T04:02:58Z",
+          "comments": []
+        }
+      ]
     }
   ]
 }
