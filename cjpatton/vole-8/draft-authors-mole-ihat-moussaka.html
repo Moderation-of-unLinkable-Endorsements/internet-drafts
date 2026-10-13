@@ -1889,7 +1889,9 @@ the redemption proof. (Likewise for Ratatouille.)<a href="#section-6-6.1.1" clas
         </h3>
 <p id="section-6.1-1">The commitment <code>Com()</code> uses <code>Keccak-p[800,12]</code> for the same reasons as the
 commitment of Ratatouille-KP800, namely to reduce the size of the VOLEitH
-proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span> for discussion.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span> for discussion. Likewise, <code>Com()</code> reserves at
+least <code>128</code> bits of the initial state as constants in order to prevent the
+inversion attack described in <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>

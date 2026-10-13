@@ -641,7 +641,9 @@ Table of Contents
 
    The commitment Com() uses Keccak-p[800,12] for the same reasons as
    the commitment of Ratatouille-KP800, namely to reduce the size of the
-   VOLEitH proofs.  See [ACT-RATATOUILLE] for discussion.
+   VOLEitH proofs.  See [ACT-RATATOUILLE] for discussion.  Likewise,
+   Com() reserves at least 128 bits of the initial state as constants in
+   order to prevent the inversion attack described in [ACT-RATATOUILLE].
 
 7.  IANA Considerations
 

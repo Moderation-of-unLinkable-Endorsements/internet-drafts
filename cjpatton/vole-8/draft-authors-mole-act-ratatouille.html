@@ -2460,6 +2460,21 @@ state, so one evaluation of the permutation suffices. The number of rounds, 12,
 is the same as in TurboSHAKE. <code>Keccak-p[800,12]</code> is the permutation underlying
 MiniSHAKE <span>[<a href="#MiniSHAKE" class="cite xref">MiniSHAKE</a>]</span>, a family of Keccak instances defined by the designers
 of Keccak for applications that hash many very short messages.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3"><code>Com()</code> reserves at least <code>128</code> bits of the initial state as constants, namely
+the domain separation tag and the zero padding. (Likewise for <code>Tag()</code>.) This
+ensures the following attack on binding is not feasible. The attacker's goal is
+to find a second opening of a commitment <code>c</code>, for example, a different
+nullifier for the same commitment, which would allow a token to be spent twice.
+Recall that <code>c</code> is the first 32 bytes of the final state, i.e., the output of
+the permutation; the remaining 68 bytes of the final state are discarded. The
+attacker sets the first 32 bytes of the final state to <code>c</code>, chooses the
+remaining 68 bytes arbitrarily, and applies the inverse of the permutation. The
+result is an initial state that maps to <code>c</code>, but it is an opening of <code>c</code> only
+if its reserved bits match the expected constants.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<p id="section-7.2-4">The same reasoning applies to <code>Tag()</code>, whose output is the first <code>m_uov</code> bytes
+of the final state. There, the attacker's goal is to find a commitment and
+refund <code>(c', x') != (c, x)</code> for which <code>Tag(c', x') = Tag(c, x)</code>, so that the
+Issuer's signature over one also certifies the other.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-status">
