@@ -472,9 +472,9 @@ def ExpandScalars(self, key: bytes, count: int) -> list[Scalar]:
 
 `expand_message_xmd` is that of {{Section 5.3.1 of HASH2CURVE}}, over the hash
 function of the ciphersuite. `rand` MUST be `Nseed` bytes of output of `random`
-and MUST NOT be used for more than one derivation. See {{randomness}}. An A
-derived scalar is zero, and `DeriveError` raised, with negligible probability;
-implementations might choose to panic rather than handle the exception.
+and MUST NOT be used for more than one derivation. A derived scalar is zero, and
+`DeriveError` raised, with negligible probability; implementations might choose
+to panic rather than handle the exception.
 
 The two-stage derivation used here and in {{derive-nonce}} avoids the
 output-length limit of a single `hash_to_field` call using `expand_message_xmd`.
@@ -2007,21 +2007,6 @@ P:
   walk. `PermutationPair` ({{permutation-pair}}) is used during commitment
   key generation. For a random encoding permutation, the walk takes about
   two iterations on average.
-
-## Randomness {#randomness}
-
-Every random value in this document is drawn with `random`. Apart from the
-nullifier, it is consumed in inputs of `Nseed` bytes, by `G.DeriveScalars`
-({{derive-scalar}}), by `G.DeriveNonces` ({{derive-nonce}}) for the values of
-the issuer-hiding proof, or by `G.DeriveKeyPair` ({{keygen}}) for a key; no
-scalar is sampled directly. Implementations MUST draw this randomness with a
-cryptographically secure random number generator and MUST NOT reuse it across
-derivations. They SHOULD treat it as being as sensitive as the values derived
-from it, and SHOULD handle both in constant time: the randomness drawn in
-`Commit` determines the Anchor's session state, that drawn in `Challenge` the
-Client's blinding factors, and that drawn in `Redeem` every value of the
-issuer-hiding proof, so recovering any of it undoes the property that
-algorithm provides.
 
 # Security Considerations {#security-considerations}
 
