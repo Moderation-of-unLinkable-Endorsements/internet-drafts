@@ -1651,7 +1651,7 @@ that accepts only the <code>redemption_context</code> it constructs rejects a
 redemption made under another Moderator's challenge. This does not stop a
 Moderator that relays another Moderator's challenge to the Client.<a href="#section-4.1-10" class="pilcrow">¶</a></p>
 <p id="section-4.1-11">The <code>Challenge</code> algorithm and <code>ChallengeMessage</code> in Rollatini issuance are
-defined by <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span> and are unrelated to a <code>ModeratorChallenge</code>.<a href="#section-4.1-11" class="pilcrow">¶</a></p>
+defined by <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> and are unrelated to a <code>ModeratorChallenge</code>.<a href="#section-4.1-11" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="abstract-endorsement-api">
@@ -1699,12 +1699,12 @@ Moderator policy, for instance rate limiting.<a href="#section-4.3-1" class="pil
 <a href="#section-4.4" class="section-number selfRef">4.4. </a><a href="#name-rollatini" class="section-name selfRef">Rollatini</a>
         </h3>
 <p id="section-4.4-1">Endorsement type: 0x0002.<a href="#section-4.4-1" class="pilcrow">¶</a></p>
-<p id="section-4.4-2">This protocol uses Rollatini <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, a pairing-free Issuer-Hiding
+<p id="section-4.4-2">This protocol uses Rollatini <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, a pairing-free Issuer-Hiding
 Anonymous Token (IHAT). The Anchor blindly signs a
 Client-chosen nullifier. The Client later proves,
 with an issuer-hiding proof, that its Endorsement verifies under one of the
 Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents and encodings of every message body, are defined in <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
+contents and encodings of every message body, are defined in <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>.<a href="#section-4.4-2" class="pilcrow">¶</a></p>
 <p id="section-4.4-3">The following primitive types are ciphersuite-dependent:<a href="#section-4.4-3" class="pilcrow">¶</a></p>
 <div class="lang-tls-presentation sourcecode" id="section-4.4-4">
 <pre>
@@ -1721,13 +1721,13 @@ opaque Element[Ne];
 <span class="break"></span><dl class="dlParallel" id="section-4.4.1-2">
             <dt id="section-4.4.1-2.1">Rollatini Ciphersuite</dt>
             <dd style="margin-left: 1.5em" id="section-4.4.1-2.2">
-              <p id="section-4.4.1-2.2.1">A ciphersuite identifier defined by <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. It determines <code>Element</code>,
-<code>Scalar</code>, and all cryptographic encodings.<a href="#section-4.4.1-2.2.1" class="pilcrow">¶</a></p>
+              <p id="section-4.4.1-2.2.1">A ciphersuite identifier defined by <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. It determines
+<code>Element</code>, <code>Scalar</code>, and all cryptographic encodings.<a href="#section-4.4.1-2.2.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-4.4.1-2.3">Anchor Public Key</dt>
             <dd style="margin-left: 1.5em" id="section-4.4.1-2.4">
-              <p id="section-4.4.1-2.4.1"><code>pkA</code>, an <code>Element</code>, as generated in <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, with a stable key ID.<a href="#section-4.4.1-2.4.1" class="pilcrow">¶</a></p>
+              <p id="section-4.4.1-2.4.1"><code>pkA</code>, an <code>Element</code>, as generated in <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, with a stable key ID.<a href="#section-4.4.1-2.4.1" class="pilcrow">¶</a></p>
 </dd>
             <dd class="break"></dd>
 <dt id="section-4.4.1-2.5">Issuance Context</dt>
@@ -1741,8 +1741,8 @@ valid for that epoch, see <a href="#key-rotation" class="auto internal xref">Sec
               <p id="section-4.4.1-2.8.1"><code>ctx_red</code>, the ASCII string <code>"MoLE-Rollatini-ctx_red-v1"</code>, without a
 terminating NUL byte. This fixed, domain-separated value is the same for all
 Moderators. This is the cryptographic redemption Context defined by
-<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, not a Moderator Challenge. A specific redemption operation is
-bound separately by <code>challenge_digest</code>.<a href="#section-4.4.1-2.8.1" class="pilcrow">¶</a></p>
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, not a Moderator Challenge. A specific redemption operation
+is bound separately by <code>challenge_digest</code>.<a href="#section-4.4.1-2.8.1" class="pilcrow">¶</a></p>
 </dd>
           <dd class="break"></dd>
 </dl>
@@ -1754,7 +1754,7 @@ bound separately by <code>challenge_digest</code>.<a href="#section-4.4.1-2.8.1"
 <a href="#section-4.4.2" class="section-number selfRef">4.4.2. </a><a href="#name-grant" class="section-name selfRef">Grant</a>
           </h4>
 <p id="section-4.4.2-1">The grant takes two HTTP exchanges and three protocol messages. The Anchor
-speaks first, as specified by <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>:<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
+speaks first, as specified by <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>:<a href="#section-4.4.2-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-4.4.2-2">
 <li id="section-4.4.2-2.1">
               <p id="section-4.4.2-2.1.1">The Client sends an <code>EndorsementRequest</code> with an empty <code>body</code>. The Anchor
@@ -1773,15 +1773,15 @@ identifier fail without invoking <code>Respond</code>.<a href="#section-4.4.2-2.
 </li>
             <li id="section-4.4.2-2.3">
               <p id="section-4.4.2-2.3.1">The Client runs <code>Finalize(pkA, state, response)</code> as specified by
-<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. On failure it <span class="bcp14">MUST</span> discard the session state and <span class="bcp14">MUST NOT</span>
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. On failure it <span class="bcp14">MUST</span> discard the session state and <span class="bcp14">MUST NOT</span>
 retry with that state.<a href="#section-4.4.2-2.3.1" class="pilcrow">¶</a></p>
 </li>
           </ol>
 <p id="section-4.4.2-3"><code>CommitMessage</code>, <code>ChallengeMessage</code>, <code>ResponseMessage</code>, <code>session_id</code>, and the
-Endorsement encoding are defined by <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. The session identifier is
-only transport correlation and is not bound into the Endorsement.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
+Endorsement encoding are defined by <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. The session identifier
+is only transport correlation and is not bound into the Endorsement.<a href="#section-4.4.2-3" class="pilcrow">¶</a></p>
 <p id="section-4.4.2-4">The Anchor learns neither <code>nf</code> nor the final Endorsement. Under the statistical
-blindness claim in <span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>, its protocol transcript does not let it
+blindness claim in <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>, its protocol transcript does not let it
 recognize the Endorsement when it is later redeemed. Timing, network, and
 configuration metadata are outside that claim.<a href="#section-4.4.2-4" class="pilcrow">¶</a></p>
 </section>
@@ -1792,7 +1792,7 @@ configuration metadata are outside that claim.<a href="#section-4.4.2-4" class="
 <a href="#section-4.4.3" class="section-number selfRef">4.4.3. </a><a href="#name-redemption" class="section-name selfRef">Redemption</a>
           </h4>
 <p id="section-4.4.3-1">The type-specific <code>Redemption</code> payload is the encoding of <code>Redemption</code> in
-<span>[<a href="#ROLLATINI" class="cite xref">ROLLATINI</a>]</span>. <code>RedeemRequest</code> derives <code>challenge_digest</code> as in
+<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. <code>RedeemRequest</code> derives <code>challenge_digest</code> as in
 <a href="#challenge-binding" class="auto internal xref">Section 4.1</a> and calls
 <code>Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red, challenge_digest)</code>.
 The ordered <code>anchor_set</code> comes from Moderator configuration; <code>index</code> selects
@@ -3350,6 +3350,10 @@ remain to be specified.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
         <dd>
 <span class="refAuthor">Cotton, M.</span>, <span class="refAuthor">Leiba, B.</span>, and <span class="refAuthor">T. Narten</span>, <span class="refTitle">"Guidelines for Writing an IANA Considerations Section in RFCs"</span>, <span class="seriesInfo">BCP 26</span>, <span class="seriesInfo">RFC 8126</span>, <span class="seriesInfo">DOI 10.17487/RFC8126</span>, <time datetime="2017-06" class="refDate">June 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8126">https://www.rfc-editor.org/rfc/rfc8126</a>&gt;</span>. </dd>
 <dd class="break"></dd>
+<dt id="IHAT-ROLLATINI">[IHAT-ROLLATINI]</dt>
+        <dd>
+<span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html</a>&gt;</span>. </dd>
+<dd class="break"></dd>
 <dt id="LONGFELLOW">[LONGFELLOW]</dt>
         <dd>
 <span class="refAuthor">Frigo, M.</span> and <span class="refAuthor">A. shelat</span>, <span class="refTitle">"Longfellow ZK"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-google-cfrg-libzk-03</span>, <time datetime="2026-09-23" class="refDate">23 September 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-03">https://datatracker.ietf.org/doc/html/draft-google-cfrg-libzk-03</a>&gt;</span>. </dd>
@@ -3373,10 +3377,6 @@ remain to be specified.<a href="#section-9.3-2.1.1" class="pilcrow">¶</a></p>
 <dt id="RFC8174">[RFC8174]</dt>
         <dd>
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="ROLLATINI">[ROLLATINI]</dt>
-        <dd>
-<span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-rollatini.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="SHA2">[SHA2]</dt>
         <dd>
