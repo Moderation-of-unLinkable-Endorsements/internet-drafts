@@ -1936,13 +1936,12 @@ Table of Contents
       challenge is uniformly distributed and independent of the message
       and of the resulting signature, and the underlying scheme is
       perfectly blind [FFKLLS26].  The blinding factors of this document
-      are derived by hashing ("Derived blinding factors" below), so in
-      the random oracle model the scheme is statistically blind: an
-      Anchor can link an Endorsement to the session that produced it
-      only by evaluating the hash function on one of the secret inputs
-      from which the Client derives its blinding factors (Section 4.2).
-      Endorsement grants and redemptions are therefore unlinkable, as
-      [ARCH] requires.
+      are derived by hashing, so in the random oracle model the scheme
+      is statistically blind: an Anchor can link an Endorsement to the
+      session that produced it only by evaluating the hash function on
+      one of the secret inputs from which the Client derives its
+      blinding factors (Section 4.2).  Endorsement grants and
+      redemptions are therefore unlinkable, as [ARCH] requires.
 
    One-more unforgeability:  A Client that completes k issuance sessions
       under a given issuance context cannot produce k+1 distinct valid
@@ -1967,7 +1966,7 @@ Table of Contents
       blindness from perfect blindness of issuance, strong key
       randomizability (as defined by [FFKLLS26]), and perfect zero
       knowledge of the issuer-hiding proof, assuming uniform randomness.
-      Up to the statistical distance given below, a redemption reveals
+      Up to a negligible statistical distance, a redemption reveals
       nothing about which Anchor in anchor_set issued the Endorsement,
       so a Moderator, an Anchor, and the two colluding learn only that
       some key in anchor_set was used.  X_hat and the response of the
