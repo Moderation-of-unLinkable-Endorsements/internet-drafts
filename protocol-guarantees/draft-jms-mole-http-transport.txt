@@ -85,7 +85,6 @@ Table of Contents
      6.4.  Recovery
      6.5.  Status Codes
    7.  Security Considerations
-     7.1.  Sizes and challenge reuse
    8.  IANA Considerations
      8.1.  Authentication Scheme
      8.2.  HTTP Field Names
@@ -131,22 +130,13 @@ Table of Contents
        |<------------ Mole-Credential: update-T= --+
        |                                           |
 
-   T is a registered endorsement or credential type, encoded as exactly
-   four hexadecimal digits without 0x.  Senders use lowercase.
-   Parameter names are case-insensitive as required by Section 11.2 of
-   [HTTP], so recipients also recognize uppercase digits.  The suffix
-   maps directly to the corresponding uint16 registry value in
-   [PROTOCOLS].  Zero is invalid.  There is no separate HTTP type
-   registry.
-
-   Parameter names use this ABNF ([ABNF]), with HEXDIG from that
-   specification:
-
-   type-suffix = 4HEXDIG
-   typed-name = ("endorse-" / "redeem-" / "challenge-" /
-                 "credential-request-" / "presentation-" /
-                 "grant-recovery-" / "issuance-recovery-" /
-                 "recovery-" / "response-" / "update-") type-suffix
+   Payload parameter names end in -T, where T is a registered
+   endorsement or credential type from [PROTOCOLS], written as exactly
+   four lowercase hexadecimal digits.  For example, Rollatini
+   (endorsement type 0x0002) is challenged with redeem-0002, and ACT
+   (credential type 0x0001) is presented with presentation-0001.
+   Recipients also accept uppercase digits, since parameter names are
+   case-insensitive (Section 11.2 of [HTTP]).  Type 0x0000 is invalid.
 
    Each Mole challenge has exactly one payload parameter:
 
@@ -179,23 +169,15 @@ Table of Contents
      +--------------------------------+-----------------------------+
      | presentation-T                 | PresentationAndUpdate       |
      +--------------------------------+-----------------------------+
-     | grant-recovery-T               | Grant session ID            |
-     +--------------------------------+-----------------------------+
-     | issuance-recovery-T            | Redemption nullifier and    |
-     |                                | scope inputs                |
-     +--------------------------------+-----------------------------+
-     | recovery-T                     | Presentation recovery       |
-     |                                | payload                     |
+     | recovery-T                     | Recovery handle             |
      +--------------------------------+-----------------------------+
 
                     Table 2: Authorization parameters
 
-   E uses the endorsement registry and C uses the credential registry.
-   Grant and issuance recovery also use the endorsement registry.
-   Presentation and its recovery use the credential registry.  Only
-   Redeem & Issue has two payload parameters.  It requires exactly one
-   of each, in either order.  Type 0001's empty redemption is carried as
-   redeem-0001="".
+   E uses the endorsement registry.  C, presentation, and recovery use
+   the credential registry.  Only Redeem & Issue has two payload
+   parameters.  It requires exactly one of each, in either order.  Type
+   0001's empty redemption is carried as redeem-0001="".
 
    Parameters use auth-param syntax (Section 11.2 of [HTTP]).  Values
    can be tokens or quoted-strings.  Senders quote empty values.
@@ -271,8 +253,7 @@ Table of Contents
 
    Content-Type: application/mole-endorsement-request; type=0002
 
-   The criteria for granting are the Anchor's.  Grant recovery is
-   described below.
+   The criteria for granting are the Anchor's.
 
 6.2.  Redeem & Issue
 
@@ -325,65 +306,47 @@ Table of Contents
 
 6.4.  Recovery
 
-   Recovery is a POST with empty content.  Grant recovery goes to the
-   original grant endpoint and carries the session ID.  Issuance and
-   presentation recovery go to the original Redeem & Issue endpoint.
-   The original authenticated configuration association is retained even
-   if a newer configuration changes the endpoint.
+   Instead of resending a presentation, a Client MAY send a POST with
+   empty content to the Redeem & Issue endpoint it stored with the
+   Credential:
 
-   Authorization: Mole grant-recovery-0002="<session-id>"
+   Authorization: Mole recovery-0001="<recovery-handle>"
 
-   Authorization: Mole issuance-recovery-0002="<epoch-and-nullifier>"
-
-   Authorization: Mole recovery-0001="<presentation-recovery-payload>"
-
-   The payloads are defined by [PROTOCOLS].  Recovery uses no additional
-   Client identifier and MUST NOT rerun issuance, verify a presentation
-   proof, or attempt the protected operation.  A retained result returns
-   200.  Grant recovery returns the recorded response body with its
-   grant response media type.  Issuance recovery returns response-T.
-   Presentation recovery returns update-T, including the empty value for
-   recorded NoUpdate.  Unavailable results return 404 without credential
-   material, whether the record is absent, expired, retired, or
-   inaccessible at this server.  This does not prove that the original
-   exchange was rejected.  A temporary inability to determine
-   availability returns 503.  No Endorsement Required has no issuance
-   recovery.  Requests for a recovery exchange the selected type does
-   not support also return 404.
+   The recovery handle is defined by the credential type in [PROTOCOLS].
+   The Moderator treats it as the byte-identical presentation and uses
+   no other Client identifier.  It MUST NOT verify a proof or attempt
+   the protected operation.  If a result is still retained, it answers
+   200 with the recorded update-T, including the empty value for a
+   recorded NoUpdate.  Otherwise it answers 404 without Mole-Credential,
+   whether or not a record exists.
 
 6.5.  Status Codes
 
-     +===========================+=============+====================+
-     | Outcome                   | Status      | Mole-Credential    |
-     +===========================+=============+====================+
-     | Malformed request         | 400         | none               |
-     +---------------------------+-------------+--------------------+
-     | Missing, expired, or      | 401         | none               |
-     | invalid authentication    |             |                    |
-     +---------------------------+-------------+--------------------+
-     | Rejected by policy before | 403         | none               |
-     | acceptance                |             |                    |
-     +---------------------------+-------------+--------------------+
-     | Credential issued         | 200         | response-T         |
-     +---------------------------+-------------+--------------------+
-     | Fresh accepted            | protected   | update-T           |
-     | presentation              | operation's |                    |
-     |                           | status      |                    |
-     +---------------------------+-------------+--------------------+
-     | Duplicate presentation    | 409         | update-T           |
-     | with retained result sent |             |                    |
-     | to the protected resource |             |                    |
-     +---------------------------+-------------+--------------------+
-     | Successful explicit       | 200         | response-T or      |
-     | recovery                  |             | update-T, or Grant |
-     |                           |             | response body      |
-     +---------------------------+-------------+--------------------+
-     | Recovery result           | 404         | none               |
-     | unavailable               |             |                    |
-     +---------------------------+-------------+--------------------+
-     | Acceptance or recovery    | 503         | none               |
-     | temporarily uncertain     |             |                    |
-     +---------------------------+-------------+--------------------+
+   +===========================+====================+=================+
+   | Outcome                   | Status             | Mole-Credential |
+   +===========================+====================+=================+
+   | Malformed request         | 400                | none            |
+   +---------------------------+--------------------+-----------------+
+   | Missing, expired, or      | 401                | none            |
+   | invalid authentication    |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Rejected by policy before | 403                | none            |
+   | acceptance                |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Credential issued         | 200                | response-T      |
+   +---------------------------+--------------------+-----------------+
+   | Fresh accepted            | protected          | update-T        |
+   | presentation              | operation's status |                 |
+   +---------------------------+--------------------+-----------------+
+   | Duplicate presentation    | 409                | update-T        |
+   | with retained result sent |                    |                 |
+   | to the protected resource |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result retained | 200                | update-T        |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result          | 404                | none            |
+   | unavailable               |                    |                 |
+   +---------------------------+--------------------+-----------------+
 
                          Table 4: Mole responses
 
@@ -402,41 +365,32 @@ Table of Contents
 
    All exchanges defined in this document MUST be carried over HTTPS.
 
-7.1.  Sizes and challenge reuse
+   TODO.  The list to cover:
 
-   Deployments MUST provision request and response field limits for the
-   full base64url encodings of the configurations they offer, including
-   authentication syntax and other required fields.  There is no URL-
-   fetch fallback for oversized payloads.  An oversized request field is
-   rejected with 431 before acceptance.  An oversized grant request body
-   is rejected with 413.  A Moderator unable to carry a generated
-   issuance response or update MUST reject before recording acceptance
-   and return 503.  It MUST NOT consume an Endorsement without a
-   deliverable issuance response or record NoUpdate merely because an
-   update is too large.  Intermediary failures after acceptance require
-   recovery.  They do not change the recorded result.
+   1.  Header size limits: request and response field limits a
+       deployment must provision for the payloads it offers, and the
+       status returned before acceptance when a payload does not fit.  A
+       Moderator must not consume an Endorsement, or record NoUpdate,
+       because a response would be too large.
 
-   A cached Credential Challenge may be reused only for the same
-   authenticated Moderator, credential type, key/context configuration,
-   and authorization scope, while the Moderator still accepts it.  Every
-   new acceptance requires a fresh Credential.  Repeated challenge bytes
-   do not permit reuse of a spent Credential.  ACT credentials are
-   partitioned by Moderator, key, and credential context.  Reverse-flow
-   tokens are partitioned by Moderator, token type, key, and configured
-   TokenChallenge.  Recovery of an accepted result can outlive challenge
-   expiry as specified by the credential protocol, but cannot authorize
-   a new operation.
+   2.  Challenge caching and reuse: when a Client may reuse a cached
+       challenge (same Moderator, type, key and context, scope), and
+       that reuse never permits reuse of a spent Credential or
+       Endorsement.
 
-   A cached redemption challenge also requires the same Moderator,
-   endorsement type, accepted issuer configuration, and still-valid
-   redemption context.  Its reuse does not bypass the endorsement
-   protocol's nullifier checks.
+   3.  Request binding: this document defines no canonical HTTP request
+       serialization.  ACT request_context must cover what the Moderator
+       authorizes, including the body.  Reverse flow has no request
+       binding.
 
-   HTTP request binding is constructed and checked by the Moderator.
-   This document does not define canonical HTTP request serialization.
-   ACT's request_context must cover all inputs relevant to the intended
-   authorization scope, including the body when relevant.  Reverse
-   flow's fixed token Challenge is not such a request binding.
+   4.  Recovery: what recovery reveals, its lack of Client
+       authentication beyond the handle, and how long results are
+       retained.
+
+   5.  Grant and issuance recovery: a lost grant or issuance response
+       currently costs the Client its session or Endorsement.  Whether
+       to add recovery for these exchanges, and how to authenticate a
+       lookup by session ID or nullifier, is open.
 
 8.  IANA Considerations
 
@@ -456,11 +410,6 @@ Table of Contents
 9.  References
 
 9.1.  Normative References
-
-   [ABNF]     Crocker, D., Ed. and P. Overell, "Augmented BNF for Syntax
-              Specifications: ABNF", STD 68, RFC 5234,
-              DOI 10.17487/RFC5234, January 2008,
-              <https://www.rfc-editor.org/rfc/rfc5234>.
 
    [HTTP]     Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
               Ed., "HTTP Semantics", STD 97, RFC 9110,

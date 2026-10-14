@@ -2227,10 +2227,11 @@ elements.<a href="#section-5.6-2" class="pilcrow">¶</a></p>
           <h4 id="name-issuance-messages">
 <a href="#section-5.6.1" class="section-number selfRef">5.6.1. </a><a href="#name-issuance-messages" class="section-name selfRef">Issuance Messages</a>
           </h4>
-<p id="section-5.6.1-1">The three messages exchanged during issuance are carried directly in the
-HTTP grant request and response bodies defined in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. The first
-request is empty, and the corresponding response contains the <code>CommitMessage</code>.
-The second request contains the <code>ChallengeMessage</code>, and its response contains the
+<p id="section-5.6.1-1">The three messages exchanged during issuance are carried in the
+<code>EndorsementRequest</code> and <code>EndorsementResponse</code> bodies defined in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>,
+whose transport is HTTP. The first request is empty, and the corresponding
+response contains the <code>CommitMessage</code>; the second request contains the
+<code>ChallengeMessage</code>, and the corresponding response contains the
 <code>ResponseMessage</code>.<a href="#section-5.6.1-1" class="pilcrow">¶</a></p>
 <p id="section-5.6.1-2">The messages include a session identifier of <code>Nn</code> bytes that allows the Anchor
 to correlate the Client's challenge with the state corresponding to the
@@ -2267,8 +2268,7 @@ struct {
 generate it with a cryptographically secure random number generator so that a
 Client cannot guess, and so collide with, another Client's session. An Anchor
 that receives a <code>ChallengeMessage</code> whose <code>session_id</code> does not correspond to one
-of its open sessions <span class="bcp14">MUST</span> raise a <code>SessionError</code>. A transport can separately
-recover a retained response by <code>session_id</code> without invoking <code>Respond</code> again.<a href="#section-5.6.1-8" class="pilcrow">¶</a></p>
+of its open sessions <span class="bcp14">MUST</span> raise a <code>SessionError</code>.<a href="#section-5.6.1-8" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="endorsement-encoding">
@@ -3500,11 +3500,9 @@ anyone recovers the signing key as
 <code>skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)</code>. The requirement extends to
 process restarts, to replicas sharing a signing key, and to any retry or
 replay of a <code>ChallengeMessage</code>: an Anchor <span class="bcp14">MUST</span> treat a session as closed the
-moment it claims the single-use state. It <span class="bcp14">MUST NOT</span> recompute a response for
-a repeated <code>session_id</code>, even after a crash or an uncertain outcome. A
-transport can return a retained response for recovery or reject when none
-is available. This does not reopen the session. Anchors are stateful for
-this reason.<a href="#section-8-2.16.1" class="pilcrow">¶</a></p>
+moment it emits a response, and <span class="bcp14">MUST</span> answer a repeated <code>session_id</code> with a
+<code>SessionError</code> rather than recomputing. Anchors are stateful for this
+reason.<a href="#section-8-2.16.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-8-2.17">Context binding:</dt>

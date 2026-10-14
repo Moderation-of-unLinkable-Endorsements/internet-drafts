@@ -889,11 +889,12 @@ Table of Contents
 
 5.6.1.  Issuance Messages
 
-   The three messages exchanged during issuance are carried directly in
-   the HTTP grant request and response bodies defined in [PROTOCOLS].
-   The first request is empty, and the corresponding response contains
-   the CommitMessage.  The second request contains the ChallengeMessage,
-   and its response contains the ResponseMessage.
+   The three messages exchanged during issuance are carried in the
+   EndorsementRequest and EndorsementResponse bodies defined in
+   [PROTOCOLS], whose transport is HTTP.  The first request is empty,
+   and the corresponding response contains the CommitMessage; the second
+   request contains the ChallengeMessage, and the corresponding response
+   contains the ResponseMessage.
 
    The messages include a session identifier of Nn bytes that allows the
    Anchor to correlate the Client's challenge with the state
@@ -927,8 +928,7 @@ Table of Contents
    generator so that a Client cannot guess, and so collide with, another
    Client's session.  An Anchor that receives a ChallengeMessage whose
    session_id does not correspond to one of its open sessions MUST raise
-   a SessionError.  A transport can separately recover a retained
-   response by session_id without invoking Respond again.
+   a SessionError.
 
 5.6.2.  Endorsement
 
@@ -2022,12 +2022,10 @@ Table of Contents
       as skA = (s1 - s2) * ScalarInverse((c1 - c2) * y).  The
       requirement extends to process restarts, to replicas sharing a
       signing key, and to any retry or replay of a ChallengeMessage: an
-      Anchor MUST treat a session as closed the moment it claims the
-      single-use state.  It MUST NOT recompute a response for a repeated
-      session_id, even after a crash or an uncertain outcome.  A
-      transport can return a retained response for recovery or reject
-      when none is available.  This does not reopen the session.
-      Anchors are stateful for this reason.
+      Anchor MUST treat a session as closed the moment it emits a
+      response, and MUST answer a repeated session_id with a
+      SessionError rather than recomputing.  Anchors are stateful for
+      this reason.
 
    Context binding:  The issuance context enters both the commitment
       base and the challenge transcript, and the redemption context

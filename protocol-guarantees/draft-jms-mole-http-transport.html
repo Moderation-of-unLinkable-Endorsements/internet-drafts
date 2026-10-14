@@ -1197,11 +1197,6 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-sizes-and-challenge-reuse" class="internal xref">Sizes and challenge reuse</a></p>
-</li>
-            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
@@ -1309,23 +1304,14 @@ type-specific payloads directly, without outer type or length wrappers.<a href="
           </svg><a href="#section-3-1.1" class="pilcrow">¶</a>
 </div>
 </div>
-<p id="section-3-2"><code>T</code> is a registered endorsement or credential type, encoded as exactly four
-hexadecimal digits without <code>0x</code>. Senders use lowercase. Parameter names are
-case-insensitive as required by <span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.2" class="relref">Section 11.2</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>, so recipients also
-recognize uppercase digits. The suffix maps directly to the corresponding
-<code>uint16</code> registry value in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. Zero is invalid. There is no separate
-HTTP type registry.<a href="#section-3-2" class="pilcrow">¶</a></p>
-<p id="section-3-3">Parameter names use this ABNF (<span>[<a href="#ABNF" class="cite xref">ABNF</a>]</span>), with <code>HEXDIG</code> from that specification:<a href="#section-3-3" class="pilcrow">¶</a></p>
-<div class="lang-abnf sourcecode" id="section-3-4">
-<pre>
-type-suffix = 4HEXDIG
-typed-name = ("endorse-" / "redeem-" / "challenge-" /
-              "credential-request-" / "presentation-" /
-              "grant-recovery-" / "issuance-recovery-" /
-              "recovery-" / "response-" / "update-") type-suffix
-</pre><a href="#section-3-4" class="pilcrow">¶</a>
-</div>
-<p id="section-3-5">Each <code>Mole</code> challenge has exactly one payload parameter:<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-2">Payload parameter names end in <code>-T</code>, where <code>T</code> is a registered endorsement or
+credential type from <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>, written as exactly four lowercase
+hexadecimal digits. For example, Rollatini (endorsement type 0x0002) is
+challenged with <code>redeem-0002</code>, and ACT (credential type 0x0001) is presented
+with <code>presentation-0001</code>. Recipients also accept uppercase digits, since
+parameter names are case-insensitive (<span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.2" class="relref">Section 11.2</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>). Type 0x0000
+is invalid.<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-3">Each <code>Mole</code> challenge has exactly one payload parameter:<a href="#section-3-3" class="pilcrow">¶</a></p>
 <span id="name-challenge-parameters"></span><table class="center" id="table-1">
         <caption>
 <a href="#table-1" class="selfRef">Table 1</a>:
@@ -1365,11 +1351,11 @@ typed-name = ("endorse-" / "redeem-" / "challenge-" /
           </tr>
         </tbody>
       </table>
-<p id="section-3-7">A server offers a choice using separate <code>Mole</code> challenges. The Client ignores
+<p id="section-3-5">A server offers a choice using separate <code>Mole</code> challenges. The Client ignores
 unknown types and chooses a supported configuration. A <code>redeem-T</code> challenge
 selects the endorsement type. The Client selects the credential type from the
-same Moderator's configuration, independently of the endorsement type.<a href="#section-3-7" class="pilcrow">¶</a></p>
-<p id="section-3-8">A <code>Mole</code> credential in <code>Authorization</code> selects one operation:<a href="#section-3-8" class="pilcrow">¶</a></p>
+same Moderator's configuration, independently of the endorsement type.<a href="#section-3-5" class="pilcrow">¶</a></p>
+<p id="section-3-6">A <code>Mole</code> credential in <code>Authorization</code> selects one operation:<a href="#section-3-6" class="pilcrow">¶</a></p>
 <span id="name-authorization-parameters"></span><table class="center" id="table-2">
         <caption>
 <a href="#table-2" class="selfRef">Table 2</a>:
@@ -1400,30 +1386,17 @@ same Moderator's configuration, independently of the endorsement type.<a href="#
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
-              <code>grant-recovery-T</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">Grant session ID</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
-              <code>issuance-recovery-T</code>
-</td>
-            <td class="text-left" rowspan="1" colspan="1">Redemption nullifier and scope inputs</td>
-          </tr>
-          <tr>
-            <td class="text-left" rowspan="1" colspan="1">
               <code>recovery-T</code>
 </td>
-            <td class="text-left" rowspan="1" colspan="1">Presentation recovery payload</td>
+            <td class="text-left" rowspan="1" colspan="1">Recovery handle</td>
           </tr>
         </tbody>
       </table>
-<p id="section-3-10"><code>E</code> uses the endorsement registry and <code>C</code> uses the credential registry. Grant
-and issuance recovery also use the endorsement registry. Presentation and its
-recovery use the credential registry. Only Redeem &amp; Issue has two payload
+<p id="section-3-8"><code>E</code> uses the endorsement registry. <code>C</code>, presentation, and recovery use the
+credential registry. Only Redeem &amp; Issue has two payload
 parameters. It requires exactly one of each, in either order. Type 0001's
-empty redemption is carried as <code>redeem-0001=""</code>.<a href="#section-3-10" class="pilcrow">¶</a></p>
-<p id="section-3-11">Parameters use auth-param syntax (<span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.2" class="relref">Section 11.2</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>). Values can be
+empty redemption is carried as <code>redeem-0001=""</code>.<a href="#section-3-8" class="pilcrow">¶</a></p>
+<p id="section-3-9">Parameters use auth-param syntax (<span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.2" class="relref">Section 11.2</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>). Values can be
 tokens or quoted-strings. Senders quote empty values. Recipients unescape
 quoted-strings before decoding. Multiple challenges in one field follow
 <span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.6.1" class="relref">Section 11.6.1</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>. These rules apply to each challenge separately.
@@ -1433,11 +1406,11 @@ is malformed, not an unknown extension. A recipient <span class="bcp14">MUST</sp
 parameter names, mixed operations, and missing or extra payload parameters,
 including payloads of unknown types. It <span class="bcp14">MUST</span> reject noncanonical base64url and,
 for known types, trailing bytes or malformed content. Clients ignore malformed
-challenges and may use another one.<a href="#section-3-11" class="pilcrow">¶</a></p>
-<p id="section-3-12">An unknown presentation type is treated as absent when authentication is
+challenges and may use another one.<a href="#section-3-9" class="pilcrow">¶</a></p>
+<p id="section-3-10">An unknown presentation type is treated as absent when authentication is
 optional and rejected when required, as specified by <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. Other
 requests of unknown type are rejected. Unknown types never select a known
-payload decoder. Greased types follow these same rules.<a href="#section-3-12" class="pilcrow">¶</a></p>
+payload decoder. Greased types follow these same rules.<a href="#section-3-10" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="mole-credential">
@@ -1529,7 +1502,7 @@ reject a mismatched type. There is no outer <code>EndorsementRequest</code> or
 Content-Type: application/mole-endorsement-request; type=0002
 </pre><a href="#section-6.1-3" class="pilcrow">¶</a>
 </div>
-<p id="section-6.1-4">The criteria for granting are the Anchor's. Grant recovery is described below.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-4">The criteria for granting are the Anchor's.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="redeem-issue">
@@ -1603,37 +1576,19 @@ Credentials, or state that its Credentials are not cacheable.<a href="#section-6
         <h3 id="name-recovery">
 <a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-recovery" class="section-name selfRef">Recovery</a>
         </h3>
-<p id="section-6.4-1">Recovery is a POST with empty content. Grant recovery goes to the original
-grant endpoint and carries the session ID. Issuance and presentation recovery
-go to the original Redeem &amp; Issue endpoint. The original authenticated
-configuration association is retained even if a newer configuration changes
-the endpoint.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<p id="section-6.4-1">Instead of resending a presentation, a Client <span class="bcp14">MAY</span> send a <code>POST</code> with empty
+content to the Redeem &amp; Issue endpoint it stored with the Credential:<a href="#section-6.4-1" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6.4-2">
 <pre>
-Authorization: Mole grant-recovery-0002="&lt;session-id&gt;"
+Authorization: Mole recovery-0001="&lt;recovery-handle&gt;"
 </pre><a href="#section-6.4-2" class="pilcrow">¶</a>
 </div>
-<div class="alignLeft art-text artwork" id="section-6.4-3">
-<pre>
-Authorization: Mole issuance-recovery-0002="&lt;epoch-and-nullifier&gt;"
-</pre><a href="#section-6.4-3" class="pilcrow">¶</a>
-</div>
-<div class="alignLeft art-text artwork" id="section-6.4-4">
-<pre>
-Authorization: Mole recovery-0001="&lt;presentation-recovery-payload&gt;"
-</pre><a href="#section-6.4-4" class="pilcrow">¶</a>
-</div>
-<p id="section-6.4-5">The payloads are defined by <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. Recovery uses no additional Client
-identifier and <span class="bcp14">MUST NOT</span> rerun issuance, verify a presentation proof, or attempt
-the protected operation. A retained result returns <code>200</code>. Grant recovery
-returns the recorded response body with its grant response media type.
-Issuance recovery returns <code>response-T</code>. Presentation recovery returns <code>update-T</code>,
-including the empty value for recorded <code>NoUpdate</code>. Unavailable results return
-<code>404</code> without credential material, whether the record is absent, expired,
-retired, or inaccessible at this server. This does not prove that the original
-exchange was rejected. A temporary inability to determine availability returns
-<code>503</code>. No Endorsement Required has no issuance recovery. Requests for a recovery
-exchange the selected type does not support also return <code>404</code>.<a href="#section-6.4-5" class="pilcrow">¶</a></p>
+<p id="section-6.4-3">The recovery handle is defined by the credential type in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>. The
+Moderator treats it as the byte-identical presentation and uses no other
+Client identifier. It <span class="bcp14">MUST NOT</span> verify a proof or attempt the protected
+operation. If a result is still retained, it answers <code>200</code> with the recorded
+<code>update-T</code>, including the empty value for a recorded <code>NoUpdate</code>. Otherwise it
+answers <code>404</code> without <code>Mole-Credential</code>, whether or not a record exists.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="status-codes">
@@ -1702,24 +1657,18 @@ exchange the selected type does not support also return <code>404</code>.<a href
 </td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">Successful explicit recovery</td>
+              <td class="text-left" rowspan="1" colspan="1">Recovery, result retained</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>200</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">
-                <code>response-T</code> or <code>update-T</code>, or Grant response body</td>
+                <code>update-T</code>
+</td>
             </tr>
             <tr>
-              <td class="text-left" rowspan="1" colspan="1">Recovery result unavailable</td>
+              <td class="text-left" rowspan="1" colspan="1">Recovery, result unavailable</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>404</code>
-</td>
-              <td class="text-left" rowspan="1" colspan="1">none</td>
-            </tr>
-            <tr>
-              <td class="text-left" rowspan="1" colspan="1">Acceptance or recovery temporarily uncertain</td>
-              <td class="text-left" rowspan="1" colspan="1">
-                <code>503</code>
 </td>
               <td class="text-left" rowspan="1" colspan="1">none</td>
             </tr>
@@ -1744,40 +1693,35 @@ termination from any status without the recorded empty update.<a href="#section-
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
 <p id="section-7-1">All exchanges defined in this document <span class="bcp14">MUST</span> be carried over HTTPS.<a href="#section-7-1" class="pilcrow">¶</a></p>
-<div id="sizes-and-challenge-reuse">
-<section id="section-7.1">
-        <h3 id="name-sizes-and-challenge-reuse">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-sizes-and-challenge-reuse" class="section-name selfRef">Sizes and challenge reuse</a>
-        </h3>
-<p id="section-7.1-1">Deployments <span class="bcp14">MUST</span> provision request and response field limits for the full
-base64url encodings of the configurations they offer, including authentication
-syntax and other required fields. There is no URL-fetch fallback for oversized
-payloads. An oversized request field is rejected with <code>431</code> before acceptance.
-An oversized grant request body is rejected with <code>413</code>. A Moderator unable
-to carry a generated issuance response or update <span class="bcp14">MUST</span> reject
-before recording acceptance and return <code>503</code>. It <span class="bcp14">MUST NOT</span> consume an Endorsement
-without a deliverable issuance response or record <code>NoUpdate</code> merely because
-an update is too large.
-Intermediary failures after acceptance require recovery. They do not change
-the recorded result.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
-<p id="section-7.1-2">A cached Credential Challenge may be reused only for the same authenticated Moderator,
-credential type, key/context configuration, and authorization scope, while
-the Moderator still accepts it. Every new acceptance requires a fresh
-Credential. Repeated challenge bytes do not permit reuse of a spent Credential.
-ACT credentials are partitioned by Moderator, key, and credential context.
-Reverse-flow tokens are partitioned by Moderator, token type, key, and configured
-<code>TokenChallenge</code>. Recovery of an accepted result can outlive challenge expiry
-as specified by the credential protocol, but cannot authorize a new operation.<a href="#section-7.1-2" class="pilcrow">¶</a></p>
-<p id="section-7.1-3">A cached redemption challenge also requires the same Moderator, endorsement
-type, accepted issuer configuration, and still-valid redemption context.
-Its reuse does not bypass the endorsement protocol's nullifier checks.<a href="#section-7.1-3" class="pilcrow">¶</a></p>
-<p id="section-7.1-4">HTTP request binding is constructed and checked by the Moderator. This document
-does not define canonical HTTP request serialization. ACT's <code>request_context</code>
-must cover all inputs relevant to the intended authorization scope, including
-the body when relevant. Reverse flow's fixed token Challenge is not such a
-request binding.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
-</section>
-</div>
+<p id="section-7-2">TODO. The list to cover:<a href="#section-7-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-7-3">
+<li id="section-7-3.1">
+          <p id="section-7-3.1.1">Header size limits: request and response field limits a deployment must
+provision for the payloads it offers, and the status returned before
+acceptance when a payload does not fit. A Moderator must not consume an
+Endorsement, or record <code>NoUpdate</code>, because a response would be too large.<a href="#section-7-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-3.2">
+          <p id="section-7-3.2.1">Challenge caching and reuse: when a Client may reuse a cached challenge
+(same Moderator, type, key and context, scope), and that reuse never
+permits reuse of a spent Credential or Endorsement.<a href="#section-7-3.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-3.3">
+          <p id="section-7-3.3.1">Request binding: this document defines no canonical HTTP request
+serialization. ACT <code>request_context</code> must cover what the Moderator
+authorizes, including the body. Reverse flow has no request binding.<a href="#section-7-3.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-3.4">
+          <p id="section-7-3.4.1">Recovery: what recovery reveals, its lack of Client authentication beyond
+the handle, and how long results are retained.<a href="#section-7-3.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li id="section-7-3.5">
+          <p id="section-7-3.5.1">Grant and issuance recovery: a lost grant or issuance response currently
+costs the Client its session or Endorsement. Whether to add recovery for
+these exchanges, and how to authenticate a lookup by session ID or
+nullifier, is open.<a href="#section-7-3.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ol>
 </section>
 </div>
 <div id="iana-considerations">
@@ -1819,10 +1763,6 @@ in this document.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="ABNF">[ABNF]</dt>
-        <dd>
-<span class="refAuthor">Crocker, D., Ed.</span> and <span class="refAuthor">P. Overell</span>, <span class="refTitle">"Augmented BNF for Syntax Specifications: ABNF"</span>, <span class="seriesInfo">STD 68</span>, <span class="seriesInfo">RFC 5234</span>, <span class="seriesInfo">DOI 10.17487/RFC5234</span>, <time datetime="2008-01" class="refDate">January 2008</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc5234">https://www.rfc-editor.org/rfc/rfc5234</a>&gt;</span>. </dd>
-<dd class="break"></dd>
 <dt id="HTTP">[HTTP]</dt>
         <dd>
 <span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
