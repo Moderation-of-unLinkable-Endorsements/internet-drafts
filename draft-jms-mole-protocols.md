@@ -81,16 +81,29 @@ Credentials, and present those Credentials to Moderators to access
 resources. The architecture states the required properties of Endorsements
 and Credentials but does not say how to build them. This document does.
 
-TODO: the protocols below reflect our current understanding of how MoLE
-may work, and showcase agility. They are not final. Some may be removed,
-others added.
-
 It defines two endorsement protocols and two credential protocols. Each is
 identified by a type value from a registry established in this document
 ({{iana}}). The HTTP carriage of challenges, requests, redemptions, and
 presentations is defined by {{HTTP-TRANSPORT}}. This document defines the
 messages themselves and, for the grant flow, the HTTP exchanges that carry
 them.
+
+An Endorsement establishes eligibility for Credential issuance under the
+Moderator's policy. It does not directly authorize resource access. A fresh
+Credential acceptance authorizes one attempt of the protected operation
+within the deployment's replay protection scope, not successful execution.
+ACT binds the presentation to its Challenge, whose contents determine the
+operation binding. Reverse flow provides bearer authorization under a
+configured token Challenge, without binding the replacement request to the
+holder of the presented token.
+
+An accepted presentation either replaces the Credential or ends its chain.
+A missing response leaves that decision unknown. Recovery returns the
+recorded decision, not another authorization. These properties depend on
+the construction and replay scope below. {{ARCHITECTURE}} describes the
+trust relationships, anonymity sets, configuration consistency, and side
+channels. Cryptographic issuer hiding and unlinkability do not remove those
+deployment dependencies.
 
 # Conventions and Definitions
 
@@ -110,17 +123,18 @@ Grant:
 : An Anchor gives a Client an Endorsement.
 
 Redeem:
-: A Client spends an Endorsement at one logical Moderator. A Client MUST NOT
-  attempt to redeem the same Endorsement at a second Moderator. The Moderator
-  enforces replay protection within its configured replay protection scope.
+: A Client proves possession of an Endorsement to a Moderator. The endorsement
+  protocol defines the redemption scope and consequences of reuse. A Client
+  SHOULD NOT redeem the same Endorsement at a second Moderator because reuse
+  can make its activity linkable.
 
 Issue:
 : A Moderator gives a Client a Credential in return for a redemption.
 
 Present:
-: A Client shows a Credential to a Moderator. Each Credential can be
-  presented once within the Moderator's configured replay protection scope. The
-  update replaces it.
+: A Client shows a Credential to a Moderator. Each Credential can be accepted
+  once within the Moderator's configured replay protection scope, with or
+  without replacement.
 
 Update:
 : The Moderator's adjustment to a presented Credential, returned in the
@@ -198,7 +212,8 @@ present.
 A Moderator Challenge is a message sent by a Moderator to a Client. It selects
 the operation and carries any type-specific input chosen by the Moderator.
 A Moderator Challenge, or a value derived from it, MUST NOT be sent to an
-Anchor.
+Anchor. Clients enforce this separation in their grant requests. It does
+not prevent a colluding Moderator from disclosing its own Challenge.
 
 A Context is a protocol-specific cryptographic input. A protocol defines how
 the Client and Moderator derive the same Context from authenticated
@@ -451,8 +466,8 @@ on its size, and calls
 It returns `{nf}`, scoped to the matching `ctx_iss` in the Moderator's store,
 or `INVALID` if decoding or verification fails under every set.
 The common replay protection rules apply before Credential issuance. The
-same `nf` is exposed on repeated redemptions, including across Moderators;
-the scheme does not enforce global single use.
+same `nf` is exposed on repeated redemptions, including across Moderators.
+The scheme does not enforce global single use.
 
 ## Longfellow {#longfellow}
 
@@ -462,7 +477,7 @@ Where Rollatini requires Anchors to run new cryptography, this protocol
 preserves backward compatibility with credentials Clients may hold, such as
 mdocs. The Client proves in zero knowledge, using the scheme of {{LONGFELLOW}},
 that it holds a valid credential from one of an accepted set of issuers, without
-revealing which issuer or any credential attribute. An experimental circuit is
+revealing which issuer or any credential attribute. A circuit is
 described in {{HIDDEN-ISSUER-CIRCUIT}}.
 
 There is no grant exchange in this protocol. The Client obtains its
@@ -550,13 +565,14 @@ and on whether it contains a credential-bound Client secret suitable for
 nullifier derivation. An Anchor that participates in MoLE can control scarcity
 and arrange for such a secret to be committed during issuance. Some existing
 credential formats may already provide a suitable Client-contributed or
-device-bound secret. The one-nullifier-per-origin-and-epoch rule prevents
-repeat redemption of one credential in that scope. It does not limit how many
-credentials a Client can obtain.
+device-bound secret. The one-nullifier-per-origin-and-epoch rule lets the
+Moderator prevent repeat redemption within its replay protection scope. The
+legacy credential remains usable at other Moderator origins and in later
+epochs. This does not limit how many credentials a Client can obtain.
 
-> **Editor note.** This protocol is blocked on normative circuit definitions,
-> public-input encodings and ordering, transcript binding, artifact lifecycle
-> and size limits, and test vectors.
+Normative circuit definitions, public-input encodings and ordering,
+transcript binding, artifact lifecycle and size limits, and test vectors
+remain unspecified.
 
 # Credential Protocols {#credential-protocols}
 
@@ -670,8 +686,11 @@ was consumed without replacement. `ACCEPTED_WITH_UPDATE` carries the encoded
 derivation, replay protection, and retry behavior. The Moderator completes that
 replay protection before returning an accepted result. `fresh` is true when
 this call recorded the result, and false when it returns a result already
-recorded for a retry. Only a fresh result authorizes the protected
-operation.
+recorded for a retry. Only a fresh result authorizes one attempt of the
+protected operation within the replay protection scope. It does not establish
+that the operation completed. `ACCEPTED_NO_UPDATE` ends this Credential's
+chain, not other Credentials the Client may hold. A missing response or an
+unavailable recovery result does not establish `ACCEPTED_NO_UPDATE`.
 
 ## Anonymous Credit Tokens (ACT) {#credential-act}
 
@@ -684,8 +703,8 @@ proving that the balance covers it, and may accept a *top-up* of at most
 `a` that the challenge offers. In the same exchange the Moderator issues a *refund*
 message with a return amount `t` of its choosing, with `0 <= t <= s + a`.
 The Client finalizes this message into a fresh Credential with balance
-`c - s + t`. The presentation reveals `s`, `a`, and a single-use nullifier;
-the balance is hidden beyond the public amounts and predicates
+`c - s + t`. The presentation reveals `s`, `a`, and a single-use nullifier.
+The balance is hidden beyond the public amounts and predicates
 ({{privacy-act}}).
 
 A Credential is invalid once spent, and its replacement exists only once the
@@ -693,8 +712,8 @@ Moderator has answered, so one Credential supports one presentation in flight
 at a time. This gives the Moderator:
 
 Concurrency control:
-: A Credential copied to several parties can be spent by only one of them;
-  every other copy presents a nullifier the Moderator has already recorded.
+: Within a replay protection scope, copies of a Credential yield at most one
+  fresh acceptance. Every copy presents the same nullifier.
 
 Dynamic revocation:
 : The Moderator ends a Credential chain, and its remaining balance, by
@@ -736,7 +755,7 @@ Public Key
   last byte of `key_id`.
 
 Ciphersuite
-: The ACT ciphersuite identifier; {{ACT}} defines `P256-SHA256`.
+: The ACT ciphersuite identifier. {{ACT}} defines `P256-SHA256`.
 
 Balance Width
 : `L`, fixed for the lifetime of the key and credential context ({{ACT}}).
@@ -762,8 +781,8 @@ outstanding Credential under a key by publishing a new `credential_context`,
 without changing the key. A refund is issued under the context of the spent
 Credential, so balances do not carry over to a new context. A Moderator
 SHOULD announce the successor context and a grace period before expiry.
-Clients obtain Credentials under the new context through Redeem & Issue;
-this document does not specify balance migration.
+Clients obtain Credentials under the new context through Redeem & Issue.
+This document does not specify balance migration.
 
 A Moderator MAY have several active keys, for instance during a rotation. It
 MUST ensure that no two active keys share a `truncated_key_id`, SHOULD NOT
@@ -836,7 +855,7 @@ presentation succeeds only if the balance is at least `s`. `a` is the
 largest top-up the Moderator offers in this presentation, `0` if none. A
 challenge with `s = a = 0` asks for a refresh, which replaces the nullifier
 and leaves the balance unchanged, since `t <= s + a = 0`. A Moderator that
-wants to lower balances challenges with `s > 0` and returns `t < s`; one that
+wants to lower balances challenges with `s > 0` and returns `t < s`. One that
 wants to raise them offers `a > 0`. `credential_context` repeats the
 configured value, so that a Client can tell that its Credential has expired
 without refetching the configuration. It is the challenge field that
@@ -875,7 +894,7 @@ Request-bound:
   authorized. The value MAY be stateless, for instance an
   authenticated encoding of the origin, the method and target, a session
   identifier, or a time window, which the Moderator recomputes from the
-  request. The binding is only as specific as what the value encodes; to
+  request. The binding is only as specific as what the value encodes. To
   bind one operation, it MUST distinguish every request field that affects
   authorization, including the request body where relevant.
 
@@ -947,7 +966,7 @@ result, and step 4 follows.
    protected operation fails ({{HTTP-TRANSPORT}}).
 
 Spending credits authorizes one attempt of the protected operation. A
-failure after step 3 can charge the Client without completing step 4; a
+failure after step 3 can charge the Client without completing step 4. A
 retry recovers the result but does not authorize another attempt. Reliable
 execution needs application-specific recovery, for example a durable outbox
 written with the step 3 record and a worker that retries the operation
@@ -971,7 +990,7 @@ An ACT Credential goes through the following states:
         | ProveSpend(credential, ctx_cred, s, a, ctx_spend)
         v
    +----------+
-   |  Spent   |  awaiting refund; the Credential is invalid
+   |  Spent   |  awaiting refund, Credential invalid
    +----+-----+
         |
         | FinalizeRefund(pkM, ctx_cred, state, refund)
@@ -1094,6 +1113,8 @@ any accepted key, and builds `token_request` under the issuance key.
 `TokenChallenge` is fixed when the token is issued, before the operation in
 which it is presented. It MUST be the same for every Client using a given
 configuration, and MUST NOT contain a per-Client or per-request value.
+The Client checks agreement with its configuration, not consistency across
+Clients ({{privacy-considerations}}).
 `Token.challenge_digest` is SHA-256 over the encoded `TokenChallenge`. It is
 distinct from the endorsement `challenge_digest` of {{challenge-binding}}.
 
@@ -1118,7 +1139,8 @@ The Moderator processes a presentation as follows:
 5. It returns the recorded result with `fresh` true and attempts the
    protected operation.
 
-With no update the Client is out of credentials.
+With no update this token's chain ends. Other tokens the Client holds are
+unaffected.
 
 ### Retry after a lost response
 
@@ -1135,9 +1157,13 @@ The recovery handle ({{HTTP-TRANSPORT}}) is
 
 ### Limitations
 
-TODO: define a device binding mechanism, issuing tokens bound to a Client
-key so that presentation requires proof of possession. This would restore
-the binding between update and presented credential. Open problem.
+The presented token is a bearer credential. Its verification does not prove
+that the replacement `token_request` belongs to the same holder. A holder
+can therefore supply another party's replacement request. Replay protection
+limits acceptance of the presented token within its scope. It does not
+prevent this transfer or establish that a Client holds only one token.
+The fixed `TokenChallenge` also does not bind presentation to a particular
+HTTP request.
 
 # Key Rotation and Discovery {#key-rotation}
 
@@ -1243,15 +1269,20 @@ values are unpadded base64url strings.
 
 # Privacy Considerations {#privacy-considerations}
 
-TODO. The list to cover:
+TODO. Follow {{ARCHITECTURE}} and cover:
 
-1. Anchor set verification: the Client must be able to verify the number
-   of Anchors in an accepted set, and that these Anchors are real rather
-   than fabricated by the Moderator. A set padded with fake Anchors
-   shrinks the effective anonymity set to the Clients of the real ones.
-2. Configuration partitioning: accepted-set contents and order as a
-   fingerprinting vector (with {{ARCHITECTURE}}).
-3. Epoch width versus anonymity set size.
+1. Anonymity-set partitioning by protocol type, keys, contexts, epochs,
+   accepted-set contents and order, and public amounts. Cryptographic issuer
+   hiding and unlinkability do not remove these distinctions.
+2. Configuration consistency: authenticated delivery does not prevent split
+   views. Local Client checks do not establish consistency across Clients.
+3. Anchor set verification: counting keys does not establish that they
+   represent distinct, active Anchors. Fabricated entries do not add Clients
+   to the anonymity set.
+4. Epoch width versus anonymity-set size.
+5. Amount tagging: conformance requirements do not prevent a malicious
+   Moderator from choosing identifying amounts. State Client checks,
+   external consistency assumptions, and residual attacks.
 
 During redemption of an Endorsement, the Client uses the accepted Anchor Set
 from the Moderator's authenticated configuration. If the Client does not have
@@ -1302,7 +1333,7 @@ Timing:
 : The refund arrives in the same exchange as the presentation, so a Client
   that presents it in another context at once is likely the one that just
   received it. {{ARCHITECTURE}} keeps a Credential used in one context
-  locked to that context for a period of time; this applies to the refund
+  locked to that context for a period of time. This applies to the refund
   that replaces it.
 
 # Security Considerations {#security-considerations}
@@ -1312,30 +1343,28 @@ carried over HTTPS.
 
 TODO. The list to cover:
 
-1. Nullifier store sizing and eviction: the store is per epoch, and a
-   Moderator that evicts early re-admits spent Endorsements.
-2. Anchor key compromise: an attacker with an Anchor key in an accepted set
+1. Anchor key compromise: an attacker with an Anchor key in an accepted set
    can mint Endorsements freely. Blast radius and rotation response.
-3. Reverse-flow update transfer: the two-credential attack of
-   {{credential-reverse}}, and why single-credential enforcement cannot be
-   verified.
-4. Timing and error side channels during verification, especially
+2. Timing and error side channels during verification, especially
    distinguishing "bad proof" from "spent nullifier".
 
-The replay protection store is shared only within its configured scope. A
-deployment can use one atomic scope across all regions, including by routing
-each replay protection identifier to an authoritative region. This does not
-require the Client to know that region. A deployment can instead operate
-independent regional stores, but then the same Endorsement can be accepted once
-in each region. Credentials can likewise be presented once in each region,
-potentially creating divergent updates. Separate Moderators also do not
-coordinate stores. For ACT, all servers accepting the same key and credential
-context MUST share one atomic nullifier store; independent stores need
-disjoint keys or contexts. Otherwise a Client can fork a balance across
-stores, which breaks the credit conservation of {{ACT}}.
+Replay protection scope is deployment-selected and can differ for Endorsement
+redemption and Credential presentation. Atomic checks within that scope
+prevent repeated acceptance. This document does not require global uniqueness
+or a particular storage architecture. Independent scopes can accept the same
+Endorsement or Credential again. For ACT, this can fork balances and loses
+strict credit conservation across scopes. Restricting acceptance through
+keys or contexts can narrow replay exposure but also partitions anonymity sets.
 A Rollatini redemption exposes the same nullifier in each scope, making
 cross-scope reuse linkable if records are compared. Proof rerandomization does
 not hide that reuse.
+
+Replay markers and recoverable results have different lifetimes. A Moderator
+MUST retain a marker while the corresponding Endorsement or Credential remains
+acceptable in its scope, even after its recovery result expires. Deleting the
+result ends recovery. Deleting the marker permits replay. After deleting a
+marker on retirement, the Moderator MUST NOT accept the retired configuration
+again.
 
 ## Anonymous Credit Tokens {#security-act}
 
@@ -1344,7 +1373,7 @@ Nullifier store:
   The store MUST be durable: a Moderator that loses it re-admits every
   Credential spent under a context for as long as that context is
   accepted. Nullifiers MAY be partitioned by key and context and discarded
-  once the context is no longer accepted; a Moderator MUST NOT accept that
+  once the context is no longer accepted. A Moderator MUST NOT accept that
   key and context again afterwards.
 
 Amounts:
@@ -1355,21 +1384,22 @@ Amounts:
   needs.
 
 Credential sharing:
-: Copies of one Credential yield one presentation: the first to reach the
-  Moderator is recorded in step 3, and every other copy is rejected as a
-  double spend and is linkable to the first ({{ACT}}).
+: Copies of one Credential yield at most one fresh acceptance within a replay
+  protection scope. Byte-identical retries recover the retained result.
+  Conflicting spends are rejected. Both expose the same nullifier and are
+  linkable to the first presentation ({{ACT}}).
 
 Recorded results:
 : A recorded result is returned only for a byte-identical presentation and
   never authorizes another operation. A party that replays an observed
   presentation receives a refund it cannot finalize without the spend
-  state. A recorded `NoUpdate` stays `NoUpdate`; answering a retry with a
+  state. A recorded `NoUpdate` stays `NoUpdate`. Answering a retry with a
   refund would undo the Moderator's revocation.
 
 Dynamic revocation:
 : A Moderator that records `NoUpdate` ends that Credential chain, and the
   Client loses its remaining balance with no cryptographic recourse.
-  Clients therefore trust Moderators to refund honest presentations; a
+  Clients therefore trust Moderators to refund honest presentations. A
   Moderator that withholds refunds indiscriminately costs its Clients their
   Endorsements. Client Vendors can limit their Clients' use of such a
   Moderator.
@@ -1378,9 +1408,9 @@ Presentation scope:
 : Under the policy-scoped profile of {{act-challenge-binding}}, a party
   that sees a presentation before the Moderator does, such as an
   intermediary terminating TLS for the Moderator, can attach it to another
-  request under the same policy. The nullifier ensures that only one use is
-  accepted, not which. Deployments that need a presentation tied to one
-  request use the request-bound profile.
+  request under the same policy. The nullifier check ensures that only one use
+  is accepted within the replay scope, not which. Deployments that need a
+  presentation tied to one request use the request-bound profile.
 
 Verification cost:
 : An unrecorded nullifier passes step 1 of {{act-spend}}, so a forged

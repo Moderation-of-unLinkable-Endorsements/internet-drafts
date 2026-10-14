@@ -143,7 +143,9 @@ one parameter, with the syntax above:
 An absent `CredentialUpdate` means the Moderator consumed the Credential
 without replacement. A missing `Mole-Credential` field carries no such
 decision. A Client MUST process `Mole-Credential` whatever the response
-status.
+status. The credential result does not establish whether the protected
+operation completed. Recovery returns this result without another operation
+attempt.
 
 A server sending `Mole-Credential` MUST also send `Cache-Control: no-store`.
 A server answering cross-origin requests MUST list `WWW-Authenticate` and
