@@ -257,7 +257,7 @@ Authorization: Mole recovery="<credential-recovery>"
 
 The recovery handle is defined by the credential type in {{PROTOCOLS}}. The
 Moderator treats it as the byte-identical presentation and uses no other
-Client identifier. It answers `409` with the recorded update if a result is
+Client identifier. It answers `200` with the recorded update if a result is
 still retained, and `401` otherwise, whether or not a record exists. It MUST
 NOT perform the protected operation or verify a proof.
 
@@ -270,7 +270,8 @@ NOT perform the protected operation or verify a proof.
 | Rejected by policy before acceptance | `403` | none |
 | Credential issued | `200` | `response` |
 | Fresh accepted presentation | protected operation's status | `update` |
-| Accepted presentation, not fresh, or recovery | `409` | `update` |
+| Accepted presentation, not fresh | `409` | `update` |
+| Successful explicit recovery | `200` | `update` |
 {: #tab-status title="Mole responses"}
 
 The Moderator MUST use these rules for every credential type. A `401`

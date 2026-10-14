@@ -1043,7 +1043,9 @@ The recovery handle ({{HTTP-TRANSPORT}}) is
 
 The Moderator MUST NOT authorize another operation for a recorded nullifier,
 and MUST NOT change a recorded decision. It returns the recovered result
-with HTTP status `409` as specified in {{HTTP-TRANSPORT}}.
+with HTTP status `200` for explicit recovery. A byte-identical retry at the
+protected resource returns `409` without another operation attempt, as specified
+in {{HTTP-TRANSPORT}}.
 
 Once recovery ends, a retry is rejected, and the Client MUST discard the
 spend state. To continue, it runs Redeem & Issue. The Moderator MUST retain
