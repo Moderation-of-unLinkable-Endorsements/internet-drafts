@@ -88,6 +88,10 @@ presentations is defined by {{HTTP-TRANSPORT}}. This document defines the
 messages themselves and, for the grant flow, the HTTP exchanges that carry
 them.
 
+TODO: the protocols below reflect our current understanding of how MoLE
+may work, and showcase agility. They are not final. Some may be removed,
+others added.
+
 An Endorsement establishes eligibility for Credential issuance under the
 Moderator's policy. It does not directly authorize resource access. A fresh
 Credential acceptance authorizes one attempt of the protected operation
@@ -98,8 +102,8 @@ configured token Challenge, without binding the replacement request to the
 holder of the presented token.
 
 An accepted presentation either replaces the Credential or ends its chain.
-A missing response leaves that decision unknown. Recovery returns the
-recorded decision, not another authorization. These properties depend on
+A missing response leaves that decision unknown. Presentation recovery
+returns the recorded decision, not another authorization. These properties depend on
 the construction and replay scope below. {{ARCHITECTURE}} describes the
 trust relationships, anonymity sets, configuration consistency, and side
 channels. Cryptographic issuer hiding and unlinkability do not remove those
@@ -109,13 +113,11 @@ deployment dependencies.
 
 {::boilerplate bcp14-tagged}
 
-Protocol messages are described in TLS presentation language ({{Section 3 of
-TLS13}}), with two additions. `opaque x<V>` is a vector whose length prefix
+Binary payloads and hash inputs use TLS presentation language ({{Section 3 of
+TLS13}}). `opaque x<V>` is a vector whose length prefix
 is the variable-length integer of {{Section 16 of QUIC}}, in its shortest
-encoding. `optional<T>` is a `uint8` that is 0 for absent or 1 for present,
-followed by `T` if present. A recipient MUST reject any other prefix value,
-a non-shortest length, or trailing bytes. All constants are in network byte
-order.
+encoding. A recipient MUST reject a non-shortest length or trailing bytes.
+All constants are in network byte order.
 
 This document uses the following terms for protocol actions:
 
@@ -148,19 +150,19 @@ Finalize:
 
 ## Message Types
 
-Every outer MoLE message that selects a protocol carries a `uint16` type field.
-These messages are `EndorsementRequest`, `EndorsementResponse`,
-`CredentialRequest`, `CredentialResponse`, `CredentialPresentation`,
-`CredentialUpdate`, `ModeratorChallenge`, and `CredentialChallenge`. Values are
-assigned in {{iana}}. A Client ignores an unknown Challenge. An unknown request
+Endorsement and credential types are `uint16` values assigned in {{iana}}.
+HTTP carries them in parameter suffixes or grant media-type parameters, not
+inside payload wrappers. A Client ignores an unknown Challenge. An unknown request
 or response is rejected. A Moderator treats an unknown optional presentation
-as absent and rejects an unknown required presentation. Challenge wrappers are
-exchanged only between a Moderator and Client. They are never sent to an Anchor.
+as absent and rejects an unknown required presentation. Moderator Challenge
+material is never sent to an Anchor by the Client.
 
 The value 0x0000 is reserved in both registries and MUST NOT appear on the
 wire. Endorsement type 0x0001 means that no Endorsement is required.
 
-The other outer messages are:
+These canonical Challenge encodings are hash inputs, not HTTP payload
+wrappers. Both parties reconstruct them from the selected type and decoded
+type-specific payload, preserving the cryptographic transcripts:
 
 ~~~ tls-presentation
 struct {
@@ -172,25 +174,19 @@ struct {
   uint16 credential_type;
   opaque challenge<V>;      /* type-specific Challenge */
 } CredentialChallenge;
-
-struct {
-  uint16 credential_type;
-  opaque presentation_and_update<V>;
-} CredentialPresentation;
-
-struct {
-  uint16 credential_type;
-  opaque update<V>;
-} CredentialUpdate;
 ~~~
 
-`ModeratorChallenge` and `CredentialChallenge` share a layout, so the
-carrying protocol MUST say which one a value is.
+Each encoding is the two-byte type in network order, the shortest QUIC
+variable-length integer encoding of the body length, then the body. For
+`ModeratorChallenge` the type is the endorsement type. For `CredentialChallenge`
+it is the credential type. Hashes cover these bytes, never HTTP parameter
+names, quoting, or base64url text. This document defines no alternative
+non-HTTP transport. The canonical encodings do not negotiate one.
 
 ## Greasing {#greasing}
 
 In order to prevent Moderators from becoming incompatible with future
-credential types, Clients SHOULD send presentations whose `credential_type` is a
+credential types, Clients SHOULD send presentations whose selected type is a
 random value from the reserved greased values ({{iana-grease}}), with some
 non-trivial probability. The body of a greased presentation is random bytes. A
 Moderator handles it as if no Credential were presented.
@@ -245,8 +241,8 @@ Issue flow ({{credential-protocols}}).
 | Client |                    | Anchor |
 +---+----+                    +---+----+
     |                             |
-    +--- EndorsementRequest ----->|  \
-    |<-- EndorsementResponse -----+  |  one or more
+    +----- grant request ------->|  \
+    |<---- grant response -------+  |  one or more
     |            ...              |  /  exchanges
 Finalize                          |
     |
@@ -260,32 +256,12 @@ Finalize                          |
 ~~~
 {: #fig-endorsement-flow title="Endorsement grant and redemption"}
 
-Exchanges with the Anchor are HTTP POST requests. The request body has media
-type `application/mole-endorsement-request` and contains an
-`EndorsementRequest`. The response body has media type
-`application/mole-endorsement-response` and contains an
-`EndorsementResponse`. The endorsement type determines how many exchanges
-are needed and what the `body` field contains at each step.
-
-~~~ tls-presentation
-struct {
-  uint16 endorsement_type;
-  opaque body<V>;
-} EndorsementRequest;
-
-struct {
-  uint16 endorsement_type;
-  opaque body<V>;
-} EndorsementResponse;
-~~~
-
-The structure fields are:
-
-* `endorsement_type` identifies a registered endorsement protocol.
-* `body` is that protocol's grant message.
+Exchanges with the Anchor are HTTP POST requests carrying the type-specific
+grant messages directly, as specified in {{HTTP-TRANSPORT}}. The endorsement
+type determines how many exchanges are needed and the message at each step.
 
 The Anchor returns 200 (OK) with the response media type only when it produced
-a complete `EndorsementResponse`. A Client MUST reject a non-success status, an
+a complete grant response. A Client MUST reject a non-success status, an
 unexpected media type, a response whose type differs from its request, trailing
 bytes, or malformed type-specific content. Clients MUST NOT automatically
 redirect a grant POST carrying protocol state.
@@ -325,9 +301,9 @@ challenge_digest = SHA-256(moderator_challenge)
 
 The values are defined as follows:
 
-* `moderator_challenge` is the complete decoded TLS-presentation encoding of
-  the `ModeratorChallenge` sent by the Moderator. It is not required to contain
-  an origin.
+* `moderator_challenge` is the canonical `ModeratorChallenge` reconstructed
+  from the selected endorsement type and decoded challenge payload ({{common}}).
+  It is not required to contain an origin.
 * `challenge_digest` is the 32-octet SHA-256 digest of
   `moderator_challenge`. It is not computed over a base64url or other textual
   encoding. SHA-256 is defined in {{SHA2}}.
@@ -422,7 +398,7 @@ Redemption Context
 The grant takes two HTTP exchanges and three protocol messages. The Anchor
 speaks first, as specified by {{IHAT-ROLLATINI}}:
 
-1. The Client sends an `EndorsementRequest` with an empty `body`. The Anchor
+1. The Client sends a grant POST with empty content. The Anchor
    runs `Commit(ctx_iss)`, stores the returned state under a fresh
    `session_id`, and returns a `CommitMessage` in the response body.
 2. The Client runs `Challenge(pkA, ctx_iss, ctx_red, commitment)`, stores the
@@ -466,8 +442,8 @@ on its size, and calls
 It returns `{nf}`, scoped to the matching `ctx_iss` in the Moderator's store,
 or `INVALID` if decoding or verification fails under every set.
 The common replay protection rules apply before Credential issuance. The
-same `nf` is exposed on repeated redemptions, including across Moderators.
-The scheme does not enforce global single use.
+same `nf` is exposed on repeated redemptions, including across Moderators;
+the scheme does not enforce global single use.
 
 ## Longfellow {#longfellow}
 
@@ -477,7 +453,7 @@ Where Rollatini requires Anchors to run new cryptography, this protocol
 preserves backward compatibility with credentials Clients may hold, such as
 mdocs. The Client proves in zero knowledge, using the scheme of {{LONGFELLOW}},
 that it holds a valid credential from one of an accepted set of issuers, without
-revealing which issuer or any credential attribute. A circuit is
+revealing which issuer or any credential attribute. An experimental circuit is
 described in {{HIDDEN-ISSUER-CIRCUIT}}.
 
 There is no grant exchange in this protocol. The Client obtains its
@@ -516,7 +492,7 @@ Verification Time
 
 The accepted issuer set, circuit artifact, epoch, Moderator origin, and
 verification time come from authenticated configuration. The selected
-redemption operation supplies the digest of the complete decoded
+redemption operation supplies the digest of the reconstructed canonical
 `ModeratorChallenge` as `challenge_digest`, as defined in
 {{challenge-binding}}.
 
@@ -570,9 +546,9 @@ Moderator prevent repeat redemption within its replay protection scope. The
 legacy credential remains usable at other Moderator origins and in later
 epochs. This does not limit how many credentials a Client can obtain.
 
-Normative circuit definitions, public-input encodings and ordering,
-transcript binding, artifact lifecycle and size limits, and test vectors
-remain unspecified.
+> **Editor note.** This protocol is blocked on normative circuit definitions,
+> public-input encodings and ordering, transcript binding, artifact lifecycle
+> and size limits, and test vectors.
 
 # Credential Protocols {#credential-protocols}
 
@@ -601,11 +577,13 @@ Finalize                                    |
 ~~~
 {: #fig-credential-flow title="Redeem & Issue, then presentation and update"}
 
-Redeem & Issue sends a `CredentialRequest` and receives a
-`CredentialResponse`. The Moderator runs the selected endorsement protocol's
-`FinalizeRedeem` before it issues a Credential. Presentation sends a
-`CredentialPresentation` and receives a `CredentialUpdate`. {{HTTP-TRANSPORT}}
-carries these messages over HTTP.
+Redeem & Issue carries a redemption and an issuance request. The Moderator
+runs the endorsement protocol's `FinalizeRedeem` before accepting issuance.
+Presentation carries `PresentationAndUpdate` and returns `Update` or a recorded
+`NoUpdate` decision. {{HTTP-TRANSPORT}} carries these payloads directly.
+
+`CredentialRequest` names the pair of Redeem & Issue payloads. HTTP carries
+them as two typed parameters, not as this encoding:
 
 ~~~ tls-presentation
 struct {
@@ -614,11 +592,6 @@ struct {
   uint16 credential_type;
   opaque issuance_request<V>;
 } CredentialRequest;
-
-struct {
-  uint16 credential_type;
-  opaque issuance_response<V>;
-} CredentialResponse;
 ~~~
 
 The structure fields are:
@@ -628,10 +601,10 @@ The structure fields are:
   endorsement type 0x0001 ({{no-endorsement-required}}).
 * `credential_type` identifies the credential protocol.
 * `issuance_request` is its encoded `IssuanceRequest`.
-* `issuance_response` is its encoded `IssuanceResponse`.
 
-A recipient of `CredentialResponse` MUST reject it unless `credential_type`
-matches the type selected by `CredentialRequest`.
+`CredentialResponse` below means the selected credential type and its encoded
+`IssuanceResponse`. HTTP carries the type in its response
+parameter suffix. The Client MUST reject a type that differs from its request.
 
 All credential protocols define the same four payloads:
 
@@ -649,8 +622,7 @@ Update
 : The Moderator's response to `PresentationAndUpdate`, when the Client remains
   eligible for a Credential.
 
-The type-specific encodings fill the opaque fields of the outer structures
-above and of `CredentialPresentation` and `CredentialUpdate` ({{common}}).
+HTTP carries these type-specific encodings without additional wrappers.
 
 ## Abstract Credential API
 
@@ -692,6 +664,16 @@ that the operation completed. `ACCEPTED_NO_UPDATE` ends this Credential's
 chain, not other Credentials the Client may hold. A missing response or an
 unavailable recovery result does not establish `ACCEPTED_NO_UPDATE`.
 
+| Presentation outcome | Credential result | Protected operation |
+|---|---|---|
+| Rejected before acceptance | No committed replacement decision | Not attempted |
+| Acceptance uncertain | Client cannot infer consumption or replacement | Not attempted unless this request's acceptance is confirmed |
+| Fresh acceptance, response lost or server crashes | Recorded update or `NoUpdate` is fixed | May not have started or completed |
+| Byte-identical duplicate with retained result | Return the recorded result | No additional attempt |
+| Same Credential, conflicting presentation | Reject without changing the record | No additional attempt |
+| Recovery result unavailable | No conclusion about the recorded decision | No additional attempt |
+{: title="Presentation and recovery outcomes within a replay scope"}
+
 ## Anonymous Credit Tokens (ACT) {#credential-act}
 
 Credential type: 0x0001.
@@ -703,8 +685,8 @@ proving that the balance covers it, and may accept a *top-up* of at most
 `a` that the challenge offers. In the same exchange the Moderator issues a *refund*
 message with a return amount `t` of its choosing, with `0 <= t <= s + a`.
 The Client finalizes this message into a fresh Credential with balance
-`c - s + t`. The presentation reveals `s`, `a`, and a single-use nullifier.
-The balance is hidden beyond the public amounts and predicates
+`c - s + t`. The presentation reveals `s`, `a`, and a single-use nullifier;
+the balance is hidden beyond the public amounts and predicates
 ({{privacy-act}}).
 
 A Credential is invalid once spent, and its replacement exists only once the
@@ -755,7 +737,7 @@ Public Key
   last byte of `key_id`.
 
 Ciphersuite
-: The ACT ciphersuite identifier. {{ACT}} defines `P256-SHA256`.
+: The ACT ciphersuite identifier; {{ACT}} defines `P256-SHA256`.
 
 Balance Width
 : `L`, fixed for the lifetime of the key and credential context ({{ACT}}).
@@ -781,8 +763,8 @@ outstanding Credential under a key by publishing a new `credential_context`,
 without changing the key. A refund is issued under the context of the spent
 Credential, so balances do not carry over to a new context. A Moderator
 SHOULD announce the successor context and a grace period before expiry.
-Clients obtain Credentials under the new context through Redeem & Issue.
-This document does not specify balance migration.
+Clients obtain Credentials under the new context through Redeem & Issue;
+this document does not specify balance migration.
 
 A Moderator MAY have several active keys, for instance during a rotation. It
 MUST ensure that no two active keys share a `truncated_key_id`, SHOULD NOT
@@ -855,7 +837,7 @@ presentation succeeds only if the balance is at least `s`. `a` is the
 largest top-up the Moderator offers in this presentation, `0` if none. A
 challenge with `s = a = 0` asks for a refresh, which replaces the nullifier
 and leaves the balance unchanged, since `t <= s + a = 0`. A Moderator that
-wants to lower balances challenges with `s > 0` and returns `t < s`. One that
+wants to lower balances challenges with `s > 0` and returns `t < s`; one that
 wants to raise them offers `a > 0`. `credential_context` repeats the
 configured value, so that a Client can tell that its Credential has expired
 without refetching the configuration. It is the challenge field that
@@ -869,8 +851,8 @@ The spend context of {{ACT}} is
 ctx_spend = SHA-256(credential_challenge)
 ~~~
 
-where `credential_challenge` is the complete TLS encoding of the
-`CredentialChallenge` ({{common}}), including its `credential_type`
+where `credential_challenge` is the canonical encoding of the
+`CredentialChallenge` ({{common}}), reconstructed with its `credential_type`
 and the length-prefixed ACT `Challenge`. The Client hashes those octets, not
 their base64url encoding. This digest is separate from the redemption digest
 of {{challenge-binding}}.
@@ -894,7 +876,7 @@ Request-bound:
   authorized. The value MAY be stateless, for instance an
   authenticated encoding of the origin, the method and target, a session
   identifier, or a time window, which the Moderator recomputes from the
-  request. The binding is only as specific as what the value encodes. To
+  request. The binding is only as specific as what the value encodes; to
   bind one operation, it MUST distinguish every request field that affects
   authorization, including the request body where relevant.
 
@@ -966,7 +948,7 @@ result, and step 4 follows.
    protected operation fails ({{HTTP-TRANSPORT}}).
 
 Spending credits authorizes one attempt of the protected operation. A
-failure after step 3 can charge the Client without completing step 4. A
+failure after step 3 can charge the Client without completing step 4; a
 retry recovers the result but does not authorize another attempt. Reliable
 execution needs application-specific recovery, for example a durable outbox
 written with the step 3 record and a worker that retries the operation
@@ -990,7 +972,7 @@ An ACT Credential goes through the following states:
         | ProveSpend(credential, ctx_cred, s, a, ctx_spend)
         v
    +----------+
-   |  Spent   |  awaiting refund, Credential invalid
+   |  Spent   |  awaiting refund; the Credential is invalid
    +----+-----+
         |
         | FinalizeRefund(pkM, ctx_cred, state, refund)
@@ -1137,7 +1119,7 @@ The Moderator processes a presentation as follows:
    digest of the `PresentationAndUpdate` octets and the result: the
    `Update`, or no update. Recording MUST fail if a record exists. If any
    step fails, or it is unknown whether the result was recorded, no update is
-   released.
+   released and the protected operation MUST NOT be attempted.
 5. It returns the recorded result with `fresh` true and attempts the
    protected operation.
 
@@ -1154,6 +1136,11 @@ accepted. It MUST NOT issue a second Credential for a recorded nonce. The
 Client MUST NOT combine the same presented Credential with a different update
 request. These requirements are the retry semantics of {{REVERSE-FLOW}}.
 
+If concurrent presentations race to record the nonce, only the winner returns
+`fresh` true. A loser returns the retained result with `fresh` false only if
+the recorded presentation digest matches. Otherwise it rejects the request.
+Once the result expires, the retained nonce still prevents another acceptance.
+
 The recovery handle ({{HTTP-TRANSPORT}}) is
 `token.token_key_id || token.nonce || SHA-256(PresentationAndUpdate)`.
 
@@ -1166,6 +1153,10 @@ limits acceptance of the presented token within its scope. It does not
 prevent this transfer or establish that a Client holds only one token.
 The fixed `TokenChallenge` also does not bind presentation to a particular
 HTTP request.
+
+TODO: define a device binding mechanism, issuing tokens bound to a Client
+key so that presentation requires proof of possession. This would restore
+the binding between update and presented credential. Open problem.
 
 # Key Rotation and Discovery {#key-rotation}
 
@@ -1251,7 +1242,8 @@ $credential-key /= {
 }
 ~~~
 
-`grant-uri` and `issuance-uri` are absolute HTTPS URIs. Other protocols,
+`grant-uri` and `issuance-uri` are absolute HTTPS URIs without userinfo or
+fragments. Other protocols,
 such as {{longfellow}}, add entries to the sockets. A Client ignores unknown
 members and skips entries of unknown types.
 
@@ -1335,7 +1327,7 @@ Timing:
 : The refund arrives in the same exchange as the presentation, so a Client
   that presents it in another context at once is likely the one that just
   received it. {{ARCHITECTURE}} keeps a Credential used in one context
-  locked to that context for a period of time. This applies to the refund
+  locked to that context for a period of time; this applies to the refund
   that replaces it.
 
 # Security Considerations {#security-considerations}
@@ -1361,10 +1353,10 @@ A Rollatini redemption exposes the same nullifier in each scope, making
 cross-scope reuse linkable if records are compared. Proof rerandomization does
 not hide that reuse.
 
-Replay markers and recoverable results have different lifetimes. A Moderator
-MUST retain a marker while the corresponding Endorsement or Credential remains
-acceptable in its scope, even after its recovery result expires. Deleting the
-result ends recovery. Deleting the marker permits replay. After deleting a
+Replay markers and recoverable presentation results have different lifetimes.
+A Moderator MUST retain a marker while the corresponding Endorsement or
+Credential remains acceptable in its scope, even after its recovery result
+expires. Deleting the result ends recovery. Deleting the marker permits replay. After deleting a
 marker on retirement, the Moderator MUST NOT accept the retired configuration
 again.
 
@@ -1375,7 +1367,7 @@ Nullifier store:
   The store MUST be durable: a Moderator that loses it re-admits every
   Credential spent under a context for as long as that context is
   accepted. Nullifiers MAY be partitioned by key and context and discarded
-  once the context is no longer accepted. A Moderator MUST NOT accept that
+  once the context is no longer accepted; a Moderator MUST NOT accept that
   key and context again afterwards.
 
 Amounts:
@@ -1395,13 +1387,13 @@ Recorded results:
 : A recorded result is returned only for a byte-identical presentation and
   never authorizes another operation. A party that replays an observed
   presentation receives a refund it cannot finalize without the spend
-  state. A recorded `NoUpdate` stays `NoUpdate`. Answering a retry with a
+  state. A recorded `NoUpdate` stays `NoUpdate`; answering a retry with a
   refund would undo the Moderator's revocation.
 
 Dynamic revocation:
 : A Moderator that records `NoUpdate` ends that Credential chain, and the
   Client loses its remaining balance with no cryptographic recourse.
-  Clients therefore trust Moderators to refund honest presentations. A
+  Clients therefore trust Moderators to refund honest presentations; a
   Moderator that withholds refunds indiscriminately costs its Clients their
   Endorsements. Client Vendors can limit their Clients' use of such a
   Moderator.
@@ -1434,8 +1426,8 @@ endorsement registration MUST provide issuer hiding where applicable, define
 its replay protection behavior, and state how a Challenge affects its cryptographic
 Context. A credential registration MUST define `IssuanceRequest`,
 `IssuanceResponse`, `PresentationAndUpdate`, `Update`, finalization, retry
-behavior, and Challenge-to-Context derivation. Outer type-selecting messages
-carry the registered `uint16` type as specified in {{common}}.
+behavior, and Challenge-to-Context derivation. Type-specific Update encodings
+MUST be nonempty so HTTP can represent `NoUpdate` as an empty payload.
 
 ## MoLE Endorsement Types
 
@@ -1531,6 +1523,11 @@ random bytes ({{greasing}}).
 | application/mole-endorsement-response | {{endorsement-protocols}} |
 {: #media-types-table title="MoLE Media Types"}
 
+Both media types require a `type` parameter containing the four-digit
+hexadecimal endorsement type defined by {{HTTP-TRANSPORT}}. Bodies are the
+type-specific binary grant messages. Duplicate or mismatched type parameters
+are rejected. Neither type has optional parameters defined here.
+
 > **Editor note.** The final registry names and expert-review instructions
 > remain to be specified.
 
@@ -1576,20 +1573,20 @@ and the Anchor returns a `ResponseMessage`:
 ~~~
 POST <anchor-grant-link> HTTP/1.1
 Host: anchor.example
-Content-Type: application/mole-endorsement-request
-
-EndorsementRequest { 0x0002, "" }
+Content-Type: application/mole-endorsement-request; type=0002
+Content-Length: 0
 ~~~
 
 The Client finalizes the `ResponseMessage` into an Endorsement. It then obtains
 a `ModeratorChallenge` from the Moderator, computes its digest, and sends an
-HTTP request with a `CredentialRequest` containing the Rollatini `Redemption`
-and a Privacy Pass `TokenRequest` to its Redeem & Issue endpoint:
+HTTP request with the Rollatini `Redemption` and a Privacy Pass `TokenRequest`
+as separate typed parameters to its Redeem & Issue endpoint:
 
 ~~~
 POST /issue HTTP/1.1
 Host: moderator.example
-Authorization: Mole credential-request="<credential-request>"
+Authorization: Mole redeem-0002="<redemption>",
+                    credential-request-0002="<token-request>"
 ~~~
 
 The Moderator verifies the redemption against the Challenge it sent and
@@ -1603,7 +1600,7 @@ before presenting the resulting token:
 ~~~
 GET /resource HTTP/1.1
 Host: moderator.example
-Authorization: Mole presentation="<credential-presentation>"
+Authorization: Mole presentation-0002="<presentation-and-update>"
 ~~~
 
 The Moderator verifies the presentation and serves the resource. Its response

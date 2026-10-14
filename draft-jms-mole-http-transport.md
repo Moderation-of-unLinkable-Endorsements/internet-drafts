@@ -72,10 +72,9 @@ header. Grant exchanges with an Anchor are HTTP POST requests defined in
 
 {::boilerplate bcp14-tagged}
 
-Message structures, their encoding, and the abstract operations
-(`ProcessPresentation`) are those of {{PROTOCOLS}}.
-Every binary value in a header is the unpadded base64url encoding
-({{BASE64}}) of the TLS presentation encoding of the named structure.
+Payload encodings and abstract operations are defined by {{PROTOCOLS}}.
+Header payloads use canonical unpadded base64url ({{BASE64}}). HTTP carries
+type-specific payloads directly, without outer type or length wrappers.
 
 # The Mole Authentication Scheme {#http-authentication-scheme}
 
@@ -84,65 +83,86 @@ Every binary value in a header is the unpadded base64url encoding
 | Client |                                | Moderator |
 +---+----+                                +-----+-----+
     |                                           |
-    |<--- WWW-Authenticate: Mole challenge= ----+
+    |<--- WWW-Authenticate: Mole challenge-T= --+
     |                                           |
 (Redeem & Issue, if needed)                     |
     |                                           |
-    +--- Authorization: Mole presentation= ---->|
+    +--- Authorization: Mole presentation-T= -->|
     |                                           |
-    |<-------------- Mole-Credential: update= --+
+    |<------------ Mole-Credential: update-T= --+
     |                                           |
 ~~~
 
-Each `Mole` challenge carries exactly one of these payload parameters:
+Payload parameter names end in `-T`, where `T` is a registered endorsement or
+credential type from {{PROTOCOLS}}, written as exactly four lowercase
+hexadecimal digits. For example, Rollatini (endorsement type 0x0002) is
+challenged with `redeem-0002`, and ACT (credential type 0x0001) is presented
+with `presentation-0001`. Recipients also accept uppercase digits, since
+parameter names are case-insensitive ({{Section 11.2 of HTTP}}). Type 0x0000
+is invalid.
 
-| Parameter | Sent by | Value |
+Each `Mole` challenge has exactly one payload parameter:
+
+| Parameter | Registry | Decoded payload |
 |---|---|---|
-| `endorse` | Anchor | `EndorsementChallenge` ({{grant}}) |
-| `redeem` | Moderator | `ModeratorChallenge` |
-| `challenge` | Moderator | `CredentialChallenge` |
+| `endorse-T` | Endorsement | Anchor context, empty for the types here |
+| `redeem-T` | Endorsement | `RedemptionChallenge` |
+| `challenge-T` | Credential | Type-specific `Challenge` |
 {: title="Challenge parameters"}
 
-The parameter name tells the Client which structure it holds;
-`ModeratorChallenge` and `CredentialChallenge` share a layout. A server
-offering a choice sends several `Mole` challenges. The Client picks one it
-supports and MUST ignore challenges of unknown type.
+A server offers a choice using separate `Mole` challenges. The Client ignores
+unknown types and chooses a supported configuration. A `redeem-T` challenge
+selects the endorsement type. The Client selects the credential type from the
+same Moderator's configuration, independently of the endorsement type.
 
-A `Mole` credential in `Authorization` carries exactly one of these payload
-parameters:
+A `Mole` credential in `Authorization` selects one operation:
 
-| Parameter | Value |
+| Parameters | Decoded payloads |
 |---|---|
-| `credential-request` | `CredentialRequest` |
-| `presentation` | `CredentialPresentation` |
-| `recovery` | `CredentialRecovery` ({{recovery}}) |
+| `redeem-E`, `credential-request-C` | `Redemption`, `IssuanceRequest` |
+| `presentation-T` | `PresentationAndUpdate` |
+| `recovery-T` | Recovery handle |
 {: title="Authorization parameters"}
 
-Parameters follow the auth-param syntax of {{Section 11.2 of HTTP}}; a value
-may be a token or a quoted-string. One `WWW-Authenticate` field can carry
-several challenges ({{Section 11.6.1 of HTTP}}), and the rules below apply to
-each `Mole` challenge or credential separately. A recipient ignores unknown
-parameters, including `realm`. It MUST reject as malformed a challenge or
-credential with a repeated parameter, or with none or more than one of the
-payload parameters above. It MUST reject a payload value that is not
-canonical unpadded base64url, or whose decoded value does not parse as the
-named structure. A Client ignores a malformed challenge and can use another
-one.
+`E` uses the endorsement registry. `C`, presentation, and recovery use the
+credential registry. Only Redeem & Issue has two payload
+parameters. It requires exactly one of each, in either order. Type 0001's
+empty redemption is carried as `redeem-0001=""`.
+
+Parameters use auth-param syntax ({{Section 11.2 of HTTP}}). Values can be
+tokens or quoted-strings. Senders quote empty values. Recipients unescape
+quoted-strings before decoding. Multiple challenges in one field follow
+{{Section 11.6.1 of HTTP}}. These rules apply to each challenge separately.
+Unknown parameters, including `realm`, are ignored. A name beginning with one
+of the operation prefixes above but lacking exactly four hexadecimal digits
+is malformed, not an unknown extension. A recipient MUST reject duplicate
+parameter names, mixed operations, and missing or extra payload parameters,
+including payloads of unknown types. It MUST reject noncanonical base64url and,
+for known types, trailing bytes or malformed content. Clients ignore malformed
+challenges and may use another one.
+
+An unknown presentation type is treated as absent when authentication is
+optional and rejected when required, as specified by {{PROTOCOLS}}. Other
+requests of unknown type are rejected. Unknown types never select a known
+payload decoder. Greased types follow these same rules.
 
 # The Mole-Credential Field {#mole-credential}
 
 `Mole-Credential` returns credential material to the Client. Its value is
 one parameter, with the syntax above:
 
-| Parameter | Value |
+| Parameter | Decoded payload |
 |---|---|
-| `response` | `CredentialResponse` |
-| `update` | `optional<CredentialUpdate>` |
+| `response-T` | `IssuanceResponse` |
+| `update-T` | `Update`, or empty for recorded `NoUpdate` |
 {: title="Mole-Credential parameters"}
 
-An absent `CredentialUpdate` means the Moderator consumed the Credential
-without replacement. A missing `Mole-Credential` field carries no such
-decision. A Client MUST process `Mole-Credential` whatever the response
+`T` uses the credential registry and MUST match the pending exchange. The
+field contains exactly one parameter and MUST NOT be repeated. An empty
+`update-T=""` means the Moderator consumed the Credential without replacement.
+A nonempty value carries the type's `Update`. Registered credential protocols
+MUST define nonempty Update encodings. A missing `Mole-Credential` field carries
+no such decision. A Client MUST process `Mole-Credential` whatever the response
 status. The credential result does not establish whether the protected
 operation completed. Recovery returns this result without another operation
 attempt.
@@ -162,51 +182,52 @@ HTTP request that carried it.
 
 ## Grant {#grant}
 
-An Anchor that requires an Endorsement sends:
-
-~~~ tls-presentation
-struct {
-  uint16 endorsement_type;
-  opaque anchor_context<V>;
-} EndorsementChallenge;
+~~~
+WWW-Authenticate: Mole endorse-0002=""
 ~~~
 
+The grant endpoint comes from Anchor configuration. The Client sends a POST
+with the type-specific grant message as its body. The media type is
+`application/mole-endorsement-request` with a required `type` parameter using
+the same four-digit hexadecimal encoding. The response uses
+`application/mole-endorsement-response` with the same type. The Client MUST
+reject a mismatched type. There is no outer `EndorsementRequest` or
+`EndorsementResponse` wrapper. The first Rollatini request has empty content:
+
 ~~~
-WWW-Authenticate: Mole endorse="<endorsement-challenge>"
+Content-Type: application/mole-endorsement-request; type=0002
 ~~~
 
-`anchor_context` is opaque to the Client. An endorsement type that uses it
-defines how. For the types of {{PROTOCOLS}} it is empty. The criteria for
-granting are the Anchor's. The grant requests are those of the endorsement
-type in {{PROTOCOLS}}.
+The criteria for granting are the Anchor's.
 
 ## Redeem & Issue {#redeem-issue}
 
-The Moderator challenges with `redeem`:
+The Moderator challenges with the endorsement type:
 
 ~~~
-WWW-Authenticate: Mole redeem="<moderator-challenge>"
+WWW-Authenticate: Mole redeem-0002="<redemption-challenge>"
 ~~~
 
 The Client answers with a `POST` to the Redeem & Issue endpoint from
 configuration, whichever resource sent the challenge:
 
 ~~~
-Authorization: Mole credential-request="<credential-request>"
+Authorization: Mole redeem-0002="<redemption>",
+                    credential-request-0001="<issuance-request>"
 ~~~
 
 On success the Moderator answers `200` with:
 
 ~~~
-Mole-Credential: response="<credential-response>"
+Mole-Credential: response-0001="<issuance-response>"
 ~~~
 
 ## Presentation {#presentation}
 
-The Moderator challenges with `challenge`:
+The Moderator challenges with the credential type:
 
 ~~~
-WWW-Authenticate: Mole challenge="<credential-challenge>"
+WWW-Authenticate: Mole challenge-0001="<act-challenge>"
 ~~~
 
 A challenge in a `401` response means the resource requires a presentation.
@@ -217,7 +238,7 @@ instance to raise a limit. Clients then apply the greasing rules of
 The Client repeats the protected request with:
 
 ~~~
-Authorization: Mole presentation="<credential-presentation>"
+Authorization: Mole presentation-0001="<presentation-and-update>"
 ~~~
 
 The Moderator runs `ProcessPresentation`. Every response to an accepted
@@ -225,7 +246,7 @@ presentation, fresh or not, MUST carry the recorded update, including when
 the protected operation fails with a `4xx` or `5xx` status:
 
 ~~~
-Mole-Credential: update="<optional-credential-update>"
+Mole-Credential: update-0001="<update>"
 ~~~
 
 For a fresh result the Moderator attempts the protected operation and
@@ -242,24 +263,18 @@ Credentials, or state that its Credentials are not cacheable.
 ## Recovery {#recovery}
 
 Instead of resending a presentation, a Client MAY send a `POST` with empty
-content to the Redeem & Issue endpoint:
-
-~~~ tls-presentation
-struct {
-  uint16 credential_type;
-  opaque recovery_handle<V>;
-} CredentialRecovery;
-~~~
+content to the Redeem & Issue endpoint it stored with the Credential:
 
 ~~~
-Authorization: Mole recovery="<credential-recovery>"
+Authorization: Mole recovery-0001="<recovery-handle>"
 ~~~
 
 The recovery handle is defined by the credential type in {{PROTOCOLS}}. The
 Moderator treats it as the byte-identical presentation and uses no other
-Client identifier. It answers `200` with the recorded update if a result is
-still retained, and `401` otherwise, whether or not a record exists. It MUST
-NOT perform the protected operation or verify a proof.
+Client identifier. It MUST NOT verify a proof or attempt the protected
+operation. If a result is still retained, it answers `200` with the recorded
+`update-T`, including the empty value for a recorded `NoUpdate`. Otherwise it
+answers `404` without `Mole-Credential`, whether or not a record exists.
 
 ## Status Codes {#status-codes}
 
@@ -268,10 +283,11 @@ NOT perform the protected operation or verify a proof.
 | Malformed request | `400` | none |
 | Missing, expired, or invalid authentication | `401` | none |
 | Rejected by policy before acceptance | `403` | none |
-| Credential issued | `200` | `response` |
-| Fresh accepted presentation | protected operation's status | `update` |
-| Accepted presentation, not fresh | `409` | `update` |
-| Successful explicit recovery | `200` | `update` |
+| Credential issued | `200` | `response-T` |
+| Fresh accepted presentation | protected operation's status | `update-T` |
+| Duplicate presentation with retained result sent to the protected resource | `409` | `update-T` |
+| Recovery, result retained | `200` | `update-T` |
+| Recovery, result unavailable | `404` | none |
 {: #tab-status title="Mole responses"}
 
 The Moderator MUST use these rules for every credential type. A `401`
@@ -279,15 +295,33 @@ response MUST carry a `Mole` challenge for the required exchange. A `403`
 returned by the protected operation after a fresh acceptance is that
 operation's status, and carries the update.
 
+The `409` response distinguishes a duplicate protected request from successful
+execution of that request. It does not apply to explicit recovery, whose only
+operation is retrieving the recorded result. A Client MUST NOT infer chain
+termination from any status without the recorded empty update.
+
 # Security Considerations
 
 All exchanges defined in this document MUST be carried over HTTPS.
 
 TODO. The list to cover:
 
-1. Challenge replay and caching: when a Client may reuse a cached
-   credential against a repeated challenge.
-2. Header size limits and what happens when updates exceed them.
+1. Header size limits: request and response field limits a deployment must
+   provision for the payloads it offers, and the status returned before
+   acceptance when a payload does not fit. A Moderator must not consume an
+   Endorsement, or record `NoUpdate`, because a response would be too large.
+2. Challenge caching and reuse: when a Client may reuse a cached challenge
+   (same Moderator, type, key and context, scope), and that reuse never
+   permits reuse of a spent Credential or Endorsement.
+3. Request binding: this document defines no canonical HTTP request
+   serialization. ACT `request_context` must cover what the Moderator
+   authorizes, including the body. Reverse flow has no request binding.
+4. Recovery: what recovery reveals, its lack of Client authentication beyond
+   the handle, and how long results are retained.
+5. Grant and issuance recovery: a lost grant or issuance response currently
+   costs the Client its session or Endorsement. Whether to add recovery for
+   these exchanges, and how to authenticate a lookup by session ID or
+   nullifier, is open.
 
 # IANA Considerations
 
