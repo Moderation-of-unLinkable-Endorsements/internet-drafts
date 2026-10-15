@@ -1679,10 +1679,8 @@ answers <code>404</code> without <code>Mole-Credential</code>, whether or not a 
 response <span class="bcp14">MUST</span> carry a <code>Mole</code> challenge for the required exchange. A <code>403</code>
 returned by the protected operation after a fresh acceptance is that
 operation's status, and carries the update.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.5-3">The <code>409</code> response distinguishes a duplicate protected request from successful
-execution of that request. It does not apply to explicit recovery, whose only
-operation is retrieving the recorded result. A Client <span class="bcp14">MUST NOT</span> infer chain
-termination from any status without the recorded empty update.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+<p id="section-6.5-3">A Client <span class="bcp14">MUST NOT</span> infer chain termination from any status without the
+recorded empty update.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1712,8 +1710,8 @@ serialization. ACT <code>request_context</code> must cover what the Moderator
 authorizes, including the body. Reverse flow has no request binding.<a href="#section-7-3.3.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-7-3.4">
-          <p id="section-7-3.4.1">Recovery: what recovery reveals, its lack of Client authentication beyond
-the handle, and how long results are retained.<a href="#section-7-3.4.1" class="pilcrow">¶</a></p>
+          <p id="section-7-3.4.1">Recovery: what recovery reveals and its lack of Client authentication
+beyond the handle.<a href="#section-7-3.4.1" class="pilcrow">¶</a></p>
 </li>
         <li id="section-7-3.5">
           <p id="section-7-3.5.1">Grant and issuance recovery: a lost grant or issuance response currently
