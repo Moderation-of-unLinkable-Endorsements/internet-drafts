@@ -191,8 +191,7 @@ later be used:
 
 {{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
 redemption APIs. It supplies the issuance and redemption contexts; this
-document treats those contexts as opaque byte strings. Configuration
-encodings and discovery remain open work in {{PROTOCOLS}}.
+document treats those contexts as opaque byte strings.
 
 The remainder of this document is organized as follows. After defining
 conventions and cryptographic preliminaries ({{preliminaries}}), we given an
@@ -394,7 +393,7 @@ the exchanges of {{PROTOCOLS}}.
 
 Neither context is carried in these messages. Both parties already hold the
 issuance context, having agreed on it out of band; the redemption context is
-known only to the Client.
+known only to the Client and Moderator.
 
 The Client's output is an Endorsement that is publicly verifiable under the
 Anchor's public key `pkA` ({{verify}}). The Anchor learns neither the nullifier
@@ -1114,8 +1113,7 @@ set ({{security-considerations}}). This document instead composes the branches
 with the *stacking* technique of Goel, Green, Hall-Andersen and Kaptchuk
 {{STACKSIG}}, whose proof is logarithmic in `n`: the Client sends a single
 response, which every branch reuses, together with a commitment whose opening
-forces one branch to have been answered honestly. {{FFKLLS26}} applies the same
-two compositions, for the same purpose, to a pairing-based credential.
+forces one branch to have been answered honestly.
 
 The proof takes the rerandomized key of {{rerandomization}} as its statement
 and leaves issuance and {{verify}} unchanged.
@@ -1171,7 +1169,7 @@ uniform independently of the statement and witness; see
 {{security-considerations}}. One response can therefore be reused across
 branches without revealing which branch produced it.
 
-A verifier given `proof_challenge` and one `response` can therefore compute
+A Moderator given `proof_challenge` and one `response` can therefore compute
 an accepting commitment for every branch. Soundness comes from the commitment
 of {{pbvc}}: the Client fixes the commitment of one branch before the
 challenge exists and cannot change it afterwards.
@@ -1180,7 +1178,7 @@ challenge exists and cannot change it afterwards.
 
 A *partially binding vector commitment* {{STACKSIG}} commits to a vector of
 values such that one position, chosen when the commitment key is generated and
-hidden from the verifier, is binding, while every other position can afterwards
+hidden from the Moderator, is binding, while every other position can afterwards
 be opened to any value. The Client commits the branch commitment of `index` at
 the binding position, and after the challenge is known it opens every other
 position to the branch commitment that the shared response determines. The
@@ -1192,10 +1190,9 @@ This document uses the commitment of the appendix of {{STACKSIG}} over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.
 
-The commitment to a pair uses a permutation `P` on group elements. The inverse
-of this permutation is denoted `Pinv` ({{permutation}}). Its key is a point `Q`,
-and an opening is a single scalar, the `randomness` argument of `CommitStep`.
-The two values are hashed to scalars and committed under the bases `Q` and
+The commitment to a pair uses a permutation `P` on group elements. The
+inverse of this permutation is denoted `Pinv` ({{permutation}}).  The
+two values are hashed to scalars and committed under the bases `Q` and
 `P(Q)`:
 
 ~~~python
@@ -1388,12 +1385,13 @@ until the result decodes to an element, and `Pinv` walks the same cycle
 backwards. Since a permutation partitions its domain into cycles, the two
 are inverse to each other.
 
-The following direct implementations define the permutation and its inverse.
-They MAY be used on public points, including the commitment keys in
-`CommitStep`. Key generation instead uses `G.PermutationPair`
-({{permutation-pair}}), which is designed to be side-channel resistant. In
-particular, its execution does not distinguish the two binding directions when
-its outputs are fixed.
+The following direct implementations define the permutation and its
+inverse for the P-256 group. Other ciphersuites MUST
+define the permutation to be used. They MAY be used on public points,
+including the commitment keys in `CommitStep`. Key generation instead
+uses `G.PermutationPair` ({{permutation-pair}}), which is designed to
+be side-channel resistant. In particular, its execution does not
+distinguish the two binding directions when its outputs are fixed.
 
 ~~~python
 def P(self, element: Element) -> Element:
@@ -1720,7 +1718,7 @@ on the other, having generated that level's key so that the other side is
 the equivocal one. The third move then computes the branch commitment of
 every statement from the single response, equivocates each level to the
 value its sibling subtree now has, and rebuilds the tree with the
-equivocated openings. The root is unchanged, so the verifier recomputes the
+equivocated openings. The root is unchanged, so the Moderator recomputes the
 same root.
 
 ### Verifying {#verify-issuer}
@@ -1770,7 +1768,7 @@ def VerifyIssuer(
     )
 ~~~
 
-The verifier computes a commitment for every branch from the single response,
+The Moderator computes a commitment for every branch from the single response,
 rebuilds the whole tree from those commitments and the openings it was given,
 and checks that the root it arrives at is the one the challenge was computed
 over. Neither the branch commitments nor the interior nodes are transmitted.
