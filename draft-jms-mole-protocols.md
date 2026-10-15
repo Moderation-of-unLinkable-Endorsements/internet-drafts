@@ -694,8 +694,9 @@ Moderator has answered, so one Credential supports one presentation in flight
 at a time. This gives the Moderator:
 
 Concurrency control:
-: Within a replay protection scope, copies of a Credential yield at most one
-  fresh acceptance. Every copy presents the same nullifier.
+: Copies of a Credential yield at most one fresh acceptance across all servers
+  accepting the same key and credential context. Every copy presents the same
+  nullifier.
 
 Dynamic revocation:
 : The Moderator ends a Credential chain, and its remaining balance, by
@@ -1344,11 +1345,13 @@ TODO. The list to cover:
 
 Replay protection scope is deployment-selected and can differ for Endorsement
 redemption and Credential presentation. Atomic checks within that scope
-prevent repeated acceptance. This document does not require global uniqueness
-or a particular storage architecture. Independent scopes can accept the same
-Endorsement or Credential again. For ACT, this can fork balances and loses
-strict credit conservation across scopes. Restricting acceptance through
-keys or contexts can narrow replay exposure but also partitions anonymity sets.
+prevent repeated acceptance. Except for ACT's shared-store requirement below,
+this document does not require global uniqueness or a particular storage
+architecture. Independent scopes can accept the same Endorsement or Credential
+again. For ACT, all servers accepting the same key and credential context MUST
+share one atomic nullifier store; independent stores need disjoint keys or
+contexts. Otherwise a Client can fork a balance across stores, which breaks
+the credit conservation of {{ACT}}.
 A Rollatini redemption exposes the same nullifier in each scope, making
 cross-scope reuse linkable if records are compared. Proof rerandomization does
 not hide that reuse.
@@ -1378,8 +1381,9 @@ Amounts:
   needs.
 
 Credential sharing:
-: Copies of one Credential yield at most one fresh acceptance within a replay
-  protection scope. Byte-identical retries recover the retained result.
+: Copies of one Credential yield at most one fresh acceptance across all
+  servers accepting the same key and credential context. Byte-identical retries
+  recover the retained result.
   Conflicting spends are rejected. Both expose the same nullifier and are
   linkable to the first presentation ({{ACT}}).
 
