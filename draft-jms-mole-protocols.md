@@ -85,8 +85,7 @@ It defines two endorsement protocols and two credential protocols. Each is
 identified by a type value from a registry established in this document
 ({{iana}}). The HTTP carriage of challenges, requests, redemptions, and
 presentations is defined by {{HTTP-TRANSPORT}}. This document defines the
-messages themselves and, for the grant flow, the HTTP exchanges that carry
-them.
+messages and their processing rules.
 
 TODO: the protocols below reflect our current understanding of how MoLE
 may work, and showcase agility. They are not final. Some may be removed,
@@ -176,12 +175,8 @@ struct {
 } CredentialChallenge;
 ~~~
 
-Each encoding is the two-byte type in network order, the shortest QUIC
-variable-length integer encoding of the body length, then the body. For
-`ModeratorChallenge` the type is the endorsement type. For `CredentialChallenge`
-it is the credential type. Hashes cover these bytes, never HTTP parameter
-names, quoting, or base64url text. This document defines no alternative
-non-HTTP transport. The canonical encodings do not negotiate one.
+Hashes cover these bytes, never HTTP parameter names, quoting, or base64url
+text.
 
 ## Greasing {#greasing}
 
@@ -266,10 +261,8 @@ unexpected media type, a response whose type differs from its request, trailing
 bytes, or malformed type-specific content. Clients MUST NOT automatically
 redirect a grant POST carrying protocol state.
 
-Every endorsement protocol defines a `Redemption` structure. It is the message
-a Client sends to redeem the Endorsement, carried in the
-`endorsement_presentation` field of a `CredentialRequest`
-({{credential-protocols}}).
+Every endorsement protocol defines a `Redemption` structure, sent with the
+issuance request in Redeem & Issue ({{credential-protocols}}).
 
 ## Redemption Challenge Binding {#challenge-binding}
 
@@ -356,18 +349,8 @@ Moderator policy, for instance rate limiting.
 Endorsement type: 0x0002.
 
 This protocol uses Rollatini {{IHAT-ROLLATINI}}, a pairing-free Issuer-Hiding
-Anonymous Token (IHAT). The Anchor blindly signs a
-Client-chosen nullifier. The Client later proves,
-with an issuer-hiding proof, that its Endorsement verifies under one of the
-Anchor keys the Moderator accepts. The cryptographic operations, and the
-contents and encodings of every message body, are defined in {{IHAT-ROLLATINI}}.
-
-The following primitive types are ciphersuite-dependent:
-
-~~~ tls-presentation
-opaque Scalar[Ns];
-opaque Element[Ne];
-~~~
+Anonymous Token (IHAT). The cryptographic operations, primitive types, and
+message encodings are defined there.
 
 ### Configuration
 
@@ -490,12 +473,6 @@ Verification Time
 
 ### Redemption
 
-The accepted issuer set, circuit artifact, epoch, Moderator origin, and
-verification time come from authenticated configuration. The selected
-redemption operation supplies the digest of the reconstructed canonical
-`ModeratorChallenge` as `challenge_digest`, as defined in
-{{challenge-binding}}.
-
 The Client evaluates the two circuits over its credential to produce a proof
 and a nullifier. The nullifier is derived, inside the circuit, from a
 credential-bound secret, the canonical Moderator origin, and the current
@@ -582,25 +559,9 @@ runs the endorsement protocol's `FinalizeRedeem` before accepting issuance.
 Presentation carries `PresentationAndUpdate` and returns `Update` or a recorded
 `NoUpdate` decision. {{HTTP-TRANSPORT}} carries these payloads directly.
 
-`CredentialRequest` names the pair of Redeem & Issue payloads. HTTP carries
-them as two typed parameters, not as this encoding:
-
-~~~ tls-presentation
-struct {
-  uint16 endorsement_type;
-  opaque endorsement_presentation<V>; /* encoded Redemption */
-  uint16 credential_type;
-  opaque issuance_request<V>;
-} CredentialRequest;
-~~~
-
-The structure fields are:
-
-* `endorsement_type` identifies the endorsement protocol.
-* `endorsement_presentation` is its encoded `Redemption`. It is empty for
-  endorsement type 0x0001 ({{no-endorsement-required}}).
-* `credential_type` identifies the credential protocol.
-* `issuance_request` is its encoded `IssuanceRequest`.
+`CredentialRequest` names the pair of Redeem & Issue payloads: the
+endorsement type and its `Redemption`, and the credential type and its
+`IssuanceRequest`. HTTP carries them as two typed parameters.
 
 `CredentialResponse` below means the selected credential type and its encoded
 `IssuanceResponse`. HTTP carries the type in its response
@@ -621,8 +582,6 @@ PresentationAndUpdate
 Update
 : The Moderator's response to `PresentationAndUpdate`, when the Client remains
   eligible for a Credential.
-
-HTTP carries these type-specific encodings without additional wrappers.
 
 ## Abstract Credential API
 
@@ -1025,10 +984,8 @@ The recovery handle ({{HTTP-TRANSPORT}}) is
 `key_id || SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate)`.
 
 The Moderator MUST NOT authorize another operation for a recorded nullifier,
-and MUST NOT change a recorded decision. It returns the recovered result
-with HTTP status `200` for explicit recovery. A byte-identical retry at the
-protected resource returns `409` without another operation attempt, as specified
-in {{HTTP-TRANSPORT}}.
+and MUST NOT change a recorded decision. HTTP status codes for recovery and
+retries are specified in {{HTTP-TRANSPORT}}.
 
 Once recovery ends, a retry is rejected, and the Client MUST discard the
 spend state. To continue, it runs Redeem & Issue. The Moderator MUST retain
@@ -1038,9 +995,10 @@ credential context are accepted ({{key-rotation}}).
 ### Limitations {#act-limitations}
 
 A `SpendMessage` grows linearly in `L` ({{ACT}}). With P-256 and `L = 32`,
-it is about 4.5 KB when one of `s` and `a` is nonzero and 8.7 KB when both
-are, before base64url encoding in the `Authorization` header. Deployments
-with tight header limits should choose `L` accordingly.
+it is at most 4531 bytes, or 468 bytes for a refresh (`s = a = 0`). The
+`PresentationAndUpdate` adds the 32-byte `key_id`, before base64url encoding
+in the `Authorization` header. Deployments with tight header limits should
+choose `L` accordingly.
 
 ## Privacy Pass with a Reverse Flow {#credential-reverse}
 
@@ -1123,9 +1081,6 @@ The Moderator processes a presentation as follows:
    released and the protected operation MUST NOT be attempted.
 5. It returns the recorded result with `fresh` true and attempts the
    protected operation.
-
-With no update this token's chain ends. Other tokens the Client holds are
-unaffected.
 
 ### Retry after a lost response
 
@@ -1370,8 +1325,7 @@ Nullifier store:
   The store MUST be durable: a Moderator that loses it re-admits every
   Credential spent under a context for as long as that context is
   accepted. Nullifiers MAY be partitioned by key and context and discarded
-  once the context is no longer accepted; a Moderator MUST NOT accept that
-  key and context again afterwards.
+  once the context is no longer accepted ({{security-considerations}}).
 
 Amounts:
 : Step 2 of {{act-spend}} requires `spend.s` and `spend.a` to equal the
@@ -1570,46 +1524,20 @@ Finalize               |                 |
 ~~~
 {: #fig-example title="Complete exchange"}
 
-The first Rollatini request has an empty body. The Anchor returns a
-`CommitMessage`. The Client then sends the corresponding `ChallengeMessage`,
-and the Anchor returns a `ResponseMessage`:
+The grant follows {{rollatini}}. The Client finalizes the `ResponseMessage`
+into an Endorsement, then obtains a `ModeratorChallenge`, computes its digest,
+and sends the Rollatini `Redemption` with a Privacy Pass `TokenRequest` to
+the Redeem & Issue endpoint.
 
-~~~
-POST <anchor-grant-link> HTTP/1.1
-Host: anchor.example
-Content-Type: application/mole-endorsement-request; type=0002
-Content-Length: 0
-~~~
+The Moderator verifies the redemption and atomically records its nullifier
+before returning a `TokenResponse`. The Client finalizes it into a Credential.
+On a later request, it obtains a `CredentialChallenge` carrying the configured
+Privacy Pass `TokenChallenge` and sends `PresentationAndUpdate`.
 
-The Client finalizes the `ResponseMessage` into an Endorsement. It then obtains
-a `ModeratorChallenge` from the Moderator, computes its digest, and sends an
-HTTP request with the Rollatini `Redemption` and a Privacy Pass `TokenRequest`
-as separate typed parameters to its Redeem & Issue endpoint:
-
-~~~
-POST /issue HTTP/1.1
-Host: moderator.example
-Authorization: Mole redeem-0002="<redemption>",
-                    credential-request-0002="<token-request>"
-~~~
-
-The Moderator verifies the redemption against the Challenge it sent and
-atomically records its nullifier.
-It then processes the issuance request and returns a `CredentialResponse`
-carrying a `TokenResponse` in the `Mole-Credential` header. The Client finalizes
-the issuance response. On a later request, it obtains a
-`CredentialChallenge` carrying the configured Privacy Pass `TokenChallenge`
-before presenting the resulting token:
-
-~~~
-GET /resource HTTP/1.1
-Host: moderator.example
-Authorization: Mole presentation-0002="<presentation-and-update>"
-~~~
-
-The Moderator verifies the presentation and serves the resource. Its response
-carries an `Update` for a fresh token, or no update if it chose to consume the
-Credential.
+A fresh acceptance authorizes one attempt of the protected operation. The
+response carries the recorded `Update` for a fresh token, or `NoUpdate` if
+the Moderator chose to consume the Credential. {{HTTP-TRANSPORT}} defines
+the carriage of these exchanges.
 
 # Acknowledgments
 {:numbered="false"}
