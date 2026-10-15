@@ -52,8 +52,24 @@ def CreateContextScalar(ctx_cred: bytes) -> Scalar:
     return G.HashToScalar(U16Prefixed(ctx_cred) + b"CredentialContext")
 
 
-def Bits(x: int) -> list[Scalar]:
-    return [G.scalar((x >> j) & 1) for j in range(L)]
+def RangeWeights(m: int) -> list[int]:
+    if not 0 <= m < 2**L:
+        raise AmountError
+    n = m.bit_length()
+    if n == 0:
+        return []
+    return [2**j for j in range(n - 1)] + [m - 2 ** (n - 1) + 1]
+
+
+def Bits(x: int, weights: Sequence[int]) -> list[Scalar]:
+    n = len(weights)
+    if n == 0:
+        return []
+    top = (x >> (n - 1)) & 1
+    rest = x - top * weights[n - 1]
+    return [G.scalar((rest >> j) & 1) for j in range(n - 1)] + [
+        G.scalar(top)
+    ]
 
 
 def Tag(label: bytes, bindings: Sequence[bytes]) -> bytes:
@@ -226,7 +242,6 @@ class SpendMessage(NamedTuple):
     K_n: Element
     Com1: Sequence[Element]
     Com_c: Element | None
-    Com2: Sequence[Element]
     pok: bytes
 
 
@@ -251,17 +266,16 @@ def ProveSpend(
     if s > c or c + a >= 2**L:
         raise AmountError
     v1 = c - s
-    v2 = c + a
+    w = RangeWeights(2**L - 1 - (s + a)) if s + a > 0 else []
+    n = len(w)
 
     ctx = CreateContextScalar(ctx_cred)
 
-    # Four fixed scalars, then L for the bits of the remainder or
-    # one for its commitment, then L for the bits of the topped-up
-    # balance.
-    n = 4 + (L if s > 0 else 1) + (L if a > 0 else 0)
-    derived = G.DeriveScalars(random(Nseed), b"ProveSpend", n)
+    # Four fixed scalars, then one for each bit of the remainder or
+    # one for the commitment of a refresh.
+    count = 4 + (n if s + a > 0 else 1)
+    derived = G.DeriveScalars(random(Nseed), b"ProveSpend", count)
     (r1, r2, kstar, rn) = derived[:4]
-    next_scalar = 4
 
     # Rerandomize the signature.
     B_msg = B + G.scalar(c) * H1 + k * H2 + r * H3 + ctx * H4
@@ -275,42 +289,28 @@ def ProveSpend(
 
     Com1: list[Element] = []
     Com_c: Element | None = None
-    Com2: list[Element] = []
     witness = [e, r2, r3, G.scalar(c), r, kstar, rn]
 
-    # Commit to the remainder: bitwise when it must be shown to be
-    # nonnegative, in one commitment when it is the balance itself.
-    if s > 0:
-        b1 = Bits(v1)
-        s1 = []
+    # Commit to the remainder: bitwise when it must be shown to be in
+    # range, in one commitment when it is the balance of a refresh.
+    if s + a > 0:
+        b1 = Bits(v1, w)
+        s1 = derived[4:]
+        Com1 = [b1[j] * H1 + s1[j] * H3 for j in range(n)]
+        u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(n)]
         r_star = rn
-        for j in range(L):
-            s1.append(derived[next_scalar + j])
-            Com1.append(b1[j] * H1 + s1[j] * H3)
-            r_star = r_star + G.scalar(2**j) * s1[j]
-        u1 = [(G.scalar(1) - b1[j]) * s1[j] for j in range(L)]
+        for j in range(n):
+            r_star = r_star + G.scalar(w[j]) * s1[j]
         witness += b1 + s1 + u1
-        next_scalar = next_scalar + L
     else:
-        rc = derived[next_scalar]
+        rc = derived[4]
         Com_c = G.scalar(c) * H1 + rc * H3
         r_star = rn + rc
         witness += [rc]
-        next_scalar = next_scalar + 1
-
-    # Commit to the topped-up balance when there is a top-up.
-    if a > 0:
-        b2 = Bits(v2)
-        s2 = []
-        for j in range(L):
-            s2.append(derived[next_scalar + j])
-            Com2.append(b2[j] * H1 + s2[j] * H3)
-        u2 = [(G.scalar(1) - b2[j]) * s2[j] for j in range(L)]
-        witness += b2 + s2 + u2
 
     H1_prime = B + k * H2 + ctx * H4
     relation = SpendRelation(
-        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c
     )
     pok = Prove(Tag(b"Spend", [ctx_spend]), relation, witness)
 
@@ -320,7 +320,7 @@ def ProveSpend(
 
     state = ClientSpendState(kstar, r_star, v1, s, a, K_prime)
     proof = SpendMessage(
-        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok
+        k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok
     )
 
     return state, proof
@@ -332,9 +332,11 @@ def VerifySpend(
     ctx_spend: bytes,
     proof: SpendMessage,
 ) -> None:
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok = proof
 
     if not (0 <= s < 2**L and 0 <= a < 2**L):
+        raise AmountError
+    if s + a >= 2**L:
         raise AmountError
 
     ctx = CreateContextScalar(ctx_cred)
@@ -342,19 +344,22 @@ def VerifySpend(
     H1_prime = B + k * H2 + ctx * H4
 
     relation = SpendRelation(
-        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c, Com2
+        A_prime, B_bar, A_bar, H1_prime, K_n, s, a, Com1, Com_c
     )
     if not Verify(Tag(b"Spend", [ctx_spend]), relation, pok):
         raise VerifyError
 
 
 def BalanceCommitment(proof: SpendMessage) -> Element:
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok = proof
 
-    if s > 0:
+    if s + a > 0:
+        w = RangeWeights(2**L - 1 - (s + a))
+        if len(Com1) != len(w):
+            raise VerifyError
         V1 = G.Identity()
-        for j in range(L):
-            V1 = V1 + G.scalar(2**j) * Com1[j]
+        for j in range(len(w)):
+            V1 = V1 + G.scalar(w[j]) * Com1[j]
     else:
         if Com_c is None:
             raise VerifyError
@@ -366,7 +371,7 @@ def BalanceCommitment(proof: SpendMessage) -> Element:
 def IssueRefund(
     skM: Scalar, ctx_cred: bytes, proof: SpendMessage, t: int
 ) -> RefundMessage:
-    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, Com2, pok = proof
+    k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok = proof
 
     if not 0 <= t < 2**L or t > s + a:
         raise AmountError

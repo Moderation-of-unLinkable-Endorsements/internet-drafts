@@ -43,9 +43,16 @@ def SpendRelation(
     a: int,
     Com1: Sequence[Element],
     Com_c: Element | None,
-    Com2: Sequence[Element],
 ) -> LinearRelation:
     from . import protocol as act
+
+    refresh = s + a == 0
+    w = [] if refresh else act.RangeWeights(2**act.L - 1 - (s + a))
+    n = len(w)
+    if len(Com1) != n:
+        raise VerifyError(f"Com1 must hold {n} commitments")
+    if (Com_c is None) == refresh:
+        raise VerifyError("Com_c is required exactly when s + a = 0")
 
     statement = Statement(act.G)
     statement.elements(
@@ -59,51 +66,27 @@ def SpendRelation(
         K_n=K_n,
     )
     statement.scalars(s=s, a=a)
+    statement.scalars(**{f"w_{j}": w[j] for j in range(n)})
+    # The draft writes `Com1[j]`; a Python name cannot, so `Com1_j`.
+    statement.elements(**{f"Com1_{j}": Com1[j] for j in range(n)})
     statement.witness("e", "r2", "r3", "c", "r", "kstar", "rn")
+    for name in ("b1", "s1", "u1"):
+        statement.witness(*[f"{name}_{j}" for j in range(n)])
     statement.equation("A_bar = -e * A_prime + r2 * B_bar")
     statement.equation("H1_prime = r3 * B_bar - c * H1 - r * H3")
     statement.equation("K_n = kstar * H2 + rn * H3")
-    if s > 0:
-        _range(statement, "Com1", Com1, "b1", "s1", "u1", "s * H1")
-    else:
-        if Com_c is None:
-            raise VerifyError("Com_c is required when s = 0")
+    if Com_c is not None:
         statement.elements(Com_c=Com_c)
         statement.witness("rc")
         statement.equation("Com_c = c * H1 + rc * H3")
-    if a > 0:
-        _range(statement, "Com2", Com2, "b2", "s2", "u2", "-a * H1")
-    return statement.compile()
-
-
-def _range(
-    statement: Statement,
-    Com: str,
-    values: Sequence[Element],
-    b: str,
-    s: str,
-    u: str,
-    offset: str,
-) -> None:
-    """The bit commitments `values` open to a value in `[0, 2^L)` that,
-    plus the public `offset`, equals `c`."""
-    from . import protocol as act
-
-    L = act.L
-    if len(values) != L:
-        raise VerifyError(f"{Com} must hold {L} commitments")
-    # The draft writes `Com1[j]`; a Python name cannot, so `Com1_j`.
-    statement.elements(**{f"{Com}_{j}": values[j] for j in range(L)})
-    for name in (b, s, u):
-        statement.witness(*[f"{name}_{j}" for j in range(L)])
-    for j in range(L):
-        statement.equation(f"{Com}_{j} = {b}_{j} * H1 + {s}_{j} * H3")
-        statement.equation(
-            f"{Com}_{j} = {b}_{j} * {Com}_{j} + {u}_{j} * H3"
-        )
+        return statement.compile()
+    for j in range(n):
+        statement.equation(f"Com1_{j} = b1_{j} * H1 + s1_{j} * H3")
+        statement.equation(f"Com1_{j} = b1_{j} * Com1_{j} + u1_{j} * H3")
     statement.equation(
-        offset
-        + "".join(f" + {2**j} * {Com}_{j}" for j in range(L))
-        + " = c * H1"
-        + "".join(f" + {2**j} * {s}_{j} * H3" for j in range(L))
+        "K_n + s * H1"
+        + "".join(f" + w_{j} * Com1_{j}" for j in range(n))
+        + " = c * H1 + kstar * H2 + rn * H3"
+        + "".join(f" + w_{j} * s1_{j} * H3" for j in range(n))
     )
+    return statement.compile()

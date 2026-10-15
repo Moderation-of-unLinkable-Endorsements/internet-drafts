@@ -13,7 +13,7 @@ def issued(balance=10):
 
 
 def spend_length(s, a):
-    elements = 3 + (act.L if s > 0 else 1) + (act.L if a > 0 else 0)
+    elements = 3 + (wire.SpendCommitmentCount(s, a) if s + a else 1)
     return (
         act.Ns
         + 16
@@ -22,12 +22,19 @@ def spend_length(s, a):
     )
 
 
-@pytest.mark.parametrize("s,a", [(3, 0), (0, 3), (3, 3), (0, 0)])
+@pytest.mark.parametrize(
+    "s,a",
+    [(3, 0), (0, 3), (3, 3), (0, 0), (2**7, 0), (100, 30)],
+)
 def test_all_spend_shapes(s, a):
-    skM, _, credential = issued()
+    skM, _, credential = issued(2**7 + 3)
     _, proof = act.ProveSpend(credential, b"epoch", s, a, b"challenge")
     encoded = wire.EncodeSpend(proof)
     assert len(encoded) == spend_length(s, a)
+    if s + a:
+        assert len(encoded) == 129 * len(proof.Com1) + 403
+    else:
+        assert len(encoded) == 468
     proof = wire.DecodeSpend(encoded)
     act.VerifySpend(skM, b"epoch", b"challenge", proof)
     for bad_key, ctx, ctx_spend, bad in (
@@ -91,7 +98,49 @@ def test_spend_shape_must_match_amounts():
     for bad in (
         proof._replace(Com1=list(proof.Com1)[:-1]),
         proof._replace(Com1=[*proof.Com1, act.H1]),
+        proof._replace(s=4),
+        proof._replace(a=1),
         proof._replace(s=0, Com1=[]),
+        proof._replace(Com_c=act.H1),
+        proof._replace(s=0, Com1=[], Com_c=act.H1 + act.H3),
     ):
         with pytest.raises(VerifyError):
             act.VerifySpend(skM, b"epoch", b"challenge", bad)
+
+
+def test_spend_and_top_up_to_the_largest_balance():
+    # s + a = 2^L - 1 leaves no room for the remainder: m = 0, no bits.
+    skM, pkM, credential = issued(10)
+    a = 2**act.L - 11
+    state, proof = act.ProveSpend(credential, b"epoch", 10, a, b"challenge")
+    assert proof.Com1 == []
+    proof = wire.DecodeSpend(wire.EncodeSpend(proof))
+    act.VerifySpend(skM, b"epoch", b"challenge", proof)
+    refund = act.IssueRefund(skM, b"epoch", proof, 10 + a)
+    credential = act.FinalizeRefund(pkM, b"epoch", state, refund)
+    assert credential.c == 2**act.L - 1
+
+
+def test_top_up_from_zero_to_the_largest_balance():
+    # s = 0 and m = 0: the sum equation has no bits and no s * H1 term.
+    skM, pkM, credential = issued(0)
+    a = 2**act.L - 1
+    state, proof = act.ProveSpend(credential, b"epoch", 0, a, b"challenge")
+    act.VerifySpend(skM, b"epoch", b"challenge", proof)
+    refund = act.IssueRefund(skM, b"epoch", proof, a)
+    credential = act.FinalizeRefund(pkM, b"epoch", state, refund)
+    assert credential.c == a
+
+
+def test_amounts_summing_past_the_range_are_rejected():
+    skM, _, credential = issued(10)
+    _, proof = act.ProveSpend(credential, b"epoch", 3, 0, b"challenge")
+    bad = proof._replace(a=2**act.L - 3)
+    with pytest.raises(act.AmountError):
+        act.VerifySpend(skM, b"epoch", b"challenge", bad)
+    with pytest.raises(act.AmountError):
+        wire.EncodeSpend(bad)
+    encoded = bytearray(wire.EncodeSpend(proof))
+    encoded[act.Ns + 8 : act.Ns + 16] = (2**act.L - 3).to_bytes(8, "big")
+    with pytest.raises(act.AmountError):
+        wire.DecodeSpend(bytes(encoded))
