@@ -157,8 +157,6 @@ Table of Contents
    [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
    redemption APIs.  It supplies the issuance and redemption contexts;
    this document treats those contexts as opaque byte strings.
-   Configuration encodings and discovery remain open work in
-   [PROTOCOLS].
 
    The remainder of this document is organized as follows.  After
    defining conventions and cryptographic preliminaries (Section 3), we
@@ -356,7 +354,7 @@ Table of Contents
 
    Neither context is carried in these messages.  Both parties already
    hold the issuance context, having agreed on it out of band; the
-   redemption context is known only to the Client.
+   redemption context is known only to the Client and Moderator.
 
    The Client's output is an Endorsement that is publicly verifiable
    under the Anchor's public key pkA (Section 5.5).  The Anchor learns
@@ -1056,8 +1054,7 @@ Table of Contents
    Hall-Andersen and Kaptchuk [STACKSIG], whose proof is logarithmic in
    n: the Client sends a single response, which every branch reuses,
    together with a commitment whose opening forces one branch to have
-   been answered honestly.  [FFKLLS26] applies the same two
-   compositions, for the same purpose, to a pairing-based credential.
+   been answered honestly.
 
    The proof takes the rerandomized key of Section 6.1 as its statement
    and leaves issuance and Section 5.5 unchanged.
@@ -1112,7 +1109,7 @@ Table of Contents
    response can therefore be reused across branches without revealing
    which branch produced it.
 
-   A verifier given proof_challenge and one response can therefore
+   A Moderator given proof_challenge and one response can therefore
    compute an accepting commitment for every branch.  Soundness comes
    from the commitment of Section 6.2.2: the Client fixes the commitment
    of one branch before the challenge exists and cannot change it
@@ -1122,7 +1119,7 @@ Table of Contents
 
    A _partially binding vector commitment_ [STACKSIG] commits to a
    vector of values such that one position, chosen when the commitment
-   key is generated and hidden from the verifier, is binding, while
+   key is generated and hidden from the Moderator, is binding, while
    every other position can afterwards be opened to any value.  The
    Client commits the branch commitment of index at the binding
    position, and after the challenge is known it opens every other
@@ -1137,10 +1134,9 @@ Table of Contents
    compressed group elements.
 
    The commitment to a pair uses a permutation P on group elements.  The
-   inverse of this permutation is denoted Pinv (Section 6.2.3).  Its key
-   is a point Q, and an opening is a single scalar, the randomness
-   argument of CommitStep.  The two values are hashed to scalars and
-   committed under the bases Q and P(Q):
+   inverse of this permutation is denoted Pinv (Section 6.2.3).  The two
+   values are hashed to scalars and committed under the bases Q and
+   P(Q):
 
    def CommitStep(
        Q: Element,
@@ -1320,11 +1316,12 @@ Table of Contents
    cycles, the two are inverse to each other.
 
    The following direct implementations define the permutation and its
-   inverse.  They MAY be used on public points, including the commitment
-   keys in CommitStep.  Key generation instead uses G.PermutationPair
-   (Section 6.2.3.1), which is designed to be side-channel resistant.
-   In particular, its execution does not distinguish the two binding
-   directions when its outputs are fixed.
+   inverse for the P-256 group.  Other ciphersuites MUST define the
+   permutation to be used.  They MAY be used on public points, including
+   the commitment keys in CommitStep.  Key generation instead uses
+   G.PermutationPair (Section 6.2.3.1), which is designed to be side-
+   channel resistant.  In particular, its execution does not distinguish
+   the two binding directions when its outputs are fixed.
 
    def P(self, element: Element) -> Element:
        buf = bytearray(self.SerializeElement(element))
@@ -1646,7 +1643,7 @@ Table of Contents
    the branch commitment of every statement from the single response,
    equivocates each level to the value its sibling subtree now has, and
    rebuilds the tree with the equivocated openings.  The root is
-   unchanged, so the verifier recomputes the same root.
+   unchanged, so the Moderator recomputes the same root.
 
 6.2.6.  Verifying
 
@@ -1693,7 +1690,7 @@ Table of Contents
            root,
        )
 
-   The verifier computes a commitment for every branch from the single
+   The Moderator computes a commitment for every branch from the single
    response, rebuilds the whole tree from those commitments and the
    openings it was given, and checks that the root it arrives at is the
    one the challenge was computed over.  Neither the branch commitments
