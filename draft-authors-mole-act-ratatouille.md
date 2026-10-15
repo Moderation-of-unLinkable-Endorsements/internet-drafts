@@ -561,6 +561,12 @@ the equation is a polynomial of arbitrary degree. However, because the degree
 of the polynomial influences the size of the proof, the relation must be
 designed to balance the size of the witness with the degree of the constraints.
 
+Each witness variable is a vector over either `F_2` or `F_q`. In VOLEitH, the
+witness is committed bit by bit, and the proof implicitly checks that each
+committed value is in `F_2`. A variable in `F_q^k` is therefore committed as
+`8*k` bits, and the relation can use either these bits or the elements of
+`F_q` they encode.
+
 > TODO(cjpatton) Figure out how to cite {{FAEST}} more precisely. Ideally it
 > specifies a compiler of constraints into a proof, as in {{SIGMA}}, but this
 > is currently beyond the scope of what the FAEST spec does. The degree of
@@ -809,12 +815,12 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
     - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
-    - t: credit of the current state
+    - t: credit of the current state, in F_2^(8*L)
     - r: commitment opening of the current state, in F_q^r_len
-    - x: refund carried by the current state
+    - x: refund carried by the current state, in F_2^(8*L)
     - s: Issuer signature over the current state, in F_q^{n_uov}
     - nf': nullifier of the updated state, in F_q^nf_len
-    - t': credit of the updated state
+    - t': credit of the updated state, in F_2^(8*L)
     - r': commitment opening of the updated state, in F_q^r_len
 
   Constraints:
@@ -823,6 +829,11 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
     - t' = t + x - d                         // V3: credits are conserved
     - t', x, d in [2^(8*L)]                  // V4: credits are in range
 ~~~
+
+Each credit value in the witness is the bit vector `<t>_L` (resp. `<x>_L`,
+`<t'>_L`), i.e., the `8*L` bits of its encoding. Thus V4 holds by
+construction. V3 is an equation over the integers, not `F_q`: it is checked
+bitwise as `t + x = t' + d`, with each sum computed by a ripple-carry adder.
 
 Note that the same `ctx_iss` appears in V1 and V2, so the updated token is
 necessarily bound to the context the token was issued under.

@@ -315,10 +315,10 @@ presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 statement with VOLEitH, we need to express it as a system of constraints over
 `F_q`.
 
-The idea is to extend the witness with a "selector" vector `b[0], ..., b[N-1]`
-for which `b[u] = 1` if `u = i` and `0` otherwise. The constraints then check
-that the public key selected by `b` maps `s` to `Com(nf, ctx_iss, ctx_red, r)`
-and that `b` is the indicator vector of a single Anchor. See {{redemption}} for
+The idea is to extend the witness with a "selector" vector of bits `b` for
+which `b[u] = 1` if `u = i` and `0` otherwise. The constraints then check that
+the public key selected by `b` maps `s` to `Com(nf, ctx_iss, ctx_red, r)` and
+that `b` is the indicator vector of a single Anchor. See {{redemption}} for
 details.
 
 The commitment `Com()` is instantiated with a single evaluation of the
@@ -365,15 +365,6 @@ revisions to this document. The template for domain separation is the same as
 
 A global constant `MAX_ANCHORS` defines the maximum size of an Anchor Set. Its
 value SHALL be `64`.
-
-> NOTE(cjpatton) In our implementation, the length of the selector vector `b` is
-> exactly `MAX_ANCHORS`: the last `MAX_ANCHORS - N` entries are padded with
-> `0`s. This ensures the witness length is known at compile time, which is
-> needed for [faest-arch-opt](https://github.com/faest-sign/faest-arch-opt). For
-> `MAX_ANCHORS = 64`, the witness for the padded selector vector is only 8 bytes
-> (in the implementation, the selector is stored as bits rather than bytes), so
-> removing the padding doesn't actually save very much. Eventually the spec will
-> be updated to match our implementation.
 
 ## Anchor Key Generation
 
@@ -546,13 +537,21 @@ it as an opaque byte string of length `32`.
 
 Let `i` in `[N]` be the index of the issuing Anchor. The witness for the
 redemption proof is the opening `r`, the signature `s`, and the selector vector
-`b`, where `b[u] = 1` if `u = i` and `0` otherwise. The relation first selects
-the Anchor public key `Q` with the following procedure:
+`b` in `F_2^MAX_ANCHORS`, where `b[u] = 1` if `u = i` and `0` otherwise. The
+length of `b` is fixed so that the size of the witness does not depend on the
+size of the Anchor Set; entries `b[N], ..., b[MAX_ANCHORS-1]` are always `0`.
+The relation first selects the Anchor public key `Q` with the following
+procedure:
+
+> NOTE(cjpatton) Padding the selector vector to `MAX_ANCHORS` isn't strictly
+> necessary, but is convenient for our implementation, In
+> [faest-arch-opt](https://github.com/faest-sign/faest-arch-opt), the length of
+> the witness must be known at compile time.
 
 ~~~~pseudocode
 Select(b, P):
   Input:
-    - b: selector vector, in F_q^N
+    - b: selector vector, in F_2^MAX_ANCHORS
     - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
 
   Output:
@@ -567,12 +566,17 @@ Select(b, P):
     6. return Q
 ~~~~
 
+(Each `b[u]` is in `F_2`, a subfield of `F_q`, so the product `b[u] *
+P[u][j]` is computed in `F_q`.)
+
 The first constraint is that `Q(s) = Com(nf, ctx_iss, ctx_red, r)`. The
 remaining constraints prove that the selector vector is well-formed, that is,
-exactly one entry is set. Because `F_q` has characteristic `2`, the weight
-constraint `sum(b) = 1` only tells us that the number of nonzero entries is
-odd. We also need some parity constraints, namely `sum(b[0..u+1]) * b[u+1] = 0`
-for all `u` in `[N-1]`. The redemption relation is defined as follows:
+exactly one bit is set, and it is set for an Anchor in the Anchor Set. The
+padding constraints `b[u] = 0` for `u` in `[N..MAX_ANCHORS]` ensure the latter.
+Because `b` is a vector over `F_2`, the weight constraint `sum(b) = 1` only
+tells us that the number of set bits is odd. We also need some parity
+constraints, namely `sum(b[0..u+1]) * b[u+1] = 0` for all `u` in
+`[MAX_ANCHORS-1]`. The redemption relation is defined as follows:
 
 ~~~~
 Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
@@ -585,14 +589,15 @@ Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
   Witness:
     - r: F_q^r_len
     - s: F_q^n
-    - b: F_q^N
+    - b: F_2^MAX_ANCHORS
 
   Where:
     - Q = Select(b, P)
 
   Constraints:
     - Q(s) = Com(nf, ctx_iss, ctx_red, r)
-    - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
+    - b[u] = 0                               for u in [N..MAX_ANCHORS]
+    - sum(b[0..u+1]) * b[u+1] = 0            for u in [MAX_ANCHORS-1]
     - sum(b) = 1
 ~~~~
 
@@ -625,7 +630,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red, challenge_digest):
 
   Steps:
     1. (nf, r, s) := token
-    2. b := 0^N  // selector vector
+    2. b := 0^MAX_ANCHORS  // selector vector
     3. b[i] := 1
     4. pf_red := VOLEitH.Prove(
          RedeemRelation,             // relation
