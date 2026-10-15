@@ -1227,8 +1227,9 @@ struct {
 With `Ne = 33` and `Ns = 32`, the request is `129` bytes and the response
 and refund are `137` bytes each. The spend message is `468` bytes for a
 refresh (`s = a = 0`) and otherwise `129 * n + 403` bytes, at most
-`129 * L + 403`, with `n = L` whenever `s + a < 2^(L-1)`. The spend message dominates and is linear in `L`;
-{{act-config}} asks deployments to keep `L` small for this reason.
+`129 * L + 403`, with `n = L` whenever `s + a < 2^(L-1)`. The spend message
+dominates and is linear in `L`; {{act-config}} asks deployments to keep `L`
+small for this reason.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1284,7 +1285,7 @@ stated where they are used; drawing them directly is not conformant:
 * every nonce of a `ProveCompact` prover of the Credential scheme,
   through `ProverNonces` ({{act-prover-nonces}}).
 
-The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, `s1`, and `s2` are
+The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, and `s1` are
 derived with `G.DeriveScalars` from randomness alone; a repetition among them
 harms only that Client. The signing exponent and the prover nonces are also
 derived from a secret, because a repeated signing exponent, or a prover nonce
@@ -1337,7 +1338,7 @@ Credit conservation:
   * every such signature was produced by `IssueResponse` or `IssueRefund`,
     whose signing oracles are constrained by the proofs they verify, or
     q-SDH is broken;
-  * the sum equations of {{act-spend-relation}} hold over the integers
+  * the balance constraints of {{act-spend-relation}} hold over the integers
     ("Amount validation" below), so the refund Credential has balance exactly
     `c - s + t`; and
   * a recorded nullifier is never counted twice.

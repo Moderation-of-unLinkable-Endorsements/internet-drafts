@@ -995,9 +995,10 @@ credential context are accepted ({{key-rotation}}).
 ### Limitations {#act-limitations}
 
 A `SpendMessage` grows linearly in `L` ({{ACT}}). With P-256 and `L = 32`,
-it is about 4.5 KB when one of `s` and `a` is nonzero and 8.7 KB when both
-are, before base64url encoding in the `Authorization` header. Deployments
-with tight header limits should choose `L` accordingly.
+it is at most 4,531 bytes (about 4.5 KB) when `s + a > 0`, including when
+both amounts are nonzero, and 468 bytes for a refresh (`s = a = 0`). These
+sizes are before base64url encoding in the `Authorization` header.
+Deployments with tight header limits should choose `L` accordingly.
 
 ## Privacy Pass with a Reverse Flow {#credential-reverse}
 
