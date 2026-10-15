@@ -1918,9 +1918,8 @@ the Anchor Set itself does; see {{security-considerations}}.
 
 ## Encodings {#redemption-wire}
 
-A redemption is carried in the `bytes` field of the `Presentation` structure of
-{{PROTOCOLS}}, which a Client sends in the `endorsement_presentation` field of a
-`CredentialRequest`.
+In {{PROTOCOLS}}, a Client sends the encoded `Redemption` with the issuance
+request in Redeem & Issue.
 
 ~~~ tls-presentation
 struct {

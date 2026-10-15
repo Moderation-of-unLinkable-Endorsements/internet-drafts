@@ -295,10 +295,8 @@ response MUST carry a `Mole` challenge for the required exchange. A `403`
 returned by the protected operation after a fresh acceptance is that
 operation's status, and carries the update.
 
-The `409` response distinguishes a duplicate protected request from successful
-execution of that request. It does not apply to explicit recovery, whose only
-operation is retrieving the recorded result. A Client MUST NOT infer chain
-termination from any status without the recorded empty update.
+A Client MUST NOT infer chain termination from any status without the
+recorded empty update.
 
 # Security Considerations
 
@@ -316,8 +314,8 @@ TODO. The list to cover:
 3. Request binding: this document defines no canonical HTTP request
    serialization. ACT `request_context` must cover what the Moderator
    authorizes, including the body. Reverse flow has no request binding.
-4. Recovery: what recovery reveals, its lack of Client authentication beyond
-   the handle, and how long results are retained.
+4. Recovery: what recovery reveals and its lack of Client authentication
+   beyond the handle.
 5. Grant and issuance recovery: a lost grant or issuance response currently
    costs the Client its session or Endorsement. Whether to add recovery for
    these exchanges, and how to authenticate a lookup by session ID or
