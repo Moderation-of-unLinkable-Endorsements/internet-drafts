@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-15T03:49:08.042690+00:00",
+  "timestamp": "2026-10-18T03:41:34.493346+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -147,15 +147,15 @@
       "id": "I_kwDOSX6krs8AAAABDYUmWA",
       "title": "Use \"site\", not Origin",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/6",
-      "state": "CLOSED",
+      "state": "OPEN",
       "author": "martinthomson",
-      "authorAssociation": "NONE",
+      "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "Privacy Pass made a serious error in using \"origin\" to describe the thing the tokens grant access to.  In practice, the privacy unit on the web is a [site](https://html.spec.whatwg.org/#site).  That is, the set of web origins that share a registrable domain.\n\nBecause the website is something of a bystander in MoLE processing[^1], it's not a load-bearing notion, but I think that using \"site\" as the name of the primary beneficiary of the protocol is right.\n\n[^1]: In practice the moderator is the one involved in the protocol interactions on behalf of each site.  The site really only has a few interactions: first, to identify a moderator; second, to receive the moderator's verdict about the client; and, third, to provide the moderator with feedback about interactions with the client.",
       "createdAt": "2026-05-26T06:03:45Z",
-      "updatedAt": "2026-05-28T10:57:36Z",
-      "closedAt": "2026-05-28T10:57:36Z",
+      "updatedAt": "2026-10-15T21:15:56Z",
+      "closedAt": null,
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -170,6 +170,13 @@
           "body": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/8 is going to implement this.",
           "createdAt": "2026-05-27T15:28:58Z",
           "updatedAt": "2026-05-27T15:28:58Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Reopinning following a comment from @chris-wood which I find compelling\n\nUsing `site` works for the web. However, in the context where MOLE moderator operator on behalf of a proxy for instance, it seems that `origin` is more appropriate.\n\nThat might be a divergence betweeen the web and other usage.",
+          "createdAt": "2026-10-15T21:15:56Z",
+          "updatedAt": "2026-10-15T21:15:56Z"
         }
       ]
     },
@@ -389,7 +396,7 @@
       "id": "I_kwDOSX6krs8AAAABIDaCkA",
       "title": "Write introduction for http-transport",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/32",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -398,8 +405,8 @@
       ],
       "body": "Left as TODO for now. Probably rather short but would need to motivate the need. https://github.com/antifraudcg/pact seems to be a clear need at minimum.",
       "createdAt": "2026-07-08T07:43:52Z",
-      "updatedAt": "2026-07-08T07:43:52Z",
-      "closedAt": null,
+      "updatedAt": "2026-10-16T20:50:12Z",
+      "closedAt": "2026-10-16T20:50:12Z",
       "comments": []
     },
     {
@@ -617,7 +624,7 @@
       ],
       "body": "Right now IHAT has roughly the following syntax:\n\n* Issuance: `Client(ctx_red, ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` That is, the client and anchor agree on the anchor's key and issuance context (client keeps the redemption context secret) and interact over some number of moves (2-3).\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Client and moderator agree on the issuance and redemption context and the anchor set. The client sends an endorsement covered by the anchor set.\n\nEach IHAT token can be used just once. In some situations, it may be useful to instead be able to present the same token once (or perhaps multiple times) to many Moderators. Something like this:\n\n* Issuance: `Client(ctx_iss, pkA) <--> Anchor(ctx_iss, skA)` Same as above, except `ctx_red` isn't determined until redemption time.\n* Redemption: `Client(ctx_red, ctx_iss, anchor_set) <--> Moderator(ctx_red, ctx_iss, anchor_set)` Same as above. \n\nWe know roughly how to do this with both Longfellow and Moussaka. In both cases, the solution involves adding an additional hash to the circuit that's used as a PRF applied to the redemption context (and perhaps presentation count, as in ARC). We can do the same thing for plain IHAT as well, but it would use the non-PQ-private trick in ARC.\n\n\n\n\n",
       "createdAt": "2026-08-10T15:49:29Z",
-      "updatedAt": "2026-10-08T08:11:23Z",
+      "updatedAt": "2026-10-16T20:55:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -654,6 +661,20 @@
           "body": "> Just noting here that Moussaka can easily be adapted to support this feature, at the cost of proving an additional hash. I'll update the draft with a sketch of how this would work.\n\nThe additional hash results from deriving the nullifier from some \"PRF key\" and the redemption context, right? Probably would be also easy to extend this to multiple rate-limited shows by having a $j < L$ check, where $L>1$, and $j$ is also hashed.",
           "createdAt": "2026-10-08T08:11:06Z",
           "updatedAt": "2026-10-08T08:11:23Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Linking #143 , as the addition of Moussaka would provide multishow, similar to Longfellow circuits",
+          "createdAt": "2026-10-15T23:52:52Z",
+          "updatedAt": "2026-10-15T23:52:52Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Support for late binding in Moussaka: https://github.com/cloudflareresearch/vole-mole/pull/63",
+          "createdAt": "2026-10-16T20:55:07Z",
+          "updatedAt": "2026-10-16T20:55:07Z"
         }
       ]
     },
@@ -671,7 +692,7 @@
       ],
       "body": "Endorsement issuance has multiple rounds depending on the endorsement type: Moussaka has one, while IHAT has two. I think EndorsementRequest and EndorsementResponse ought to have a field (following the token type) indicating the round round number. Otherwise we have to deal with this at the crypto layer, which somewhat complicates code design since we'd have to plumb the Anchor's protocol state through the protocol layer.",
       "createdAt": "2026-08-18T17:13:26Z",
-      "updatedAt": "2026-08-26T08:20:42Z",
+      "updatedAt": "2026-10-16T20:51:31Z",
       "closedAt": null,
       "comments": [
         {
@@ -680,6 +701,13 @@
           "body": "This is something I'm unsure about, given not all protocols will use round. My impression is that IHAT-TZ protocol will have a round in its EndorsementRequest/Response, but that's not inherent to all EndorsementRequest/Response",
           "createdAt": "2026-08-26T08:20:41Z",
           "updatedAt": "2026-08-26T08:20:41Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "the multiplicity of round and their heterogeneity is still somthing to consider. the generic wrapper around endorsementrequest and response are gone though, in favor of type specific parameter. this should help",
+          "createdAt": "2026-10-16T20:51:31Z",
+          "updatedAt": "2026-10-16T20:51:31Z"
         }
       ]
     },
@@ -949,6 +977,60 @@
           "updatedAt": "2026-10-15T02:25:54Z"
         }
       ]
+    },
+    {
+      "number": 140,
+      "id": "I_kwDOSX6krs8AAAABXe4LxQ",
+      "title": "protocols: One nullifier store wording",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/140",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Deferred from #138.\n\nACT requires all servers accepting the same key and credential context to share one atomic nullifier store.\n\nI feel we could clarify that this requires coordinated atomic replay protection across those servers, rather than a single physical store? The acceptance scope may be local or distributed. This is a wording clarification, not a relaxation of replay protection.",
+      "createdAt": "2026-10-15T17:25:56Z",
+      "updatedAt": "2026-10-15T17:25:56Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 143,
+      "id": "I_kwDOSX6krs8AAAABXizADQ",
+      "title": "protocols: Include Ratatouille and Moussaka",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/143",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Protocols provides the current binding between the crypto and protocol primitive. If we want to start experimenting with Ratatouille or Moussaka, that's where this would go.\n\nSpecifically, with Moussaka (\"PQ ACT\"), it seems that performance sem compelling, despite a massive increase in size.\n\nThe alternative is to start a new draft \"pq-protocol\" which would register ratatouille in the endorsement registry and moussaka in the credential registry. It seems slightly too much overhead for now.\n\n@cjpatton ",
+      "createdAt": "2026-10-15T22:32:29Z",
+      "updatedAt": "2026-10-15T22:32:29Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 144,
+      "id": "I_kwDOSX6krs8AAAABXi1JSQ",
+      "title": "protocols: limit the protocol draft to endorsement and credentials that are going to be used",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/144",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "Similar to how we've removed budget privacy pass, it seems interesting to reconsider the list of endorsement/credentials we want the protocol draft to provide.\n\nThe current candidates would be\n\nEndorsement\n0. no endorsement\n1. ec ihat (rollatini)\n2. longfellow ihat circuit\n3. pq ihat (ratatouille)\n\nCredentials\n1. act\n2. Reverse flow privacy pass\n3. pq act (moussaka)\n\nAt least EC IHAT and ACT are going to see use. Possibly PQ ACT would be included per #143\n\nDoing this work would help with #108 raised by @wbl, even though that's going to possibly be recurrent work",
+      "createdAt": "2026-10-15T22:35:44Z",
+      "updatedAt": "2026-10-15T22:36:39Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -11817,7 +11899,7 @@
       "id": "PR_kwDOSX6krs8AAAABIBu7KA",
       "title": "act: prove the spend with a single range proof",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/120",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
@@ -11826,19 +11908,35 @@
       ],
       "body": "Replace the two range proofs of the spend, one showing c - s >= 0 and one showing c + a < 2^L, with one proof that 0 <= c - s <= m, where m = 2^L - 1 - (s + a). The remainder is decomposed into bits weighted by the powers of two below the leading power of m, with the top weight replaced by m - 2^(n-1) + 1 so that all bits set sum to exactly m.\n\nThe spend message now has a single shape: n = bit_length(m) bit commitments, with Com_c and Com2 removed, and is 129 * n + 403 bytes. VerifySpend and DecodeSpend reject s + a >= 2^L. The amount-validation argument no longer needs the balance bound from earlier refunds.\n\nUpdate the reference implementation, tests, and test vectors to match.\n\nThis was made via copilot. There is some oddness from SIGMA rejecting the identity which I am told they will fix.",
       "createdAt": "2026-10-12T18:49:14Z",
-      "updatedAt": "2026-10-12T19:56:42Z",
+      "updatedAt": "2026-10-15T16:44:06Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "67934d8903da4de08101c1ea8261ec5283501c6d",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/one-bit-expansion-always",
       "headRefOid": "1c1ab2d5872ee23f3dd5628c183ea6b9b3a3a522",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-15T16:44:06Z",
+      "mergedAt": "2026-10-15T16:44:06Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "bcae96443627d8c41771d6a6877426601141a909"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABSgOLNA",
+          "commit": {
+            "abbreviatedOid": "1c1ab2d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Yeah, this is good. I'll make a follow up with some cleanups on top.",
+          "createdAt": "2026-10-15T16:43:59Z",
+          "updatedAt": "2026-10-15T16:43:59Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 121,
@@ -12300,7 +12398,7 @@
       "id": "PR_kwDOSX6krs8AAAABISJ2eg",
       "title": "protocols: self-contained encodings, sharper processing rules, configuration CDDL",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/135",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -12312,26 +12410,50 @@
       ],
       "body": "packing multiple changes in one PR. the associated change for the HTTP transport PR is on the way (i've migrated definition of challenges from there for instance)\n\n- Define <V>, optional<T> and outer Moderator messages here; drop dependencies on HTTP transport for encodings, headers, statuses.\n- ACT issuance: a response lost after recording the redemption is not recoverable; retried results authorize no operation.\n- Endorsement replay ids outlive credential key/context rotation.\n- Rollatini: one key per Anchor, Anchor set selected by ctx_iss, index by pkA, Moderator decodes and verifies per candidate set.\n- Reverse Flow: ordered Moderator steps, result retention, per-key TokenChallenge, presentation keys may differ from the issuance key.\n- Configuration described in CDDL; serialization deferred (@ekovac fyi)",
       "createdAt": "2026-10-13T23:40:52Z",
-      "updatedAt": "2026-10-13T23:45:12Z",
+      "updatedAt": "2026-10-15T22:08:44Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "f9e592db4df395573e6e0d6d0fe9864164d85ace",
+      "baseRefOid": "bcae96443627d8c41771d6a6877426601141a909",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "protocols-clarity",
-      "headRefOid": "11516f09b26b17a3a7be73f45e0977775eb498c8",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
-      "comments": [],
-      "reviews": []
+      "headRefOid": "164388845c430542f8185d024f61a310f4c35196",
+      "closedAt": "2026-10-15T22:08:22Z",
+      "mergedAt": "2026-10-15T22:08:22Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "c36c0ceaf9fec9627771e01133ce06135ae5c2b5"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "note: some of the content from this PR has been refined in #138. I'd still need a tick on this one (the joy of stacked PRs)\r\n\r\nfyi @SamuelSchlesinger @dennisjackson ",
+          "createdAt": "2026-10-15T18:55:37Z",
+          "updatedAt": "2026-10-15T18:55:37Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABSj2Uhw",
+          "commit": {
+            "abbreviatedOid": "1643888"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-15T22:07:17Z",
+          "updatedAt": "2026-10-15T22:07:17Z",
+          "comments": []
+        }
+      ]
     },
     {
       "number": 136,
       "id": "PR_kwDOSX6krs8AAAABISJ3Aw",
       "title": "http-transport: carry protocols messages, one section per exchange",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/136",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -12343,17 +12465,19 @@
       ],
       "body": "Reuse protocols encodings and outer messages (only base64url carriage is defined here). One section each for Grant, Redeem & Issue, Presentation, Recovery.\n\nBehavior changes for review:\n- Parsing: each Mole challenge/credential carries exactly one payload parameter. Unknown parameters are ignored\n- Status table now applies to every credential type, not only ACT.\n- Every accepted presentation, fresh or retried, MUST carry the recorded update, even on 4xx/5xx\n- Mole-Credential requires Cache-Control: no-store. CORS must expose WWW-Authenticate and Mole-Credential. (is this something that should be in the web draft: TBD)\n- anchor_context is opaque and empty for current endorsement types.\n- realm dropped from examples.\n\nbuilds on https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/135",
       "createdAt": "2026-10-13T23:40:53Z",
-      "updatedAt": "2026-10-14T19:45:25Z",
+      "updatedAt": "2026-10-15T22:08:37Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "protocols-clarity",
-      "baseRefOid": "11516f09b26b17a3a7be73f45e0977775eb498c8",
+      "baseRefOid": "164388845c430542f8185d024f61a310f4c35196",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "http-transport-clarity",
-      "headRefOid": "2009e44d0c24e44ff8a4d1371891a5f8d7765175",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "28d584d03edd4caa11fe425186113ea88e1b9ca3",
+      "closedAt": "2026-10-15T22:08:23Z",
+      "mergedAt": "2026-10-15T22:08:23Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "0062456b993c2a8cb064911d8d38508e498a4ab1"
+      },
       "comments": [],
       "reviews": [
         {
@@ -12399,14 +12523,14 @@
         {
           "id": "PRR_kwDOSX6krs8AAAABST0O-w",
           "commit": {
-            "abbreviatedOid": "2009e44"
+            "abbreviatedOid": "28d584d"
           },
           "author": "ekovac",
           "authorAssociation": "NONE",
           "state": "APPROVED",
           "body": "This looks good, can't find anything I'd change.",
           "createdAt": "2026-10-14T19:45:25Z",
-          "updatedAt": "2026-10-14T19:45:25Z",
+          "updatedAt": "2026-10-15T17:38:27Z",
           "comments": []
         }
       ]
@@ -12416,7 +12540,7 @@
       "id": "PR_kwDOSX6krs8AAAABIgx_Wg",
       "title": "Clarifying protocol guarantees",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/138",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "thibmeu",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [
@@ -12427,19 +12551,21 @@
         "http-transport",
         "protocols"
       ],
-      "body": "In a similar vein to the other PRs in the stack, this tightens the transport and clarifies the protocol guarantees.\n\n1. Following Martin\u2019s comment about limiting HTTP parameter extension points, encode the protocol type in the parameter name so the payload format can be identified without decoding its value. Also align response codes with their meaning: successful recovery returns 200, while duplicate presentations at a protected resource retain 409. @ekovac, this seems relevant to the web draft work.\n2. Clarify replay protection and its scope. This relaxes ACT\u2019s requirement for a shared nullifier store across servers accepting the same key and context, allowing independent replay scopes while explicitly acknowledging the resulting balance-forking risk. @samuelschlesinger\n3. Bring the protocol descriptions closer to the architecture by connecting mechanisms to the guarantees they provide, including their boundaries and failure modes. In particular, distinguish credential acceptance, execution of the protected operation, and recovery of the recorded credential result.",
+      "body": "In a similar vein to the other PRs in the stack, this tightens the transport and clarifies the protocol guarantees.\r\n\r\n1. Following Martin\u2019s comment about limiting HTTP parameter extension points, encode the protocol type in the parameter name so the payload format can be identified without decoding its value. Also align response codes with their meaning: successful recovery returns 200, while duplicate presentations at a protected resource retain 409. @ekovac, this seems relevant to the web draft work.\r\n~~2. Clarify replay protection and its scope. This relaxes ACT\u2019s requirement for a shared nullifier store across servers accepting the same key and context, allowing independent replay scopes while explicitly acknowledging the resulting balance-forking risk. @samuelschlesinger~~\r\n3. Bring the protocol descriptions closer to the architecture by connecting mechanisms to the guarantees they provide, including their boundaries and failure modes. In particular, distinguish credential acceptance, execution of the protected operation, and recovery of the recorded credential result.",
       "createdAt": "2026-10-15T00:05:00Z",
-      "updatedAt": "2026-10-15T02:05:24Z",
+      "updatedAt": "2026-10-15T22:08:30Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "http-transport-clarity",
-      "baseRefOid": "2009e44d0c24e44ff8a4d1371891a5f8d7765175",
+      "baseRefOid": "28d584d03edd4caa11fe425186113ea88e1b9ca3",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "protocol-guarantees",
-      "headRefOid": "58edb907e767131dbfff08f28543dfbac510b1b7",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "d68ef1bfd16f9910e53d2b5745133ac84a48b9d4",
+      "closedAt": "2026-10-15T22:08:24Z",
+      "mergedAt": "2026-10-15T22:08:24Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "a49e4743a4e1a5bcfe01f13845e74315432433c1"
+      },
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -12447,6 +12573,13 @@
           "body": "This replay protection scope stuff strikes me as not particularly helpful, why would you deploy it this way? There is a basic math question here: when you can create K tokens from 1 token, you can grow your token supply geometrically and thus, in practice, get as many tokens as you'd like. In what deployment setting would this possibly be desired?",
           "createdAt": "2026-10-15T02:05:23Z",
           "updatedAt": "2026-10-15T02:05:23Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@SamuelSchlesinger the initial idea was to replace the \"global\" word, and i might have went a bit too far on that. i'll remove that change from this stack as it could use discussion in the issues",
+          "createdAt": "2026-10-15T15:03:18Z",
+          "updatedAt": "2026-10-15T15:03:18Z"
         }
       ],
       "reviews": [
@@ -12461,6 +12594,120 @@
           "body": "",
           "createdAt": "2026-10-15T02:00:09Z",
           "updatedAt": "2026-10-15T02:00:09Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 139,
+      "id": "PR_kwDOSX6krs8AAAABIq1x9w",
+      "title": "act: align documentation with the single range proof",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/139",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "After #120, the protocols draft still quoted 8.7 KB for combined spends and top-ups. Correct the L=32 maximum to 4,531 bytes and state the 468-byte refresh size.\r\n\r\nClarify that the demo's four flows use the retained refresh path (`Com_c`) or a single range proof, remove the obsolete `s2` reference, and update the credit-conservation wording. Refreshes still rely on the balance invariant from issuance and prior refunds. Algorithms and encodings are unchanged.",
+      "createdAt": "2026-10-15T16:47:52Z",
+      "updatedAt": "2026-10-15T17:29:29Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "bcae96443627d8c41771d6a6877426601141a909",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samuelschlesinger/act-range-proof-doc-cleanups",
+      "headRefOid": "12c7fa4e1001e9d24c4d79ca1c340adcaf39fe85",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABSgxIXg",
+          "commit": {
+            "abbreviatedOid": "12c7fa4"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-15T17:29:29Z",
+          "updatedAt": "2026-10-15T17:29:29Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 141,
+      "id": "PR_kwDOSX6krs8AAAABIrqnxg",
+      "title": "Tighten protocol descriptions while preserving ACT reading aids",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/141",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "Mostly removing duplication, and fixing rollatiny outdated mention of the protocol draft",
+      "createdAt": "2026-10-15T17:57:03Z",
+      "updatedAt": "2026-10-15T17:57:47Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "protocol-guarantees",
+      "baseRefOid": "2a0ee196f4278303794bebdc9e0c7120d92539f4",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "protocols-http-editorial-followup",
+      "headRefOid": "93146a4867886d0caef0d2f3fa33e9433012c6e6",
+      "closedAt": "2026-10-15T17:57:47Z",
+      "mergedAt": "2026-10-15T17:57:47Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "d68ef1bfd16f9910e53d2b5745133ac84a48b9d4"
+      },
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 142,
+      "id": "PR_kwDOSX6krs8AAAABIuidlQ",
+      "title": "ihat: a few improvements from Chris's review",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/142",
+      "state": "MERGED",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-10-15T22:25:04Z",
+      "updatedAt": "2026-10-15T23:01:11Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "a49e4743a4e1a5bcfe01f13845e74315432433c1",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/respond-chris-writeup",
+      "headRefOid": "eeb61e6d209b8287ae9cba251efbc457368349b5",
+      "closedAt": "2026-10-15T23:01:11Z",
+      "mergedAt": "2026-10-15T23:01:11Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "d9d91b3b52786e62302356d76859391c828b1838"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABSkJbpw",
+          "commit": {
+            "abbreviatedOid": "eeb61e6"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-15T22:44:38Z",
+          "updatedAt": "2026-10-15T22:44:38Z",
           "comments": []
         }
       ]
