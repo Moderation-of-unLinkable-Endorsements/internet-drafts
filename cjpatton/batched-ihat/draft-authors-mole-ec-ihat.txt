@@ -1,0 +1,2368 @@
+
+
+
+
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                Google LLC
+Intended status: Informational                                   W. Ladd
+Expires: 22 April 2027                               Akamai Technologies
+                                                             D. I. Mohan
+                                         Georgia Institute of Technology
+                                                         19 October 2026
+
+
+               EC-IHAT: An Issuer-Hiding Anonymous Token
+                   draft-authors-mole-ec-ihat-latest
+
+Abstract
+
+   This document specifies EC-IHAT, a cryptographic construction used to
+   produce and consume MoLE Endorsements.  An Endorsement is an
+   anonymous token that an Anchor issues to a Client, and that the
+   Client later redeems at a Moderator without the Anchor being able to
+   link the redemption to the issuance.
+
+   This document defines the endorsement issuance protocol, built from a
+   pairing-free partially blind signature scheme, together with the
+   group, encoding, and context-binding rules that both the Anchor and
+   the Client follow.
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
+   mole-ec-ihat.html.  Status information for this document may be found
+   at https://datatracker.ietf.org/doc/draft-authors-mole-ec-ihat/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 22 April 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  Preliminaries
+     3.1.  Prime-Order Group
+     3.2.  Errors
+   4.  The Endorsement Scheme
+     4.1.  Configuration and Protocol Context
+     4.2.  Deriving Scalars
+     4.3.  Deriving Nonces
+     4.4.  Key Generation
+     4.5.  Context Binding
+   5.  Endorsement Issuance
+     5.1.  Anchor Commitment
+     5.2.  Client Challenge
+     5.3.  Anchor Response
+     5.4.  Client Finalization
+     5.5.  Endorsement Verification
+     5.6.  Encodings
+       5.6.1.  Issuance Messages
+       5.6.2.  Endorsement
+     5.7.  Session Handling
+   6.  Endorsement Redemption
+     6.1.  Key Rerandomization
+     6.2.  The Issuer-Hiding Proof
+       6.2.1.  The Branch Proof
+       6.2.2.  Partially Binding Commitments
+       6.2.3.  The Permutation
+       6.2.4.  Challenge Computation
+       6.2.5.  Proving
+       6.2.6.  Verifying
+     6.3.  Redemption
+     6.4.  Redemption Verification
+     6.5.  Encodings
+   7.  Ciphersuites
+     7.1.  EC-IHAT(P-256, SHA-256)
+   8.  Security Considerations
+   9.  IANA Considerations
+   10. References
+     10.1.  Normative References
+     10.2.  Informative References
+   Appendix A.  Test Vectors
+     A.1.  Ciphersuite
+     A.2.  Scalar Derivation
+     A.3.  Key Pair
+     A.4.  Issuance
+     A.5.  Redemption Against 2 Anchors
+     A.6.  Redemption Against 5 Anchors
+     A.7.  Redemption Against 1 Anchor
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   MoLE Endorsements have a number of constraints imposed by the
+   architecture [ARCH].  They must be unlinkable by the Anchor that
+   issued them, they must be publicly verifiable, and a redemption must
+   hide which Anchor issued the Endorsement among the set of Anchors a
+   Moderator accepts.  Existing systems do not meet all of these needs.
+   This document defines such a system, EC-IHAT, an Issuer-Hiding
+   Anonymous Token (IHAT).
+
+   EC-IHAT follows the construction described in Section 3.4 of
+   [FFKLLS26], which in turn is based on the pairing-free partially
+   blind signature of [TESSZHU].  An Anchor holds a signing key and
+   issues, in three moves, a signature on a Client-chosen message that
+   the Anchor never sees.  Each Endorsement is also bound at issuance
+   time to two contexts.  These may be used to limit the validity scope
+   of each Endorsement, i.e., when and for whom it may later be used:
+
+   *  The issuance context ctx_iss is agreed out of band among the
+      Client, the Anchor, and the Moderator. ctx_iss can encode, for
+      instance, the time period in which the Endorsement is issued,
+      ensuring Endorsements expire.
+
+   *  The redemption context ctx_red is agreed out of band between the
+      Client and the Moderator.  For example, it may be a long-term
+      identity of the target Moderator.  This may be used to prevent
+      Endorsement reuse across Moderators without requiring a
+      synchronized state between them.
+
+   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
+   redemption APIs.  It supplies the issuance and redemption contexts;
+   this document treats those contexts as opaque byte strings.
+
+   The remainder of this document is organized as follows.  After
+   defining conventions and cryptographic preliminaries (Section 3), we
+   given an overview of issuance and specify some functionalities common
+   to issuance and redemption Section 4.  Section 5 specifies the
+   issuance flow, including message encodings and session handling.
+   Section 6 specifies issuer-hiding redemption, including key
+   rerandomization and the proof that the issuing Anchor belongs to the
+   Moderator's Anchor Set. Section 7 defines the supported ciphersuites,
+   and Section 8 discusses the construction's security and deployment
+   considerations.  Section 9 covers IANA considerations, and Appendix A
+   provides test vectors for the ciphersuites defined here.
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   The terms Client, Anchor, Moderator, Endorsement, Credential, and
+   Anchor Set are used as defined in [ARCH].
+
+   Unless otherwise specified, this document encodes protocol messages
+   in TLS notation (Section 3 of [TLS13]).  Moreover, all constants are
+   in network byte order.  This document also uses the variable-size
+   vector convention <V> defined in [HTTP-TRANSPORT]: the length prefix
+   of such a vector is a variable-length integer in its minimum-size
+   encoding, so its width depends on the length of the contents it
+   carries.
+
+   Algorithms are specified in Python and use the following functions,
+   types, and notation.
+
+   Type bytes is used for byte strings, int for integers, and Sequence
+   for a read-only sequence.
+
+   For any byte string x, len(x) denotes its length in bytes.
+
+   For two byte strings x and y, x + y denotes their concatenation, and,
+   if they are of equal length, _xor(x, y) denotes their bytewise
+   exclusive or.
+
+   For a byte string x, x[i:j] denotes the substring of x that begins at
+   its byte with index i and ends just before its byte with index j,
+   where indices start at zero.  Its length is j - i bytes.
+
+   For a list x, x[i] denotes its element at index i, counting from
+   zero, x[i:j] denotes the sublist from index i up to but not including
+   index j, and len(x) denotes the number of elements it holds.
+
+   I2OSP(value, length) converts a nonnegative integer into a byte
+   string of the requested length in big-endian byte order, as described
+   in [I2OSP].  We write U16Prefixed(value) for the concatenation of
+   I2OSP(len(value), 2) and byte string value.
+
+   random(n) returns n uniformly random bytes.  Implementations MUST
+   generate them with a cryptographically secure random number
+   generator.  It is the only source of randomness in this document:
+   every other value that has to be unpredictable is derived from its
+   output (Section 4.2).
+
+   Seed(x, k) denotes the k-th seed in a byte string of concatenated
+   seeds, that is x[k * Nseed:(k + 1) * Nseed], with k counted from
+   zero.  Section 7 fixes the seed length Nseed.  This function is
+   defined as follows:
+
+   def Seed(value: bytes, index: int) -> bytes:
+       return value[index * Nseed : (index + 1) * Nseed]
+
+   Byte strings such as b"Challenge" contain the corresponding ASCII
+   bytes and do not include a terminating NUL byte.
+
+   The definitions of the record types named in function signatures are
+   implicit.  Parameters become constant values once the ciphersuite is
+   fixed.  An algorithm that can fail raises an error; the errors used
+   in this document are listed in Section 3.2.
+
+3.  Preliminaries
+
+   The construction has two dependencies:
+
+   Group:  A prime-order group implementing the interface in
+      Section 3.1.  Section 7 gives concrete instances.
+
+   Hash:  A cryptographic hash function whose output length is Nh bytes.
+
+3.1.  Prime-Order Group
+
+   This document uses an additive, prime-order group, denoted G, of
+   order p, as described in Section 2.1 of [OPRF].  The types Element
+   and Scalar denote elements of the group and of its scalar field
+   respectively.  Group elements are added with + and subtracted with -;
+   scalar multiplication of an Element A by a Scalar r is written r * A.
+   Scalars are added, subtracted, and multiplied modulo p.  In the
+   Python snippets, G.scalar(x) converts an integer x in [0, p) to a
+   Scalar.
+
+   The group also provides G.DeriveScalars, G.ExpandScalars,
+   G.DeriveNonces, G.DeriveKeyPair, and G.GenerateKeyPair, defined in
+   Section 4.2, Section 4.3, and Section 4.4.
+
+   The following member functions are used.  Except where noted, they
+   are as defined in Section 2.1 of [OPRF].
+
+   Order():  Outputs the order p of the group.
+
+   Identity():  Outputs the identity element of the group.
+
+   Generator():  Outputs the generator element B of the group.
+
+   ScalarMultGen(r):  Outputs r * B, where B is the group generator.
+
+   HashToGroup(x, DST):  Deterministically maps a byte string x to an
+      Element, using the byte string DST as the domain separation tag.
+      The map is specified in Section 7.
+
+   HashToGroup(x):  Equivalent to HashToGroup(x, DST=b"HashToGroup-" +
+      ctx_proto) where ctx_proto is as defined in Section 4.1.
+
+   HashToScalar(x, DST):  Deterministically maps a byte string x to a
+      Scalar, using the byte string DST as the domain separation tag.
+      The map is specified in Section 7.
+
+   HashToScalar(x):  Equivalent to HashToScalar(x, DST=b"HashToScalar-"
+      + ctx_proto) where ctx_proto is as defined in Section 4.1.
+
+   ScalarInverse(s):  Outputs the multiplicative inverse of the nonzero
+      Scalar s modulo p.
+
+   SerializeElement(A):  Maps an Element A other than the identity
+      element to a canonical byte string of fixed length Ne.  Raises a
+      ValueError if A is the identity element, which has no such
+      encoding.
+
+   DeserializeElement(buf):  Attempts to map a byte string buf to an
+      Element.  Raises a DeserializeError if buf is not the canonical
+      encoding of a group element, or if it encodes the identity
+      element.
+
+   SerializeScalar(s):  Maps a Scalar s to a canonical byte string of
+      fixed length Ns.
+
+   DeserializeScalar(buf):  Attempts to map a byte string buf to a
+      Scalar.  Raises a DeserializeError if buf does not encode a Scalar
+      in the range [0, p-1].
+
+   This document does not use the RandomScalar() member of Section 2.1
+   of [OPRF].  Every scalar that has to be unpredictable is instead
+   obtained from G.DeriveScalars (Section 4.2), G.DeriveNonces
+   (Section 4.3), or G.DeriveKeyPair (Section 4.4), each deterministic
+   in its random input.  Each algorithm is therefore a deterministic
+   function of its random input, which the test vectors of Appendix A
+   fix.
+
+3.2.  Errors
+
+   The following errors are used.
+
+   DeserializeError:  A byte string is not a canonical encoding of the
+      expected type.
+
+   VerifyError:  A received value failed a verification check.
+
+   DeriveError:  A deterministic derivation failed to produce a usable
+      scalar.  See Section 4.2.
+
+   ValueError:  An input has an invalid length or is outside its
+      permitted range.
+
+   An implementation that raises an error MUST abort the protocol run.
+   Errors are fatal to the affected session; see Section 5.7.
+
+4.  The Endorsement Scheme
+
+   Issuance is a three-move protocol between a Client and an Anchor,
+   followed by a local finalization step at the Client.  The Anchor
+   moves first and holds per-session state between its two moves, as
+   shown in Figure 1.
+
+   The Anchor speaks first.  This document does not prescribe how the
+   three messages are carried, nor how a Client that wants an
+   Endorsement reaches an Anchor in the first place; both are the
+   business of the transport, and a Client will in general have to
+   signal its intent by some means that carries no protocol data.  For
+   example, over HTTP a Client might ask for issuance in a request that
+   names how many Endorsements it wants, receive the commitments in the
+   response, send the challenges in a second request, and receive the
+   responses in the reply to that.  Section 5.6 specifies the encoding
+   of the three messages; [PROTOCOLS] specifies how they are batched and
+   correlated.
+
+   Neither context is carried in these messages.  Both parties already
+   hold the issuance context, having agreed on it out of band; the
+   redemption context is known only to the Client and Moderator.
+
+   The Client's output is an Endorsement that is publicly verifiable
+   under the Anchor's public key pkA (Section 5.5).  The Anchor learns
+   neither the nullifier nor the redemption context bound into it, and
+   cannot link the Endorsement to the session that produced it.
+
+4.1.  Configuration and Protocol Context
+
+   A ciphersuite (Section 7) is identified by an ASCII string
+   identifier.  Both parties MUST agree on the ciphersuite before
+   running the protocol; [PROTOCOLS] describes how this agreement is
+   reached.
+
+   The protocol context, written ctx_proto, is the domain separation tag
+   that this document derives from that identifier:
+
+   def CreateProtocolContext(identifier: bytes) -> bytes:
+       return b"EC-IHATv1-" + identifier
+
+   Throughout the remainder of this document, ctx_proto denotes the
+   output of CreateProtocolContext for the ciphersuite in use.  It is
+   distinct from the issuance and redemption contexts of Section 4.5:
+   those are inputs to the protocol, chosen by its participants, whereas
+   ctx_proto is fixed by the ciphersuite.
+
+   Every hash this document computes, other than the round functions of
+   the permutation P (Section 6.2.3), is domain-separated by ctx_proto,
+   which appears in its DST.  HashToGroup and HashToScalar are so
+   parameterized (Section 7), as are G.DeriveScalars and G.ExpandScalars
+   (Section 4.2) and G.DeriveNonces (Section 4.3).  Every algorithm
+   below therefore depends on ctx_proto, even where it does not appear,
+   and a value produced under one ciphersuite does not verify under
+   another.  The Python group instance G stores this context as
+   G.ctx_proto.  The group methods below use self for that instance, so
+   the context is fixed when G is constructed.
+
+4.2.  Deriving Scalars
+
+   The group method G.DeriveScalars derives count values in the scalar
+   field of G from Nseed bytes of randomness rand.  An algorithm that
+   needs random scalars derives them all with one call, under an info
+   string that names the algorithm. rand and info are hashed into a key,
+   which is expanded into the scalars:
+
+   def DeriveScalars(
+       self, rand: bytes, info: bytes, count: int
+   ) -> list[Scalar]:
+       if len(rand) != Nseed:
+           raise ValueError(f"rand must be exactly {Nseed} bytes")
+       key = expand_message_xmd(
+           rand + U16Prefixed(info),
+           b"DeriveScalars-" + self.ctx_proto,
+           Nh,
+       )
+       return self.ExpandScalars(key, count)
+
+   The group method G.ExpandScalars hashes the key and an index to each
+   scalar in turn:
+
+   def ExpandScalars(self, key: bytes, count: int) -> list[Scalar]:
+       scalars = []
+       for i in range(count):
+           s = self.HashToScalar(
+               key + I2OSP(i, 4), DST=b"ExpandScalars-" + self.ctx_proto
+           )
+           if s.isZero():
+               raise DeriveError
+           scalars.append(s)
+       return scalars
+
+   expand_message_xmd is that of Section 5.3.1 of [HASH2CURVE], over the
+   hash function of the ciphersuite. rand MUST be Nseed bytes of output
+   of random and MUST NOT be used for more than one derivation.  A
+   derived scalar is zero, and DeriveError raised, with negligible
+   probability; implementations might choose to panic rather than handle
+   the exception.
+
+   The two-stage derivation used here and in Section 4.3 avoids the
+   output-length limit of a single hash_to_field call using
+   expand_message_xmd.  XMD produces at most 255 * Nh bytes per call,
+   which allows at most 170 scalars with SHA-256 and L = 48 (see EC-
+   IHAT(P-256, SHA-256) Section 7).  Although EC-IHAT's issuer-hiding
+   proof needs fewer scalars, other protocols that share these methods
+   need larger vectors.
+
+4.3.  Deriving Nonces
+
+   The nonces of a proof of knowledge, and the other secret values of
+   its first move, must not be reused under a different challenge.  The
+   group method G.DeriveNonces derives them together from rand, a secret
+   the party holds, and a public description of the operation, as the
+   hedged signatures of [DETSIGS] derive theirs:
+
+   def DeriveNonces(
+       self,
+       secret: bytes,
+       label: bytes,
+       instance: bytes,
+       rand: bytes,
+       count: int,
+   ) -> list[Scalar]:
+       if len(rand) != Nseed:
+           raise ValueError(f"rand must be exactly {Nseed} bytes")
+       derive_nonce_input = (
+           PadToBlock(rand)
+           + PadToBlock(I2OSP(len(secret), 4) + secret)
+           + U16Prefixed(label)
+           + I2OSP(len(instance), 4)
+           + instance
+       )
+       key = expand_message_xmd(
+           derive_nonce_input, b"DeriveNonces-" + self.ctx_proto, Nh
+       )
+       return self.ExpandScalars(key, count)
+
+   PadToBlock appends zero bytes up to a multiple of s_in_bytes, the
+   input block size of the hash function (Section 5.3.1 of
+   [HASH2CURVE]):
+
+   def PadToBlock(value: bytes) -> bytes:
+       return value + bytes(-len(value) % s_in_bytes)
+
+   expand_message_xmd starts its input with a block of zeros, so the
+   hash function absorbs rand in a block of its own and then secret in
+   blocks of its own, before any public input, as [DETSIGS] recommends
+   against side-channel and fault attacks.  When rand is uniformly
+   random, the nonces are distributed as derived scalars (Section 4.2).
+   If the random source fails in a way that does not depend on secret,
+   the nonces are still hash outputs on an input that contains secret,
+   so to an adversary that does not know secret a change to any part of
+   rand or instance changes every nonce unpredictably, except with
+   negligible probability, and no nonce is reused under a different
+   challenge.  Repeating all of rand for the same operation reproduces
+   the same proof.  Every instance in this document is an unambiguous
+   encoding, with its variable-length parts length-prefixed.
+   Implementations MUST wipe secret, derive_nonce_input, key, and the
+   returned values once they have been used.
+
+4.4.  Key Generation
+
+   An Anchor holds a key pair (skA, pkA).  It is derived from a seed,
+   which is what allows the test vectors in Appendix A to fix a key.
+   The procedure is the key generation of Section 3.2 of [OPRF].  The
+   secrecy of skA rests on that of seed; info is usually public.
+
+   def DeriveKeyPair(
+       self, seed: bytes, info: bytes
+   ) -> tuple[Scalar, Element]:
+       if len(seed) != Nseed:
+           raise ValueError(f"seed must be exactly {Nseed} bytes")
+       derive_input = seed + U16Prefixed(info)
+       for counter in range(256):
+           skA = self.HashToScalar(
+               derive_input + I2OSP(counter, 1),
+               DST=b"DeriveKeyPair-" + self.ctx_proto,
+           )
+           if not skA.isZero():
+               return (skA, self.ScalarMultGen(skA))
+       raise DeriveError
+
+   The derivation differs from that of Section 3.2 of [OPRF] only in its
+   domain separation tag, which comes from the protocol context of this
+   document rather than from an OPRF context string, and in the length
+   of the seed.  The loop terminates after one iteration except with
+   probability about 1/p.
+
+   A fresh key pair is generated by deriving one from a random seed.
+
+   def GenerateKeyPair(self) -> tuple[Scalar, Element]:
+       seed = random(Nseed)
+       return self.DeriveKeyPair(seed, b"GenerateKeyPair")
+
+   The Anchor publishes SerializeElement(pkA) in its configuration; see
+   [PROTOCOLS].
+
+4.5.  Context Binding
+
+   Each Endorsement is bound at issuance to two contexts, the issuance
+   context and the redemption context, and a redemption succeeds only if
+   the Client and the Moderator agree on both values.  Both are opaque
+   byte strings. ctx_iss is at most 2^16 - 1 bytes.  Because the encoded
+   message is itself passed to U16Prefixed, ctx_red is at most 2^16 - 1
+   - Nn - 4 bytes.  These bounds are enforced by U16Prefixed.  The two
+   contexts are bound by deliberately different means, reflecting who is
+   trusted to choose each.
+
+   [PROTOCOLS] specifies how MoLE obtains these contexts from
+   configuration.  The examples below illustrate their cryptographic
+   roles and do not define alternative context encodings.
+
+   The issuance context, written ctx_iss, restricts when, and
+   potentially where, an Endorsement may be redeemed; it might for
+   example name the epoch the Endorsement was issued in.  Both parties
+   hold it.  It is bound by deriving the second commitment base from it:
+
+   def CreateContextBase(ctx_iss: bytes) -> Element:
+       context_base_input = U16Prefixed(ctx_iss) + b"ContextBase"
+       return G.HashToGroup(context_base_input)
+
+   The Anchor forms its commitment under this base, and the base is
+   recomputed at verification time.  The Client and the Anchor MUST
+   agree on the issuance context.  Disagreement causes issuance to fail:
+   a Client that uses any other value fails the commitment-opening check
+   in Finalize.  The binding is therefore enforced by the construction
+   rather than by an explicit check, and a Client cannot bind an
+   Endorsement to an issuance context of its own choosing.
+
+   The redemption context, written ctx_red, restricts where an
+   Endorsement may be redeemed: a redemption succeeds only under the
+   value the Endorsement was issued under.  It might for example
+   identify the Moderator the Client intends to redeem at, in which case
+   the Endorsement is redeemable at that Moderator and at no other.  It
+   is chosen by the Client and is hidden from the Anchor.  It is bound
+   by placing it, together with a fresh Client-chosen nullifier nf of Nn
+   = 32 bytes, in the signed message:
+
+   def Message(nf: bytes, ctx_red: bytes) -> bytes:
+       if len(nf) != Nn:
+           raise ValueError(f"nullifier must be exactly {Nn} bytes")
+       return U16Prefixed(nf) + U16Prefixed(ctx_red)
+
+   A redemption under a different redemption context recomputes a
+   different message, for which the Client holds no valid signature.
+   Two consequences follow.  A Client has to fix ctx_red before it runs
+   Challenge, that is, before the Endorsement exists; and an Endorsement
+   cannot afterwards be re-bound to another value, so a Client that
+   needs to redeem under several redemption contexts needs a separate
+   Endorsement, and so a separate issuance, for each.  Anchors bound how
+   many Endorsements they grant a given Client in order to keep
+   Endorsements scarce ([ARCH]), so that budget is consumed per
+   redemption context rather than per Client.
+
+   The nullifier nf MUST be a fresh string of Nn uniformly random bytes,
+   generated by the Client, and MUST NOT be reused across Endorsements.
+   It is revealed during redemption, so the Moderator ensures each
+   Endorsement is redeemed at most once.
+
+   The values the two contexts take determine the anonymity set a Client
+   redeems in, and a deployment can destroy the unlinkability the
+   construction provides without breaking any of its cryptographic
+   properties; see Section 8.
+
+5.  Endorsement Issuance
+
+   Issuance produces a signature on the message Message(nf, ctx_red)
+   relative to the public input ctx_iss.  It consists of four
+   algorithms, run in the order shown in Figure 1.
+
+   +--------+                           +--------+
+   | Client |                           | Anchor |
+   +---+----+                           +---+----+
+       |                                    |
+       |                                 Commit
+       |                                    |
+       |<-------- commitment (A, C) --------+
+       |                                    |
+   Challenge                                |
+       |                                    |
+       +------------- challenge ----------->|
+       |                                    |
+       |                                 Respond
+       |                                    |
+       |<-------- response (s, y, t) -------+
+       |                                    |
+   Finalize                                 |
+       |                                    |
+   endorsement                              |
+
+                  Figure 1: Endorsement issuance overview
+
+   Commit and Respond are run by the Anchor; Challenge and Finalize are
+   run by the Client.  Both parties input the issuance context ctx_iss;
+   only the Client inputs the redemption context ctx_red.
+
+   Each of the first three algorithms outputs one protocol message, and
+   the next algorithm takes that message as a single input.  The
+   messages are the commitment, a pair of points (A, C); the challenge,
+   a single scalar; and the response, a triple of scalars (s, y, t).
+   The types Commitment and Response denote the first and the last of
+   these.  The wire format of each message is defined in Section 5.6.
+   All four algorithms treat G, ctx_proto, Nn, and Nseed as global
+   variables.
+
+5.1.  Anchor Commitment
+
+   The Anchor opens a session by committing to the values it will later
+   reveal.
+
+   def Commit(ctx_iss: bytes) -> tuple[AnchorState, Commitment]:
+       Z = CreateContextBase(ctx_iss)
+
+       rand = random(Nseed)
+       (a, t, y) = G.DeriveScalars(rand, b"Commit", 3)
+
+       A = G.ScalarMultGen(a)
+       C = G.ScalarMultGen(t) + y * Z
+
+       state = AnchorState(a, y, t)
+       commitment = Commitment(A, C)
+       return (state, commitment)
+
+   The Anchor stores state for the duration of the session and sends
+   commitment to the Client in a CommitMessage (Section 5.6).  The
+   signing key is not needed until Respond.
+
+5.2.  Client Challenge
+
+   The Client blinds the Anchor's commitment, derives the challenge over
+   the blinded values, and returns the challenge in blinded form.
+
+   def Challenge(
+       pkA: Element,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       commitment: Commitment,
+   ) -> tuple[ClientState, Scalar]:
+       if pkA.isIdentity():
+           raise VerifyError
+
+       (A, C) = commitment
+
+       rand = random(Nn + Nseed)
+       nf = rand[:Nn]
+       (r1, r2, gamma1, gamma2) = G.DeriveScalars(
+           rand[Nn:], b"Challenge", 4
+       )
+
+       m = Message(nf, ctx_red)
+       gamma = gamma1 * G.ScalarInverse(gamma2)
+
+       blinded_A = G.ScalarMultGen(r1) + gamma * A
+       blinded_C = gamma1 * C + G.ScalarMultGen(r2)
+       blinded_commitment = Commitment(blinded_A, blinded_C)
+
+       c = ComputeChallenge(ctx_iss, blinded_commitment, m)
+       if c.isZero():
+           raise VerifyError
+
+       challenge = c * gamma2
+       state = ClientState(
+           nf,
+           ctx_iss,
+           commitment,
+           r1,
+           r2,
+           gamma1,
+           gamma2,
+           challenge,
+           c,
+       )
+       return (state, challenge)
+
+   ComputeChallenge is as follows:
+
+   def ComputeChallenge(ctx_iss: bytes, commitment: Commitment, m: bytes) -> Scalar:
+       (A, C) = commitment
+
+       Am = G.SerializeElement(A)
+       Cm = G.SerializeElement(C)
+
+       challenge_transcript = (
+           U16Prefixed(ctx_iss)
+           + U16Prefixed(Am)
+           + U16Prefixed(Cm)
+           + U16Prefixed(m)
+           + b"Challenge"
+       )
+
+       c = G.HashToScalar(challenge_transcript)
+
+       return c
+
+   Two challenge values appear here: c is computed over the blinded
+   commitment and is the value that ends up in the Endorsement
+   (Section 5.4); it never leaves the Client.  The challenge message the
+   Anchor receives is its blinded form c * gamma2, and the Anchor cannot
+   recover c from it because gamma2 is uniform and secret.
+
+   HashToScalar can return zero, and the construction requires a nonzero
+   challenge.  Challenge aborts in that case, which keeps the challenge
+   a deterministic function of the transcript; this happens with
+   probability about 1/p (Section 4.2).
+
+   The Client sends challenge to the Anchor encoded as a
+   ChallengeMessage (Section 5.6) and retains state for the next step.
+
+5.3.  Anchor Response
+
+   The Anchor answers the challenge and closes the session.
+
+   def Respond(skA: Scalar, state: AnchorState, challenge: Scalar) -> Response:
+       (a, y, t) = state
+
+       if challenge.isZero():
+           raise VerifyError
+
+       s = a + challenge * y * skA
+       response = Response(s, y, t)
+
+       return response
+
+   The resulting Response is encoded as a ResponseMessage (Section 5.6)
+   and sent to the Client.
+
+   An Anchor MUST call Respond at most once per session state produced
+   by Commit, and MUST destroy that state immediately afterwards.
+   Answering two distinct challenges on the same state discloses the
+   signing key: from s1 = a + c1 * y * skA and s2 = a + c2 * y * skA
+   with c1 != c2, and y revealed in the response, an attacker recovers
+   skA = (s1 - s2) * ScalarInverse((c1 - c2) * y).  An Anchor MUST NOT
+   run Respond on a state it has already used or discarded.
+
+5.4.  Client Finalization
+
+   The Client checks the Anchor's response and unblinds it into an
+   Endorsement.
+
+   def Finalize(pkA: Element, state: ClientState, response: Response) -> Endorsement:
+       if pkA.isIdentity():
+           raise VerifyError
+
+       (nf, ctx_iss, (A, C), r1, r2, gamma1, gamma2, challenge, c) = state
+       (s, y, t) = response
+
+       Z = CreateContextBase(ctx_iss)
+
+       if y.isZero():
+           raise VerifyError
+       if C != G.ScalarMultGen(t) + y * Z:
+           raise VerifyError
+       if G.ScalarMultGen(s) != A + (challenge * y) * pkA:
+           raise VerifyError
+
+       gamma = gamma1 * G.ScalarInverse(gamma2)
+
+       s_final = gamma * s + r1
+       y_final = gamma1 * y
+       t_final = gamma1 * t + r2
+
+       return Endorsement(c, s_final, y_final, t_final, nf)
+
+   The three checks verify that the Anchor opened its commitment
+   honestly and answered the challenge under its published key.  A
+   Client whose Finalize raises an error MUST discard the session state
+   and MUST NOT retry the exchange with the same state.
+
+   An Endorsement consists of the signature (c, s, y, t) together with
+   the nullifier; its encoding is given in Section 5.6.2.
+
+5.5.  Endorsement Verification
+
+   An Endorsement is publicly verifiable under the issuing Anchor's
+   public key.
+
+   The two contexts are inputs to Verify in addition to the Endorsement.
+   A verifier therefore states the pair it is willing to accept and
+   learns whether the Endorsement was issued under it.
+
+   def Verify(
+       pkA: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+   ) -> bool:
+       if pkA.isIdentity():
+           return False
+
+       (c, s, y, t, nf) = endorsement
+
+       if len(nf) != Nn or c.isZero() or y.isZero():
+           return False
+
+       Z = CreateContextBase(ctx_iss)
+       m = Message(nf, ctx_red)
+
+       C = G.ScalarMultGen(t) + y * Z
+       A = G.ScalarMultGen(s) - (c * y) * pkA
+       if A.isIdentity() or C.isIdentity():
+           return False
+       commitment = Commitment(A, C)
+
+       return c == ComputeChallenge(ctx_iss, commitment, m)
+
+   A Moderator never runs Verify under an Anchor's public key: a
+   redemption does not reveal which Anchor issued the Endorsement, so
+   the Moderator runs it under a rerandomized key and checks an issuer-
+   hiding proof alongside (Section 6).  The Client MUST NOT reveal the
+   Anchor's public key to the Moderator.
+
+   Verify rejects a reconstructed A or C equal to the identity element,
+   which SerializeElement cannot encode.  Under an Anchor's key this
+   happens with negligible probability, but the rerandomized key is the
+   Client's choice, and a Client that knows its discrete logarithm x
+   reaches the identity by setting s = c * y * x.
+
+   An honestly produced Endorsement always verifies.  Writing gamma for
+   gamma1 * ScalarInverse(gamma2), and A_anchor and C_anchor for the two
+   elements of the Anchor's commitment, the commitment reconstructed by
+   Verify is exactly the blinded commitment the Client hashed in
+   Challenge:
+
+     C = t_final * B + y_final * Z
+       = gamma1 * (t * B + y * Z) + r2 * B
+       = gamma1 * C_anchor + r2 * B
+       = blinded_C
+
+     A = s_final * B - (c * y_final) * pkA
+       = (gamma * s + r1) * B - (c * gamma1 * y) * pkA
+       = r1 * B + gamma * A_anchor
+       = blinded_A
+
+   where the last step uses s = a + challenge * y * skA and challenge =
+   c * gamma2, so that the two terms in skA cancel.
+
+5.6.  Encodings
+
+   This section gives the encoding of the three messages exchanged
+   during issuance and of the Endorsement they produce.
+
+   Element and Scalar are the fixed-length encodings produced by
+   SerializeElement and SerializeScalar, of Ne and Ns bytes
+   respectively.  A recipient MUST deserialize every received Element
+   and Scalar, and MUST abort the session with a DeserializeError if
+   deserialization fails.  In particular, deserializing an Element
+   rejects the group identity element.  Deserialization of a structure
+   also fails if its input is truncated, if bytes remain after it, or if
+   a vector's length is not a multiple of the size of its elements.
+
+5.6.1.  Issuance Messages
+
+   The Anchor opens a session with its commitment:
+
+   struct {
+     Element A;
+     Element C;
+   } CommitMessage;
+
+   The Client replies with the blinded challenge:
+
+   struct {
+     Scalar challenge;
+   } ChallengeMessage;
+
+   The Anchor replies with its response, which closes the session:
+
+   struct {
+     Scalar s;
+     Scalar y;
+     Scalar t;
+   } ResponseMessage;
+
+5.6.2.  Endorsement
+
+   The output of Finalize is encoded as follows.
+
+   struct {
+     Scalar c;
+     Scalar s;
+     Scalar y;
+     Scalar t;
+     opaque nf[Nn];
+   } Endorsement;
+
+   This structure is never sent to an Anchor.  The Client holds it until
+   it is redeemed, and Section 6 defines what is sent to a Moderator
+   then.  The issuance and redemption contexts are not carried in it:
+   they are inputs to Verify (Section 5.5) and to redemption, held by
+   the verifier.
+
+5.7.  Session Handling
+
+   An Anchor is stateful: it holds the secret state produced by Commit
+   from the moment it sends CommitMessage until it answers or discards
+   the session.  That state is single-use; see Section 5.3 and
+   Section 8.
+
+   An Anchor SHOULD bound both the number of concurrent open sessions
+   per Client and the lifetime of an open session, and SHOULD discard
+   state for sessions that are not completed within that lifetime.
+   Discarding state early is always safe: it causes the Client's
+   Finalize to be unreachable, but cannot produce an invalid
+   Endorsement.
+
+6.  Endorsement Redemption
+
+   A Client redeems an Endorsement at a Moderator.
+
+   An Endorsement is single-use (Section 4.5), so redemption does not
+   have to hide the signature: the Client reveals it, and the Moderator
+   deduplicates on the nullifier.  What redemption must hide is which
+   Anchor issued it.  The signature of Section 5 verifies under one
+   Anchor's public key, so presenting it against that key would name the
+   Anchor.  Instead the Client rerandomizes the key (Section 6.1) and
+   proves in zero knowledge that the rerandomized key belongs to some
+   Anchor in the Moderator's Anchor Set (Section 6.2).
+
+   Redemption is one message from the Client, answering a challenge from
+   the Moderator.  The Moderator holds the ordered Anchor Set and
+   carries it in that challenge; the Client learns it there and locates
+   its own Anchor in it.  Both parties input the two contexts.
+
+   +--------+                                           +-----------+
+   | Client |                                           | Moderator |
+   +---+----+                                           +-----+-----+
+       |                                                      |
+       |<----- challenge (anchor_set, challenge_digest) ------+
+       |                                                      |
+   Redeem                                                     |
+       |                                                      |
+       +-------------------- redemption --------------------->|
+       |                                                      |
+       |                                               VerifyRedemption
+       |                                                      |
+       |                                                      nf
+
+                 Figure 2: Endorsement redemption overview
+
+   anchor_set is the list of Anchor public keys the Moderator accepts.
+   Both parties MUST use the same list in the same order.  A proof
+   computed over a different list or order will not verify.
+
+   challenge_digest binds the redemption to the challenge that triggered
+   it.  It is computed from the Moderator's challenge as specified in
+   [PROTOCOLS], and this document treats it as an opaque byte string.
+   Note that this challenge is the Moderator's, and has nothing to do
+   with the issuance challenge of Section 5.2.
+
+   In the remainder, let index denote the index of the issuing Anchor in
+   anchor_set.
+
+6.1.  Key Rerandomization
+
+   The Client shifts the Anchor's public key by a secret scalar delta of
+   its own choosing and adapts the signature to the shifted key.
+   Writing pkA for anchor_set[index] and (c, s, y, t, nf) for the
+   Endorsement:
+
+     X_hat = pkA + delta * B
+     s_hat = s + (c * y) * delta
+
+   Here B denotes the group's base point, i.e., B = G.Generator().
+
+   The result is an Endorsement (c, s_hat, y, t, nf) that verifies under
+   X_hat exactly as the original verifies under pkA, because the shift
+   cancels in the reconstruction of A:
+
+     s_hat * B - (c * y) * X_hat
+       = (s + c * y * delta) * B - (c * y) * (pkA + delta * B)
+       = s * B - (c * y) * pkA
+
+   Every other value Verify recomputes is untouched, so a Moderator can
+   check the signature by running Verify (Section 5.5) with X_hat in
+   place of pkA.
+
+   Because this shift is additive, issuance is left unmodified and the
+   unforgeability of Section 5 carries over to the modified Endorsement
+   (Section 8).  But X_hat by itself provides no evidence that it was
+   derived from an Anchor key.  The Client therefore also proves
+   knowledge of delta relating X_hat to a key in anchor_set, without
+   revealing which key.
+
+6.2.  The Issuer-Hiding Proof
+
+   The Client proves knowledge of delta such that X_hat - anchor_set[i]
+   = delta * B for at least one i, without revealing which.  This is a
+   one-out-of-n disjunction of proofs of knowledge of a discrete
+   logarithm, all over the base B = G.Generator().
+
+   Such a disjunction is classically composed with the technique of
+   Cramer, Damgard and Schoenmakers [CDS94], in which the Client answers
+   the branch it can and simulates the others, sending one challenge and
+   one response per branch.  That proof is linear in n, and the Anchor
+   Set is also the anonymity set (Section 8).  This document instead
+   composes the branches with the _stacking_ technique of Goel, Green,
+   Hall-Andersen and Kaptchuk [STACKSIG], whose proof is logarithmic in
+   n: the Client sends a single response, which every branch reuses,
+   together with a commitment whose opening forces one branch to have
+   been answered honestly.
+
+   The proof takes the rerandomized key of Section 6.1 as its statement
+   and leaves issuance and Section 5.5 unchanged.
+
+   The construction below first defines the branch proof, then builds a
+   partially binding tree commitment over its branches.  It finally
+   specifies the Fiat-Shamir challenge and the proving and verification
+   algorithms.
+
+   Each branch is the discrete logarithm proof of [SIGMA]; this document
+   specifies the composition, its transcript, and its encodings.
+
+6.2.1.  The Branch Proof
+
+   The disjunction is proved over the statements
+
+     Y[i] = X_hat - anchor_set[i]   for i in range(n)
+
+   of which the Client can answer branch index, where Y[index] = delta *
+   B.
+
+   A single branch is proved by the usual three moves: the Client draws
+   a nonce r and commits T = r * B; the verifier sends a challenge
+   proof_challenge; the Client answers response = r - proof_challenge *
+   delta; and the verifier checks that T = proof_challenge * Y[index] +
+   response * B.
+
+   Read the other way round, that check determines the commitment from
+   the challenge and the response:
+
+   def BranchCommitment(
+       proof_challenge: Scalar,
+       response: Scalar,
+       Y: Element,
+   ) -> Element:
+       return proof_challenge * Y + G.ScalarMultGen(response)
+
+
+   def Statements(
+       anchor_set: Sequence[Element],
+       X_hat: Element,
+   ) -> list[Element]:
+       return [X_hat - pkA for pkA in anchor_set]
+
+   Two properties make this branch proof stackable in the sense of
+   [STACKSIG].  First, a verifying commitment can be computed for any
+   statement from a challenge and a response, by the function above,
+   without knowing a witness; this is the extended honest-verifier zero-
+   knowledge property.  Second, the response is a fixed shift of the
+   derived nonce r, and so is statistically close to uniform
+   independently of the statement and witness; see Section 8.  One
+   response can therefore be reused across branches without revealing
+   which branch produced it.
+
+   A Moderator given proof_challenge and one response can therefore
+   compute an accepting commitment for every branch.  Soundness comes
+   from the commitment of Section 6.2.2: the Client fixes the commitment
+   of one branch before the challenge exists and cannot change it
+   afterwards.
+
+6.2.2.  Partially Binding Commitments
+
+   A _partially binding vector commitment_ [STACKSIG] commits to a
+   vector of values such that one position, chosen when the commitment
+   key is generated and hidden from the Moderator, is binding, while
+   every other position can afterwards be opened to any value.  The
+   Client commits the branch commitment of index at the binding
+   position, and after the challenge is known it opens every other
+   position to the branch commitment that the shared response
+   determines.  The branch at the binding position uses the actual
+   witness and a commitment fixed before the challenge; the index of the
+   branch remains hidden by the commitment key.
+
+   This document uses the commitment of the appendix of [STACKSIG] over
+   pairs, and then assembles them into a tree.  The inputs to the
+   commitments are arbitrary strings of bytes, and the outputs are
+   compressed group elements.
+
+   The commitment to a pair uses a permutation P on group elements.  The
+   inverse of this permutation is denoted Pinv (Section 6.2.3).  The two
+   values are hashed to scalars and committed under the bases Q and
+   P(Q):
+
+   def CommitStep(
+       Q: Element,
+       left: bytes,
+       right: bytes,
+       randomness: Scalar,
+   ) -> bytes:
+       C = (
+           randomness * B
+           + G.HashToScalar(left) * Q
+           + G.HashToScalar(right) * G.P(Q)
+       )
+       return G.SerializeElement(C)
+
+   The committer knows the discrete logarithm of one base, and that is
+   the position it can later open to another value.  A key that binds
+   the left position is one whose P(Q) has the known logarithm, and vice
+   versa:
+
+   def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
+       T = secret * B
+       (Q, _) = G.PermutationPair(T, bind_left)
+       return Q
+
+   bind_left is a secret boolean: true binds the left position and false
+   binds the right.  G.PermutationPair (Section 6.2.3.1) returns (Q,
+   P(Q)), with T = P(Q) when binding left and T = Q when binding right.
+   It walks the same permutation edge in either case, hiding which
+   endpoint has the known logarithm.  Its second output can be cached
+   for use in CommitStep.
+
+   The secret is the trapdoor: replacing the equivocal value shifts the
+   opening by the difference of the hashes times the trapdoor, and the
+   commitment is unchanged:
+
+   def EquivocateStep(
+       oldb: bytes, newb: bytes, randomness: Scalar, secret: Scalar
+   ) -> Scalar:
+       old = G.HashToScalar(oldb)
+       new = G.HashToScalar(newb)
+       return randomness + (old - new) * secret
+
+   A vector V[0], ..., V[n-1] of byte strings is committed by pairing
+   neighbours level by level.  Each level has its own key and its own
+   opening; a vector of odd length carries its last element up
+   unchanged.
+
+   def VecCommit(
+       V: Sequence[bytes],
+       commitment_keys: Sequence[Element],
+       openings: Sequence[Scalar],
+   ) -> bytes:
+       if len(V) == 1:
+           return V[0]
+
+       V_prime = []
+       for i in range(len(V) // 2):
+           V_prime.append(
+               CommitStep(
+                   commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+               )
+           )
+
+       if len(V) % 2 == 1:
+           V_prime.append(V[-1])
+
+       return VecCommit(V_prime, commitment_keys[1:], openings[1:])
+
+   A vector of n values has Depth(n) levels, each with one key and one
+   opening:
+
+   def Depth(n: int) -> int:
+       q = 0
+       while 2**q < n:
+           q += 1
+       return q
+
+   Bit j of index is the side of its pair that the binding value is on
+   at level j, which fixes the direction of that level's key; each key
+   has its own trapdoor:
+
+   def GenerateVecBind(
+       index: int, trapdoors: Sequence[Scalar]
+   ) -> list[Element]:
+       commitment_keys = []
+       for j in range(len(trapdoors)):
+           bind_left = ((index >> j) & 1) == 0
+           commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+       return commitment_keys
+
+   The first move commits the value at index with every other leaf
+   empty, under one opening per level:
+
+   def CommitValAtPlace(
+       commitment_keys: Sequence[Element],
+       n: int,
+       index: int,
+       value: bytes,
+       openings: Sequence[Scalar],
+   ) -> bytes:
+       V = [b"" for _ in range(n)]
+       V[index] = value
+       return VecCommit(V, commitment_keys, openings)
+
+   Once the other leaves are known, each level's opening is shifted so
+   that the sibling of the binding path takes its new value and the node
+   above is unchanged.  An odd last element on the binding path has no
+   sibling and keeps its opening.
+
+   def VecEquivocate(
+       commitment_keys: Sequence[Element],
+       trapdoors: Sequence[Scalar],
+       openings: Sequence[Scalar],
+       old: Sequence[bytes],
+       new: Sequence[bytes],
+       index: int,
+   ) -> list[Scalar]:
+       if len(old) != len(new):
+           raise ValueError("vectors must have the same length")
+       if old[index] != new[index]:
+           raise ValueError("the binding position cannot change")
+       if len(old) == 1:
+           return []
+
+       if index == len(old) - 1 and len(old) % 2 == 1:
+           opening = openings[0]
+       else:
+           partner = index - 1 if index % 2 == 1 else index + 1
+           opening = EquivocateStep(
+               old[partner], new[partner], openings[0], trapdoors[0]
+           )
+
+       old_prime = []
+       new_prime = []
+       for i in range(len(old) // 2):
+           Q = commitment_keys[0]
+           old_prime.append(
+               CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+           )
+           new_prime.append(
+               CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+           )
+       if len(old) % 2 == 1:
+           old_prime.append(old[-1])
+           new_prime.append(new[-1])
+
+       rest = VecEquivocate(
+           commitment_keys[1:],
+           trapdoors[1:],
+           openings[1:],
+           old_prime,
+           new_prime,
+           index // 2,
+       )
+       return [opening] + rest
+
+
+   def VecEquivocateFromZero(
+       commitment_keys: Sequence[Element],
+       trapdoors: Sequence[Scalar],
+       openings: Sequence[Scalar],
+       new: Sequence[bytes],
+       index: int,
+   ) -> list[Scalar]:
+       V = [b"" for _ in new]
+       V[index] = new[index]
+       return VecEquivocate(
+           commitment_keys, trapdoors, openings, V, new, index
+       )
+
+6.2.3.  The Permutation
+
+   P is a permutation on the elements of G, computed on their compressed
+   encodings by cycle walking: a permutation of the encoding space is
+   applied until the result decodes to an element, and Pinv walks the
+   same cycle backwards.  Since a permutation partitions its domain into
+   cycles, the two are inverse to each other.
+
+   The following direct implementations define the permutation and its
+   inverse for the P-256 group.  Other ciphersuites MUST define the
+   permutation to be used.  They MAY be used on public points, including
+   the commitment keys in CommitStep.  Key generation instead uses
+   G.PermutationPair (Section 6.2.3.1), which is designed to be side-
+   channel resistant.  In particular, its execution does not distinguish
+   the two binding directions when its outputs are fixed.
+
+   def P(self, element: Element) -> Element:
+       buf = bytearray(self.SerializeElement(element))
+       buf[0] = buf[0] - 0x02
+       while True:
+           buf = PermuteBytes(buf)
+           try:
+               return self.DeserializeElement(
+                   bytes([buf[0] + 0x02]) + bytes(buf[1:])
+               )
+           except DeserializeError:
+               continue
+
+   def Pinv(self, element: Element) -> Element:
+       buf = bytearray(self.SerializeElement(element))
+       buf[0] = buf[0] - 0x02
+       while True:
+           buf = UnpermuteBytes(buf)
+           try:
+               return self.DeserializeElement(
+                   bytes([buf[0] + 0x02]) + bytes(buf[1:])
+               )
+           except DeserializeError:
+               continue
+
+   The permutation of the encoding space is an eight-round Feistel
+   network over 33-byte strings whose first byte is 0x02 or 0x03,
+   carried as its low bit.  Each iteration of the loop below computes
+   two rounds, one per half:
+
+   def PermuteBytes(buf: bytearray) -> bytearray:
+       left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+       for i in range(4):
+           label = f"left round {i}".encode()
+           left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+           left[0] = left[0] & 0x01
+           label = f"right round {i}".encode()
+           right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+       return left + right
+
+   def UnpermuteBytes(buf: bytearray) -> bytearray:
+       left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
+       for i in reversed(range(4)):
+           label = f"right round {i}".encode()
+           right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+           label = f"left round {i}".encode()
+           left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+           left[0] = left[0] & 0x01
+       return left + right
+
+   The binding argument of Section 8 models P as a random permutation.
+   An eight-round balanced Feistel network with independent random round
+   functions is indifferentiable from a random permutation [DS15].  Here
+   the round functions are SHA-256 separated by label, over halves of
+   129 and 128 bits, an imbalance [DS15] does not cover.
+
+6.2.3.1.  Walking a Permutation Edge
+
+   G.PermutationPair(T, bind_left) returns (Q, P(Q)).  If bind_left is
+   true, it walks backwards from T = P(Q) to Q.  Otherwise it walks
+   forwards from T = Q to P(Q).  At each iteration it computes both one-
+   step byte permutations, selects the next encoding using the secret
+   bit, and tests whether that encoding is valid.  It selects the order
+   of the endpoints before decoding them, so both final decodings
+   operate on the same public values Q and P(Q), in that order.
+
+   def PermutationPair(
+       self, element: Element, bind_left: bool
+   ) -> tuple[Element, Element]:
+       if not isinstance(bind_left, bool):
+           raise ValueError("bind_left must be a boolean")
+       start = bytearray(self.SerializeElement(element))
+       start[0] -= 0x02
+       buf = start
+       while True:
+           forward = PermuteBytes(buf)
+           backward = UnpermuteBytes(buf)
+           buf = SelectBytes(forward, backward, bind_left)
+           if IsValidPermutationEncoding(buf):
+               break
+
+       left = SelectBytes(start, buf, bind_left)
+       right = SelectBytes(buf, start, bind_left)
+       Q = self.DeserializeElement(
+           bytes([left[0] + 0x02]) + bytes(left[1:])
+       )
+       PQ = self.DeserializeElement(
+           bytes([right[0] + 0x02]) + bytes(right[1:])
+       )
+       return (Q, PQ)
+
+
+   def SelectBytes(
+       left: bytearray, right: bytearray, choose_right: bool
+   ) -> bytearray:
+       mask = -int(choose_right)
+       return bytearray(
+           (a & ~mask) | (b & mask)
+           for a, b in zip(left, right, strict=True)
+       )
+
+   SelectBytes takes equal-length inputs and selects right if its
+   boolean argument is true, or left otherwise.  Implementations MUST
+   perform this selection without secret-dependent branches or memory
+   accesses.
+
+   For P-256, encoding validity can be tested without attempting a point
+   decoding or raising exceptions.  Here FIELD_MODULUS, CURVE_A, and
+   CURVE_B are the P-256 field modulus and Weierstrass coefficients from
+   [NISTCurves].  Since the field modulus is 3 modulo 4, the fixed
+   exponent below computes a square-root candidate; squaring it tests
+   whether a root exists.  P-256 has prime, odd order, so an affine
+   point with y = 0 cannot occur.  Each valid x therefore supports both
+   sign bits.  The identity has no affine encoding.
+
+   def IsValidPermutationEncoding(buf: bytearray) -> bool:
+       if len(buf) != 33:
+           return False
+       x = int.from_bytes(buf[1:], "big")
+       rhs = (
+           pow(x, 3, FIELD_MODULUS) + CURVE_A * x + CURVE_B
+       ) % FIELD_MODULUS
+       y = pow(rhs, (FIELD_MODULUS + 1) // 4, FIELD_MODULUS)
+       return (
+           ((buf[0] == 0) | (buf[0] == 1))
+           & (x < FIELD_MODULUS)
+           & (y * y % FIELD_MODULUS == rhs)
+       )
+
+   The validity test MUST execute in constant time for all 33-byte
+   candidates, including those with an out-of-range coordinate or no
+   square root.  Every condition is evaluated, so neither an exception-
+   based decoder nor short-circuit evaluation may be used.  The byte
+   permutations, selections, initial serialization of T, and computation
+   of T = secret * B MUST likewise have no secret-dependent timing or
+   memory access patterns.  The Python snippets specify the computation
+   and operation schedule; Python integer arithmetic and the reference
+   implementation's group operations do not provide these constant-time
+   guarantees.
+
+   To see why the loop may stop at the first valid encoding, fix the
+   public output Q.  Let k be the number of applications of PermuteBytes
+   needed to reach P(Q) from Q.  None of the k - 1 intermediate
+   encodings is valid.  Walking backwards from P(Q) therefore reaches Q
+   after exactly k applications of UnpermuteBytes, with the same
+   sequence of validity results: k - 1 failures followed by one success.
+   Each orientation executes one forward permutation, one inverse
+   permutation, one selection, and one validity test per iteration.
+   Thus the observable operation schedule depends only on Q, which is
+   included in the proof, and can be reproduced from it.  This argument
+   also covers fixed points and does not assume that P is random.
+
+   Implementations MUST NOT optimize away the unused permutation
+   direction.  Calling Pinv(T) only for left binding leaks the direction
+   directly.  Computing Pinv(T) for both directions and selecting an
+   endpoint afterwards also leaks: for a fixed public Q, its walk length
+   describes the edge leaving Q in one case and the edge entering Q in
+   the other.  Both one-step permutations MUST be computed on each
+   iteration of the selected walk.
+
+6.2.4.  Challenge Computation
+
+   ProofStatement encodes the statement being proven: the Anchor Set,
+   the rerandomized key X_hat, the signature being presented (encoded by
+   the endorsement), the issuance and redemption context, and the
+   challenge digest.  The Fiat-Shamir challenge covers it together with
+   the first move of the proof, which is the commitment keys and the
+   root of the tree.
+
+   def ProofStatement(
+       anchor_set: Sequence[Element],
+       X_hat: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+   ) -> bytes:
+       (c, s_hat, y, t, nf) = endorsement
+       n = len(anchor_set)
+
+       anchor_set_enc = b""
+       for i in range(n):
+           anchor_set_enc += G.SerializeElement(anchor_set[i])
+
+       return (
+           I2OSP(n, 2)
+           + anchor_set_enc
+           + G.SerializeElement(X_hat)
+           + G.SerializeScalar(c)
+           + G.SerializeScalar(s_hat)
+           + G.SerializeScalar(y)
+           + G.SerializeScalar(t)
+           + U16Prefixed(nf)
+           + U16Prefixed(ctx_iss)
+           + U16Prefixed(ctx_red)
+           + U16Prefixed(challenge_digest)
+       )
+
+
+   def ComputeProofChallenge(
+       anchor_set: Sequence[Element],
+       X_hat: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+       commitment_keys: Sequence[Element],
+       root: bytes,
+   ) -> Scalar:
+       ck_enc = b""
+       for j in range(len(commitment_keys)):
+           ck_enc += G.SerializeElement(commitment_keys[j])
+
+       proof_transcript = (
+           ProofStatement(
+               anchor_set,
+               X_hat,
+               endorsement,
+               ctx_iss,
+               ctx_red,
+               challenge_digest,
+           )
+           + ck_enc
+           + root
+           + b"IssuerProof"
+       )
+
+       return G.HashToScalar(proof_transcript)
+
+   The length of the Anchor Set n is prefixed and Element encodings are
+   fixed-length, so anchor_set_enc and ck_enc are unambiguous without
+   length prefixes of their own; the number of commitment keys, q =
+   Depth(n), is determined by n.  The label "IssuerProof" separates this
+   transcript from the issuance transcript of Section 5.2, which is
+   hashed with the same function.
+
+6.2.5.  Proving
+
+   def ProveIssuer(
+       anchor_set: Sequence[Element],
+       index: int,
+       delta: Scalar,
+       X_hat: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+       rand: bytes,
+   ) -> tuple[Scalar, Scalar, Sequence[Element], Sequence[Scalar]]:
+       Y = Statements(anchor_set, X_hat)
+       q = Depth(len(anchor_set))
+       if not 0 <= index < len(anchor_set):
+           raise ValueError("index is outside the Anchor Set")
+       if len(rand) != Nseed:
+           raise ValueError("invalid issuer proof randomness length")
+
+       instance = ProofStatement(
+           anchor_set,
+           X_hat,
+           endorsement,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+       )
+       derived = G.DeriveNonces(
+           G.SerializeScalar(delta) + I2OSP(index, 2),
+           b"ProveIssuer",
+           instance,
+           rand,
+           2 * q + 1,
+       )
+       r = derived[0]
+       trapdoors = derived[1 : q + 1]
+       first_openings = derived[q + 1 :]
+       T = r * B
+
+       commitment_keys = GenerateVecBind(index, trapdoors)
+       # First move: commit along the binding path; other leaves empty.
+       root = CommitValAtPlace(
+           commitment_keys,
+           len(Y),
+           index,
+           G.SerializeElement(T),
+           first_openings,
+       )
+
+       proof_challenge = ComputeProofChallenge(
+           anchor_set,
+           X_hat,
+           endorsement,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+           commitment_keys,
+           root,
+       )
+
+       response = r - proof_challenge * delta
+
+       V = []
+       for i in range(len(Y)):
+           commitment = BranchCommitment(proof_challenge, response, Y[i])
+           V.append(G.SerializeElement(commitment))
+       openings = VecEquivocateFromZero(
+           commitment_keys, trapdoors, first_openings, V, index
+       )
+
+       return (proof_challenge, response, commitment_keys, openings)
+
+   ProveIssuer derives the nonce r, the trapdoors of the q commitment
+   keys, and the q openings of its first move with one call to
+   G.DeriveNonces (Section 4.3), with delta and index as the secret and
+   the proof statement as the instance.
+
+   The first move commits only the path from leaf index to the root: at
+   each level the Client commits the value it holds on one side and an
+   empty value on the other, having generated that level's key so that
+   the other side is the equivocal one.  The third move then computes
+   the branch commitment of every statement from the single response,
+   equivocates each level to the value its sibling subtree now has, and
+   rebuilds the tree with the equivocated openings.  The root is
+   unchanged, so the Moderator recomputes the same root.
+
+6.2.6.  Verifying
+
+   def VerifyIssuer(
+       anchor_set: Sequence[Element],
+       X_hat: Element,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+       proof_challenge: Scalar,
+       response: Scalar,
+       commitment_keys: Sequence[Element],
+       openings: Sequence[Scalar],
+   ) -> bool:
+       n = len(anchor_set)
+       if n == 0:
+           return False
+
+       Y = Statements(anchor_set, X_hat)
+       q = Depth(n)
+       if len(commitment_keys) != q:
+           return False
+       if len(openings) != q:
+           return False
+
+       V = []
+       for i in range(n):
+           commitment = BranchCommitment(proof_challenge, response, Y[i])
+           if commitment.isIdentity():
+               return False
+           V.append(G.SerializeElement(commitment))
+
+       root = VecCommit(V, commitment_keys, openings)
+
+       return proof_challenge == ComputeProofChallenge(
+           anchor_set,
+           X_hat,
+           endorsement,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+           commitment_keys,
+           root,
+       )
+
+   The Moderator computes a commitment for every branch from the single
+   response, rebuilds the whole tree from those commitments and the
+   openings it was given, and checks that the root it arrives at is the
+   one the challenge was computed over.  Neither the branch commitments
+   nor the interior nodes are transmitted.
+
+   VerifyIssuer returns false rather than raising an error, as Verify
+   (Section 5.5) does.  Its checks on the lengths of commitment_keys and
+   openings repeat what deserialization enforces (Section 6.5), and an
+   empty Anchor Set means the Moderator is misconfigured.  It also
+   rejects a branch commitment equal to the identity element, which
+   SerializeElement cannot encode and which a Client can produce on its
+   own branch by answering response = -proof_challenge * delta.  An
+   interior node is the identity only for a Client that knows a discrete
+   logarithm relation among B, Q, and P(Q) for the key Q of its level,
+   which the binding property of Section 6.2.2 rules out, so VecCommit
+   does not check for it.
+
+   A proof produced by ProveIssuer is accepted by VerifyIssuer.  On
+   branch index,
+
+     proof_challenge * Y[index] + response * B
+       = proof_challenge * delta * B
+         + (r - proof_challenge * delta) * B
+       = r * B
+
+   This is the commitment the Client committed at the binding leaf, and
+   every other leaf holds by definition the commitment the verifier
+   recomputes.  Each level then reproduces the node the Client
+   committed: the binding side is unchanged, and the equivocal side was
+   shifted to match.
+
+   Conversely, the binding leaf is fixed before proof_challenge exists
+   and cannot be moved afterwards, so a Client that could produce an
+   accepting proof for two different challenges would yield delta for
+   that leaf's statement.  The soundness of the proof rests on that
+   alone; see Section 8.
+
+6.3.  Redemption
+
+   The Client produces a redemption from an Endorsement it holds.
+
+   def Redeem(
+       anchor_set: Sequence[Element],
+       index: int,
+       endorsement: Endorsement,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+   ) -> Redemption:
+       (c, s, y, t, nf) = endorsement
+       n = len(anchor_set)
+
+       if not 0 <= index < n:
+           raise ValueError("index is outside the Anchor Set")
+
+       rand = random(2 * Nseed)
+       (delta,) = G.DeriveScalars(Seed(rand, 0), b"delta", 1)
+
+       X_hat = anchor_set[index] + delta * B
+       s_hat = s + (c * y) * delta
+       shown = Endorsement(c, s_hat, y, t, nf)
+
+       (proof_challenge, response, commitment_keys, openings) = ProveIssuer(
+           anchor_set,
+           index,
+           delta,
+           X_hat,
+           shown,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+           Seed(rand, 1),
+       )
+
+       return Redemption(
+           X_hat,
+           shown,
+           proof_challenge,
+           response,
+           commitment_keys,
+           openings,
+       )
+
+6.4.  Redemption Verification
+
+   The Moderator checks the signature under the rerandomized key and the
+   proof against its Anchor Set.
+
+   def VerifyRedemption(
+       anchor_set: Sequence[Element],
+       redemption: Redemption,
+       ctx_iss: bytes,
+       ctx_red: bytes,
+       challenge_digest: bytes,
+   ) -> bytes:
+       (
+           X_hat,
+           shown,
+           proof_challenge,
+           response,
+           commitment_keys,
+           openings,
+       ) = redemption
+
+       if not Verify(X_hat, shown, ctx_iss, ctx_red):
+           raise VerifyError
+
+       if not VerifyIssuer(
+           anchor_set,
+           X_hat,
+           shown,
+           ctx_iss,
+           ctx_red,
+           challenge_digest,
+           proof_challenge,
+           response,
+           commitment_keys,
+           openings,
+       ):
+           raise VerifyError
+
+       return shown.nf
+
+   The first check is the endorsement verification of Section 5.5, run
+   against the rerandomized key.  Together the two checks establish that
+   the Client holds an Endorsement issued under ctx_iss and ctx_red by
+   one of the Anchors in anchor_set, and reveal nothing further about
+   which one.  On success, VerifyRedemption returns the nullifier;
+   either failed check raises a VerifyError.
+
+   VerifyRedemption does not enforce single use.  The nullifier nf is in
+   the clear in the redemption, and a Moderator that accepts a
+   redemption MUST reject it if it has already recorded that nf, and
+   MUST record nf before granting anything on the strength of it.  A
+   Moderator SHOULD scope its nullifier store to the issuance context,
+   since an Endorsement issued under a different ctx_iss does not verify
+   anyway.  [PROTOCOLS] places these checks, and the check that ctx_iss
+   is current, at the Moderator.
+
+   An Anchor Set of one key gives a tree of depth zero: the redemption
+   carries no commitment keys or openings, and the issuer-hiding proof
+   is a proof of knowledge of delta for that key.  The redemption then
+   names its Anchor, as the Anchor Set itself does; see Section 8.
+
+6.5.  Encodings
+
+   In [PROTOCOLS], a Client sends the encoded Redemption with the
+   issuance request in Redeem & Issue.
+
+   struct {
+     Element rerandomized_key;
+     Endorsement shown_endorsement;
+     Scalar proof_challenge;
+     Scalar response;
+     Element commitment_keys<V>;
+     Scalar openings<V>;
+   } Redemption;
+
+   shown_endorsement uses the Endorsement structure of Section 5.6.2,
+   with s carrying s_hat, but is rerandomized such that it verifies
+   under rerandomized_key (Section 6.1), not the Endorsement the Client
+   stored, which the Client MUST NOT send.
+
+   A Moderator deserializes a Redemption against its Anchor Set of n
+   keys, as in Section 5.6.  It MUST raise a DeserializeError unless
+   commitment_keys is Depth(n) * Ne bytes long and openings is Depth(n)
+   * Ns bytes long (Section 6.2.2).
+
+7.  Ciphersuites
+
+   A ciphersuite fixes the group, the hash function, the associated
+   encodings, and a ciphersuite identifier.  Both parties are assumed to
+   agree on the ciphersuite in use (Section 4.1).
+
+   For each ciphersuite, ctx_proto is as computed in Section 4.1.  The
+   nullifier length is Nn = 32 bytes and the seed length, that of the
+   random input to every derivation, is Nseed = 48 bytes for the
+   ciphersuite below.
+
+7.1.  EC-IHAT(P-256, SHA-256)
+
+   This ciphersuite uses P-256 (secp256r1) [NISTCurves] for the group
+   and SHA-256 for the hash function, with Nh = 32 and s_in_bytes = 64.
+   The value of the ciphersuite identifier is "P256-SHA256".
+
+   The interface of Section 3.1 is instantiated as follows.
+
+   Order():  Return
+      0xffffffff00000000ffffffffffffffffbce6faada7179e84f3b9cac2fc632551.
+
+   Identity(), Generator(), ScalarMultGen(r):  As defined in
+      [NISTCurves].
+
+   HashToGroup(x, DST):  Use hash_to_curve with suite P256_XMD:SHA-
+      256_SSWU_RO_ [HASH2CURVE] and input x, using the given DST.
+
+   HashToScalar(x, DST):  Use hash_to_field from [HASH2CURVE] with count
+      = 1, m = 1, L = 48, expand_message_xmd with SHA-256, input x, a
+      prime modulus equal to Order(), and the given DST.  Return the
+      single resulting field element as a Scalar.
+
+   ScalarInverse(s):  The multiplicative inverse of s modulo Order().
+
+   SerializeElement(A):  The compressed Elliptic-Curve-Point-to-Octet-
+      String method of [SEC1]; Ne = 33.
+
+   DeserializeElement(buf):  Deserialize a 33-byte input using the
+      compressed Octet-String-to-Elliptic-Curve-Point method of [SEC1],
+      then perform partial public key validation as in Section 4.3 of
+      [OPRF].  This includes checking that the coordinates are in range,
+      that the point is on the curve, and that the point is not the
+      identity element.  Raise a DeserializeError if any check fails.
+
+   SerializeScalar(s):  The Field-Element-to-Octet-String conversion of
+      [SEC1]; Ns = 32.
+
+   DeserializeScalar(buf):  Deserialize a 32-byte input using Octet-
+      String-to-Field-Element from [SEC1].  Raise a DeserializeError if
+      the result is not in [0, Order()-1].
+
+   P:  The SHA-256 Feistel permutation and cycle walk in Section 6.2.3.
+      Compressed SEC1 prefixes are 0x02 and 0x03; subtracting 0x02 gives
+      the one-bit prefix used by the byte permutation.  Pinv reverses
+      the walk.  PermutationPair (Section 6.2.3.1) is used during
+      commitment key generation.  For a random encoding permutation, the
+      walk takes about two iterations on average.
+
+8.  Security Considerations
+
+   The security of EC-IHAT is studied in [FFKLLS26].  The underlying
+   blind signature is that of Tessaro and Zhu [TESSZHU], instantiated
+   with the public input set to the issuance context.  Security is
+   analysed in the random oracle model, and one-more unforgeability
+   additionally in the algebraic group model under the discrete
+   logarithm assumption.
+
+   Blindness:  All the Anchor receives in a session is the blinded
+      challenge c * gamma2.  With uniform blinding factors, the blinded
+      challenge is uniformly distributed and independent of the message
+      and of the resulting signature, and the underlying scheme is
+      perfectly blind [FFKLLS26].  The blinding factors of this document
+      are derived by hashing, so in the random oracle model the scheme
+      is statistically blind: an Anchor can link an Endorsement to the
+      session that produced it only by evaluating the hash function on
+      one of the secret inputs from which the Client derives its
+      blinding factors (Section 4.2).  Endorsement grants and
+      redemptions are therefore unlinkable, as [ARCH] requires.
+
+   One-more unforgeability:  A Client that completes k issuance sessions
+      under a given issuance context cannot produce k+1 distinct valid
+      Endorsements under that context, regardless of how many sessions
+      it has completed under other issuance contexts [TESSZHU].  This is
+      what allows a Moderator to conclude that an accepted Endorsement
+      corresponds to exactly one grant by a trusted Anchor.  This
+      security guarantee holds even with concurrent sessions.
+
+   Unforgeability under rerandomization:  Lemma 1 of [FFKLLS26]
+      establishes strong key randomizability of [TESSZHU].  Thus,
+      Theorem 1 of [FFKLLS26] reduces issuer-hiding one-more
+      unforgeability to [TESSZHU], provided the issuer-hiding proof is
+      straight-line extractable.
+
+         TODO Appendix C claims straight-line extractability for
+         [SIGMA], but not [STACKSIG].  Decide how to justify this gap.
+         Perhaps we expect a direct proof (rather than composition via
+         Theorem 1) to be possible.
+
+   Issuer hiding:  Theorem 2 of [FFKLLS26] establishes issuer-hiding
+      blindness from perfect blindness of issuance, strong key
+      randomizability (as defined by [FFKLLS26]), and perfect zero
+      knowledge of the issuer-hiding proof, assuming uniform randomness.
+      Up to a negligible statistical distance, a redemption reveals
+      nothing about which Anchor in anchor_set issued the Endorsement,
+      so a Moderator, an Anchor, and the two colluding learn only that
+      some key in anchor_set was used.  X_hat and the response of the
+      single branch proof are statistically close to uniform
+      independently of the branch (Section 6.2.1), and the commitment of
+      Section 6.2.2 hides which position it binds: a commitment key is
+      distributed independently of that position, and an opening
+      independently of whether the value it opens to was committed or
+      equivocated.  The stacked composition is therefore witness
+      indistinguishable (appendix and Section 7 of [STACKSIG]).
+
+   Partially binding commitments:  The soundness of the issuer-hiding
+      proof rests on two things: the commitment of Section 6.2.2 binding
+      one position of each node, and the collision resistance of
+      HashToScalar on the leaf and node encodings, without which a
+      position could be opened to a colliding value and no discrete
+      logarithm would be extractable.  Binding is computational.  A
+      Client that opens the value under base Q two ways knows the
+      discrete logarithm of Q, and one that opens the value under P(Q)
+      two ways knows that of P(Q); the key generation gives it one of
+      the two.  Opening both positions would require both logarithms.
+      That a Q with both known is as hard to find as a discrete
+      logarithm when P is modelled as a random permutation
+      (Section 6.2.3) is the assumption under which the pair commitment
+      of the appendix of [STACKSIG] binds.
+
+   Constant-time proving:  ProveIssuer treats one leaf, and one side of
+      each node on the path to it, differently from the others, and that
+      leaf is the secret the proof hides.  Implementations MUST NOT
+      allow the binding path to be distinguished by timing or memory
+      access patterns.  The first move places the real branch commitment
+      at index and empty values at every other leaf; both commitment
+      passes visit every node of the tree.  That placement and the later
+      equivocation MUST avoid observable secret-dependent branches and
+      memory accesses.  The number of distinct node commitments at a
+      level of the first move depends on index, so an implementation
+      that computes each only once MUST compute the same number at every
+      level for every index.
+
+      Commitment key generation uses the balanced walk of
+      Section 6.2.3.1.  Its iteration count is determined by the
+      published commitment key, and both binding directions execute the
+      same operation schedule for that key.  This addresses the
+      permutation walk only: secret-index selection, scalar arithmetic,
+      and the rest of the proving algorithm still require constant-time
+      implementations.
+
+   Single-use sessions:  Implementations MUST ensure that the session
+      state produced by Commit is never used more than once.  If an
+      Anchor answers two distinct challenges c1 != c2 on one Commit
+      state, then from the two responses s1 = a + c1*y*skA and s2 = a +
+      c2*y*skA, with y revealed in both, anyone recovers the signing key
+      as skA = (s1 - s2) * ScalarInverse((c1 - c2) * y).  The
+      requirement extends to process restarts, to replicas sharing a
+      signing key, and to any retry or replay of a ChallengeMessage: an
+      Anchor MUST treat a session as closed the moment it emits a
+      response, and MUST NOT recompute a response for a repeated
+      challenge on that session.  Anchors are stateful for this reason.
+
+   Context binding:  The issuance context enters both the commitment
+      base and the challenge transcript, and the redemption context
+      enters the signed message, so an Endorsement does not verify under
+      any other pair of contexts.  Neither context is carried in the
+      Endorsement; both are supplied by the verifier (Section 5.5), so a
+      Client cannot assert the pair its Endorsement is checked against.
+      A Client also cannot select the issuance context unilaterally: it
+      is never sent from the Client to the Anchor, and using a value
+      other than the one the Anchor committed under fails the opening
+      check in Finalize.
+
+   Aborts on zero:  Challenge aborts when the challenge hashes to zero
+      and Respond aborts on a zero challenge.  Both events occur with
+      probability approximately 1/p for honest parties, where p is the
+      order of the group.  A Client that observes such an abort learns
+      nothing and SHOULD start a fresh session.
+
+   Context granularity:  The unlinkability arguments above are
+      cryptographic; the anonymity set they operate over is set by the
+      contexts.  Both contexts are visible at redemption, the issuance
+      context directly and the redemption context through the fact that
+      the Endorsement verifies under it, so each partitions Clients into
+      the set that shares its value.  A deployment that refines either
+      value, for instance by using a per-request timestamp rather than a
+      shared epoch, or a per-Client identifier rather than a value
+      shared by every Client redeeming in the same place, reduces the
+      anonymity set accordingly, down to a single Client, without
+      violating any cryptographic property of the construction.
+
+   Session identifiers:  Any identifier the transport uses to correlate
+      the messages of Section 5.6, such as the per-batch session
+      identifier of [PROTOCOLS], is chosen by the Anchor and so is a
+      value the Anchor recognises.  It MUST be confined to the
+      transport: it is not an input to any algorithm of Section 5, nor
+      is it included in the challenge transcript.  Were it bound into
+      the Endorsement, the Anchor could recognise its own identifier at
+      redemption and link the redemption to the issuance session.
+
+   Anonymity sets:  The effective privacy a Client obtains also depends
+      on deployment properties beyond this document, in particular the
+      number of Clients an Anchor serves per epoch and the size of a
+      Moderator's Anchor Set; see [ARCH].
+
+9.  IANA Considerations
+
+   This document has no IANA actions.  The endorsement type for the
+   scheme specified here is registered by [PROTOCOLS].
+
+10.  References
+
+10.1.  Normative References
+
+   [ARCH]     Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
+              of unLinkable Endorsements (MoLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-00,
+              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
+              jms-mole-architecture-00>.
+
+   [HASH2CURVE]
+              Faz-Hernandez, A., Scott, S., Sullivan, N., Wahby, R. S.,
+              and C. A. Wood, "Hashing to Elliptic Curves", RFC 9380,
+              DOI 10.17487/RFC9380, August 2023,
+              <https://www.rfc-editor.org/rfc/rfc9380>.
+
+   [HTTP-TRANSPORT]
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
+              Transport", Work in Progress, Internet-Draft, draft-jms-
+              mole-http-transport-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              http-transport-00>.
+
+   [I2OSP]    Moriarty, K., Ed., Kaliski, B., Jonsson, J., and A. Rusch,
+              "PKCS #1: RSA Cryptography Specifications Version 2.2",
+              RFC 8017, DOI 10.17487/RFC8017, November 2016,
+              <https://www.rfc-editor.org/rfc/rfc8017>.
+
+   [NISTCurves]
+              National Institute of Standards and Technology (NIST),
+              "Digital Signature Standard (DSS)", FIPS PUB 186-5,
+              February 2023, <https://doi.org/10.6028/NIST.FIPS.186-5>.
+
+   [OPRF]     Davidson, A., Faz-Hernandez, A., Sullivan, N., and C. A.
+              Wood, "Oblivious Pseudorandom Functions (OPRFs) Using
+              Prime-Order Groups", RFC 9497, DOI 10.17487/RFC9497,
+              December 2023, <https://www.rfc-editor.org/rfc/rfc9497>.
+
+   [PROTOCOLS]
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
+              Protocols", Work in Progress, Internet-Draft, draft-jms-
+              mole-protocols-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              protocols-00>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+   [SEC1]     Standards for Efficient Cryptography Group (SECG), "SEC 1:
+              Elliptic Curve Cryptography", 2009,
+              <https://www.secg.org/sec1-v2.pdf>.
+
+   [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
+              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
+              <https://www.rfc-editor.org/rfc/rfc8446>.
+
+10.2.  Informative References
+
+   [CDS94]    Cramer, R., Damgard, I., and B. Schoenmakers, "Proofs of
+              Partial Knowledge and Simplified Design of Witness Hiding
+              Protocols", CRYPTO 1994, 1994,
+              <https://doi.org/10.1007/3-540-48658-5_19>.
+
+   [DETSIGS]  Mattsson, J. P., Thormarker, E., and S. Ruohomaa, "Hedged
+              ECDSA and EdDSA Signatures", Work in Progress, Internet-
+              Draft, draft-irtf-cfrg-det-sigs-with-noise-05, 3 March
+              2025, <https://datatracker.ietf.org/doc/html/draft-irtf-
+              cfrg-det-sigs-with-noise-05>.
+
+   [DS15]     Dai, Y. and J. Steinberger, "Indifferentiability of
+              8-Round Feistel Networks", 2015,
+              <https://eprint.iacr.org/2015/1069>.
+
+   [FFKLLS26] Flamini, A., Friedrichs, K., Katz, J., Ladd, W., Lehmann,
+              A., and M. Sefranek, "Issuer-Hiding Anonymous Tokens and
+              Credentials from Key-Randomizable Signatures", 5 October
+              2026, <https://eprint.iacr.org/2026/870>.
+
+   [SIGMA]    Orrù, M. and C. Yun, "Sigma Proofs for Linear Relations",
+              Work in Progress, Internet-Draft, draft-irtf-cfrg-sigma-
+              protocols-03, 16 August 2026,
+              <https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-
+              sigma-protocols-03>.
+
+   [STACKSIG] Goel, A., Green, M., Hall-Andersen, M., and G. Kaptchuk,
+              "Stacking Sigmas: A Framework to Compose Sigma-Protocols
+              for Disjunctions", EUROCRYPT 2022, 2022,
+              <https://eprint.iacr.org/2021/422>.
+
+   [TESSZHU]  Tessaro, S. and C. Zhu, "Short Pairing-Free Blind
+              Signatures with Exponential Security", EUROCRYPT 2022,
+              2022, <https://eprint.iacr.org/2022/047>.
+
+Appendix A.  Test Vectors
+
+   The vectors below cover the ciphersuite of Section 7:
+   G.DeriveScalars, the permutation P, a key pair, one issuance, and
+   redemptions of the resulting Endorsement against Anchor Sets of two
+   keys, of five, and of one.  Byte strings are in hexadecimal, wrapped
+   at 64 digits with the continuation lines indented; integers are
+   decimal.
+
+   Every algorithm is a deterministic function of the bytes it draws
+   from random. derive.rand is the rand argument of G.DeriveScalars;
+   every other rand entry is the concatenation of every random call the
+   algorithm makes, in the order made, and an implementation replays it
+   by serving those bytes in place of random.
+
+   For G.GenerateKeyPair the rand entry is the key seed; for Commit, the
+   Nseed bytes of (a, t, y); for Challenge, the Nn bytes of the
+   nullifier and then the Nseed bytes of the blinding factors; and for
+   Redeem, the Nseed bytes of delta and then the Nseed bytes of the
+   issuer-hiding proof.  The commit.state entry is the AnchorState (a,
+   y, t) as SerializeScalar(a) + SerializeScalar(y) +
+   SerializeScalar(t), and the challenge.state entry is nf +
+   SerializeScalar(r1) + SerializeScalar(r2) followed by
+   SerializeScalar(gamma1) + SerializeScalar(gamma2) +
+   SerializeScalar(c). issue.Z is CreateContextBase(ctx_iss), and
+   key.P_pkA is P(pkA).  Every message and endorsement entry is an
+   encoding of Section 5.6 or Section 6.5.  The keys of each Anchor Set
+   other than key.pkA were generated for the vectors.  Every redemption
+   presents the same Endorsement, which a Moderator would accept only
+   once; each nf entry is the output of VerifyRedemption.
+
+A.1.  Ciphersuite
+
+   suite.identifier = 503235362d534841323536
+
+A.2.  Scalar Derivation
+
+   derive.info = 45432d49484154207465737420766563746f7273
+   derive.rand =
+       35caeadd114fe2b6e3de7d4f2218945d5c4a330e9563376f8ac44bc14775ba75
+       54be242ad0e048032ff55604907693e7
+   derive.scalars =
+       f3504696233573f8189111eb5fca015633f3ec155005d6159d367b9abd05e001
+       8374a7a63cd6f59088b984ece9621d9eb279ec3b166a1dca0a4ade2703bfdb10
+       6fe6ded8c73bfb6ada8a5476c6775b3f01bd498fe7dff0b4968e2bed7148d89e
+
+A.3.  Key Pair
+
+   key.rand =
+       fff81520add7b90fb45470d601bc701577c23a136e47bf17f25f509b28a41149
+       a8e96cb8e1bb68fbcf8367a690a430ba
+   key.skA =
+       f9e911e97a24cf3fd425ea7d11845ff75b3dad0ab58997b54e3448a2aaf60979
+   key.pkA =
+       024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+       3f
+   key.P_pkA =
+       0275d05750b95cb2dc26b3a961ce6eb7e90b19f31388dfdb5654bc504541b1d8
+       b7
+
+A.4.  Issuance
+
+   issue.ctx_iss =
+       45432d49484154207465737420766563746f72732069737375616e636520636f
+       6e74657874
+   issue.ctx_red =
+       45432d49484154207465737420766563746f727320726564656d7074696f6e20
+       636f6e74657874
+   issue.Z =
+       02f9a6afb059d15adcaec09ed5b5986bdbff2d2f48102a8e0d5340f32b135534
+       5a
+   issue.commit.rand =
+       0ba14197ea1f9b5f586cf5c3041288e81e9dc08fdefaf1c2aec55a90b7a2119b
+       fe112f9c69b25a25ba8778044c8b8193
+   issue.commit.state =
+       7c06761dde72d25f6271330c2a215ac13158ac77e47080592f5e34a5d143bb4b
+       129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+       c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
+   issue.commit.message =
+       033f90a0d4b5e1ea3f6c18976a84012bfbcbd8507f77c064ab7bd9fb60ab7f49
+       c803c38d94c9d4ff61f0e27f63099cfd7a0894f8829837b94fd7706e738f57e5
+       2bf4
+   issue.challenge.rand =
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+       157dcf74f191746f856077f6eb58b77d46d82e07ffd44f96d5942622a779df2b
+       e02a4e2cae2ba49e86d969a38cfb0f29
+   issue.challenge.state =
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+       f10fda352447af1471a9138cd978536c6a2ca4e1d0b8c6276d7c73295d1dc583
+       fc92457347bcb123e11829df470496cf285ab9dc788aea530f63de240798a4ee
+       098abe35e32374ccafd832471789a93d8b4e04c82897497528e07dc05f0d6624
+       b09aa9f4e511dd6d87a9df6cbf59dc076388ae8fa79962364d4e70102bcd22ff
+       f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
+   issue.challenge.message =
+       838f0e04447101fc590f5ec39c90a8be7bd45329346c6216148a1467bc325eef
+   issue.response.message =
+       455e3d35da4bd2ce0930aacafdcbee388a9c0a753c2d35574853badb06ad7a7c
+       129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+       c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
+   issue.endorsement =
+       f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
+       5962f7763329f82b5cc83a13fcadc9469b22d6963ccae504e01eb122b3583252
+       2718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575c1
+       c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f793721495
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+
+A.5.  Redemption Against 2 Anchors
+
+   redeem2.index = 1
+   redeem2.anchor_set =
+       02eb95f5cedca77363bcb9808b656de3082c23d67506f96c717952e8cce9d240
+       a8024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec537
+       583f
+   redeem2.challenge_digest =
+       45432d49484154207465737420766563746f7273206368616c6c656e67652064
+       6967657374
+   redeem2.rand =
+       bb214c063c44660b2193e4ff68f6acb3643d54257e6a03f27d7162b210794faa
+       40d383b6ed9f37de84973d1232dd3ce30106ddb4ed4f130968ddc9d54066d004
+       1ce24800e438f27ff3aa9c3fa1575f10cee63ab4bbac324a1a4895786f016573
+   redeem2.delta =
+       d3aca91a849c8f30aa7a3f31842ff2bb535b6b34d676c7cd77c5a0125e72db28
+   redeem2.message =
+       029dc60bb0c07274bb09cff84e5202354bc5116b9f56f4776ad74a6f296428c4
+       7ef97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+       19de7841f140ca998aef6a9862b3e49c5c64a22dcd1c4dc017a8e1de28238614
+       192718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+       c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+       951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+       d9dcdb1bf2752d262faa01e23f63177aab005ca60ef098b466ba32c4c09b13c5
+       5f68ce1afdfbc9550f9e4f6aca1b57cd42e9607f199b96f3835d986364aec9b2
+       4021026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
+       345128206ff15e6c7ae1ad15f0e8419c98b5f3d8608f7997489f1aa2d3fd7e01
+       6b9365c8
+   redeem2.nf =
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+
+A.6.  Redemption Against 5 Anchors
+
+   redeem5.index = 3
+   redeem5.anchor_set =
+       027c0c7a8f7ebc13b50e2392c122f9a66799a1e71189a86a0d30b492bfaa371a
+       7802d8a8886b22bee6d1777f8c76a695d477a3c60a0962a4cd8a02cc4e6431f3
+       40b7025f2dc1fe0b5573ebf4ce1f1ae0492350fdcc04d5ba2b48c8b21f73cb63
+       5fa99d024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdee
+       c537583f03affc2c254d196c3effcd4e69667bc152370df56313b19c03af3f31
+       0f4b6a87f2
+   redeem5.challenge_digest =
+       45432d49484154207465737420766563746f7273206368616c6c656e67652064
+       6967657374
+   redeem5.rand =
+       558fe7711d3f49116fd154a013e42aaf828ebb19e9e2352819990100eb1c1c9a
+       abf55df1e84433158c6876394920204f12fd2b344628dfc2748d70d3aa80aa23
+       0608494028ab6ec5236a2bf4876c767dd834ca244fb1af8ce935c346cafa1005
+   redeem5.delta =
+       b8efd6a9a93354b0ef988ba6add03fbb843c83f7d776c5088e80537440776855
+   redeem5.message =
+       036e54617195473504812e14b44912097f62b6f7d72f7e88b6e571bc41a0394a
+       7cf97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+       196851575c8c96e72bc1b05cc88fe39d9f6c5df5c435aa7174be1e0d055d3df2
+       662718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+       c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+       951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+       d950529d143f3c4f71f4270f4d7f84b9c3d2b1d1c5daa4c0caf8ee1d338885f1
+       a4691136fa0520c546bbff2a00faf6a012faf8c281ee8385c0d6a8116e85a2c8
+       704063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
+       72b908c1027b75353c0b05b768798410106bb01a761634cc29423c8b45e96b3a
+       f1441349bb037610019efbae269ac174e983ecae9ffa9c73e225e8ba54b706d7
+       c164e4392e1540609574c0a33b601e403d4fd5bbf057fd6e5d05f11fb9168629
+       9a16416ae73880abd3d3ddef893007f0933b35454109117b243e8ff280c6435e
+       dcf1087b97724a42a805bd91e9545402352ca0200f3bdcd0117ad57684009761
+       b065ee322027e03f
+   redeem5.nf =
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+
+A.7.  Redemption Against 1 Anchor
+
+   redeem1.index = 0
+   redeem1.anchor_set =
+       024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+       3f
+   redeem1.challenge_digest =
+       45432d49484154207465737420766563746f7273206368616c6c656e67652064
+       6967657374
+   redeem1.rand =
+       0ab3d707e39d461b2861cb6e8e6a2c6c3bf2640081448678f846db0886fd053b
+       4dd223e71416f52740000183803b28f7a55ad488794504e01619d2f2600ec071
+       5ff5bbe0b582a64a6f2db846184d541ab636e578683fcb9b9acc2ab1bbf1bdac
+   redeem1.delta =
+       ff8c0a8d5403241b69df67b3ef9f16474021cb373a4715dc5426ef490e5231c3
+   redeem1.message =
+       03300196a535ec07e6d8462cc80360e9630ca3a6d5d3a2b67fa241f6a929c816
+       a5f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+       19128120835a8453057e46c2ecbaf20f7dd97d30a94480e62dcc26c8425ef305
+       182718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+       c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+       951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+       d9c2dcc7d873582ac78015ba03d96201b2298130e72106175eff6662cf33ed95
+       8daf5bb5d6a461ab7e310351640c454fbc9fb654c64c1f7b53fffd44c018a92f
+       830000
+   redeem1.nf =
+       1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google LLC
+   Email: sgschlesinger@gmail.com
+
+
+   Watson Ladd
+   Akamai Technologies
+   Email: watsonbladd@gmail.com
+
+
+   Deep Inder Mohan
+   Georgia Institute of Technology
+   Email: dmohan@gatech.edu
