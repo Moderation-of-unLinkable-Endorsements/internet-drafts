@@ -22,8 +22,10 @@ python3 -m venv .venv
 .venv/bin/pylint --disable=all --enable=redefined-outer-name src tests
 ```
 
-The demo issues a Credential and runs the four spend shapes with their
-refunds, encoding every message on the way. `act.vectors` and
+The demo issues a Credential and runs four spend/refund flows: an ordinary
+spend, a refresh, a pure top-up, and a combined spend and top-up, encoding
+every message on the way. Refreshes retain `Com_c`; other spends use a
+single range proof with weighted bit commitments. `act.vectors` and
 `rollatini.vectors` print the Test Vectors sections of the two drafts; tests
 regenerate them and compare.
 
