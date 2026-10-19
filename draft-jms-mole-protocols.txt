@@ -80,17 +80,17 @@ Table of Contents
      4.1.  Redemption Challenge Binding
      4.2.  Abstract Endorsement API
      4.3.  No Endorsement Required
-     4.4.  Rollatini
+     4.4.  EC-IHAT
        4.4.1.  Configuration
        4.4.2.  Grant
        4.4.3.  Redemption
      4.5.  Longfellow
        4.5.1.  Configuration
        4.5.2.  Redemption
-       4.5.3.  Differences from Rollatini
+       4.5.3.  Differences from EC-IHAT
    5.  Credential Protocols
      5.1.  Abstract Credential API
-     5.2.  Anonymous Credit Tokens (ACT)
+     5.2.  EC-ACT
        5.2.1.  Configuration
        5.2.2.  Redeem & Issue
        5.2.3.  Presentation and Update
@@ -104,15 +104,15 @@ Table of Contents
        5.3.4.  Limitations
    6.  Key Rotation and Discovery
    7.  Privacy Considerations
-     7.1.  Anonymous Credit Tokens
+     7.1.  EC-ACT
    8.  Security Considerations
-     8.1.  Anonymous Credit Tokens
+     8.1.  EC-ACT
    9.  IANA Considerations
      9.1.  MoLE Endorsement Types
-       9.1.1.  Rollatini
+       9.1.1.  EC-IHAT
        9.1.2.  Longfellow
      9.2.  MoLE Credential Types
-       9.2.1.  ACT
+       9.2.1.  EC-ACT
        9.2.2.  Privacy Pass Reverse Flow
        9.2.3.  Greased Values
      9.3.  Media Types
@@ -147,7 +147,7 @@ Table of Contents
    the Moderator's policy.  It does not directly authorize resource
    access.  A fresh Credential acceptance authorizes one attempt of the
    protected operation within the deployment's replay protection scope,
-   not successful execution.  ACT binds the presentation to its
+   not successful execution.  EC-ACT binds the presentation to its
    Challenge, whose contents determine the operation binding.  Reverse
    flow provides bearer authorization under a configured token
    Challenge, without binding the replacement request to the holder of
@@ -359,7 +359,7 @@ Table of Contents
       moderator_challenge.  It is not computed over a base64url or other
       textual encoding.  SHA-256 is defined in [SHA2].
 
-   challenge_digest enters the Fiat-Shamir transcript in both Rollatini
+   challenge_digest enters the Fiat-Shamir transcript in both EC-IHAT
    and Longfellow, but is not a Longfellow circuit public input.  A
    redemption created for one ModeratorChallenge does not verify under
    another, so a Moderator that accepts only the redemption_context it
@@ -367,9 +367,8 @@ Table of Contents
    challenge.  This does not stop a Moderator that relays another
    Moderator's challenge to the Client.
 
-   The Challenge algorithm and ChallengeMessage in Rollatini issuance
-   are defined by [IHAT-ROLLATINI] and are unrelated to a
-   ModeratorChallenge.
+   The Challenge algorithm and ChallengeMessage in EC-IHAT issuance are
+   defined by [EC-IHAT] and are unrelated to a ModeratorChallenge.
 
 4.2.  Abstract Endorsement API
 
@@ -404,40 +403,39 @@ Table of Contents
    Credential this way is up to Moderator policy, for instance rate
    limiting.
 
-4.4.  Rollatini
+4.4.  EC-IHAT
 
    Endorsement type: 0x0002.
 
-   This protocol uses Rollatini [IHAT-ROLLATINI], a pairing-free Issuer-
-   Hiding Anonymous Token (IHAT).  The cryptographic operations,
-   primitive types, and message encodings are defined there.
+   This protocol uses EC-IHAT [EC-IHAT], a pairing-free Issuer-Hiding
+   Anonymous Token (IHAT).  The cryptographic operations, primitive
+   types, and message encodings are defined there.
 
 4.4.1.  Configuration
 
    The Client needs, from Anchor configuration (Section 6):
 
-   Rollatini Ciphersuite  A ciphersuite identifier defined by
-      [IHAT-ROLLATINI].  It determines Element, Scalar, and all
-      cryptographic encodings.
+   EC-IHAT Ciphersuite  A ciphersuite identifier defined by [EC-IHAT].
+      It determines Element, Scalar, and all cryptographic encodings.
 
-   Anchor Public Key  pkA, an Element, as generated in [IHAT-ROLLATINI].
-      An Anchor has one key per grant endpoint.
+   Anchor Public Key  pkA, an Element, as generated in [EC-IHAT].  An
+      Anchor has one key per grant endpoint.
 
    Issuance Context  ctx_iss, the issuance epoch the Anchor currently
       issues under.  It is an opaque byte string.  Endorsements are
       valid for that epoch, see Section 6.
 
-   Redemption Context  ctx_red, the ASCII string "MoLE-Rollatini-
-      ctx_red-v1", without a terminating NUL byte.  This fixed, domain-
-      separated value is the same for all Moderators.  This is the
-      cryptographic redemption Context defined by [IHAT-ROLLATINI], not
-      a Moderator Challenge.  A specific redemption operation is bound
-      separately by challenge_digest.
+   Redemption Context  ctx_red, the ASCII string "MoLE-EC-IHAT-ctx_red-
+      v1", without a terminating NUL byte.  This fixed, domain-separated
+      value is the same for all Moderators.  This is the cryptographic
+      redemption Context defined by [EC-IHAT], not a Moderator
+      Challenge.  A specific redemption operation is bound separately by
+      challenge_digest.
 
 4.4.2.  Grant
 
    The grant takes two HTTP exchanges and three protocol messages.  The
-   Anchor speaks first, as specified by [IHAT-ROLLATINI]:
+   Anchor speaks first, as specified by [EC-IHAT]:
 
    1.  The Client sends a grant POST with empty content.  The Anchor
        runs Commit(ctx_iss), stores the returned state under a fresh
@@ -454,31 +452,30 @@ Table of Contents
        Respond.
 
    3.  The Client runs Finalize(pkA, state, response) as specified by
-       [IHAT-ROLLATINI].  On failure it MUST discard the session state
-       and MUST NOT retry with that state.  If the second response is
-       lost, the Client starts a fresh grant.
+       [EC-IHAT].  On failure it MUST discard the session state and MUST
+       NOT retry with that state.  If the second response is lost, the
+       Client starts a fresh grant.
 
    CommitMessage, ChallengeMessage, ResponseMessage, session_id, and the
-   Endorsement encoding are defined by [IHAT-ROLLATINI].  The session
+   Endorsement encoding are defined by [EC-IHAT].  The session
    identifier is only transport correlation and is not bound into the
    Endorsement.
 
    The Anchor learns neither nf nor the final Endorsement.  Under the
-   statistical blindness claim in [IHAT-ROLLATINI], its protocol
-   transcript does not let it recognize the Endorsement when it is later
-   redeemed.  Timing, network, and configuration metadata are outside
-   that claim.
+   statistical blindness claim in [EC-IHAT], its protocol transcript
+   does not let it recognize the Endorsement when it is later redeemed.
+   Timing, network, and configuration metadata are outside that claim.
 
 4.4.3.  Redemption
 
    The type-specific Redemption payload is the encoding of Redemption in
-   [IHAT-ROLLATINI].  RedeemRequest derives challenge_digest as in
-   Section 4.1 and calls Redeem(anchor_set, index, endorsement, ctx_iss,
-   ctx_red, challenge_digest).  The Client uses the Moderator's accepted
-   Anchor set for the ctx_iss its Endorsement was issued under
-   (Section 6). index is the position of the entry whose key equals the
-   issuing pkA.  The Client fails if no set has that ctx_iss or the set
-   omits its Anchor.
+   [EC-IHAT].  RedeemRequest derives challenge_digest as in Section 4.1
+   and calls Redeem(anchor_set, index, endorsement, ctx_iss, ctx_red,
+   challenge_digest).  The Client uses the Moderator's accepted Anchor
+   set for the ctx_iss its Endorsement was issued under (Section 6).
+   index is the position of the entry whose key equals the issuing pkA.
+   The Client fails if no set has that ctx_iss or the set omits its
+   Anchor.
 
    The Redemption does not carry ctx_iss.  FinalizeRedeem checks that
    the Moderator Challenge is accepted.  Then, for each accepted Anchor
@@ -496,11 +493,11 @@ Table of Contents
 
    Endorsement type: 0x0003.
 
-   Where Rollatini requires Anchors to run new cryptography, this
-   protocol preserves backward compatibility with credentials Clients
-   may hold, such as mdocs.  The Client proves in zero knowledge, using
-   the scheme of [LONGFELLOW], that it holds a valid credential from one
-   of an accepted set of issuers, without revealing which issuer or any
+   Where EC-IHAT requires Anchors to run new cryptography, this protocol
+   preserves backward compatibility with credentials Clients may hold,
+   such as mdocs.  The Client proves in zero knowledge, using the scheme
+   of [LONGFELLOW], that it holds a valid credential from one of an
+   accepted set of issuers, without revealing which issuer or any
    credential attribute.  An experimental circuit is described in
    [HIDDEN-ISSUER-CIRCUIT].
 
@@ -572,7 +569,7 @@ Table of Contents
    moderator_challenge.  The common caller performs the atomic replay
    protection check.
 
-4.5.3.  Differences from Rollatini
+4.5.3.  Differences from EC-IHAT
 
    Longfellow does not inherently require an Anchor to change its
    issuance protocol.  Scarcity then depends on the legacy credential's
@@ -716,20 +713,20 @@ FinalizeUpdate(presentation_state, update, configuration)
 
      Table 1: Presentation and recovery outcomes within a replay scope
 
-5.2.  Anonymous Credit Tokens (ACT)
+5.2.  EC-ACT
 
    Credential type: 0x0001.
 
-   An ACT Credential, specified in [ACT], carries a hidden _balance_ c,
-   a number of credits.  The Moderator issues a Credential with an
-   initial balance of its choosing.  A presentation _spends_ a public
-   amount s, proving that the balance covers it, and may accept a _top-
-   up_ of at most a that the challenge offers.  In the same exchange the
-   Moderator issues a _refund_ message with a return amount t of its
-   choosing, with 0 <= t <= s + a.  The Client finalizes this message
-   into a fresh Credential with balance c - s + t.  The presentation
-   reveals s, a, and a single-use nullifier; the balance is hidden
-   beyond the public amounts and predicates (Section 7.1).
+   An EC-ACT Credential, specified in [EC-ACT], carries a hidden
+   _balance_ c, a number of credits.  The Moderator issues a Credential
+   with an initial balance of its choosing.  A presentation _spends_ a
+   public amount s, proving that the balance covers it, and may accept a
+   _top-up_ of at most a that the challenge offers.  In the same
+   exchange the Moderator issues a _refund_ message with a return amount
+   t of its choosing, with 0 <= t <= s + a.  The Client finalizes this
+   message into a fresh Credential with balance c - s + t.  The
+   presentation reveals s, a, and a single-use nullifier; the balance is
+   hidden beyond the public amounts and predicates (Section 7.1).
 
    A Credential is invalid once spent, and its replacement exists only
    once the Moderator has answered, so one Credential supports one
@@ -747,10 +744,10 @@ FinalizeUpdate(presentation_state, update, configuration)
       each of which can follow the Moderator's assessment of the
       request, subject to Section 7.1.
 
-   The abstract credential API maps onto [ACT] as follows:
+   The abstract credential API maps onto [EC-ACT] as follows:
 
        +=============================+=============================+
-       | Abstract operation          | ACT                         |
+       | Abstract operation          | EC-ACT                      |
        +=============================+=============================+
        | CreateIssuanceRequest       | IssueRequest, with key      |
        |                             | selection (Section 5.2.2)   |
@@ -771,15 +768,15 @@ FinalizeUpdate(presentation_state, update, configuration)
 
                                   Table 2
 
-   The Client's presentation_state is the ClientSpendState of [ACT], the
-   pkM, credential_context, L, and Moderator identity and endpoint
+   The Client's presentation_state is the ClientSpendState of [EC-ACT],
+   the pkM, credential_context, L, and Moderator identity and endpoint
    stored with the spent Credential, and the PresentationAndUpdate
    octets with the HTTP request information needed to resend them to
    their original destination (Section 5.2.5).  ProcessPresentation
    returns ACCEPTED_WITH_UPDATE with a refund, and ACCEPTED_NO_UPDATE
    when the Moderator declines to refund.  For a retry answered from a
    record (Section 5.2.5), it returns the recorded result with fresh
-   false.  The ACT response rules in [HTTP-TRANSPORT] define the HTTP
+   false.  The EC-ACT response rules in [HTTP-TRANSPORT] define the HTTP
    status and Mole-Credential header for each outcome.
 
 5.2.1.  Configuration
@@ -790,11 +787,11 @@ FinalizeUpdate(presentation_state, update, configuration)
       key_id = SHA-256(SerializeElement(pkM)), and truncated_key_id is
       the last byte of key_id.
 
-   Ciphersuite  The ACT ciphersuite identifier; [ACT] defines
+   Ciphersuite  The EC-ACT ciphersuite identifier; [EC-ACT] defines
       P256-SHA256.
 
    Balance Width  L, fixed for the lifetime of the key and credential
-      context ([ACT]).
+      context ([EC-ACT]).
 
    Credential Context  credential_context, an opaque byte string of at
       most 2^16 - 2 bytes that names the epoch or policy that
@@ -804,11 +801,11 @@ FinalizeUpdate(presentation_state, update, configuration)
       presentation.  Recovery ends earlier if its key or credential
       context is retired (Section 5.2.5).
 
-   The credential context of [ACT] is
+   The credential context of [EC-ACT] is
 
    ctx_cred = credential_context || I2OSP(L, 1)
 
-   which includes L as [ACT] recommends.  A Moderator expires every
+   which includes L as [EC-ACT] recommends.  A Moderator expires every
    outstanding Credential under a key by publishing a new
    credential_context, without changing the key.  A refund is issued
    under the context of the spent Credential, so balances do not carry
@@ -835,7 +832,7 @@ FinalizeUpdate(presentation_state, update, configuration)
      IssueResponseMessage response;
    } IssuanceResponse;
 
-   IssueRequestMessage and IssueResponseMessage are defined in [ACT].
+   IssueRequestMessage and IssueResponseMessage are defined in [EC-ACT].
 
    The Client runs IssueRequest(), keeps the returned state, and sends
    the request with the truncated identifier of the key and the
@@ -874,7 +871,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 5.2.3.  Presentation and Update
 
-   The ACT Challenge names the amounts, the context the Moderator
+   The EC-ACT Challenge names the amounts, the context the Moderator
    accepts, and the scope of the authorization it asks for:
 
    struct {
@@ -898,13 +895,13 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 5.2.3.1.  Challenge Binding
 
-   The spend context of [ACT] is
+   The spend context of [EC-ACT] is
 
    ctx_spend = SHA-256(credential_challenge)
 
    where credential_challenge is the canonical encoding of the
    CredentialChallenge (Section 3), reconstructed with its
-   credential_type and the length-prefixed ACT Challenge.  The Client
+   credential_type and the length-prefixed EC-ACT Challenge.  The Client
    hashes those octets, not their base64url encoding.  This digest is
    separate from the redemption digest of Section 4.1.
 
@@ -958,9 +955,9 @@ FinalizeUpdate(presentation_state, update, configuration)
      RefundMessage refund;
    } Update;
 
-   SpendMessage and RefundMessage are defined in [ACT].  The full key_id
-   is sent: the Moderator issued the Credential and knows its key, so
-   the identifier tells it nothing more.
+   SpendMessage and RefundMessage are defined in [EC-ACT].  The full
+   key_id is sent: the Moderator issued the Credential and knows its
+   key, so the identifier tells it nothing more.
 
    The Moderator processes a presentation as follows.  Steps 1 and 2
    read public state and the nullifier store, step 3 ends by atomically
@@ -1015,7 +1012,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 5.2.4.  Client State
 
-   An ACT Credential goes through the following states:
+   An EC-ACT Credential goes through the following states:
 
       +----------+
       |  Usable  |  balance c
@@ -1033,15 +1030,15 @@ FinalizeUpdate(presentation_state, update, configuration)
       |  Usable  |  balance c - s + t, in [c - s, c + a]
       +----------+
 
-                      Figure 3: ACT Credential states
+                     Figure 3: EC-ACT Credential states
 
    Usable:  The Client holds a Credential with balance c, together with
       pkM, credential_context, and L, and may present it as
       Section 5.2.3.2 describes.
 
    Spent:  The Client has run ProveSpend, and the Credential is invalid
-      whether or not the presentation is sent or answered ([ACT]).
-      Besides the spend state that [ACT] requires it to store, the
+      whether or not the presentation is sent or answered ([EC-ACT]).
+      Besides the spend state that [EC-ACT] requires it to store, the
       Client MUST durably store the presentation octets and the HTTP
       request needed to resend them before the presentation leaves it.
 
@@ -1089,10 +1086,10 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 5.2.6.  Limitations
 
-   A SpendMessage grows linearly in L ([ACT]).  With P-256 and L = 32,
-   it is at most 4,531 bytes (about 4.5 KB) when s + a > 0, including
-   when both amounts are nonzero, and 468 bytes for a refresh (s = a =
-   0).  These sizes exclude the 32-byte key_id added by
+   A SpendMessage grows linearly in L ([EC-ACT]).  With P-256 and L =
+   32, it is at most 4,531 bytes (about 4.5 KB) when s + a > 0,
+   including when both amounts are nonzero, and 468 bytes for a refresh
+   (s = a = 0).  These sizes exclude the 32-byte key_id added by
    PresentationAndUpdate and are before base64url encoding in the
    Authorization header.  Deployments with tight header limits should
    choose L accordingly.
@@ -1227,7 +1224,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    Each Anchor and Moderator publishes a configuration, which a Client
    fetches over an authenticated channel.  For example, a Moderator
-   accepting Rollatini Endorsements from two Anchors and issuing ACT
+   accepting EC-IHAT Endorsements from two Anchors and issuing EC-ACT
    Credentials publishes, in JSON with byte strings truncated:
 
    {
@@ -1263,7 +1260,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    $anchor-configuration /= {
      "grant-uri": tstr,
-     "endorsement-type": 2,            ; Rollatini
+     "endorsement-type": 2,            ; EC-IHAT
      "ciphersuite": tstr,
      "anchor-key": bstr,               ; SerializeElement(pkA)
      "issuance-epoch": bstr,           ; ctx_iss
@@ -1276,7 +1273,7 @@ FinalizeUpdate(presentation_state, update, configuration)
    }
 
    $endorsement /= {
-     "endorsement-type": 2,            ; Rollatini
+     "endorsement-type": 2,            ; EC-IHAT
      "ciphersuite": tstr,
      "issuance-epoch": bstr,           ; ctx_iss
      "anchor-set": [+ bstr],           ; SerializeElement(pkA), in order
@@ -1284,7 +1281,7 @@ FinalizeUpdate(presentation_state, update, configuration)
    }
 
    $credential-key /= {
-     "credential-type": 1,             ; ACT
+     "credential-type": 1,             ; EC-ACT
      "credential-key": bstr,           ; SerializeElement(pkM)
      "ciphersuite": tstr,
      "balance-width": 1..64,           ; L
@@ -1309,13 +1306,13 @@ FinalizeUpdate(presentation_state, update, configuration)
    unknown types.
 
    endorsements lists the endorsement types the Moderator accepts.  A
-   Rollatini entry is one accepted Anchor set, with the ctx_iss shared
-   by all its Anchors.  A Moderator accepting several epochs publishes
-   one entry per epoch.  Order within anchor-set matters: Rollatini
-   proof branches match Anchors by position.
+   EC-IHAT entry is one accepted Anchor set, with the ctx_iss shared by
+   all its Anchors.  A Moderator accepting several epochs publishes one
+   entry per epoch.  Order within anchor-set matters: EC-IHAT proof
+   branches match Anchors by position.
 
-   ACT nullifiers MUST remain recorded while their credential context is
-   accepted for their key.  A Moderator that publishes different
+   EC-ACT nullifiers MUST remain recorded while their credential context
+   is accepted for their key.  A Moderator that publishes different
    configurations to different Clients partitions them ([ARCHITECTURE]).
 
    The serialization, for instance JSON or CBOR, is to be defined with
@@ -1358,17 +1355,17 @@ FinalizeUpdate(presentation_state, update, configuration)
    aborts but the other does not, then the Moderator immediately learns
    the Anchor of the accepted Endorsement.
 
-7.1.  Anonymous Credit Tokens
+7.1.  EC-ACT
 
-   An ACT presentation reveals s, a, and a fresh nullifier, and, because
-   the proof verifies, the key and credential context of the Credential.
-   Its Update reveals t.  The unlinkability of [ACT] holds among the
-   Clients that share the key, the context, and the amounts, so each of
-   these partitions Clients:
+   An EC-ACT presentation reveals s, a, and a fresh nullifier, and,
+   because the proof verifies, the key and credential context of the
+   Credential.  Its Update reveals t.  The unlinkability of [EC-ACT]
+   holds among the Clients that share the key, the context, and the
+   amounts, so each of these partitions Clients:
 
    Keys and contexts:  The truncated key identifier shortens the
       encoding, but it still selects one active key, and every active
-      key splits the Clients holding Credentials under it.  [ACT]
+      key splits the Clients holding Credentials under it.  [EC-ACT]
       requires the credential context to be coarse: a per-Client or per-
       session context makes presentations linkable without breaking any
       cryptographic property.
@@ -1413,14 +1410,14 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    Replay protection scope is deployment-selected and can differ for
    Endorsement redemption and Credential presentation.  Atomic checks
-   within that scope prevent repeated acceptance.  Except for ACT's
+   within that scope prevent repeated acceptance.  Except for EC-ACT's
    shared-store requirement below, this document does not require global
    uniqueness or a particular storage architecture.  Independent scopes
-   can accept the same Endorsement or Credential again.  For ACT, all
+   can accept the same Endorsement or Credential again.  For EC-ACT, all
    servers accepting the same key and credential context MUST share one
    atomic nullifier store; independent stores need disjoint keys or
    contexts.  Otherwise a Client can fork a balance across stores, which
-   breaks the credit conservation of [ACT].  A Rollatini redemption
+   breaks the credit conservation of [EC-ACT].  An EC-IHAT redemption
    exposes the same nullifier in each scope, making cross-scope reuse
    linkable if records are compared.  Proof rerandomization does not
    hide that reuse.
@@ -1433,26 +1430,26 @@ FinalizeUpdate(presentation_state, update, configuration)
    retirement, the Moderator MUST NOT accept the retired configuration
    again.
 
-8.1.  Anonymous Credit Tokens
+8.1.  EC-ACT
 
    Nullifier store:  Step 3 of Section 5.2.3.2 is the atomic recording
-      that [ACT] requires.  The store MUST be durable: a Moderator that
-      loses it re-admits every Credential spent under a context for as
-      long as that context is accepted.  Nullifiers MAY be partitioned
-      by key and context and discarded once the context is no longer
-      accepted (Section 8).
+      that [EC-ACT] requires.  The store MUST be durable: a Moderator
+      that loses it re-admits every Credential spent under a context for
+      as long as that context is accepted.  Nullifiers MAY be
+      partitioned by key and context and discarded once the context is
+      no longer accepted (Section 8).
 
    Amounts:  Step 2 of Section 5.2.3.2 requires spend.s and spend.a to
       equal the challenge's s and a.  Accepting another s would let the
       Client choose its charge, and accepting a larger a would let it
-      choose how far its balance may rise.  [ACT] gives the range checks
-      that credit conservation needs.
+      choose how far its balance may rise.  [EC-ACT] gives the range
+      checks that credit conservation needs.
 
    Credential sharing:  Copies of one Credential yield at most one fresh
       acceptance across all servers accepting the same key and
       credential context.  Byte-identical retries recover the retained
       result.  Conflicting spends are rejected.  Both expose the same
-      nullifier and are linkable to the first presentation ([ACT]).
+      nullifier and are linkable to the first presentation ([EC-ACT]).
 
    Recorded results:  A recorded result is returned only for a byte-
       identical presentation and never authorizes another operation.  A
@@ -1509,7 +1506,7 @@ FinalizeUpdate(presentation_state, update, configuration)
        +-----------------+-------------------------+---------------+
        | 0x0001          | No Endorsement Required | Section 4.3   |
        +-----------------+-------------------------+---------------+
-       | 0x0002          | Rollatini               | Section 4.4   |
+       | 0x0002          | EC-IHAT                 | Section 4.4   |
        +-----------------+-------------------------+---------------+
        | 0x0003          | Longfellow              | Section 4.5   |
        +-----------------+-------------------------+---------------+
@@ -1534,11 +1531,11 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    The following initial registrations are candidates only.
 
-9.1.1.  Rollatini
+9.1.1.  EC-IHAT
 
    *  Value: 0x0002
 
-   *  Name: Rollatini
+   *  Name: EC-IHAT
 
    *  Exchanges: 2
 
@@ -1568,7 +1565,7 @@ FinalizeUpdate(presentation_state, update, configuration)
       +=================+===========================+===============+
       | 0x0000          | Reserved                  | this document |
       +-----------------+---------------------------+---------------+
-      | 0x0001          | ACT                       | Section 5.2   |
+      | 0x0001          | EC-ACT                    | Section 5.2   |
       +-----------------+---------------------------+---------------+
       | 0x0002          | Privacy Pass Reverse Flow | Section 5.3   |
       +-----------------+---------------------------+---------------+
@@ -1591,11 +1588,11 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    *  Reference: Where the protocol is defined.
 
-9.2.1.  ACT
+9.2.1.  EC-ACT
 
    *  Value: 0x0001
 
-   *  Name: ACT
+   *  Name: EC-ACT
 
    *  Bound Update: Yes
 
@@ -1651,10 +1648,6 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 10.1.  Normative References
 
-   [ACT]      "Anonymous Credit Tokens (ACT)", n.d.,
-              <https://moderation-of-unlinkable-endorsements.github.io/
-              internet-drafts/draft-authors-mole-act.html>.
-
    [ARCHITECTURE]
               Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
               of unLinkable Endorsements (MoLE) Architecture", Work in
@@ -1668,6 +1661,14 @@ FinalizeUpdate(presentation_state, update, configuration)
               JSON Data Structures", RFC 8610, DOI 10.17487/RFC8610,
               June 2019, <https://www.rfc-editor.org/rfc/rfc8610>.
 
+   [EC-ACT]   "EC-ACT: Anonymous Credit Tokens", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ec-act.html>.
+
+   [EC-IHAT]  "EC-IHAT: An Issuer-Hiding Anonymous Token", n.d.,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-authors-mole-ec-ihat.html>.
+
    [HTTP-TRANSPORT]
               Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
               Transport", Work in Progress, Internet-Draft, draft-jms-
@@ -1679,11 +1680,6 @@ FinalizeUpdate(presentation_state, update, configuration)
               Writing an IANA Considerations Section in RFCs", BCP 26,
               RFC 8126, DOI 10.17487/RFC8126, June 2017,
               <https://www.rfc-editor.org/rfc/rfc8126>.
-
-   [IHAT-ROLLATINI]
-              "Rollatini: An Issuer-Hiding Anonymous Token", n.d.,
-              <https://moderation-of-unlinkable-endorsements.github.io/
-              internet-drafts/draft-authors-mole-ihat-rollatini.html>.
 
    [LONGFELLOW]
               Frigo, M. and A. shelat, "Longfellow ZK", Work in
@@ -1744,7 +1740,7 @@ Appendix A.  Example
 
    A Client requests a resource protected by a Moderator that uses
    credential type 0x0002 (Privacy Pass Reverse Flow) and accepts
-   endorsement type 0x0002 (Rollatini).  The Client obtains the
+   endorsement type 0x0002 (EC-IHAT).  The Client obtains the
    Endorsement before contacting that Moderator.
 
    +--------+         +--------+      +-----------+
@@ -1773,7 +1769,7 @@ Appendix A.  Example
 
    The grant follows Section 4.4.  The Client finalizes the
    ResponseMessage into an Endorsement, then obtains a
-   ModeratorChallenge, computes its digest, and sends the Rollatini
+   ModeratorChallenge, computes its digest, and sends the EC-IHAT
    Redemption with a Privacy Pass TokenRequest to the Redeem & Issue
    endpoint.
 

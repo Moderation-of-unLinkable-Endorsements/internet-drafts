@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>Moussaka</title>
+<title>VOLE-IHAT</title>
 <meta content="Tianyu Zhang" name="author">
 <meta content="Christopher Patton" name="author">
 <meta content="
-       This document specifies Moussaka, a candidate post-quantum Issuer-Hiding
-Anonymous Token (IHAT). Moussaka is based on the UOV digital signature scheme
+       This document specifies VOLE-IHAT, a candidate post-quantum Issuer-Hiding
+Anonymous Token (IHAT). VOLE-IHAT is based on the UOV digital signature scheme
 and the VOLE-in-the-Head proof system (a component of the FAEST signature
 scheme). The anchor issues a token by signing a commitment to the client's
 state; to redeem a token, the client proves knowledge of the opening of this
@@ -20,7 +20,7 @@ commitment is instantiated with  Keccak-p[800,12] .
 <meta content="moderation" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
-<meta content="draft-authors-mole-ihat-moussaka-latest" name="ietf.draft">
+<meta content="draft-authors-mole-vole-ihat-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
     Python 3.14.8
@@ -36,7 +36,7 @@ commitment is instantiated with  Keccak-p[800,12] .
     requests 2.33.1
     wcwidth 0.9.2
 -->
-<link href="draft-authors-mole-ihat-moussaka.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-authors-mole-vole-ihat.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1049,7 +1049,7 @@ svg {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">Moussaka</td>
+<td class="center">VOLE-IHAT</td>
 <td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
@@ -1064,7 +1064,7 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-authors-mole-ihat-moussaka-latest</dd>
+<dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-10-19" class="published">19 October 2026</time>
@@ -1086,11 +1086,11 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">Moussaka</h1>
+<h1 id="title">VOLE-IHAT</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies Moussaka, a candidate post-quantum Issuer-Hiding
-Anonymous Token (IHAT). Moussaka is based on the UOV digital signature scheme
+<p id="section-abstract-1">This document specifies VOLE-IHAT, a candidate post-quantum Issuer-Hiding
+Anonymous Token (IHAT). VOLE-IHAT is based on the UOV digital signature scheme
 and the VOLE-in-the-Head proof system (a component of the FAEST signature
 scheme). The anchor issues a token by signing a commitment to the client's
 state; to redeem a token, the client proves knowledge of the opening of this
@@ -1103,8 +1103,8 @@ commitment is instantiated with <code>Keccak-p[800,12]</code>.<a href="#section-
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-moussaka.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-moussaka.html</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-ihat-moussaka/">https://datatracker.ietf.org/doc/draft-authors-mole-ihat-moussaka/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-ihat.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-vole-ihat/">https://datatracker.ietf.org/doc/draft-authors-mole-vole-ihat/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1251,24 +1251,24 @@ applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcr
 <p id="section-1-2">An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
 Moderator without revealing which Anchor issued the token. Instead, the client
 proves the token was issued by some Anchor in the Anchor Set trusted by the
-Moderator. Rollatini is also designed to be post-issuance unlinkable, meaning
+Moderator. EC-IHAT is also designed to be post-issuance unlinkable, meaning
 the redemption of a token cannot be linked to its issuance.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">Rollatini meets these privacy goals unconditionally, meaning regardless of its
+<p id="section-1-3">EC-IHAT meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document specifies Moussaka, an Issuer-Hiding Anonymous Token that is
-plausibly fully post-quantum secure. Similar to <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>, its design
+<p id="section-1-4">This document specifies VOLE-IHAT, an Issuer-Hiding Anonymous Token that is
+plausibly fully post-quantum secure. Similar to <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>, its design
 is based on the PoMFRIT blind signature scheme <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, which combines a
 post-quantum signature scheme with a suitable zero-knowledge proof system and
 commitment scheme. Specifically, the signer signs a commitment to the message,
 and the verifier checks a zero-knowledge proof-of-knowledge of the signature
-and the opening of the commitment. Moussaka extends this paradigm in the
+and the opening of the commitment. VOLE-IHAT extends this paradigm in the
 natural way: rather than prove knowledge of a signature under the public key of
 a particular Anchor, the Client proves knowledge of a signature under some
 public key in the Anchor Set.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">Moussaka has significantly higher bandwidth cost compared to Rollatini:<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-5">VOLE-IHAT has significantly higher bandwidth cost compared to EC-IHAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-6">
 <li id="section-1-6.1">
           <p id="section-1-6.1.1">each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
@@ -1289,20 +1289,20 @@ for issuance and another for redemption) using the more invasive techniques
 from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-8">On the other hand, Moussaka is round optimal: only two moves are required for
-issuance, whereas Rollatini requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
+<p id="section-1-8">On the other hand, VOLE-IHAT is round optimal: only two moves are required for
+issuance, whereas EC-IHAT requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
 <p id="section-1-9">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
 defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
 overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
-the signature scheme, commitment scheme, and proof system used by Moussaka and
+the signature scheme, commitment scheme, and proof system used by VOLE-IHAT and
 provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
 the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
 considerations for implementers and adopters.<a href="#section-1-9" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-10.1">
-          <p id="section-1-10.1.1">TODO(cjpatton) Our pseudocode is derived from an old version of ACT, but MoLE
-ACT <span>[<a href="#ACT" class="cite xref">ACT</a>]</span> now uses Python, as does <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. Consider transcribing
-our pseudocode into Python. (Likewise for Ratatouille.)<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-10.1.1">TODO(cjpatton) Our pseudocode is derived from an old version of EC-ACT, but
+<span>[<a href="#EC-ACT" class="cite xref">EC-ACT</a>]</span> now uses Python, as does <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>. Consider transcribing
+our pseudocode into Python. (Likewise for VOLE-ACT.)<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1317,7 +1317,7 @@ our pseudocode into Python. (Likewise for Ratatouille.)<a href="#section-1-10.1.
 described in BCP 14 <span>[<a href="#RFC2119" class="cite xref">RFC2119</a>]</span> <span>[<a href="#RFC8174" class="cite xref">RFC8174</a>]</span> when, and only when, they
 appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶</a></p>
 <p id="section-2-2">This document follows the same conventions and uses the same notation as
-<span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="overview">
@@ -1325,7 +1325,7 @@ appear in all capitals, as shown here.<a href="#section-2-1" class="pilcrow">¶<
       <h2 id="name-overview">
 <a href="#section-3" class="section-number selfRef">3. </a><a href="#name-overview" class="section-name selfRef">Overview</a>
       </h2>
-<p id="section-3-1">Moussaka makes use of three cryptographic primitives:<a href="#section-3-1" class="pilcrow">¶</a></p>
+<p id="section-3-1">VOLE-IHAT makes use of three cryptographic primitives:<a href="#section-3-1" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-3-2">
 <li id="section-3-2.1">
           <p id="section-3-2.1.1">The Unbalanced Oil and Vinegar <span>[<a href="#UOV" class="cite xref">UOV</a>]</span> digital signature scheme. Each Anchor
@@ -1346,11 +1346,11 @@ computed by hashing the message to be signed. The UOV secret key is a trapdoor
 for <code>P</code> that can be used to efficiently sample signatures for a given target.<a href="#section-3-3" class="pilcrow">¶</a></p>
 <p id="section-3-4">Issuance binds a token to an issuance context <code>ctx_iss</code> agreed upon by the
 Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agreed upon
-by the Client and Moderator <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>. The protocol commits to both
+by the Client and Moderator <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>. The protocol commits to both
 contexts during issuance: the Anchor verifies the <code>ctx_iss</code> binding during
 issuance, and the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding
-during redemption. Note that Moussaka constrains how these values are chosen
-compared to <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
+during redemption. Note that VOLE-IHAT constrains how these values are chosen
+compared to <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-5">The issuance protocol is as follows:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-6.1">
@@ -1411,10 +1411,10 @@ PRF(K, red_ctx) where K is a key committed to during issuance. See <a href="http
       </h2>
 <p id="section-4-1">The procedures <code>KP800()</code>, <code>UOV.CompactKeyGen()</code>, <code>UOV.ExpandPK()</code>,
 <code>UOV.ExpandSK()</code>, <code>UOV.DerivePreimage()</code>, <code>PKDigest()</code>, <code>VOLEitH.Prove()</code>, and
-<code>VOLEitH.Verify()</code> are defined as in <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>. We adopt the uov-Ip
+<code>VOLEitH.Verify()</code> are defined as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>. We adopt the uov-Ip
 parameter set (NIST Level 1) for UOV. That is, for the remainder of this
 document, let <code>n=119</code>, <code>m=45</code>, and <code>q=2^8</code>.<a href="#section-4-1" class="pilcrow">¶</a></p>
-<p id="section-4-2">Moussaka also fixes the following parameters, named as in <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>:<a href="#section-4-2" class="pilcrow">¶</a></p>
+<p id="section-4-2">VOLE-IHAT also fixes the following parameters, named as in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>:<a href="#section-4-2" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-4-3.1">
           <p id="section-4-3.1.1"><code>nf_len</code>: the nullifier length in bytes. Its value <span class="bcp14">SHALL</span> be <code>24</code>.<a href="#section-4-3.1.1" class="pilcrow">¶</a></p>
@@ -1444,7 +1444,7 @@ would generate as input. This will make it easier to generate test vectors.<a hr
 <p id="section-5-2">A global constant <code>VERSION</code> in <code>F_q</code> is defined. Its value <span class="bcp14">SHALL</span> be <code>0</code>. This
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The template for domain separation is the same as
-<span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
+<span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">A global constant <code>MAX_ANCHORS</code> defines the maximum size of an Anchor Set. Its
 value <span class="bcp14">SHALL</span> be <code>64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
@@ -1486,7 +1486,7 @@ KeyGen():
         <h3 id="name-commitment">
 <a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-commitment" class="section-name selfRef">Commitment</a>
         </h3>
-<p id="section-5.2-1">A Moussaka token commits the Client to a nullifier, an issuance context, and a
+<p id="section-5.2-1">A VOLE-IHAT token commits the Client to a nullifier, an issuance context, and a
 redemption context. The commitment is generated by sampling a randomizer <code>r &lt;-
 F_q^r_len</code> and running the following procedure:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.2-2">
@@ -1511,14 +1511,14 @@ Com(nf, ctx_iss, ctx_red, r):
 <p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 <code>state</code> is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>: <code>nf_len</code> is 24 bytes, whereas
-<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas
-<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+inputs relative to <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>: <code>nf_len</code> is 24 bytes, whereas
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.2-4.1">
             <p id="section-5.2-4.1.1">TODO(cjpatton) Consider bumping the nullifier length to <code>32</code> to match
-<span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span> and guidelines for choosing the context strings. Honestly,
-truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> and guidelines for choosing the context strings. Honestly,
+truncating a hash to 16 bytes is not terrible. (Likewise for VOLE-ACT.)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -1560,7 +1560,7 @@ Keccak evaluation to the witness. We need to define precisely how this works.<a 
           <h4 id="name-issue-request">
 <a href="#section-5.3.1" class="section-number selfRef">5.3.1. </a><a href="#name-issue-request" class="section-name selfRef">Issue Request</a>
           </h4>
-<p id="section-5.3.1-1">To request a Moussaka token from an Anchor, the Client runs the following
+<p id="section-5.3.1-1">To request a VOLE-IHAT token from an Anchor, the Client runs the following
 procedure.<a href="#section-5.3.1-1" class="pilcrow">¶</a></p>
 <div class="lang-pseudocode sourcecode" id="section-5.3.1-2">
 <pre>
@@ -1662,7 +1662,7 @@ of a sequence of UOV public keys <code>P[0], ..., P[N-1]</code>. The Anchor Set 
 be empty and <span class="bcp14">MUST NOT</span> have more than <code>MAX_ANCHORS</code> elements, that is, <code>0 &lt; N
 &lt;= MAX_ANCHORS</code>. They also agree on <code>challenge_digest</code>, which binds the
 redemption to the challenge that triggered it. It is computed from the
-Moderator's challenge as described in <span>[<a href="#IHAT-ROLLATINI" class="cite xref">IHAT-ROLLATINI</a>]</span>; this document treats
+Moderator's challenge as described in <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>; this document treats
 it as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> in <code>[N]</code> be the index of the issuing Anchor. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
@@ -1809,7 +1809,7 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
           <p id="section-6-1.1.1">TODO Prove the following claims.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-2">Issuer-hiding and post-issuance unlinkability of Moussaka reduce to the
+<p id="section-6-2">Issuer-hiding and post-issuance unlinkability of VOLE-IHAT reduce to the
 zero-knowledge property of the VOLEitH proof system and the hiding property of
 our commitment. One-more-unforgeability reduces to witness-extractability of
 VOLEitH, binding of the commitment, and the one-more-UOV assumption
@@ -1819,7 +1819,7 @@ scrutiny before we rely on it too heavily.<a href="#section-6-2" class="pilcrow"
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-6-3.1">
           <p id="section-6-3.1.1">NOTE Here's a sketch of the reduction to one-more-UOV. The same idea seems to
-apply to Ratatouille <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span> as well.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
+apply to <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span> as well.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
 <p id="section-6-3.1.2">We consider a simplified version of the protocol, basically a blind signature
 built in the same framework. During redemption, the Client proves knowledge of
 <code>s, r</code> for which <code>P(s) = c</code> and <code>c = Com(nf, r)</code>.<a href="#section-6-3.1.2" class="pilcrow">¶</a></p>
@@ -1862,12 +1862,12 @@ image.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
       </ul>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-6-5.1">
-          <p id="section-6-5.1.1">NOTE Both Moussaka and Ratatouille can avoid the stronger one-more-UOV
+          <p id="section-6-5.1.1">NOTE Both VOLE-IHAT and VOLE-ACT can avoid the stronger one-more-UOV
 assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
 by sampling a signing salt and using Keccak-p[800,12] to hash the input and
 the salt.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
-<p id="section-6-5.1.2">For Moussaka, the cost of this would be an additional hash evaluation in the
-circuit. For Ratatouille, we would just need to add a salt to <code>Tag()</code>, which
+<p id="section-6-5.1.2">For VOLE-IHAT, the cost of this would be an additional hash evaluation in the
+circuit. For VOLE-ACT, we would just need to add a salt to <code>Tag()</code>, which
 adds a little bit to the witness.<a href="#section-6-5.1.2" class="pilcrow">¶</a></p>
 </li>
       </ul>
@@ -1875,7 +1875,7 @@ adds a little bit to the witness.<a href="#section-6-5.1.2" class="pilcrow">¶</
 <li class="normal ulEmpty" id="section-6-6.1">
           <p id="section-6-6.1.1">NOTE Nothing ties the issuance of a token to the Anchor. We could consider
 adding the Anchor public key to the encoding of the instance, like we do for
-the redemption proof. (Likewise for Ratatouille.)<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
+the redemption proof. (Likewise for VOLE-ACT.)<a href="#section-6-6.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 <div id="choice-of-keccak-p80012">
@@ -1884,8 +1884,8 @@ the redemption proof. (Likewise for Ratatouille.)<a href="#section-6-6.1.1" clas
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-choice-of-keccak-p80012" class="section-name selfRef">Choice of Keccak-p[800,12]</a>
         </h3>
 <p id="section-6.1-1">The commitment <code>Com()</code> uses <code>Keccak-p[800,12]</code> for the same reasons as the
-commitment of Ratatouille-KP800, namely to reduce the size of the VOLEitH
-proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE</a>]</span> for discussion.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+commitment of VOLE-ACT-KP800, namely to reduce the size of the VOLEitH
+proofs. See <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span> for discussion.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1909,9 +1909,9 @@ proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE<
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="ACT-RATATOUILLE">[ACT-RATATOUILLE]</dt>
+<dt id="EC-IHAT">[EC-IHAT]</dt>
         <dd>
-<span class="refTitle">"Ratatouille"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html</a>&gt;</span>. </dd>
+<span class="refTitle">"EC-IHAT: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FAEST">[FAEST]</dt>
         <dd>
@@ -1920,10 +1920,6 @@ proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE<
 <dt id="FIPS202">[FIPS202]</dt>
         <dd>
 <span class="refAuthor">National Institute of Standards and Technology (NIST)</span>, <span class="refTitle">"SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"</span>, <span class="seriesInfo">FIPS PUB 202</span>, <time datetime="2015-08" class="refDate">August 2015</time>, <span>&lt;<a href="https://doi.org/10.6028/NIST.FIPS.202">https://doi.org/10.6028/NIST.FIPS.202</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="IHAT-ROLLATINI">[IHAT-ROLLATINI]</dt>
-        <dd>
-<span class="refTitle">"Rollatini: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="MAYO">[MAYO]</dt>
         <dd>
@@ -1938,8 +1934,12 @@ proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE<
 <span class="refAuthor">Leiba, B.</span>, <span class="refTitle">"Ambiguity of Uppercase vs Lowercase in RFC 2119 Key Words"</span>, <span class="seriesInfo">BCP 14</span>, <span class="seriesInfo">RFC 8174</span>, <span class="seriesInfo">DOI 10.17487/RFC8174</span>, <time datetime="2017-05" class="refDate">May 2017</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc8174">https://www.rfc-editor.org/rfc/rfc8174</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="UOV">[UOV]</dt>
-      <dd>
+        <dd>
 <span class="refAuthor">Beullens, W.</span>, <span class="refAuthor">Chen, M.</span>, <span class="refAuthor">Ding, J.</span>, <span class="refAuthor">Gong, B.</span>, <span class="refAuthor">Kannwischer, M. J.</span>, <span class="refAuthor">Patarin, J.</span>, <span class="refAuthor">Peng, B.</span>, <span class="refAuthor">Schmidt, D.</span>, <span class="refAuthor">Shih, C.</span>, <span class="refAuthor">Tao, C.</span>, and <span class="refAuthor">B. Yang</span>, <span class="refTitle">"UOV: Unbalanced Oil and Vinegar"</span>, <span class="seriesInfo">NIST PQC Additional Digital Signatures Round 3 Submission</span>, <span class="seriesInfo">Version 3.0</span>, <time datetime="2026-08-30" class="refDate">30 August 2026</time>, <span>&lt;<a href="https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf">https://csrc.nist.gov/csrc/media/Projects/pqc-dig-sig/documents/UOV_Specification_R3.pdf</a>&gt;</span>. </dd>
+<dd class="break"></dd>
+<dt id="VOLE-ACT">[VOLE-ACT]</dt>
+      <dd>
+<span class="refTitle">"VOLE-ACT"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 </dl>
 </section>
@@ -1950,9 +1950,9 @@ proofs. See <span>[<a href="#ACT-RATATOUILLE" class="cite xref">ACT-RATATOUILLE<
 <a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-informative-references" class="section-name selfRef">Informative References</a>
         </h3>
 <dl class="references">
-<dt id="ACT">[ACT]</dt>
+<dt id="EC-ACT">[EC-ACT]</dt>
         <dd>
-<span class="refTitle">"Anonymous Credit Tokens (ACT)"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html</a>&gt;</span>. </dd>
+<span class="refTitle">"EC-ACT: Anonymous Credit Tokens"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="PoMFRIT">[PoMFRIT]</dt>
         <dd>
