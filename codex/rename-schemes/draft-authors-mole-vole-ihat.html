@@ -1251,9 +1251,9 @@ applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcr
 <p id="section-1-2">An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
 Moderator without revealing which Anchor issued the token. Instead, the client
 proves the token was issued by some Anchor in the Anchor Set trusted by the
-Moderator. EC-HAT is also designed to be post-issuance unlinkable, meaning
+Moderator. EC-IHAT is also designed to be post-issuance unlinkable, meaning
 the redemption of a token cannot be linked to its issuance.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">EC-HAT meets these privacy goals unconditionally, meaning regardless of its
+<p id="section-1-3">EC-IHAT meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
@@ -1268,7 +1268,7 @@ and the opening of the commitment. VOLE-IHAT extends this paradigm in the
 natural way: rather than prove knowledge of a signature under the public key of
 a particular Anchor, the Client proves knowledge of a signature under some
 public key in the Anchor Set.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">VOLE-IHAT has significantly higher bandwidth cost compared to EC-HAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-5">VOLE-IHAT has significantly higher bandwidth cost compared to EC-IHAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-1-6">
 <li id="section-1-6.1">
           <p id="section-1-6.1.1">each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
@@ -1290,7 +1290,7 @@ from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 
 </li>
       </ul>
 <p id="section-1-8">On the other hand, VOLE-IHAT is round optimal: only two moves are required for
-issuance, whereas EC-HAT requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
+issuance, whereas EC-IHAT requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
 <p id="section-1-9">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
 defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
 overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
@@ -1301,7 +1301,7 @@ considerations for implementers and adopters.<a href="#section-1-9" class="pilcr
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-10.1">
           <p id="section-1-10.1.1">TODO(cjpatton) Our pseudocode is derived from an old version of EC-ACT, but
-<span>[<a href="#EC-ACT" class="cite xref">EC-ACT</a>]</span> now uses Python, as does <span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span>. Consider transcribing
+<span>[<a href="#EC-ACT" class="cite xref">EC-ACT</a>]</span> now uses Python, as does <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>. Consider transcribing
 our pseudocode into Python. (Likewise for VOLE-ACT.)<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
@@ -1346,11 +1346,11 @@ computed by hashing the message to be signed. The UOV secret key is a trapdoor
 for <code>P</code> that can be used to efficiently sample signatures for a given target.<a href="#section-3-3" class="pilcrow">¶</a></p>
 <p id="section-3-4">Issuance binds a token to an issuance context <code>ctx_iss</code> agreed upon by the
 Client, Anchor, and Moderator, and a redemption context <code>ctx_red</code> agreed upon
-by the Client and Moderator <span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span>. The protocol commits to both
+by the Client and Moderator <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>. The protocol commits to both
 contexts during issuance: the Anchor verifies the <code>ctx_iss</code> binding during
 issuance, and the Moderator verifies both the <code>ctx_iss</code> and <code>ctx_red</code> binding
 during redemption. Note that VOLE-IHAT constrains how these values are chosen
-compared to <span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
+compared to <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>; see <a href="#commitment" class="auto internal xref">Section 5.2</a> for details.<a href="#section-3-4" class="pilcrow">¶</a></p>
 <p id="section-3-5">The issuance protocol is as follows:<a href="#section-3-5" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-3-6.1">
@@ -1511,13 +1511,13 @@ Com(nf, ctx_iss, ctx_red, r):
 <p id="section-5.2-3">The layout of <code>state</code> is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 <code>state</code> is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to <span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span>: <code>nf_len</code> is 24 bytes, whereas
-<span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span> uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas
-<span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span> allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+inputs relative to <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>: <code>nf_len</code> is 24 bytes, whereas
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> uses a 32-byte nullifier, and <code>ctx_len</code> is 16 bytes, whereas
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> allows the contexts to be arbitrary byte strings.<a href="#section-5.2-3" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-5.2-4.1">
             <p id="section-5.2-4.1.1">TODO(cjpatton) Consider bumping the nullifier length to <code>32</code> to match
-<span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span> and guidelines for choosing the context strings. Honestly,
+<span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span> and guidelines for choosing the context strings. Honestly,
 truncating a hash to 16 bytes is not terrible. (Likewise for VOLE-ACT.)<a href="#section-5.2-4.1.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
@@ -1662,7 +1662,7 @@ of a sequence of UOV public keys <code>P[0], ..., P[N-1]</code>. The Anchor Set 
 be empty and <span class="bcp14">MUST NOT</span> have more than <code>MAX_ANCHORS</code> elements, that is, <code>0 &lt; N
 &lt;= MAX_ANCHORS</code>. They also agree on <code>challenge_digest</code>, which binds the
 redemption to the challenge that triggered it. It is computed from the
-Moderator's challenge as described in <span>[<a href="#EC-HAT" class="cite xref">EC-HAT</a>]</span>; this document treats
+Moderator's challenge as described in <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>; this document treats
 it as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> in <code>[N]</code> be the index of the issuing Anchor. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
@@ -1909,9 +1909,9 @@ proofs. See <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span> fo
 <a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-normative-references" class="section-name selfRef">Normative References</a>
         </h3>
 <dl class="references">
-<dt id="EC-HAT">[EC-HAT]</dt>
+<dt id="EC-IHAT">[EC-IHAT]</dt>
         <dd>
-<span class="refTitle">"EC-HAT: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-hat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-hat.html</a>&gt;</span>. </dd>
+<span class="refTitle">"EC-IHAT: An Issuer-Hiding Anonymous Token"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FAEST">[FAEST]</dt>
         <dd>

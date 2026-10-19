@@ -102,11 +102,11 @@ Table of Contents
    An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a
    token with a Moderator without revealing which Anchor issued the
    token.  Instead, the client proves the token was issued by some
-   Anchor in the Anchor Set trusted by the Moderator.  EC-HAT is also
+   Anchor in the Anchor Set trusted by the Moderator.  EC-IHAT is also
    designed to be post-issuance unlinkable, meaning the redemption of a
    token cannot be linked to its issuance.
 
-   EC-HAT meets these privacy goals unconditionally, meaning regardless
+   EC-IHAT meets these privacy goals unconditionally, meaning regardless
    of its computational resources, no attacker can learn which Anchor
    issued a token or to which Client it was issued.  On the other hand,
    it is well known that a quantum attacker can forge tokens by
@@ -124,7 +124,8 @@ Table of Contents
    particular Anchor, the Client proves knowledge of a signature under
    some public key in the Anchor Set.
 
-   VOLE-IHAT has significantly higher bandwidth cost compared to EC-HAT:
+   VOLE-IHAT has significantly higher bandwidth cost compared to EC-
+   IHAT:
 
    1.  each Anchor public key is 45.5KB (this corresponds to the uov-Ip
        parameter set [UOV]);
@@ -139,7 +140,7 @@ Table of Contents
       more invasive techniques from [PoMFRIT], Algorithm 2.
 
    On the other hand, VOLE-IHAT is round optimal: only two moves are
-   required for issuance, whereas EC-HAT requires three.
+   required for issuance, whereas EC-IHAT requires three.
 
    The remainder of this document is structured as follows.  Section 2
    defines some conventions and notation.  Section 3 provides a high-
@@ -151,7 +152,7 @@ Table of Contents
    implementers and adopters.
 
       TODO(cjpatton) Our pseudocode is derived from an old version of
-      EC-ACT, but [EC-ACT] now uses Python, as does [EC-HAT].  Consider
+      EC-ACT, but [EC-ACT] now uses Python, as does [EC-IHAT].  Consider
       transcribing our pseudocode into Python.  (Likewise for VOLE-ACT.)
 
 2.  Conventions and Definitions
@@ -187,11 +188,11 @@ Table of Contents
 
    Issuance binds a token to an issuance context ctx_iss agreed upon by
    the Client, Anchor, and Moderator, and a redemption context ctx_red
-   agreed upon by the Client and Moderator [EC-HAT].  The protocol
+   agreed upon by the Client and Moderator [EC-IHAT].  The protocol
    commits to both contexts during issuance: the Anchor verifies the
    ctx_iss binding during issuance, and the Moderator verifies both the
    ctx_iss and ctx_red binding during redemption.  Note that VOLE-IHAT
-   constrains how these values are chosen compared to [EC-HAT]; see
+   constrains how these values are chosen compared to [EC-IHAT]; see
    Section 5.2 for details.
 
    The issuance protocol is as follows:
@@ -328,13 +329,13 @@ Table of Contents
    The layout of state is chosen so that the entire commitment is
    computed with a single application of the permutation.  The zero
    padding is sized so that state is always 100 bytes.  This layout also
-   constrains the lengths of the inputs relative to [EC-HAT]: nf_len is
-   24 bytes, whereas [EC-HAT] uses a 32-byte nullifier, and ctx_len is
-   16 bytes, whereas [EC-HAT] allows the contexts to be arbitrary byte
+   constrains the lengths of the inputs relative to [EC-IHAT]: nf_len is
+   24 bytes, whereas [EC-IHAT] uses a 32-byte nullifier, and ctx_len is
+   16 bytes, whereas [EC-IHAT] allows the contexts to be arbitrary byte
    strings.
 
       TODO(cjpatton) Consider bumping the nullifier length to 32 to
-      match [EC-HAT] and guidelines for choosing the context strings.
+      match [EC-IHAT] and guidelines for choosing the context strings.
       Honestly, truncating a hash to 16 bytes is not terrible.
       (Likewise for VOLE-ACT.)
 
@@ -447,7 +448,7 @@ Table of Contents
    elements, that is, 0 < N <= MAX_ANCHORS.  They also agree on
    challenge_digest, which binds the redemption to the challenge that
    triggered it.  It is computed from the Moderator's challenge as
-   described in [EC-HAT]; this document treats it as an opaque byte
+   described in [EC-IHAT]; this document treats it as an opaque byte
    string of length 32.
 
    Let i in [N] be the index of the issuing Anchor.  The witness for the
@@ -645,9 +646,9 @@ Table of Contents
 
 8.1.  Normative References
 
-   [EC-HAT]   "EC-HAT: An Issuer-Hiding Anonymous Token", n.d.,
+   [EC-IHAT]  "EC-IHAT: An Issuer-Hiding Anonymous Token", n.d.,
               <https://moderation-of-unlinkable-endorsements.github.io/
-              internet-drafts/draft-authors-mole-ec-hat.html>.
+              internet-drafts/draft-authors-mole-ec-ihat.html>.
 
    [FAEST]    Baum, C., Beullens, W., Braun, L., Delpech de Saint
               Guilhem, C., Klooß, M., Majenz, C., Mukherjee, S., Orsini,

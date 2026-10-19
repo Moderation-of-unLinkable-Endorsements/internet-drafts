@@ -1306,7 +1306,7 @@ type-specific payloads directly, without outer type or length wrappers.<a href="
 </div>
 <p id="section-3-2">Payload parameter names end in <code>-T</code>, where <code>T</code> is a registered endorsement or
 credential type from <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>, written as exactly four lowercase
-hexadecimal digits. For example, EC-HAT (endorsement type 0x0002) is
+hexadecimal digits. For example, EC-IHAT (endorsement type 0x0002) is
 challenged with <code>redeem-0002</code>, and EC-ACT (credential type 0x0001) is presented
 with <code>presentation-0001</code>. Recipients also accept uppercase digits, since
 parameter names are case-insensitive (<span><a href="https://rfc-editor.org/rfc/rfc9110#section-11.2" class="relref">Section 11.2</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>). Type 0x0000
@@ -1496,7 +1496,7 @@ with the type-specific grant message as its body. The media type is
 the same four-digit hexadecimal encoding. The response uses
 <code>application/mole-endorsement-response</code> with the same type. The Client <span class="bcp14">MUST</span>
 reject a mismatched type. There is no outer <code>EndorsementRequest</code> or
-<code>EndorsementResponse</code> wrapper. The first EC-HAT request has empty content:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
+<code>EndorsementResponse</code> wrapper. The first EC-IHAT request has empty content:<a href="#section-6.1-2" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6.1-3">
 <pre>
 Content-Type: application/mole-endorsement-request; type=0002

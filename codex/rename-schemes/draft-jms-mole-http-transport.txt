@@ -132,7 +132,7 @@ Table of Contents
 
    Payload parameter names end in -T, where T is a registered
    endorsement or credential type from [PROTOCOLS], written as exactly
-   four lowercase hexadecimal digits.  For example, EC-HAT (endorsement
+   four lowercase hexadecimal digits.  For example, EC-IHAT (endorsement
    type 0x0002) is challenged with redeem-0002, and EC-ACT (credential
    type 0x0001) is presented with presentation-0001.  Recipients also
    accept uppercase digits, since parameter names are case-insensitive
@@ -248,7 +248,7 @@ Table of Contents
    parameter using the same four-digit hexadecimal encoding.  The
    response uses application/mole-endorsement-response with the same
    type.  The Client MUST reject a mismatched type.  There is no outer
-   EndorsementRequest or EndorsementResponse wrapper.  The first EC-HAT
+   EndorsementRequest or EndorsementResponse wrapper.  The first EC-IHAT
    request has empty content:
 
    Content-Type: application/mole-endorsement-request; type=0002

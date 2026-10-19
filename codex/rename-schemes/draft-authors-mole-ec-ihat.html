@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>EC-HAT: An Issuer-Hiding Anonymous Token</title>
+<title>EC-IHAT: An Issuer-Hiding Anonymous Token</title>
 <meta content="Samuel Schlesinger" name="author">
 <meta content="Watson Ladd" name="author">
 <meta content="Deep Inder Mohan" name="author">
 <meta content="
-       This document specifies EC-HAT, a cryptographic construction used to
+       This document specifies EC-IHAT, a cryptographic construction used to
 produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
 an Anchor issues to a Client, and that the Client later redeems at a Moderator
 without the Anchor being able to link the redemption to the issuance. 
@@ -22,7 +22,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.
 <meta content="endorsement" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
-<meta content="draft-authors-mole-ec-hat-latest" name="ietf.draft">
+<meta content="draft-authors-mole-ec-ihat-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
     Python 3.14.8
@@ -38,7 +38,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.
     requests 2.33.1
     wcwidth 0.9.2
 -->
-<link href="draft-authors-mole-ec-hat.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-authors-mole-ec-ihat.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1051,7 +1051,7 @@ svg {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">EC-HAT</td>
+<td class="center">EC-IHAT</td>
 <td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
@@ -1066,7 +1066,7 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-authors-mole-ec-hat-latest</dd>
+<dd class="internet-draft">draft-authors-mole-ec-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-10-19" class="published">19 October 2026</time>
@@ -1092,10 +1092,10 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">EC-HAT: An Issuer-Hiding Anonymous Token</h1>
+<h1 id="title">EC-IHAT: An Issuer-Hiding Anonymous Token</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document specifies EC-HAT, a cryptographic construction used to
+<p id="section-abstract-1">This document specifies EC-IHAT, a cryptographic construction used to
 produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
 an Anchor issues to a Client, and that the Client later redeems at a Moderator
 without the Anchor being able to link the redemption to the issuance.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
@@ -1109,8 +1109,8 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-hat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-hat.html</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-ec-hat/">https://datatracker.ietf.org/doc/draft-authors-mole-ec-hat/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-ec-ihat/">https://datatracker.ietf.org/doc/draft-authors-mole-ec-ihat/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1277,7 +1277,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
             <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-ciphersuites" class="internal xref">Ciphersuites</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
-                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-ec-hatp-256-sha-256" class="internal xref">EC-HAT(P-256, SHA-256)</a></p>
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-ec-ihatp-256-sha-256" class="internal xref">EC-IHAT(P-256, SHA-256)</a></p>
 </li>
             </ul>
 </li>
@@ -1343,9 +1343,9 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
 <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
-not meet all of these needs. This document defines such a system, EC-HAT,
+not meet all of these needs. This document defines such a system, EC-IHAT,
 an Issuer-Hiding Anonymous Token (IHAT).<a href="#section-1-1" class="pilcrow">¶</a></p>
-<p id="section-1-2">EC-HAT follows the construction described in Section 3.4 of <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span>,
+<p id="section-1-2">EC-IHAT follows the construction described in Section 3.4 of <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span>,
 which in turn is based on the pairing-free partially blind signature of
 <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>. An Anchor holds a signing key and issues, in three moves, a
 signature on a Client-chosen message that the Anchor never sees. Each
@@ -1637,7 +1637,7 @@ this document derives from that identifier:<a href="#section-4.1-2" class="pilcr
 <div class="lang-python sourcecode" id="section-4.1-3">
 <pre>
 def CreateProtocolContext(identifier: bytes) -&gt; bytes:
-    return b"EC-HATv1-" + identifier
+    return b"EC-IHATv1-" + identifier
 </pre><a href="#section-4.1-3" class="pilcrow">¶</a>
 </div>
 <p id="section-4.1-4">Throughout the remainder of this document, <code>ctx_proto</code> denotes the output of
@@ -1706,8 +1706,8 @@ to panic rather than handle the exception.<a href="#section-4.2-5" class="pilcro
 <p id="section-4.2-6">The two-stage derivation used here and in <a href="#derive-nonce" class="auto internal xref">Section 4.3</a> avoids the
 output-length limit of a single <code>hash_to_field</code> call using <code>expand_message_xmd</code>.
 XMD produces at most <code>255 * Nh</code> bytes per call, which allows at most 170 scalars
-with SHA-256 and <code>L = 48</code> (see <code>EC-HAT(P-256, SHA-256)</code> <a href="#ciphersuites" class="auto internal xref">Section 7</a>).
-Although EC-HAT's issuer-hiding proof needs fewer scalars, other protocols
+with SHA-256 and <code>L = 48</code> (see <code>EC-IHAT(P-256, SHA-256)</code> <a href="#ciphersuites" class="auto internal xref">Section 7</a>).
+Although EC-IHAT's issuer-hiding proof needs fewer scalars, other protocols
 that share these methods need larger vectors.<a href="#section-4.2-6" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3297,10 +3297,10 @@ ciphersuite in use (<a href="#config" class="auto internal xref">Section 4.1</a>
 <p id="section-7-2">For each ciphersuite, <code>ctx_proto</code> is as computed in <a href="#config" class="auto internal xref">Section 4.1</a>. The nullifier
 length is <code>Nn = 32</code> bytes and the seed length, that of the random input to
 every derivation, is <code>Nseed = 48</code> bytes for the ciphersuite below.<a href="#section-7-2" class="pilcrow">¶</a></p>
-<div id="ec-hatp-256-sha-256">
+<div id="ec-ihatp-256-sha-256">
 <section id="section-7.1">
-        <h3 id="name-ec-hatp-256-sha-256">
-<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-ec-hatp-256-sha-256" class="section-name selfRef">EC-HAT(P-256, SHA-256)</a>
+        <h3 id="name-ec-ihatp-256-sha-256">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-ec-ihatp-256-sha-256" class="section-name selfRef">EC-IHAT(P-256, SHA-256)</a>
         </h3>
 <p id="section-7.1-1">This ciphersuite uses P-256 (secp256r1) <span>[<a href="#NISTCurves" class="cite xref">NISTCurves</a>]</span> for the group and
 SHA-256 for the hash function, with <code>Nh = 32</code> and <code>s_in_bytes = 64</code>. The
@@ -3384,7 +3384,7 @@ two iterations on average.<a href="#section-7.1-3.20.1" class="pilcrow">¶</a></
       <h2 id="name-security-considerations">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-8-1">The security of EC-HAT is studied in <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span>. The underlying blind
+<p id="section-8-1">The security of EC-IHAT is studied in <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span>. The underlying blind
 signature is that of Tessaro and Zhu <span>[<a href="#TESSZHU" class="cite xref">TESSZHU</a>]</span>, instantiated with the public
 input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
@@ -3693,7 +3693,7 @@ carry <code>issue.session_id</code>. The keys of each Anchor Set other than <cod
 were generated for the vectors. Every redemption presents the same
 Endorsement, which a Moderator would accept only once; each <code>nf</code> entry is the
 output of <code>VerifyRedemption</code>.<a href="#appendix-A-3" class="pilcrow">¶</a></p>
-<div id="ec-hat-tv-suite">
+<div id="ec-ihat-tv-suite">
 <section id="appendix-A.1">
         <h3 id="name-ciphersuite">
 <a href="#appendix-A.1" class="section-number selfRef">A.1. </a><a href="#name-ciphersuite" class="section-name selfRef">Ciphersuite</a>
@@ -3705,26 +3705,26 @@ suite.identifier = 503235362d534841323536
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-derive">
+<div id="ec-ihat-tv-derive">
 <section id="appendix-A.2">
         <h3 id="name-scalar-derivation">
 <a href="#appendix-A.2" class="section-number selfRef">A.2. </a><a href="#name-scalar-derivation" class="section-name selfRef">Scalar Derivation</a>
         </h3>
 <div class="alignLeft art-text artwork" id="appendix-A.2-1">
 <pre>
-derive.info = 45432d484154207465737420766563746f7273
+derive.info = 45432d49484154207465737420766563746f7273
 derive.rand =
-    9119c96e8f0d94db694944a096558cff84f25a043e017cb651c223962cadafce
-    79462e259a38e1e70bc337e101ca81f0
+    35caeadd114fe2b6e3de7d4f2218945d5c4a330e9563376f8ac44bc14775ba75
+    54be242ad0e048032ff55604907693e7
 derive.scalars =
-    700d19f5a9b2df8ee77252743d74e1ea7ecac64ca52ab7d9a32a9ff52ead7c8d
-    ffa8bf990fcd2227b98d9de2f93dc5d0d5e59b4867463df9a9be7b1c5ca798bc
-    94d6bd93f5bedb340db2bbbbe0653add358172af1677fc86d7324b229b1830d6
+    f3504696233573f8189111eb5fca015633f3ec155005d6159d367b9abd05e001
+    8374a7a63cd6f59088b984ece9621d9eb279ec3b166a1dca0a4ade2703bfdb10
+    6fe6ded8c73bfb6ada8a5476c6775b3f01bd498fe7dff0b4968e2bed7148d89e
 </pre><a href="#appendix-A.2-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-key">
+<div id="ec-ihat-tv-key">
 <section id="appendix-A.3">
         <h3 id="name-key-pair">
 <a href="#appendix-A.3" class="section-number selfRef">A.3. </a><a href="#name-key-pair" class="section-name selfRef">Key Pair</a>
@@ -3732,21 +3732,21 @@ derive.scalars =
 <div class="alignLeft art-text artwork" id="appendix-A.3-1">
 <pre>
 key.rand =
-    175feef9e75deecbec4b1266288ad55b9b10529db772fc147391f064294d9c3e
-    a501e547eb5bcee3dbcc1668d27e34cd
+    fff81520add7b90fb45470d601bc701577c23a136e47bf17f25f509b28a41149
+    a8e96cb8e1bb68fbcf8367a690a430ba
 key.skA =
-    0c0a64e1042e4278654bbc9de47df47c22f1f5bcb319531e8ecb55e69d89c12a
+    f9e911e97a24cf3fd425ea7d11845ff75b3dad0ab58997b54e3448a2aaf60979
 key.pkA =
-    02c68eee55483fb51c1f316ce5dc52b0fe399dabe840bee1a7bb725d0816ef02
-    dc
+    024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+    3f
 key.P_pkA =
-    028ed59e3330e1ca4f6001a8f7023046493ba6be2d27d68c98e265577d195b78
-    5e
+    0275d05750b95cb2dc26b3a961ce6eb7e90b19f31388dfdb5654bc504541b1d8
+    b7
 </pre><a href="#appendix-A.3-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-issue">
+<div id="ec-ihat-tv-issue">
 <section id="appendix-A.4">
         <h3 id="name-issuance">
 <a href="#appendix-A.4" class="section-number selfRef">A.4. </a><a href="#name-issuance" class="section-name selfRef">Issuance</a>
@@ -3754,57 +3754,57 @@ key.P_pkA =
 <div class="alignLeft art-text artwork" id="appendix-A.4-1">
 <pre>
 issue.ctx_iss =
-    45432d484154207465737420766563746f72732069737375616e636520636f6e
-    74657874
+    45432d49484154207465737420766563746f72732069737375616e636520636f
+    6e74657874
 issue.ctx_red =
-    45432d484154207465737420766563746f727320726564656d7074696f6e2063
-    6f6e74657874
+    45432d49484154207465737420766563746f727320726564656d7074696f6e20
+    636f6e74657874
 issue.Z =
-    038d4a2bcc84aa8779247b7301bd15d4a22b5d6b978f4c404a90a5c1919ccac7
-    3d
+    02f9a6afb059d15adcaec09ed5b5986bdbff2d2f48102a8e0d5340f32b135534
+    5a
 issue.session_id =
-    45432d484154207465737420766563746f722073657373696f6e206964207631
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
 issue.commit.rand =
-    7a9b970be2b3d55de404618dc3ad3bcbf0ce66de00398a37c0507b9c319bb86c
-    198ecd649c88cacbeb20d5e4a60c2e99
+    0ba14197ea1f9b5f586cf5c3041288e81e9dc08fdefaf1c2aec55a90b7a2119b
+    fe112f9c69b25a25ba8778044c8b8193
 issue.commit.state =
-    51e1e6bb9eaec37d5bbc6830eb1121f254074da6e76925b009462cddc3be02a4
-    c58cec9d41759052e02a7d1ffe39d1f72bb88db9d06f8cc46c039ba5560db1db
-    daad342cf3c85192b95e4f16c4f2e1e57e9cb4758e884b168bbce96fd7be288c
+    7c06761dde72d25f6271330c2a215ac13158ac77e47080592f5e34a5d143bb4b
+    129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+    c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
 issue.commit.message =
-    45432d484154207465737420766563746f722073657373696f6e206964207631
-    037f6864a0d097eb9def0a05acee337332134793a3d2350a54aa41dc4c42f511
-    1b03717aa59cb9b20b6d7696ce9efa3ae81af065b487b0c86692a8c22c36710c
-    e769
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
+    033f90a0d4b5e1ea3f6c18976a84012bfbcbd8507f77c064ab7bd9fb60ab7f49
+    c803c38d94c9d4ff61f0e27f63099cfd7a0894f8829837b94fd7706e738f57e5
+    2bf4
 issue.challenge.rand =
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
-    da4c84fbca6abd48a52c7a9da24dfb3c86bd6d794e6fb656bcf2ed69a2370e0f
-    296594644cafe618ccb3965d464234ba
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+    157dcf74f191746f856077f6eb58b77d46d82e07ffd44f96d5942622a779df2b
+    e02a4e2cae2ba49e86d969a38cfb0f29
 issue.challenge.state =
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
-    65f649a96764fb9fc628e34f3c669e7d07e4cce00678f108d13d400ada9cf27d
-    9688d6a47460dd388dbd00e10510d7cb7adaade2750057eb066c560ab17cc5dc
-    f7c0c71beae64d158609d13beafcb95110c4f1d98d11014b6a43cf86c604fd47
-    2ff734d952db4638d819d35e1d795fa9e0a02c1807be9efb4fe5ca8c0680dc68
-    ee0d0d4b443658a3bd7169de591acb5ccefdc89bdbecd1dd242f342e1e6d8eb3
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+    f10fda352447af1471a9138cd978536c6a2ca4e1d0b8c6276d7c73295d1dc583
+    fc92457347bcb123e11829df470496cf285ab9dc788aea530f63de240798a4ee
+    098abe35e32374ccafd832471789a93d8b4e04c82897497528e07dc05f0d6624
+    b09aa9f4e511dd6d87a9df6cbf59dc076388ae8fa79962364d4e70102bcd22ff
+    f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
 issue.challenge.message =
-    45432d484154207465737420766563746f722073657373696f6e206964207631
-    eef74fb971114fbd71195a9a4204ae2b1b69cae8560f59b442cbe586f719d699
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
+    838f0e04447101fc590f5ec39c90a8be7bd45329346c6216148a1467bc325eef
 issue.response.message =
-    bfe8072ee964450bb9cfbe21f46f192fdf10caf1e8aa557e3e9ca2ca6cfb01ab
-    c58cec9d41759052e02a7d1ffe39d1f72bb88db9d06f8cc46c039ba5560db1db
-    daad342cf3c85192b95e4f16c4f2e1e57e9cb4758e884b168bbce96fd7be288c
+    455e3d35da4bd2ce0930aacafdcbee388a9c0a753c2d35574853badb06ad7a7c
+    129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+    c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
 issue.endorsement =
-    ee0d0d4b443658a3bd7169de591acb5ccefdc89bdbecd1dd242f342e1e6d8eb3
-    11a98b11c3541a2732f6d421fcaf82a3fdbe01f1dddeb1737fdf17db00d969a6
-    b29a6f078298e6d3780400333da15f9610f47f89b0fe0fc750c9316cc370c8ce
-    4574c8e72a80b55ffb78497e7ef711e490677850862a64c92ee231cd0b030875
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
+    f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
+    5962f7763329f82b5cc83a13fcadc9469b22d6963ccae504e01eb122b3583252
+    2718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575c1
+    c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f793721495
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 </pre><a href="#appendix-A.4-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-redeem2">
+<div id="ec-ihat-tv-redeem2">
 <section id="appendix-A.5">
         <h3 id="name-redemption-against-2-anchor">
 <a href="#appendix-A.5" class="section-number selfRef">A.5. </a><a href="#name-redemption-against-2-anchor" class="section-name selfRef">Redemption Against 2 Anchors</a>
@@ -3813,37 +3813,37 @@ issue.endorsement =
 <pre>
 redeem2.index = 1
 redeem2.anchor_set =
-    021a6518912bc327c44cbf1c71d0bbec54207f2b55a081581546450f25842ff1
-    9202c68eee55483fb51c1f316ce5dc52b0fe399dabe840bee1a7bb725d0816ef
-    02dc
+    02eb95f5cedca77363bcb9808b656de3082c23d67506f96c717952e8cce9d240
+    a8024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec537
+    583f
 redeem2.challenge_digest =
-    45432d484154207465737420766563746f7273206368616c6c656e6765206469
-    67657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem2.rand =
-    a4aca2e8c191632859a14f6cfb131d3cbe6bdc805352d60077134a452373f0ee
-    09bf6384891b053d172175e14a7d1f713ece61c7a6d08fd3f10157cc0420b803
-    a73e8b97898d99034c4e2ed2ee83a96c3beb197891824e7e1c288412dc87f71d
+    bb214c063c44660b2193e4ff68f6acb3643d54257e6a03f27d7162b210794faa
+    40d383b6ed9f37de84973d1232dd3ce30106ddb4ed4f130968ddc9d54066d004
+    1ce24800e438f27ff3aa9c3fa1575f10cee63ab4bbac324a1a4895786f016573
 redeem2.delta =
-    ac5b9a4716f5060edba52f8d7732e3708b1f8de4b7289de9c68a02d6764d6962
+    d3aca91a849c8f30aa7a3f31842ff2bb535b6b34d676c7cd77c5a0125e72db28
 redeem2.message =
-    03503010056803090283de37600115531c993c145f5361e712f9116024791032
-    b9ee0d0d4b443658a3bd7169de591acb5ccefdc89bdbecd1dd242f342e1e6d8e
-    b3836273a25053b9df2127c39800569b0fb9ca08db0223fb9b9d04eb5c5282b8
-    14b29a6f078298e6d3780400333da15f9610f47f89b0fe0fc750c9316cc370c8
-    ce4574c8e72a80b55ffb78497e7ef711e490677850862a64c92ee231cd0b0308
-    7544c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb3
-    973b73b915f2a02364afc2d62a23695260e2ce49dd97a74884736cceb2a702d0
-    9c3c5728f347429e55ad9e3cecb6635ae98f7a907f1ffedf8ae947202f55d9dc
-    fc210316f549a9be8abd430ace1975e97567b05f64cf89e485bf11912be9611e
-    2f9bd220d9ba8187de97fe5e7d596a75d6c92da6c60f9abfae1a61a59a49e80f
-    33e66e47
+    029dc60bb0c07274bb09cff84e5202354bc5116b9f56f4776ad74a6f296428c4
+    7ef97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    19de7841f140ca998aef6a9862b3e49c5c64a22dcd1c4dc017a8e1de28238614
+    192718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d9dcdb1bf2752d262faa01e23f63177aab005ca60ef098b466ba32c4c09b13c5
+    5f68ce1afdfbc9550f9e4f6aca1b57cd42e9607f199b96f3835d986364aec9b2
+    4021026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
+    345128206ff15e6c7ae1ad15f0e8419c98b5f3d8608f7997489f1aa2d3fd7e01
+    6b9365c8
 redeem2.nf =
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 </pre><a href="#appendix-A.5-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-redeem5">
+<div id="ec-ihat-tv-redeem5">
 <section id="appendix-A.6">
         <h3 id="name-redemption-against-5-anchor">
 <a href="#appendix-A.6" class="section-number selfRef">A.6. </a><a href="#name-redemption-against-5-anchor" class="section-name selfRef">Redemption Against 5 Anchors</a>
@@ -3852,44 +3852,44 @@ redeem2.nf =
 <pre>
 redeem5.index = 3
 redeem5.anchor_set =
-    0263c6d7ddbef31e863c5045aa967a14722d6141974459900357bc13e2e01ecb
-    a702ac70f3b0595f1f7aea8ef8bf67c191b02f29cfdb0162e86c1a5de4e2150e
-    9c9303831d177cc4a51872dcbfbfe976824eed60f618c00eb7e9dfa8eaaec0dd
-    74e80702c68eee55483fb51c1f316ce5dc52b0fe399dabe840bee1a7bb725d08
-    16ef02dc02aa17e1aab7fff7c4d3f2e888ea62a362e9897d635dcfec0c85f8f8
-    a24b6b03e4
+    027c0c7a8f7ebc13b50e2392c122f9a66799a1e71189a86a0d30b492bfaa371a
+    7802d8a8886b22bee6d1777f8c76a695d477a3c60a0962a4cd8a02cc4e6431f3
+    40b7025f2dc1fe0b5573ebf4ce1f1ae0492350fdcc04d5ba2b48c8b21f73cb63
+    5fa99d024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdee
+    c537583f03affc2c254d196c3effcd4e69667bc152370df56313b19c03af3f31
+    0f4b6a87f2
 redeem5.challenge_digest =
-    45432d484154207465737420766563746f7273206368616c6c656e6765206469
-    67657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem5.rand =
-    2c64fb4300c6114ad34acaaec4ad26ae87cebc5f6789750075c5ef5e9fed3080
-    32d7c4a96a1e9e0358ea9a764f4432457c9fff034e2025d7af2b7ed4931b627a
-    de506bddb403c11baec6466e4b1b0ea2f373a034a1d9416af600f8770643598b
+    558fe7711d3f49116fd154a013e42aaf828ebb19e9e2352819990100eb1c1c9a
+    abf55df1e84433158c6876394920204f12fd2b344628dfc2748d70d3aa80aa23
+    0608494028ab6ec5236a2bf4876c767dd834ca244fb1af8ce935c346cafa1005
 redeem5.delta =
-    c46607425ac983e6b0c7428c50b3ea27988189cb59010f1b72599235d75ca070
+    b8efd6a9a93354b0ef988ba6add03fbb843c83f7d776c5088e80537440776855
 redeem5.message =
-    021b3399ac5d131b7f4056868913fc7221659546b658fd53c6a0c3189f2e9e4a
-    82ee0d0d4b443658a3bd7169de591acb5ccefdc89bdbecd1dd242f342e1e6d8e
-    b3bf51af9ded93e282c4c87062fb826b75c8d11bef39bb61846ac5c3483a0a91
-    d0b29a6f078298e6d3780400333da15f9610f47f89b0fe0fc750c9316cc370c8
-    ce4574c8e72a80b55ffb78497e7ef711e490677850862a64c92ee231cd0b0308
-    7544c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb3
-    97e331e0f6c12beb7e87a725d6a6138c8ba593064c5c9354a2eb8d48904bf57e
-    7e33336852836a6780ba9bcbd42623467d110ccc9182ba1ac1375a0130229d5d
-    1e4063026b3c22911a2aab711f4f0955a5f17df0fb2feeda4585b1bde2b162ca
-    e6b0da8a025b94a8ac159ff0e5cb10f50437a6cd7e6fe27c12967910bc74b0fa
-    30bff43dbe02ae6fc56e914bb00e6692c4888116756069de57ad45c2d7cc56a9
-    f2f40c9750d5406085f4b51884121274d845ae4d3f89862cada36345f6aa8242
-    6ba9da731ae2801639470b6ebb9c27b0a4c8fc64b6b3990712d5528604a6030e
-    9d7e7a3e55de68f751f95d8fbf7a6526bf5e716898476625677391dea7d9d998
-    452b4c8ed374481a
+    036e54617195473504812e14b44912097f62b6f7d72f7e88b6e571bc41a0394a
+    7cf97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    196851575c8c96e72bc1b05cc88fe39d9f6c5df5c435aa7174be1e0d055d3df2
+    662718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d950529d143f3c4f71f4270f4d7f84b9c3d2b1d1c5daa4c0caf8ee1d338885f1
+    a4691136fa0520c546bbff2a00faf6a012faf8c281ee8385c0d6a8116e85a2c8
+    704063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
+    72b908c1027b75353c0b05b768798410106bb01a761634cc29423c8b45e96b3a
+    f1441349bb037610019efbae269ac174e983ecae9ffa9c73e225e8ba54b706d7
+    c164e4392e1540609574c0a33b601e403d4fd5bbf057fd6e5d05f11fb9168629
+    9a16416ae73880abd3d3ddef893007f0933b35454109117b243e8ff280c6435e
+    dcf1087b97724a42a805bd91e9545402352ca0200f3bdcd0117ad57684009761
+    b065ee322027e03f
 redeem5.nf =
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 </pre><a href="#appendix-A.6-1" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
-<div id="ec-hat-tv-redeem1">
+<div id="ec-ihat-tv-redeem1">
 <section id="appendix-A.7">
         <h3 id="name-redemption-against-1-anchor">
 <a href="#appendix-A.7" class="section-number selfRef">A.7. </a><a href="#name-redemption-against-1-anchor" class="section-name selfRef">Redemption Against 1 Anchor</a>
@@ -3898,29 +3898,29 @@ redeem5.nf =
 <pre>
 redeem1.index = 0
 redeem1.anchor_set =
-    02c68eee55483fb51c1f316ce5dc52b0fe399dabe840bee1a7bb725d0816ef02
-    dc
+    024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+    3f
 redeem1.challenge_digest =
-    45432d484154207465737420766563746f7273206368616c6c656e6765206469
-    67657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem1.rand =
-    a9bc6fb8c77e439ebba6c6a9f3d46385717ab2c5973e5acc44e63d3608b4b455
-    66529e49d7370552cba2c7303b30b1639d704b5aac2513bf07ba451b1d134e0d
-    8c531b87b8e7385d1d67bb2aa8ae5a68e0957212684de4319c3406944093a69b
+    0ab3d707e39d461b2861cb6e8e6a2c6c3bf2640081448678f846db0886fd053b
+    4dd223e71416f52740000183803b28f7a55ad488794504e01619d2f2600ec071
+    5ff5bbe0b582a64a6f2db846184d541ab636e578683fcb9b9acc2ab1bbf1bdac
 redeem1.delta =
-    cbf57fa1d53fdd1fa83fcc39c9086a25df4ba3737ad6d1f9b6078d2a06cea901
+    ff8c0a8d5403241b69df67b3ef9f16474021cb373a4715dc5426ef490e5231c3
 redeem1.message =
-    03e26491688de515f41e39d0d9a33e30e09b4625433792800b6418eaf3172bef
-    f9ee0d0d4b443658a3bd7169de591acb5ccefdc89bdbecd1dd242f342e1e6d8e
-    b3f601b766013458e6ed2fa51e1b628b9bcd5857c8ff7ebae1487c93014e7e16
-    65b29a6f078298e6d3780400333da15f9610f47f89b0fe0fc750c9316cc370c8
-    ce4574c8e72a80b55ffb78497e7ef711e490677850862a64c92ee231cd0b0308
-    7544c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb3
-    971e964f754e93d2d18abfbcd2e9456ed44527b9f6e2f8e58896f20a420a212a
-    a33fa87994ec9cac503e3950eedc24eb1944681bd7022c0d21cc45f21bf3cebf
-    240000
+    03300196a535ec07e6d8462cc80360e9630ca3a6d5d3a2b67fa241f6a929c816
+    a5f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    19128120835a8453057e46c2ecbaf20f7dd97d30a94480e62dcc26c8425ef305
+    182718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d9c2dcc7d873582ac78015ba03d96201b2298130e72106175eff6662cf33ed95
+    8daf5bb5d6a461ab7e310351640c454fbc9fb654c64c1f7b53fffd44c018a92f
+    830000
 redeem1.nf =
-    44c47b040ff69d7aa0c0b3023a378355115a06b719e8fab5df5cbe2b7dcbb397
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 </pre><a href="#appendix-A.7-1" class="pilcrow">¶</a>
 </div>
 </section>

@@ -142,14 +142,14 @@ Table of Contents
    defined in [ARCH]; a lowercase credential is the generic
    cryptographic notion.  The message-encoding conventions, Python
    notation, and helpers I2OSP, U16Prefixed, random, and Seed are those
-   of Section 2 of [EC-HAT].  The algorithms use bytes for byte strings,
-   int for integers, and Sequence and NamedTuple from Python's typing
-   module.  Record fields appear in the same order as their tuple
+   of Section 2 of [EC-IHAT].  The algorithms use bytes for byte
+   strings, int for integers, and Sequence and NamedTuple from Python's
+   typing module.  Record fields appear in the same order as their tuple
    representation.
 
    The group G, protocol context ctx_proto, seed length Nseed,
    generators, and balance width L are globals fixed by the EC-ACT
-   configuration (Section 4.1).  Shared group methods from [EC-HAT] use
+   configuration (Section 4.1).  Shared group methods from [EC-IHAT] use
    the EC-ACT group instance G, which stores ctx_proto and applies EC-
    ACT domain separation.  Both schemes use Nseed = 48.  Public byte-
    string inputs retain the length bounds specified by the operation
@@ -166,8 +166,8 @@ Table of Contents
       Section 3.1.  Section 5 gives concrete instances.
 
    Hash:  A cryptographic hash function, used by the HashToGroup,
-      HashToScalar, and derivation algorithms that the group of [EC-HAT]
-      provides.
+      HashToScalar, and derivation algorithms that the group of
+      [EC-IHAT] provides.
 
    Sigma protocol:  The compact non-interactive Sigma protocol of
       [SIGMA], instantiated in Section 4.4.
@@ -175,7 +175,7 @@ Table of Contents
 3.1.  Prime-Order Group
 
    EC-ACT uses the prime-order group interface and the Element and
-   Scalar types of Section 3.1 of [EC-HAT], instantiated as in
+   Scalar types of Section 3.1 of [EC-IHAT], instantiated as in
    Section 5.  The prime p = G.Order() is the group order and the
    scalar-field modulus.  The Python interface provides G.scalar(x) for
    an integer x in [0, G.Order()), s.isZero() for a scalar, and
@@ -186,7 +186,7 @@ Table of Contents
 3.2.  Errors
 
    DeserializeError, VerifyError, DeriveError, and ValueError have the
-   meanings given in Section 3.2 of [EC-HAT].  EC-ACT additionally uses
+   meanings given in Section 3.2 of [EC-IHAT].  EC-ACT additionally uses
    AmountError when a balance or amount is outside the range admitted by
    Section 4.3:
 
@@ -199,7 +199,7 @@ Table of Contents
 3.3.  Deriving Scalars
 
    Use G.DeriveScalars(rand: bytes, info: bytes, count: int) ->
-   list[Scalar] from Section 4.2 of [EC-HAT], using the EC-ACT group
+   list[Scalar] from Section 4.2 of [EC-IHAT], using the EC-ACT group
    instance initialized with ctx_proto.  It rejects rand whose length is
    not Nseed with ValueError, and raises DeriveError in the negligible
    event that a derived scalar is zero.  EC-ACT applies the following
@@ -221,7 +221,7 @@ Table of Contents
 3.4.  Key Generation
 
    Use G.DeriveKeyPair(seed, info) and G.GenerateKeyPair() from
-   Section 4.4 of [EC-HAT], with the EC-ACT group instance of
+   Section 4.4 of [EC-IHAT], with the EC-ACT group instance of
    Section 4.1.  Both return tuple[Scalar, Element]; EC-ACT names the
    returned keys (skM, pkM) because the Moderator is the issuer.  The
    Moderator publishes G.SerializeElement(pkM) in its configuration
@@ -491,7 +491,7 @@ Table of Contents
    ProveCompact draws one nonce per witness scalar from its rng, in
    scalar-index order.  The rng MUST return, on its i-th call, the value
    that ProverNonces.random_scalar computes below.  The nonces are
-   derived together with G.DeriveNonces (Section 4.3 of [EC-HAT]) from
+   derived together with G.DeriveNonces (Section 4.3 of [EC-IHAT]) from
    the witness, the session, the relation, and fresh randomness; see
    "Derived prover nonces" in Section 6.
 
@@ -594,7 +594,7 @@ Table of Contents
 
    IssueResponse here and IssueRefund (Section 4.6.4) choose the
    exponent e of the signature (A, e).  It is derived with
-   G.DeriveNonces (Section 4.3 of [EC-HAT]) from the signing key, the
+   G.DeriveNonces (Section 4.3 of [EC-IHAT]) from the signing key, the
    group-element encoding of the signed attributes, and fresh
    randomness.  Repeating these inputs reproduces the same signature.
    Changing the signed encoding changes the derivation input even when
@@ -1184,7 +1184,7 @@ Table of Contents
    b"P256-SHA256".
 
    Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
-   algorithms, and canonical encodings of Section 7.1 of [EC-HAT].  EC-
+   algorithms, and canonical encodings of Section 7.1 of [EC-IHAT].  EC-
    ACT uses Ne = 33, Ns = 32, and Nseed = 48.  Instantiate every hash
    with the EC-ACT ctx_proto of Section 4.1, including the explicit DSTs
    of G.DeriveScalars, G.ExpandScalars, G.DeriveNonces, and
@@ -1199,7 +1199,7 @@ Table of Contents
    Every random value in this document is drawn with random and consumed
    in inputs of Nseed bytes, by G.DeriveScalars (Section 3.3), by
    G.DeriveKeyPair (Section 3.4) for a key, or, for the values listed
-   below, by G.DeriveNonces (Section 4.3 of [EC-HAT]); no scalar is
+   below, by G.DeriveNonces (Section 4.3 of [EC-IHAT]); no scalar is
    sampled directly.  Implementations MUST draw with a cryptographically
    secure random number generator and MUST NOT reuse randomness across
    derivations.  Randomness is as sensitive as the values derived from
@@ -1294,7 +1294,7 @@ Table of Contents
       The proof strategy replaces the derived vectors by independent
       random scalars, with a loss accounting for scalar-reduction bias,
       collisions, and queries to secret derivation inputs (Section 4.2
-      of [EC-HAT]).  Concrete bounds for this replacement and its
+      of [EC-IHAT]).  Concrete bounds for this replacement and its
       composition with the proofs remain to be established.  The public
       amounts s, a, and t, and the configuration, determine which
       Credentials could have produced a presentation; [PROTOCOLS]
@@ -1330,7 +1330,7 @@ Table of Contents
       forge Credentials at any balance below 2^L, each with a fresh
       nullifier, which the nullifier store cannot detect.  Both values
       are therefore derived with G.DeriveNonces (Section 4.3 of
-      [EC-HAT]) from the key and the operation (Section 4.5.1,
+      [EC-IHAT]) from the key and the operation (Section 4.5.1,
       Section 4.4.2), so that a rolled back or snapshotted random source
       reproduces an earlier response instead of yielding a second one.
       An implementation that draws either value directly MUST treat
@@ -1384,7 +1384,7 @@ Table of Contents
       keyed-verification credentials.
 
    Derived prover nonces:  ProverNonces derives the nonces of a proof
-      together with G.DeriveNonces (Section 4.3 of [EC-HAT]) from the
+      together with G.DeriveNonces (Section 4.3 of [EC-IHAT]) from the
       witness, the session, the relation, and Nseed bytes of fresh
       randomness.  Its security analysis must establish that the nonce
       vector is indistinguishable from fresh uniform randomness to
@@ -1436,11 +1436,11 @@ Table of Contents
               6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
               jms-mole-architecture-00>.
 
-   [EC-HAT]   Schlesinger, S. and D. I. Mohan, "EC-HAT: An Issuer-Hiding
-              Anonymous Token", Work in Progress, Internet-Draft, draft-
-              authors-mole-ec-hat, 2026, <https://moderation-of-
+   [EC-IHAT]  Schlesinger, S. and D. I. Mohan, "EC-IHAT: An Issuer-
+              Hiding Anonymous Token", Work in Progress, Internet-Draft,
+              draft-authors-mole-ec-ihat, 2026, <https://moderation-of-
               unlinkable-endorsements.github.io/internet-drafts/draft-
-              authors-mole-ec-hat.html>.
+              authors-mole-ec-ihat.html>.
 
    [FIAT-SHAMIR]
               Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
