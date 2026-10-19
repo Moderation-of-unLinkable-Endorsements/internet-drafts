@@ -32,11 +32,11 @@ encoding, and context-binding rules that both the Anchor and the Client follow.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.13.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.2
 -->
 <link href="draft-authors-mole-ihat-rollatini.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1056,7 +1056,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 18 April 2027</td>
+<td class="center">Expires 22 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1069,12 +1069,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-ihat-rollatini-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-15" class="published">15 October 2026</time>
+<time datetime="2026-10-19" class="published">19 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-18">18 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-22">22 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1133,7 +1133,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1367,8 +1367,7 @@ without requiring a synchronized state between them.<a href="#section-1-3.2.1" c
       </ul>
 <p id="section-1-4"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> maps the cryptographic algorithms to the MoLE grant and
 redemption APIs. It supplies the issuance and redemption contexts; this
-document treats those contexts as opaque byte strings. Configuration
-encodings and discovery remain open work in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-4" class="pilcrow">¶</a></p>
+document treats those contexts as opaque byte strings.<a href="#section-1-4" class="pilcrow">¶</a></p>
 <p id="section-1-5">The remainder of this document is organized as follows. After defining
 conventions and cryptographic preliminaries (<a href="#preliminaries" class="auto internal xref">Section 3</a>), we given an
 overview of issuance and specify some functionalities common to issuance and
@@ -1620,7 +1619,7 @@ challenge in a second request, and receive the response in the reply to that.
 the exchanges of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-4-2" class="pilcrow">¶</a></p>
 <p id="section-4-3">Neither context is carried in these messages. Both parties already hold the
 issuance context, having agreed on it out of band; the redemption context is
-known only to the Client.<a href="#section-4-3" class="pilcrow">¶</a></p>
+known only to the Client and Moderator.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">The Client's output is an Endorsement that is publicly verifiable under the
 Anchor's public key <code>pkA</code> (<a href="#verify" class="auto internal xref">Section 5.5</a>). The Anchor learns neither the nullifier
 nor the redemption context bound into it, and cannot link the Endorsement to
@@ -2433,8 +2432,7 @@ set (<a href="#security-considerations" class="auto internal xref">Section 8</a>
 with the <em>stacking</em> technique of Goel, Green, Hall-Andersen and Kaptchuk
 <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span>, whose proof is logarithmic in <code>n</code>: the Client sends a single
 response, which every branch reuses, together with a commitment whose opening
-forces one branch to have been answered honestly. <span>[<a href="#FFKLLS26" class="cite xref">FFKLLS26</a>]</span> applies the same
-two compositions, for the same purpose, to a pairing-based credential.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+forces one branch to have been answered honestly.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
 <p id="section-6.2-3">The proof takes the rerandomized key of <a href="#rerandomization" class="auto internal xref">Section 6.1</a> as its statement
 and leaves issuance and <a href="#verify" class="auto internal xref">Section 5.5</a> unchanged.<a href="#section-6.2-3" class="pilcrow">¶</a></p>
 <p id="section-6.2-4">The construction below first defines the branch proof, then builds a partially
@@ -2486,7 +2484,7 @@ a fixed shift of the derived nonce <code>r</code>, and so is statistically close
 uniform independently of the statement and witness; see
 <a href="#security-considerations" class="auto internal xref">Section 8</a>. One response can therefore be reused across
 branches without revealing which branch produced it.<a href="#section-6.2.1-7" class="pilcrow">¶</a></p>
-<p id="section-6.2.1-8">A verifier given <code>proof_challenge</code> and one <code>response</code> can therefore compute
+<p id="section-6.2.1-8">A Moderator given <code>proof_challenge</code> and one <code>response</code> can therefore compute
 an accepting commitment for every branch. Soundness comes from the commitment
 of <a href="#pbvc" class="auto internal xref">Section 6.2.2</a>: the Client fixes the commitment of one branch before the
 challenge exists and cannot change it afterwards.<a href="#section-6.2.1-8" class="pilcrow">¶</a></p>
@@ -2499,7 +2497,7 @@ challenge exists and cannot change it afterwards.<a href="#section-6.2.1-8" clas
           </h4>
 <p id="section-6.2.2-1">A <em>partially binding vector commitment</em> <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> commits to a vector of
 values such that one position, chosen when the commitment key is generated and
-hidden from the verifier, is binding, while every other position can afterwards
+hidden from the Moderator, is binding, while every other position can afterwards
 be opened to any value. The Client commits the branch commitment of <code>index</code> at
 the binding position, and after the challenge is known it opens every other
 position to the branch commitment that the shared response determines. The
@@ -2509,10 +2507,9 @@ key.<a href="#section-6.2.2-1" class="pilcrow">¶</a></p>
 <p id="section-6.2.2-2">This document uses the commitment of the appendix of <span>[<a href="#STACKSIG" class="cite xref">STACKSIG</a>]</span> over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.<a href="#section-6.2.2-2" class="pilcrow">¶</a></p>
-<p id="section-6.2.2-3">The commitment to a pair uses a permutation <code>P</code> on group elements. The inverse
-of this permutation is denoted <code>Pinv</code> (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>). Its key is a point <code>Q</code>,
-and an opening is a single scalar, the <code>randomness</code> argument of <code>CommitStep</code>.
-The two values are hashed to scalars and committed under the bases <code>Q</code> and
+<p id="section-6.2.2-3">The commitment to a pair uses a permutation <code>P</code> on group elements. The
+inverse of this permutation is denoted <code>Pinv</code> (<a href="#permutation" class="auto internal xref">Section 6.2.3</a>).  The
+two values are hashed to scalars and committed under the bases <code>Q</code> and
 <code>P(Q)</code>:<a href="#section-6.2.2-3" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.2-4">
 <pre>
@@ -2708,12 +2705,13 @@ encodings by cycle walking: a permutation of the encoding space is applied
 until the result decodes to an element, and <code>Pinv</code> walks the same cycle
 backwards. Since a permutation partitions its domain into cycles, the two
 are inverse to each other.<a href="#section-6.2.3-1" class="pilcrow">¶</a></p>
-<p id="section-6.2.3-2">The following direct implementations define the permutation and its inverse.
-They <span class="bcp14">MAY</span> be used on public points, including the commitment keys in
-<code>CommitStep</code>. Key generation instead uses <code>G.PermutationPair</code>
-(<a href="#permutation-pair" class="auto internal xref">Section 6.2.3.1</a>), which is designed to be side-channel resistant. In
-particular, its execution does not distinguish the two binding directions when
-its outputs are fixed.<a href="#section-6.2.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.2.3-2">The following direct implementations define the permutation and its
+inverse for the P-256 group. Other ciphersuites <span class="bcp14">MUST</span>
+define the permutation to be used. They <span class="bcp14">MAY</span> be used on public points,
+including the commitment keys in <code>CommitStep</code>. Key generation instead
+uses <code>G.PermutationPair</code> (<a href="#permutation-pair" class="auto internal xref">Section 6.2.3.1</a>), which is designed to
+be side-channel resistant. In particular, its execution does not
+distinguish the two binding directions when its outputs are fixed.<a href="#section-6.2.3-2" class="pilcrow">¶</a></p>
 <div class="lang-python sourcecode" id="section-6.2.3-3">
 <pre>
 def P(self, element: Element) -&gt; Element:
@@ -3049,7 +3047,7 @@ on the other, having generated that level's key so that the other side is
 the equivocal one. The third move then computes the branch commitment of
 every statement from the single response, equivocates each level to the
 value its sibling subtree now has, and rebuilds the tree with the
-equivocated openings. The root is unchanged, so the verifier recomputes the
+equivocated openings. The root is unchanged, so the Moderator recomputes the
 same root.<a href="#section-6.2.5-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -3104,7 +3102,7 @@ def VerifyIssuer(
     )
 </pre><a href="#section-6.2.6-1" class="pilcrow">¶</a>
 </div>
-<p id="section-6.2.6-2">The verifier computes a commitment for every branch from the single response,
+<p id="section-6.2.6-2">The Moderator computes a commitment for every branch from the single response,
 rebuilds the whole tree from those commitments and the openings it was given,
 and checks that the root it arrives at is the one the challenge was computed
 over. Neither the branch commitments nor the interior nodes are transmitted.<a href="#section-6.2.6-2" class="pilcrow">¶</a></p>
@@ -3262,9 +3260,8 @@ the Anchor Set itself does; see <a href="#security-considerations" class="auto i
         <h3 id="name-encodings-2">
 <a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-encodings-2" class="section-name selfRef">Encodings</a>
         </h3>
-<p id="section-6.5-1">A redemption is carried in the <code>bytes</code> field of the <code>Presentation</code> structure of
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>, which a Client sends in the <code>endorsement_presentation</code> field of a
-<code>CredentialRequest</code>.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+<p id="section-6.5-1">In <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>, a Client sends the encoded <code>Redemption</code> with the issuance
+request in Redeem &amp; Issue.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
 <div class="lang-tls-presentation sourcecode" id="section-6.5-2">
 <pre>
 struct {
