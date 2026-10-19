@@ -1,9 +1,9 @@
 ---
-title: "Ratatouille"
-abbrev: "Ratatouille"
+title: "VOLE-ACT"
+abbrev: "VOLE-ACT"
 category: info
 
-docname: draft-authors-mole-act-ratatouille-latest
+docname: draft-authors-mole-vole-act-latest
 submissiontype: IETF
 number:
 date:
@@ -15,7 +15,7 @@ keyword:
   - privacy
 venue:
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html"
 
 author:
   -
@@ -160,9 +160,9 @@ informative:
         name: Ronny Van Keer
 
   ARCHITECTURE: I-D.draft-jms-mole-architecture
-  ACT:
-    title: "Anonymous Credit Tokens (ACT)"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
+  EC-ACT:
+    title: "EC-ACT: Anonymous Credit Tokens"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html
   SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
 
   PoMFRIT:
@@ -269,8 +269,8 @@ informative:
 
 --- abstract
 
-This document specifies Ratatouille, a candidate post-quantum Anonymous Credit
-Token (ACT). Ratatouille is based on the UOV digital signature scheme and the
+This document specifies VOLE-ACT, a candidate post-quantum Anonymous Credit
+Token (ACT). VOLE-ACT is based on the UOV digital signature scheme and the
 VOLE-in-the-Head proof system (a component of the FAEST signature scheme). The
 moderator issues a token by signing a commitment to the client's state; to
 present a token, the client proves knowledge of this signature and the opening
@@ -299,25 +299,25 @@ number of credits, and the Client can later spend those credits anonymously, in
 whole or in part, without the Issuer being able to link the spend to the
 issuance or to any other spend by the same Client.
 
-The ACT specified in {{ACT}} achieves this privacy goal
+The elliptic-curve construction {{EC-ACT}} achieves this privacy goal
 information-theoretically, meaning no attacker, regardless of its computational
 resources, can link the presentation of a token to its issuance. However, it is
 based on elliptic curve cryptography, which means a quantum attacker can forge a
 token by recovering the Issuer's secret key from its public key.
 
-This document specifies Ratatouille, an ACT that is plausibly fully
+This document specifies VOLE-ACT, an ACT that is plausibly fully
 post-quantum secure. Its design is based on the PoMFRIT blind signature scheme
 {{PoMFRIT}}, which combines a post-quantum signature scheme with a suitable
 zero-knowledge proof system and commitment scheme. Specifically, the signer
 signs a commitment to the message, and the verifier checks a zero-knowledge
 proof-of-knowledge of the signature and the opening of the commitment.
-Ratatouille generalizes this from a one-time use token to a token with
+VOLE-ACT generalizes this from a one-time use token to a token with
 updatable state: the commitment binds a nullifier together with the remaining
 credits, and each presentation additionally proves that the spend was
 subtracted correctly and the balance stays in range, with the Issuer re-signing
 the updated commitment so that every spend chains into the next token.
 
-Ratatouille uses {{UOV}} as its signature scheme. Two instantiations of the
+VOLE-ACT uses {{UOV}} as its signature scheme. Two instantiations of the
 commitment are defined, one based on the Keccak permutation {{FIPS202}} and
 another based on the Multivariate Quadratic (MQ) problem {{BFMRSV25}}. The
 latter composes more naturally with UOV, is much simpler to evaluate in zero
@@ -332,7 +332,7 @@ communication cost than the hash-based variant.
 > cost is at or below hash-based commitments, then their relative simplicity
 > makes them a good choice.
 
-Both variants of Ratatouille have higher bandwidth cost than {{ACT}}:
+Both variants of VOLE-ACT have higher bandwidth cost than {{EC-ACT}}:
 
 1. the Issuer's public key is 45.5 KB, which corresponds to the uov-Ip
    parameter set for UOV (the MQ instantiation has a larger public key in
@@ -346,7 +346,7 @@ Both variants of Ratatouille have higher bandwidth cost than {{ACT}}:
 In both the initial issuance and a spend, the Issuer's reply is a single UOV
 signature, which is below a couple of hundred bytes for both instantiations.
 
-Unlike {{ACT}}, Ratatouille tokens are publicly verifiable, meaning they can be
+Unlike {{EC-ACT}}, VOLE-ACT tokens are publicly verifiable, meaning they can be
 presented to any party with the Issuer's public key. Of course, this has
 implications for privacy, since the token necessarily reveals the identity of
 the Moderator that issued it.
@@ -354,7 +354,7 @@ the Moderator that issued it.
 The remainder of this document is structured as follows. {{conventions}}
 defines some conventions and notation. {{overview}} provides a high-level
 overview of the protocol. {{preliminaries}} defines the relevant interfaces for
-the signature scheme, commitment scheme, and proof system used by Ratatouille,
+the signature scheme, commitment scheme, and proof system used by VOLE-ACT,
 and provides normative references for their specifications. {{protocol}}
 specifies the protocol in terms of a generic commitment scheme;
 {{instantiations}} gives our two instantiations of the commitment. Finally,
@@ -398,7 +398,7 @@ F_256^k` means to choose `k` random bytes and assign them to `r`.
 
 # Overview {#overview}
 
-Ratatouille makes use of three cryptographic primitives:
+VOLE-ACT makes use of three cryptographic primitives:
 
 1. The Unbalanced Oil and Vinegar {{UOV}} digital signature scheme. The Issuer,
    such as a MoLE Moderator {{ARCHITECTURE}}, uses a long-lived UOV secret key
@@ -472,7 +472,7 @@ effective balance `t + x`:
 
 The commitment `Com()` and tag `Tag()` are instantiated in one of two ways.
 
-In the hash-based variant of Ratatouille ({{hash-commitment}}), both are
+In the hash-based variant of VOLE-ACT ({{hash-commitment}}), both are
 instantiated with a single evaluation of the `Keccak-p[800,12]` permutation
 {{FIPS202}}. Similar to TurboSHAKE {{!RFC9861}}, this parameterization of
 Keccak uses half as many rounds as SHA-3. However, its state is also half the
@@ -485,7 +485,7 @@ size of the VOLEitH proof. See {{security}} for justification.
 > the protocol level by having the Client and Issuer negotiate the requested
 > spend so that it accounts for the refund.
 
-The MQ-based variant of Ratatouille ({{mq-commitment}}) uses the MQ commitment
+The MQ-based variant of VOLE-ACT ({{mq-commitment}}) uses the MQ commitment
 of {{BFMRSV25}} to instantiate `Com()`. The tag function `Tag()` updates the
 commitment homomorphically with the refund.
 
@@ -577,10 +577,10 @@ designed to balance the size of the witness with the degree of the constraints.
 > would generate as input. This will make it easier to generate test vectors.
 > We'll also need to plumb this through VOLEitH proving and UOV signing.
 
-This section specifies Ratatouille in terms of a generic configuration:
+This section specifies VOLE-ACT in terms of a generic configuration:
 {{parameters}} defines the various parameters and functions that are determined
 by a concrete configuration, and {{instantiations}} specifies two concrete
-configurations, called Ratatouille-KP800 and Ratatouille-MQ. A deployment MUST
+configurations, called VOLE-ACT-KP800 and VOLE-ACT-MQ. A deployment MUST
 fix its configuration for the lifetime of an Issuer key.
 
 A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
@@ -597,7 +597,7 @@ Issuer key generation; {{issuance}} specifies initial token issuance; and
 
 ## Parameters {#parameters}
 
-A Ratatouille configuration specifies the following constants:
+A VOLE-ACT configuration specifies the following constants:
 
 - `L`: The credit length in bytes. It determines the largest credit value or
   refund the configuration can carry, i.e., `t, x` in `[2^(8*L)]`.
@@ -609,13 +609,13 @@ A Ratatouille configuration specifies the following constants:
 - `ctx_len`: The issuance context length in bytes.
 
 - `n_uov, m_uov`: The UOV signature and target lengths. The Issuer's public key
-  is a map `P: F_q^{n_uov} -> F_q^{m_uov}`. Ratatouille-KP800 uses the uov-Ip
-  parameter set (NIST Level 1) from {{UOV}}. Ratatouille-MQ uses larger
+  is a map `P: F_q^{n_uov} -> F_q^{m_uov}`. VOLE-ACT-KP800 uses the uov-Ip
+  parameter set (NIST Level 1) from {{UOV}}. VOLE-ACT-MQ uses larger
   parameters in order to accommodate MQ commitments.
 
 ### Commitment {#commitment}
 
-A Ratatouille configuration specifies a function `Com()` that commits the Client
+A VOLE-ACT configuration specifies a function `Com()` that commits the Client
 to a nullifier, the issuance context, and a credit value:
 
 ~~~~pseudocode
@@ -636,7 +636,7 @@ attacker can open a commitment to two distinct values.
 
 ### Tag {#tag}
 
-A Ratatouille configuration specifies a tagging function `Tag()` that binds a
+A VOLE-ACT configuration specifies a tagging function `Tag()` that binds a
 commitment to a refund and returns a UOV target:
 
 ~~~~pseudocode
@@ -671,8 +671,8 @@ KeyGen():
 ~~~~
 
 > TODO(cjpatton) `n_uov` and `m_uov` are meant to be determined by the
-> Ratatouille configuration ({{parameters}}), but the UOV parameters are fixed
-> in {{preliminaries}}. This is only relevant for Ratatouille-MQ.
+> VOLE-ACT configuration ({{parameters}}), but the UOV parameters are fixed
+> in {{preliminaries}}. This is only relevant for VOLE-ACT-MQ.
 
 ## Initial Issuance {#issuance}
 
@@ -702,7 +702,7 @@ The encoding of the instance is defined as `c || <T_init>_L || ctx_iss`.
 
 ### Issue Request
 
-To request a Ratatouille token from the Issuer, the Client runs the following
+To request a VOLE-ACT token from the Issuer, the Client runs the following
 procedure.
 
 ~~~~pseudocode
@@ -936,11 +936,11 @@ FinalizeSpend(P, pending_spend, response):
 
 # Instantiations {#instantiations}
 
-This section specifies two concrete configurations of Ratatouille
-({{parameters}}): Ratatouille-KP800 ({{hash-commitment}}) and Ratatouille-MQ
+This section specifies two concrete configurations of VOLE-ACT
+({{parameters}}): VOLE-ACT-KP800 ({{hash-commitment}}) and VOLE-ACT-MQ
 ({{mq-commitment}}).
 
-## Ratatouille-KP800 {#hash-commitment}
+## VOLE-ACT-KP800 {#hash-commitment}
 
 | Parameter                    | Value                   |
 |:-----------------------------|:------------------------|
@@ -950,11 +950,11 @@ This section specifies two concrete configurations of Ratatouille
 | `r_len` opening length       | `16`                    |
 | `n_uov` UOV signature length | `119` ({{UOV}}, uov-Ip) |
 | `m_uov` UOV target length    | `45` ({{UOV}}, uov-Ip)  |
-{: #ratatouille-kp800-parameters title="Ratatouille-KP800 Parameters" }
+{: #vole-act-kp800-parameters title="VOLE-ACT-KP800 Parameters" }
 
-Ratatouille-KP800 uses the uov-Ip parameter set for UOV and a reduced-round and
+VOLE-ACT-KP800 uses the uov-Ip parameter set for UOV and a reduced-round and
 state-size variant of Keccak, `Keccak-p[800, 12]` {{FIPS202}}. Its parameters
-are listed in {{ratatouille-kp800-parameters}}.
+are listed in {{vole-act-kp800-parameters}}.
 
 > TODO Expand `Com()` and `Tag()` into sets of polynomial constraints for the
 > issuance ({{issuance}}) and spend ({{spending}}) relations. An optimization
@@ -997,7 +997,7 @@ Tag(c, x):
     3. return y
 ~~~~
 
-## Ratatouille-MQ {#mq-commitment}
+## VOLE-ACT-MQ {#mq-commitment}
 
 | Parameter                    | Value                               |
 |:-----------------------------|:------------------------------------|
@@ -1007,15 +1007,15 @@ Tag(c, x):
 | `r_len` opening length       | `83` (determined by MQ parameters)  |
 | `n_uov` UOV signature length | `275` (determined by `m_uov`)       |
 | `m_uov` UOV target length    | `131` (determined by MQ parameters) |
-{: #ratatouille-mq-parameters title="Ratatouille-MQ Parameters" }
+{: #vole-act-mq-parameters title="VOLE-ACT-MQ Parameters" }
 
-Ratatouille-MQ is based on the Multivariate Quadratic (MQ) commitment of
+VOLE-ACT-MQ is based on the Multivariate Quadratic (MQ) commitment of
 {{BFMRSV25}} over `F_q`. Its parameters are listed in
-{{ratatouille-mq-parameters}}.
+{{vole-act-mq-parameters}}.
 
 Just like the UOV signatures, MQ commitment evaluations can be expressed as
 degree-2 constraints, which makes the issuance and spend proofs more efficient
-than Ratatouille-KP800 ({{hash-commitment}}). The commitment involves two
+than VOLE-ACT-KP800 ({{hash-commitment}}). The commitment involves two
 inhomogeneous quadratic maps `F: F_q^{n_com} -> F_q^k` and `G:
 F_q^{n_com} -> F_q^{m_uov-k}`. To commit to a token state, we encode the
 state as `msg` in `F_q^k`, generate an opening `r <- F_q^{n_com}`, and
@@ -1091,14 +1091,14 @@ Com(nf, ctx_iss, t, r):
     4. return c
 ~~~~
 
-The parameters of Ratatouille-MQ are set so that `k = nf_len + ctx_len + 2*L`.
+The parameters of VOLE-ACT-MQ are set so that `k = nf_len + ctx_len + 2*L`.
 Function `EmbedState(nf, ctx_iss, t)` encodes the token state as
 `msg = nf || ctx_iss || <t>_L || 0^L`. Note that the last `L` elements are set
 to `0` as these are reserved for the refund.
 
 > TODO(cjpatton) Figure out if we can safely bind the issuance context to `F,
 > G` derivation. This would save some bytes in the commitment, which would
-> allow us to bump nullifier length match Ratatouille-KP800. (Likewise for the
+> allow us to bump nullifier length match VOLE-ACT-KP800. (Likewise for the
 > credit length.)
 
 ### Tag {#mq-tag}
@@ -1132,7 +1132,7 @@ nf_len + ctx_len + L` hold the refund encoding `<x>_L`.
 
 ## MQ zero-opening scaling forgery {#mq-zero-opening-forgery}
 
-An earlier version of Ratatouille-MQ omitted the constant coefficients `a_i`
+An earlier version of VOLE-ACT-MQ omitted the constant coefficients `a_i`
 from `Q_i`. The linear coefficients prevent scaling at a generic opening, but
 they do not help at the Client-controlled opening `r = 0`, where the earlier
 maps had `F(0) = G(0) = 0`.
@@ -1173,7 +1173,7 @@ composition with UOV and VOLEitH.
 
 ## Choice of Keccak-p[800,12] {#kp800-choice}
 
-Ratatouille uses `Keccak-p[800,12]` for hashing rather than the more
+VOLE-ACT uses `Keccak-p[800,12]` for hashing rather than the more
 conventional 1600-bit permutation underlying SHA-3 and TurboSHAKE {{RFC9861}}.
 The reason is proof size.
 
@@ -1197,7 +1197,7 @@ binding of the commitment, and a suitable unforgeability property of UOV. This
 document does not provide either reduction.
 
 In particular, the one-more-preimage assumption in {{PoMFRIT}} is stated for
-random challenge targets. Ratatouille-MQ instead asks the UOV trapdoor to
+random challenge targets. VOLE-ACT-MQ instead asks the UOV trapdoor to
 invert structured, attacker-influenced targets of the form `Tag(Com(...), x)`.
 Applying the PoMFRIT result therefore requires an additional argument that is
 not given here. Assuming hardness directly for this structured target family
@@ -1206,14 +1206,14 @@ would be a new, protocol-specific assumption.
 > NOTE A few observations we've made so far:
 >
 > 1. One-more-UOV reduction likely treats `Com()` and `Tag()` as random
->    oracles. This is reasonable for Ratatouille-KP800, but we would need to
->    figure out something else for Ratatouille-MQ. It seems to be me (cjpatton)
+>    oracles. This is reasonable for VOLE-ACT-KP800, but we would need to
+>    figure out something else for VOLE-ACT-MQ. It seems to be me (cjpatton)
 >    that we probably need a proper hash for `Tag()` at least.
 >
 > 2. If we add a randomizer to `Tag()` and instantiate it with Keccak, then we
 >    might even be able to reduce to standard UOV rather than one-more-UOV.
 >
-> 3. For Ratatouille-MQ, figure out if the homomorphic tagging trick for the MQ
+> 3. For VOLE-ACT-MQ, figure out if the homomorphic tagging trick for the MQ
 >    variant is sound. We likely need the commitment to be pseudorandom, in
 >    which case allowing the attacker to select the tag probably incurs a
 >    security loss multiplicative in the number of bits of the refund.

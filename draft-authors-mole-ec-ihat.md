@@ -1,9 +1,9 @@
 ---
-title: "Rollatini: An Issuer-Hiding Anonymous Token"
-abbrev: "Rollatini"
+title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
+abbrev: "EC-IHAT"
 category: info
 
-docname: draft-authors-mole-ihat-rollatini-latest
+docname: draft-authors-mole-ec-ihat-latest
 submissiontype: IETF
 number:
 date:
@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html"
 
 author:
  -
@@ -151,7 +151,7 @@ informative:
 
 --- abstract
 
-This document specifies Rollatini, a cryptographic construction used to
+This document specifies EC-IHAT, a cryptographic construction used to
 produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
 an Anchor issues to a Client, and that the Client later redeems at a Moderator
 without the Anchor being able to link the redemption to the issuance.
@@ -169,10 +169,10 @@ MoLE Endorsements have a number of constraints imposed by the architecture
 {{ARCH}}. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
-not meet all of these needs. This document defines such a system, Rollatini,
+not meet all of these needs. This document defines such a system, EC-IHAT,
 an Issuer-Hiding Anonymous Token (IHAT).
 
-Rollatini follows the construction described in Section 3.4 of {{FFKLLS26}},
+EC-IHAT follows the construction described in Section 3.4 of {{FFKLLS26}},
 which in turn is based on the pairing-free partially blind signature of
 {{TESSZHU}}. An Anchor holds a signing key and issues, in three moves, a
 signature on a Client-chosen message that the Anchor never sees. Each
@@ -411,7 +411,7 @@ this document derives from that identifier:
 
 ~~~python
 def CreateProtocolContext(identifier: bytes) -> bytes:
-    return b"Rollatiniv1-" + identifier
+    return b"EC-IHATv1-" + identifier
 ~~~
 
 Throughout the remainder of this document, `ctx_proto` denotes the output of
@@ -478,8 +478,8 @@ to panic rather than handle the exception.
 The two-stage derivation used here and in {{derive-nonce}} avoids the
 output-length limit of a single `hash_to_field` call using `expand_message_xmd`.
 XMD produces at most `255 * Nh` bytes per call, which allows at most 170 scalars
-with SHA-256 and `L = 48` (see `Rollatini(P-256, SHA-256)` {{ciphersuites}}).
-Although Rollatini's issuer-hiding proof needs fewer scalars, other protocols
+with SHA-256 and `L = 48` (see `EC-IHAT(P-256, SHA-256)` {{ciphersuites}}).
+Although EC-IHAT's issuer-hiding proof needs fewer scalars, other protocols
 that share these methods need larger vectors.
 
 ## Deriving Nonces {#derive-nonce}
@@ -1950,7 +1950,7 @@ For each ciphersuite, `ctx_proto` is as computed in {{config}}. The nullifier
 length is `Nn = 32` bytes and the seed length, that of the random input to
 every derivation, is `Nseed = 48` bytes for the ciphersuite below.
 
-## Rollatini(P-256, SHA-256)
+## EC-IHAT(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) {{NISTCurves}} for the group and
 SHA-256 for the hash function, with `Nh = 32` and `s_in_bytes = 64`. The
@@ -2007,7 +2007,7 @@ P:
 
 # Security Considerations {#security-considerations}
 
-The security of Rollatini is studied in {{FFKLLS26}}. The underlying blind
+The security of EC-IHAT is studied in {{FFKLLS26}}. The underlying blind
 signature is that of Tessaro and Zhu {{TESSZHU}}, instantiated with the public
 input set to the issuance context. Security is analysed in the random oracle
 model, and one-more unforgeability additionally in the algebraic group model
@@ -2186,194 +2186,194 @@ were generated for the vectors. Every redemption presents the same
 Endorsement, which a Moderator would accept only once; each `nf` entry is the
 output of `VerifyRedemption`.
 
-## Ciphersuite {#rollatini-tv-suite}
+## Ciphersuite {#ec-ihat-tv-suite}
 
 ~~~
 suite.identifier = 503235362d534841323536
 ~~~
 
-## Scalar Derivation {#rollatini-tv-derive}
+## Scalar Derivation {#ec-ihat-tv-derive}
 
 ~~~
-derive.info = 526f6c6c6174696e69207465737420766563746f7273
+derive.info = 45432d49484154207465737420766563746f7273
 derive.rand =
-    2901ba7aa4385020806b9dfda274116e8e7b40dc4b7ea5ecf802f450f385d95a
-    23b24f8989262dd0098c67f1b18c7049
+    35caeadd114fe2b6e3de7d4f2218945d5c4a330e9563376f8ac44bc14775ba75
+    54be242ad0e048032ff55604907693e7
 derive.scalars =
-    d3a1cf0eb8ad06b36ccbec270304fe9d1e463aebe0074628e973372cc060dde1
-    236ca33273718791d45cf1bd10bc8d27ae93514c23829beccfc7d4d810e9d2fa
-    15bf15da1582d7290ef5c5ff6a3d56751903eff0d3c53a45f200654078bcca87
+    f3504696233573f8189111eb5fca015633f3ec155005d6159d367b9abd05e001
+    8374a7a63cd6f59088b984ece9621d9eb279ec3b166a1dca0a4ade2703bfdb10
+    6fe6ded8c73bfb6ada8a5476c6775b3f01bd498fe7dff0b4968e2bed7148d89e
 ~~~
 
-## Key Pair {#rollatini-tv-key}
+## Key Pair {#ec-ihat-tv-key}
 
 ~~~
 key.rand =
-    1895f96ba9ffd425f438e32d27c0f30789192aaee2fb81ddab56a33ba979e1dc
-    d662a1d0030115f54fc5f3ba9460f5cc
+    fff81520add7b90fb45470d601bc701577c23a136e47bf17f25f509b28a41149
+    a8e96cb8e1bb68fbcf8367a690a430ba
 key.skA =
-    cf0f461405dbbe310331b868ef937601c99fc006b07cc17e557a2bb379a03d10
+    f9e911e97a24cf3fd425ea7d11845ff75b3dad0ab58997b54e3448a2aaf60979
 key.pkA =
-    02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf017
-    6e
+    024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+    3f
 key.P_pkA =
-    03e07a7634377aae0b8d88ecf0639ff8a9483532fdda7f128863aba3d94fa491
-    0e
+    0275d05750b95cb2dc26b3a961ce6eb7e90b19f31388dfdb5654bc504541b1d8
+    b7
 ~~~
 
-## Issuance {#rollatini-tv-issue}
+## Issuance {#ec-ihat-tv-issue}
 
 ~~~
 issue.ctx_iss =
-    526f6c6c6174696e69207465737420766563746f72732069737375616e636520
-    636f6e74657874
+    45432d49484154207465737420766563746f72732069737375616e636520636f
+    6e74657874
 issue.ctx_red =
-    526f6c6c6174696e69207465737420766563746f727320726564656d7074696f
-    6e20636f6e74657874
+    45432d49484154207465737420766563746f727320726564656d7074696f6e20
+    636f6e74657874
 issue.Z =
-    0371e34b3816dbda52ab5249e1a5192ae9a097d8475e66aea5c56748c7a4ae59
-    d1
+    02f9a6afb059d15adcaec09ed5b5986bdbff2d2f48102a8e0d5340f32b135534
+    5a
 issue.session_id =
-    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
 issue.commit.rand =
-    34f8d290513e7ee4b333809f8468084d625e481f88467d66441fc84823863262
-    2425cece0fcf97086b853bd5ab9450a8
+    0ba14197ea1f9b5f586cf5c3041288e81e9dc08fdefaf1c2aec55a90b7a2119b
+    fe112f9c69b25a25ba8778044c8b8193
 issue.commit.state =
-    1ff634c3b291a37a1bba99abc3cf59647d0ae9e5102f20940bfaf0dd8e2d8fbe
-    0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
-    aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
+    7c06761dde72d25f6271330c2a215ac13158ac77e47080592f5e34a5d143bb4b
+    129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+    c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
 issue.commit.message =
-    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
-    031112cfa1bda1deb5baf2c974f6c44ec75ee78e4a656888bbddcfbacfe2da69
-    4f032b993d8ae330e870050b44cd90bc073f4908f3dffb60d8dff49adba47524
-    b289
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
+    033f90a0d4b5e1ea3f6c18976a84012bfbcbd8507f77c064ab7bd9fb60ab7f49
+    c803c38d94c9d4ff61f0e27f63099cfd7a0894f8829837b94fd7706e738f57e5
+    2bf4
 issue.challenge.rand =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
-    fcd7b4dab3af98a5efd69ba6733ea379906dbfcbc9d3337a4fbf3021a6d1cc15
-    eb712fa952f188ce9e95525268c95edf
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+    157dcf74f191746f856077f6eb58b77d46d82e07ffd44f96d5942622a779df2b
+    e02a4e2cae2ba49e86d969a38cfb0f29
 issue.challenge.state =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
-    09e017c74e57c56748f9a216c5aeee53a8bd370ea34f5b0a14a1022b92d768aa
-    cabc4eb33008cab5717d53fc710a4056d38931e5611cab7693a4b722bdfbfe1b
-    1c60cd093a4c1d04c9fa6dc94a76dda2e6058238e4d6808247b4e14f52f06f25
-    2ea7756101a348c56b54b240d0df324d808a477e612dd530276896e85d832b6d
-    e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
+    f10fda352447af1471a9138cd978536c6a2ca4e1d0b8c6276d7c73295d1dc583
+    fc92457347bcb123e11829df470496cf285ab9dc788aea530f63de240798a4ee
+    098abe35e32374ccafd832471789a93d8b4e04c82897497528e07dc05f0d6624
+    b09aa9f4e511dd6d87a9df6cbf59dc076388ae8fa79962364d4e70102bcd22ff
+    f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
 issue.challenge.message =
-    526f6c6c6174696e69207465737420766563746f722073657373696f6e206964
-    c4c94c26a9fdcffb178e27a01f6ccf020ac3f6b1c6b8a51453b8d703ef44086d
+    45432d49484154207465737420766563746f722073657373696f6e2069642031
+    838f0e04447101fc590f5ec39c90a8be7bd45329346c6216148a1467bc325eef
 issue.response.message =
-    c13f29a8276124c478e0becdbc59a1533e908bbee01b5cff12fb4e698ab91de6
-    0a094ed6538587c629620311408b997ca9ff15fed8d11adf42349fee1764f7ff
-    aa5af1f5d078574376eee716ce00d72a7714ecae1c9b716454ce475490297e1d
+    455e3d35da4bd2ce0930aacafdcbee388a9c0a753c2d35574853badb06ad7a7c
+    129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
+    c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
 issue.endorsement =
-    e62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d55827
-    381070d16151da97f15dbff860b81d9e5b7de45fc0ed44deaa13a85431f5283b
-    65ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd11
-    6062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b557b
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
+    5962f7763329f82b5cc83a13fcadc9469b22d6963ccae504e01eb122b3583252
+    2718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575c1
+    c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f793721495
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
 
-## Redemption Against 2 Anchors {#rollatini-tv-redeem2}
+## Redemption Against 2 Anchors {#ec-ihat-tv-redeem2}
 
 ~~~
 redeem2.index = 1
 redeem2.anchor_set =
-    02f3c80b6a4766e60b0f436bb60565ba7273eb72fad58dada88b73b5df7f35e0
-    9d02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf0
-    176e
+    02eb95f5cedca77363bcb9808b656de3082c23d67506f96c717952e8cce9d240
+    a8024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec537
+    583f
 redeem2.challenge_digest =
-    526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
-    20646967657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem2.rand =
-    25b7018513eec1ec6963f83619f5a4b65b188a4bd1f8372893cafe1d4e9c6e14
-    dff470ec235490aacaa96e215c080538de752d72e39e49c42372d24c6109946e
-    6663efa6d497f2831fa2762be606e36b8aca1a01358537e25c53fb55cebfc875
+    bb214c063c44660b2193e4ff68f6acb3643d54257e6a03f27d7162b210794faa
+    40d383b6ed9f37de84973d1232dd3ce30106ddb4ed4f130968ddc9d54066d004
+    1ce24800e438f27ff3aa9c3fa1575f10cee63ab4bbac324a1a4895786f016573
 redeem2.delta =
-    33c221d1588baa3ac3589f2e8972fbc1b6b18a32ddf6a54bc7d55be6e8763f18
+    d3aca91a849c8f30aa7a3f31842ff2bb535b6b34d676c7cd77c5a0125e72db28
 redeem2.message =
-    020e4737feb353d8f713342c0eb52ed2a1a2c569d658daaf16f907a872380105
-    0ce62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
-    279958a11e2506950f8d014b0329e8fc5ab36eca2c1a4ba5113e9d852cb2555a
-    5a65ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
-    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
-    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
-    7d1ff5ecfc12e85838877af8f3870b39c8184ff220228da2f8afd963d8d6a1e0
-    2aaea3abcb638dfb3561d518d6eb67c58e8f1a8c4958792eb5a6544f5f0cd164
-    f52102e33b5e85210390c67a1cae58e947a8f888a6d5c4d7c2b24f36aabb64b5
-    0401fa20110d052c26abab640ce09b4bc4b9646316837dbc8dd5a23bee4b47fe
-    3aaec247
+    029dc60bb0c07274bb09cff84e5202354bc5116b9f56f4776ad74a6f296428c4
+    7ef97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    19de7841f140ca998aef6a9862b3e49c5c64a22dcd1c4dc017a8e1de28238614
+    192718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d9dcdb1bf2752d262faa01e23f63177aab005ca60ef098b466ba32c4c09b13c5
+    5f68ce1afdfbc9550f9e4f6aca1b57cd42e9607f199b96f3835d986364aec9b2
+    4021026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
+    345128206ff15e6c7ae1ad15f0e8419c98b5f3d8608f7997489f1aa2d3fd7e01
+    6b9365c8
 redeem2.nf =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
 
-## Redemption Against 5 Anchors {#rollatini-tv-redeem5}
+## Redemption Against 5 Anchors {#ec-ihat-tv-redeem5}
 
 ~~~
 redeem5.index = 3
 redeem5.anchor_set =
-    03c9df5f77dc47fb0892bb500c9623b3d793f05075dd2454139185fffbe0e856
-    3102a56ce949a989b3cdf73657719889a56d54e5cb0bf4b7a6409440280a98bd
-    266402fe80fa33232f36549fc3cb619468d1c18585aa28aaaa31de5549f1e4a6
-    bfbc6d02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323
-    ccf0176e021d67b295ebd6c17d1651e9df194a94e1d7dde3955e7bcb5158c2c6
-    e13c10fcb3
+    027c0c7a8f7ebc13b50e2392c122f9a66799a1e71189a86a0d30b492bfaa371a
+    7802d8a8886b22bee6d1777f8c76a695d477a3c60a0962a4cd8a02cc4e6431f3
+    40b7025f2dc1fe0b5573ebf4ce1f1ae0492350fdcc04d5ba2b48c8b21f73cb63
+    5fa99d024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdee
+    c537583f03affc2c254d196c3effcd4e69667bc152370df56313b19c03af3f31
+    0f4b6a87f2
 redeem5.challenge_digest =
-    526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
-    20646967657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem5.rand =
-    278228bc418f00cb9dd39e5020e580092272b6370cf14c6c6ea4ff5444b68fcf
-    c0e0b548a7ff0d9248e21220577501ee644ab5c7098accd602b255a968372a44
-    56033a95bec633bf0ecea472b0175acee9073e60074887fce64c537fde6fdd88
+    558fe7711d3f49116fd154a013e42aaf828ebb19e9e2352819990100eb1c1c9a
+    abf55df1e84433158c6876394920204f12fd2b344628dfc2748d70d3aa80aa23
+    0608494028ab6ec5236a2bf4876c767dd834ca244fb1af8ce935c346cafa1005
 redeem5.delta =
-    094ac33f15105dfa8b102e3c707e8f1ce90cb48ad544b5b6fbe9b17c44e634b1
+    b8efd6a9a93354b0ef988ba6add03fbb843c83f7d776c5088e80537440776855
 redeem5.message =
-    02e4a72beabef3e6037b33aff1e56c5c1e19192e9194c0780e048f5da21f4400
-    6ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
-    2756b4ae805c0054aa48f3304ce0a646361ac6b3bf00a7f4aa2ac828f167ec11
-    1465ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
-    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
-    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
-    7d8e74e453c9a9a13fc605a1d443bd8cdc8b0a5f9ff7a988d8535d66be881028
-    bcc6499b6935a542579dcb86e5fe58240d02a468d9a01f29b7563260b5843663
-    7d40630299ac22177836651a8495be06aa2807899da3f2962eae96b33cf33734
-    41751913033d68319ee3b6ac6f9cb378b68c6bfab174b950d1808839a5990a67
-    b2b9fea1ca03dadded9dfc1c00d619e8713b4ea7e897b2dff6c747a1a02bf4ef
-    747a42b14e3b40607ee586efb34851f192bfa32e07cbee98c1065f2bacdebaa4
-    764256b45b7fa612133e0bf8506994e159d1e0c18cf02ffbef51041e493913c4
-    1a8358c21ad1b614d5effcb4a1c63483eccb92688cc2e31a12b8b731d2869513
-    8f5be4b3829c2549
+    036e54617195473504812e14b44912097f62b6f7d72f7e88b6e571bc41a0394a
+    7cf97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    196851575c8c96e72bc1b05cc88fe39d9f6c5df5c435aa7174be1e0d055d3df2
+    662718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d950529d143f3c4f71f4270f4d7f84b9c3d2b1d1c5daa4c0caf8ee1d338885f1
+    a4691136fa0520c546bbff2a00faf6a012faf8c281ee8385c0d6a8116e85a2c8
+    704063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
+    72b908c1027b75353c0b05b768798410106bb01a761634cc29423c8b45e96b3a
+    f1441349bb037610019efbae269ac174e983ecae9ffa9c73e225e8ba54b706d7
+    c164e4392e1540609574c0a33b601e403d4fd5bbf057fd6e5d05f11fb9168629
+    9a16416ae73880abd3d3ddef893007f0933b35454109117b243e8ff280c6435e
+    dcf1087b97724a42a805bd91e9545402352ca0200f3bdcd0117ad57684009761
+    b065ee322027e03f
 redeem5.nf =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
 
-## Redemption Against 1 Anchor {#rollatini-tv-redeem1}
+## Redemption Against 1 Anchor {#ec-ihat-tv-redeem1}
 
 ~~~
 redeem1.index = 0
 redeem1.anchor_set =
-    02d3b5a1a36d47a82b4c11018555f385356ff5dea2a5450e856f305323ccf017
-    6e
+    024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
+    3f
 redeem1.challenge_digest =
-    526f6c6c6174696e69207465737420766563746f7273206368616c6c656e6765
-    20646967657374
+    45432d49484154207465737420766563746f7273206368616c6c656e67652064
+    6967657374
 redeem1.rand =
-    225410fcb6e40d00fb652141e6d19f9a418c18e4b0177981a85b09323ccb6325
-    bf949b541dce86e244978bea6238f4b5ec1497dac66c2803f15b06cc530a5961
-    ca99a7db68fd8816691248473c40c53203c5e1687d4628a176c8e2759133c57e
+    0ab3d707e39d461b2861cb6e8e6a2c6c3bf2640081448678f846db0886fd053b
+    4dd223e71416f52740000183803b28f7a55ad488794504e01619d2f2600ec071
+    5ff5bbe0b582a64a6f2db846184d541ab636e578683fcb9b9acc2ab1bbf1bdac
 redeem1.delta =
-    a20875aba695e447305ba2833a23d141dcd105d6703b149489272c5bb6850bc2
+    ff8c0a8d5403241b69df67b3ef9f16474021cb373a4715dc5426ef490e5231c3
 redeem1.message =
-    036c7114e474fe664a90bf71604dab46a02905f3fa421d9d8952e514a4001cb8
-    9ae62a6114a8272e86fc36d7876f3955f2939d800140c0614d9db1450579d558
-    271ca069fa7fa55962a7d78cfb969861786aea5250ac35d0b1a83d2939fc8bf4
-    0865ea4ecce7f4d8ef2732bcf633021a09c2205fa0bd4d577fb196dbef5556fd
-    116062a703326d0aac0e8b45263b6fb1e8e36648c91116d09eb9bfc61a6b2b55
-    7b814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c64
-    7d1203f01e897e951be4842a32a5cf062acf7a80953dc75cfccc5532fa396ac1
-    37948e7fa247b645a950cb4700d122fd457dd7ffe89af2267b172f3f57830d73
-    560000
+    03300196a535ec07e6d8462cc80360e9630ca3a6d5d3a2b67fa241f6a929c816
+    a5f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
+    19128120835a8453057e46c2ecbaf20f7dd97d30a94480e62dcc26c8425ef305
+    182718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
+    c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
+    951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
+    d9c2dcc7d873582ac78015ba03d96201b2298130e72106175eff6662cf33ed95
+    8daf5bb5d6a461ab7e310351640c454fbc9fb654c64c1f7b53fffd44c018a92f
+    830000
 redeem1.nf =
-    814547b784ed0a83055b08aff5bb13f32833e312f619564a78c91d3ed46c647d
+    1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
 
 # Acknowledgments

@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from rollatini.ciphersuite import (
+from ec_ihat.ciphersuite import (
     DeserializeError,
     FIELD_MODULUS,
     ORDER,
@@ -119,7 +119,7 @@ def test_p_not_involution():
 
 
 def test_permute_bytes_is_a_permutation():
-    from rollatini.ciphersuite import PermuteBytes, UnpermuteBytes
+    from ec_ihat.ciphersuite import PermuteBytes, UnpermuteBytes
 
     for i in range(32):
         buf = bytearray([i & 1]) + bytearray(range(i, i + 32))
@@ -129,7 +129,7 @@ def test_permute_bytes_is_a_permutation():
 
 
 def test_derive_nonces_binds_every_input():
-    from rollatini import common
+    from ec_ihat import common
 
     G = P256Group(b"test")
     aux = bytes(common.Nseed)
@@ -154,8 +154,8 @@ def test_derive_nonces_binds_every_input():
 
 
 def test_derivation_hashes_then_expands():
-    from rollatini import common
-    from rollatini.common import I2OSP, U16Prefixed
+    from ec_ihat import common
+    from ec_ihat.common import I2OSP, U16Prefixed
 
     G = P256Group(b"test")
     rand = bytes(range(common.Nseed))
@@ -190,8 +190,8 @@ def test_derivation_hashes_then_expands():
 
 
 def test_a_zero_scalar_raises(monkeypatch):
-    from rollatini import common
-    from rollatini.ciphersuite import DeriveError
+    from ec_ihat import common
+    from ec_ihat.ciphersuite import DeriveError
 
     G = P256Group(b"test")
     monkeypatch.setattr(G, "HashToScalar", lambda *_, **__: Scalar(0))
@@ -202,7 +202,7 @@ def test_a_zero_scalar_raises(monkeypatch):
 def test_related_randomness_gives_unrelated_nonces():
     # Nonces for one operation whose randomness differs in a single bit
     # must not differ by a known amount, or two proofs reveal the witness.
-    from rollatini import common
+    from ec_ihat import common
 
     G = P256Group(b"test")
     aux = bytes(range(common.Nseed))
@@ -221,7 +221,7 @@ def test_related_randomness_gives_unrelated_nonces():
 def test_partial_repetition_changes_every_nonce():
     # A random source that repeats all but one byte of an operation's
     # randomness must not repeat any of its nonces.
-    from rollatini import common
+    from ec_ihat import common
 
     G = P256Group(b"test")
     rand = bytes((3 * i) % 256 for i in range(common.Nseed))

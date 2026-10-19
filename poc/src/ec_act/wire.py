@@ -5,11 +5,11 @@ these routines check lengths, canonical encodings, and amount bounds; the
 algorithms check the proofs.
 """
 
-from rollatini.ciphersuite import DeserializeError
-from rollatini.ciphersuite import P256Element as Element
-from rollatini.ciphersuite import P256Scalar as Scalar
+from ec_ihat.ciphersuite import DeserializeError
+from ec_ihat.ciphersuite import P256Element as Element
+from ec_ihat.ciphersuite import P256Scalar as Scalar
 
-from . import protocol as act
+from . import protocol as ec_act
 
 
 class Reader:
@@ -19,37 +19,37 @@ class Reader:
 
     def take(self, length: int) -> bytes:
         if self.offset + length > len(self.data):
-            raise DeserializeError("truncated ACT message")
+            raise DeserializeError("truncated EC-ACT message")
         result = self.data[self.offset : self.offset + length]
         self.offset += length
         return result
 
     def element(self) -> Element:
-        return act.G.DeserializeElement(self.take(act.Ne))
+        return ec_act.G.DeserializeElement(self.take(ec_act.Ne))
 
     def scalar(self) -> Scalar:
-        return act.G.DeserializeScalar(self.take(act.Ns))
+        return ec_act.G.DeserializeScalar(self.take(ec_act.Ns))
 
     def amount(self) -> int:
         value = int.from_bytes(self.take(8), "big")
-        if value >= 2**act.L:
-            raise act.AmountError
+        if value >= 2**ec_act.L:
+            raise ec_act.AmountError
         return value
 
     def proof(self, witnesses: int) -> bytes:
-        proof = self.take((witnesses + 1) * act.Ns)
-        for i in range(0, len(proof), act.Ns):
-            act.G.DeserializeScalar(proof[i : i + act.Ns])
+        proof = self.take((witnesses + 1) * ec_act.Ns)
+        for i in range(0, len(proof), ec_act.Ns):
+            ec_act.G.DeserializeScalar(proof[i : i + ec_act.Ns])
         return proof
 
     def finish(self) -> None:
         if self.offset != len(self.data):
-            raise DeserializeError("trailing bytes in ACT message")
+            raise DeserializeError("trailing bytes in EC-ACT message")
 
 
 def _amount(value: int) -> bytes:
-    if not 0 <= value < 2**act.L:
-        raise act.AmountError
+    if not 0 <= value < 2**ec_act.L:
+        raise ec_act.AmountError
     return value.to_bytes(8, "big")
 
 
@@ -60,29 +60,29 @@ def _proof(value: bytes, witnesses: int) -> bytes:
     return result
 
 
-def EncodeIssueRequest(message: act.IssueRequestMessage) -> bytes:
-    return act.G.SerializeElement(message.K) + _proof(message.pok, 2)
+def EncodeIssueRequest(message: ec_act.IssueRequestMessage) -> bytes:
+    return ec_act.G.SerializeElement(message.K) + _proof(message.pok, 2)
 
 
-def DecodeIssueRequest(data: bytes) -> act.IssueRequestMessage:
+def DecodeIssueRequest(data: bytes) -> ec_act.IssueRequestMessage:
     reader = Reader(data)
-    result = act.IssueRequestMessage(reader.element(), reader.proof(2))
+    result = ec_act.IssueRequestMessage(reader.element(), reader.proof(2))
     reader.finish()
     return result
 
 
-def EncodeIssueResponse(message: act.IssueResponseMessage) -> bytes:
+def EncodeIssueResponse(message: ec_act.IssueResponseMessage) -> bytes:
     return (
-        act.G.SerializeElement(message.A)
-        + act.G.SerializeScalar(message.e)
+        ec_act.G.SerializeElement(message.A)
+        + ec_act.G.SerializeScalar(message.e)
         + _amount(message.c)
         + _proof(message.pok, 1)
     )
 
 
-def DecodeIssueResponse(data: bytes) -> act.IssueResponseMessage:
+def DecodeIssueResponse(data: bytes) -> ec_act.IssueResponseMessage:
     reader = Reader(data)
-    result = act.IssueResponseMessage(
+    result = ec_act.IssueResponseMessage(
         reader.element(),
         reader.scalar(),
         reader.amount(),
@@ -92,19 +92,19 @@ def DecodeIssueResponse(data: bytes) -> act.IssueResponseMessage:
     return result
 
 
-def EncodeCredential(credential: act.Credential) -> bytes:
+def EncodeCredential(credential: ec_act.Credential) -> bytes:
     return (
-        act.G.SerializeScalar(credential.k)
+        ec_act.G.SerializeScalar(credential.k)
         + _amount(credential.c)
-        + act.G.SerializeScalar(credential.r)
-        + act.G.SerializeElement(credential.A)
-        + act.G.SerializeScalar(credential.e)
+        + ec_act.G.SerializeScalar(credential.r)
+        + ec_act.G.SerializeElement(credential.A)
+        + ec_act.G.SerializeScalar(credential.e)
     )
 
 
-def DecodeCredential(data: bytes) -> act.Credential:
+def DecodeCredential(data: bytes) -> ec_act.Credential:
     reader = Reader(data)
-    result = act.Credential(
+    result = ec_act.Credential(
         reader.scalar(),
         reader.amount(),
         reader.scalar(),
@@ -116,9 +116,9 @@ def DecodeCredential(data: bytes) -> act.Credential:
 
 
 def SpendCommitmentCount(s: int, a: int) -> int:
-    if s + a >= 2**act.L:
-        raise act.AmountError
-    return len(act.RangeWeights(2**act.L - 1 - (s + a)))
+    if s + a >= 2**ec_act.L:
+        raise ec_act.AmountError
+    return len(ec_act.RangeWeights(2**ec_act.L - 1 - (s + a)))
 
 
 def SpendWitnessCount(s: int, a: int) -> int:
@@ -127,7 +127,7 @@ def SpendWitnessCount(s: int, a: int) -> int:
     return 7 + 3 * SpendCommitmentCount(s, a)
 
 
-def EncodeSpend(message: act.SpendMessage) -> bytes:
+def EncodeSpend(message: ec_act.SpendMessage) -> bytes:
     s, a = message.s, message.a
     amounts = _amount(s) + _amount(a)
     refresh = s + a == 0
@@ -135,21 +135,21 @@ def EncodeSpend(message: act.SpendMessage) -> bytes:
         0 if refresh else SpendCommitmentCount(s, a)
     ) or (message.Com_c is None) == refresh:
         raise DeserializeError(
-            "ACT spend shape does not match its amounts"
+            "EC-ACT spend shape does not match its amounts"
         )
     commitments = list(message.Com1)
     if message.Com_c is not None:
         commitments.append(message.Com_c)
     points = [message.A_prime, message.B_bar, message.K_n, *commitments]
     return (
-        act.G.SerializeScalar(message.k)
+        ec_act.G.SerializeScalar(message.k)
         + amounts
-        + b"".join(act.G.SerializeElement(point) for point in points)
+        + b"".join(ec_act.G.SerializeElement(point) for point in points)
         + _proof(message.pok, SpendWitnessCount(s, a))
     )
 
 
-def DecodeSpend(data: bytes) -> act.SpendMessage:
+def DecodeSpend(data: bytes) -> ec_act.SpendMessage:
     reader = Reader(data)
     k, s, a = reader.scalar(), reader.amount(), reader.amount()
     refresh = s + a == 0
@@ -163,23 +163,23 @@ def DecodeSpend(data: bytes) -> act.SpendMessage:
     Com_c = reader.element() if refresh else None
     pok = reader.proof(SpendWitnessCount(s, a))
     reader.finish()
-    return act.SpendMessage(
+    return ec_act.SpendMessage(
         k, s, a, A_prime, B_bar, K_n, Com1, Com_c, pok
     )
 
 
-def EncodeRefund(message: act.RefundMessage) -> bytes:
+def EncodeRefund(message: ec_act.RefundMessage) -> bytes:
     return (
-        act.G.SerializeElement(message.A)
-        + act.G.SerializeScalar(message.e)
+        ec_act.G.SerializeElement(message.A)
+        + ec_act.G.SerializeScalar(message.e)
         + _amount(message.t)
         + _proof(message.pok, 1)
     )
 
 
-def DecodeRefund(data: bytes) -> act.RefundMessage:
+def DecodeRefund(data: bytes) -> ec_act.RefundMessage:
     reader = Reader(data)
-    result = act.RefundMessage(
+    result = ec_act.RefundMessage(
         reader.element(),
         reader.scalar(),
         reader.amount(),

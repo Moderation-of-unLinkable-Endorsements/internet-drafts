@@ -1,7 +1,7 @@
 import pytest
 
-import rollatini.protocol as protocol
-from rollatini.protocol import (
+import ec_ihat.protocol as protocol
+from ec_ihat.protocol import (
     Challenge,
     Commit,
     Endorsement,
@@ -17,7 +17,7 @@ from rollatini.protocol import (
     VecCommit,
 )
 
-from rollatini.common import random
+from ec_ihat.common import random
 
 def _issue(ctx_iss=b"epoch-1", ctx_red=b"moderator-1"):
     skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")

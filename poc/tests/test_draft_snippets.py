@@ -34,35 +34,35 @@ def definitions(
     }
 
 
-def test_act_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-act.md").read_text()
+def test_ec_act_snippets_match_implementation():
+    draft = (ROOT / "draft-authors-mole-ec-act.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )
     expected = definitions(snippets)
-    actual = definitions((ROOT / "poc/src/act/protocol.py").read_text())
+    actual = definitions((ROOT / "poc/src/ec_act/protocol.py").read_text())
     assert expected
     for name, definition in expected.items():
         assert actual[name] == definition, name
     assert actual.keys() == expected.keys()
 
 
-def test_rollatini_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-ihat-rollatini.md").read_text()
+def test_ec_ihat_snippets_match_implementation():
+    draft = (ROOT / "draft-authors-mole-ec-ihat.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )
     expected = definitions(snippets)
     actual = definitions(
-        (ROOT / "poc/src/rollatini/ciphersuite.py").read_text(),
+        (ROOT / "poc/src/ec_ihat/ciphersuite.py").read_text(),
         concrete_group=True,
     )
     actual.update(
-        definitions((ROOT / "poc/src/rollatini/common.py").read_text())
+        definitions((ROOT / "poc/src/ec_ihat/common.py").read_text())
     )
     # The record types of protocol.py are implicit in the draft.
     protocol = definitions(
-        (ROOT / "poc/src/rollatini/protocol.py").read_text(),
+        (ROOT / "poc/src/ec_ihat/protocol.py").read_text(),
         kinds=(ast.FunctionDef,),
     )
     actual.update(protocol)

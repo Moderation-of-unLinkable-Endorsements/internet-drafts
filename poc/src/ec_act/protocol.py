@@ -1,17 +1,17 @@
-"""ACT algorithms transcribed from draft-authors-mole-act.md."""
+"""EC-ACT algorithms transcribed from draft-authors-mole-ec-act.md."""
 
 from __future__ import annotations
 
 from collections.abc import Sequence
 from typing import NamedTuple
 
-from rollatini.ciphersuite import DeriveError
-from rollatini.ciphersuite import P256Element as Element
-from rollatini.ciphersuite import P256Scalar as Scalar
-from rollatini.common import I2OSP
-from rollatini.common import U16Prefixed
-from rollatini.ciphersuite import P256Group
-from rollatini import common
+from ec_ihat.ciphersuite import DeriveError
+from ec_ihat.ciphersuite import P256Element as Element
+from ec_ihat.ciphersuite import P256Scalar as Scalar
+from ec_ihat.common import I2OSP
+from ec_ihat.common import U16Prefixed
+from ec_ihat.ciphersuite import P256Group
+from ec_ihat import common
 from .sigma import DeriveSessionID
 from .sigma import ProveCompact
 from .sigma import SerializeLinearRelation
@@ -20,7 +20,7 @@ from .sigma import VerifyCompact
 from .statements import CommitmentRelation
 from .statements import SignatureRelation
 from .statements import SpendRelation
-from rollatini.protocol import VerifyError
+from ec_ihat.protocol import VerifyError
 
 Nseed = common.Nseed
 Seed = common.Seed
@@ -36,7 +36,7 @@ class AmountError(ValueError):
 
 
 def CreateCredentialProtocolContext(identifier: bytes) -> bytes:
-    return b"ACTv1-" + identifier
+    return b"EC-ACTv1-" + identifier
 
 
 def CreateGenerators() -> tuple[Element, Element, Element, Element]:

@@ -1,4 +1,4 @@
-"""The Rollatini(P-256, SHA-256) ciphersuite."""
+"""The EC-IHAT(P-256, SHA-256) ciphersuite."""
 
 from __future__ import annotations
 
@@ -85,7 +85,7 @@ class Scalar(Generic[Suite]):
 
 
 class P256SHA256:
-    """Phantom type identifying the Rollatini(P-256, SHA-256) ciphersuite."""
+    """Phantom type identifying the EC-IHAT(P-256, SHA-256) ciphersuite."""
 
 
 class P256Scalar(Scalar[P256SHA256]):

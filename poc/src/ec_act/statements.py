@@ -4,17 +4,17 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from rollatini.ciphersuite import P256Element as Element
-from rollatini.protocol import VerifyError
+from ec_ihat.ciphersuite import P256Element as Element
+from ec_ihat.protocol import VerifyError
 
 from .sigma import LinearRelation, Statement
 
 
 def CommitmentRelation(K: Element) -> LinearRelation:
-    from . import protocol as act
+    from . import protocol as ec_act
 
-    statement = Statement(act.G)
-    statement.elements(H2=act.H2, H3=act.H3, K=K)
+    statement = Statement(ec_act.G)
+    statement.elements(H2=ec_act.H2, H3=ec_act.H3, K=K)
     statement.witness("k", "r")
     statement.equation("K = k * H2 + r * H3")
     return statement.compile()
@@ -23,9 +23,9 @@ def CommitmentRelation(K: Element) -> LinearRelation:
 def SignatureRelation(
     A: Element, X_A: Element, X_G: Element
 ) -> LinearRelation:
-    from . import protocol as act
+    from . import protocol as ec_act
 
-    statement = Statement(act.G)
+    statement = Statement(ec_act.G)
     statement.elements(A=A, X_A=X_A, X_G=X_G)
     statement.witness("x")
     statement.equation("X_A = x * A")
@@ -44,21 +44,21 @@ def SpendRelation(
     Com1: Sequence[Element],
     Com_c: Element | None,
 ) -> LinearRelation:
-    from . import protocol as act
+    from . import protocol as ec_act
 
     refresh = s + a == 0
-    w = [] if refresh else act.RangeWeights(2**act.L - 1 - (s + a))
+    w = [] if refresh else ec_act.RangeWeights(2**ec_act.L - 1 - (s + a))
     n = len(w)
     if len(Com1) != n:
         raise VerifyError(f"Com1 must hold {n} commitments")
     if (Com_c is None) == refresh:
         raise VerifyError("Com_c is required exactly when s + a = 0")
 
-    statement = Statement(act.G)
+    statement = Statement(ec_act.G)
     statement.elements(
-        H1=act.H1,
-        H2=act.H2,
-        H3=act.H3,
+        H1=ec_act.H1,
+        H2=ec_act.H2,
+        H3=ec_act.H3,
         A_prime=A_prime,
         B_bar=B_bar,
         A_bar=A_bar,

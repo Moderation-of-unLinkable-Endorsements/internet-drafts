@@ -2,8 +2,8 @@
 
 import pytest
 
-import rollatini.ciphersuite as suite
-from rollatini.ciphersuite import (
+import ec_ihat.ciphersuite as suite
+from ec_ihat.ciphersuite import (
     DeserializeError,
     FIELD_MODULUS,
     IsValidPermutationEncoding,
