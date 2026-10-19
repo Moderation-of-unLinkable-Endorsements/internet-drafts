@@ -34,11 +34,11 @@ requirements. The MoLE protocols use ACT as a Credential scheme.
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.12.2
+    platformdirs 4.13.4
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.1
+    wcwidth 0.9.2
 -->
 <link href="draft-authors-mole-act.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1058,7 +1058,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 18 April 2027</td>
+<td class="center">Expires 22 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1071,12 +1071,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-15" class="published">15 October 2026</time>
+<time datetime="2026-10-19" class="published">19 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-18">18 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-22">22 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1136,7 +1136,7 @@ requirements. The MoLE protocols use ACT as a Credential scheme.<a href="#sectio
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 18 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 22 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -2513,8 +2513,9 @@ struct {
 <p id="section-4.7-15">With <code>Ne = 33</code> and <code>Ns = 32</code>, the request is <code>129</code> bytes and the response
 and refund are <code>137</code> bytes each. The spend message is <code>468</code> bytes for a
 refresh (<code>s = a = 0</code>) and otherwise <code>129 * n + 403</code> bytes, at most
-<code>129 * L + 403</code>, with <code>n = L</code> whenever <code>s + a &lt; 2^(L-1)</code>. The spend message dominates and is linear in <code>L</code>;
-<a href="#act-config" class="auto internal xref">Section 4.1</a> asks deployments to keep <code>L</code> small for this reason.<a href="#section-4.7-15" class="pilcrow">¶</a></p>
+<code>129 * L + 403</code>, with <code>n = L</code> whenever <code>s + a &lt; 2^(L-1)</code>. The spend message
+dominates and is linear in <code>L</code>; <a href="#act-config" class="auto internal xref">Section 4.1</a> asks deployments to keep <code>L</code>
+small for this reason.<a href="#section-4.7-15" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2583,7 +2584,7 @@ stated where they are used; drawing them directly is not conformant:<a href="#se
 through <code>ProverNonces</code> (<a href="#act-prover-nonces" class="auto internal xref">Section 4.4.2</a>).<a href="#section-5.2-3.2.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
-<p id="section-5.2-4">The Client's <code>k</code>, <code>r</code>, <code>r1</code>, <code>r2</code>, <code>kstar</code>, <code>rn</code>, <code>rc</code>, <code>s1</code>, and <code>s2</code> are
+<p id="section-5.2-4">The Client's <code>k</code>, <code>r</code>, <code>r1</code>, <code>r2</code>, <code>kstar</code>, <code>rn</code>, <code>rc</code>, and <code>s1</code> are
 derived with <code>G.DeriveScalars</code> from randomness alone; a repetition among them
 harms only that Client. The signing exponent and the prover nonces are also
 derived from a secret, because a repeated signing exponent, or a prover nonce
@@ -2657,7 +2658,7 @@ whose signing oracles are constrained by the proofs they verify, or
 q-SDH is broken;<a href="#section-6-4.2.4.2.1" class="pilcrow">¶</a></p>
 </li>
             <li class="normal" id="section-6-4.2.4.3">
-              <p id="section-6-4.2.4.3.1">the sum equations of <a href="#act-spend-relation" class="auto internal xref">Section 4.6.1</a> hold over the integers
+              <p id="section-6-4.2.4.3.1">the balance constraints of <a href="#act-spend-relation" class="auto internal xref">Section 4.6.1</a> hold over the integers
 ("Amount validation" below), so the refund Credential has balance exactly
 <code>c - s + t</code>; and<a href="#section-6-4.2.4.3.1" class="pilcrow">¶</a></p>
 </li>

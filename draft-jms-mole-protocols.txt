@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 18 April 2027                                           Mozilla
+Expires: 22 April 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                         15 October 2026
+                                                         19 October 2026
 
 
                              MoLE Protocols
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2027.
+   This Internet-Draft will expire on 22 April 2027.
 
 Copyright Notice
 
@@ -1090,10 +1090,12 @@ FinalizeUpdate(presentation_state, update, configuration)
 5.2.6.  Limitations
 
    A SpendMessage grows linearly in L ([ACT]).  With P-256 and L = 32,
-   it is at most 4531 bytes, or 468 bytes for a refresh (s = a = 0).
-   The PresentationAndUpdate adds the 32-byte key_id, before base64url
-   encoding in the Authorization header.  Deployments with tight header
-   limits should choose L accordingly.
+   it is at most 4,531 bytes (about 4.5 KB) when s + a > 0, including
+   when both amounts are nonzero, and 468 bytes for a refresh (s = a =
+   0).  These sizes exclude the 32-byte key_id added by
+   PresentationAndUpdate and are before base64url encoding in the
+   Authorization header.  Deployments with tight header limits should
+   choose L accordingly.
 
 5.3.  Privacy Pass with a Reverse Flow
 

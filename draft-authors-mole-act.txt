@@ -5,9 +5,9 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                Google LLC
-Expires: 18 April 2027                                  A. Faz-Hernandez
+Expires: 22 April 2027                                  A. Faz-Hernandez
                                                         Cloudflare, Inc.
-                                                         15 October 2026
+                                                         19 October 2026
 
 
                      Anonymous Credit Tokens (ACT)
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 18 April 2027.
+   This Internet-Draft will expire on 22 April 2027.
 
 Copyright Notice
 
@@ -1216,7 +1216,7 @@ Table of Contents
    *  every nonce of a ProveCompact prover of the Credential scheme,
       through ProverNonces (Section 4.4.2).
 
-   The Client's k, r, r1, r2, kstar, rn, rc, s1, and s2 are derived with
+   The Client's k, r, r1, r2, kstar, rn, rc, and s1 are derived with
    G.DeriveScalars from randomness alone; a repetition among them harms
    only that Client.  The signing exponent and the prover nonces are
    also derived from a secret, because a repeated signing exponent, or a
@@ -1273,7 +1273,7 @@ Table of Contents
          IssueRefund, whose signing oracles are constrained by the
          proofs they verify, or q-SDH is broken;
 
-      *  the sum equations of Section 4.6.1 hold over the integers
+      *  the balance constraints of Section 4.6.1 hold over the integers
          ("Amount validation" below), so the refund Credential has
          balance exactly c - s + t; and
 
