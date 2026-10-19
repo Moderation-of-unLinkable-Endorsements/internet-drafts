@@ -5,22 +5,19 @@ from ec_ihat import wire
 from ec_ihat.ciphersuite import DeserializeError, ORDER
 
 G = protocol.G
-SESSION_ID = bytes(range(protocol.Nn))
 
 
 def _issue_over_the_wire():
     skA, pkA = G.DeriveKeyPair(bytes(range(48)), b"anchor")
     anchor_state, commitment = protocol.Commit(b"epoch-1")
-    commit_message = wire.EncodeCommitMessage(SESSION_ID, commitment)
-    session_id, commitment = wire.DecodeCommitMessage(commit_message)
-    assert session_id == SESSION_ID
+    commit_message = wire.EncodeCommitMessage(commitment)
+    assert wire.DecodeCommitMessage(commit_message) == commitment
 
     client_state, challenge = protocol.Challenge(
         pkA, b"epoch-1", b"moderator-1", commitment
     )
-    challenge_message = wire.EncodeChallengeMessage(session_id, challenge)
-    session_id, challenge = wire.DecodeChallengeMessage(challenge_message)
-    assert session_id == SESSION_ID
+    challenge_message = wire.EncodeChallengeMessage(challenge)
+    assert wire.DecodeChallengeMessage(challenge_message) == challenge
 
     response = protocol.Respond(skA, anchor_state, challenge)
     response_message = wire.EncodeResponseMessage(response)
@@ -46,8 +43,8 @@ def _redemption(size):
 def test_message_sizes():
     _, _, messages = _issue_over_the_wire()
     assert [len(m) for m in messages] == [
-        protocol.Nn + 2 * G.Ne,
-        protocol.Nn + G.Ns,
+        2 * G.Ne,
+        G.Ns,
         3 * G.Ns,
         4 * G.Ns + protocol.Nn,
     ]
@@ -99,9 +96,8 @@ def test_truncated_and_padded_messages_are_rejected():
 def test_invalid_elements_and_scalars_are_rejected():
     _, _, messages = _issue_over_the_wire()
     commit_message, _, response_message, _ = messages
-    offset = protocol.Nn
     for element in (bytes(G.Ne), b"\x02" + b"\xff" * 32):
-        bad = commit_message[:offset] + element + commit_message[offset + G.Ne :]
+        bad = element + commit_message[G.Ne :]
         with pytest.raises(DeserializeError):
             wire.DecodeCommitMessage(bad)
     bad = ORDER.to_bytes(G.Ns, "big") + response_message[G.Ns :]

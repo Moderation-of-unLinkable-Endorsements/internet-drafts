@@ -21,9 +21,6 @@ class VerifyError(Exception):
     """A received value failed a verification check."""
 
 
-class SessionError(Exception):
-    """A session is not in the expected state."""
-
 class AnchorState(NamedTuple):
     a: Scalar
     y: Scalar

@@ -15,7 +15,6 @@ from . import common, protocol as ec_ihat, wire
 DERIVE_INFO = b"EC-IHAT test vectors"
 CTX_ISS = b"EC-IHAT test vectors issuance context"
 CTX_RED = b"EC-IHAT test vectors redemption context"
-SESSION_ID = b"EC-IHAT test vector session id 1"
 CHALLENGE_DIGEST = b"EC-IHAT test vectors challenge digest"
 # Anchor Set sizes and the position of the issuing Anchor in each.
 REDEMPTIONS = [(2, 1), (5, 3), (1, 0)]
@@ -94,16 +93,15 @@ def _render(source: Source) -> str:
     entries += entry(
         "issue.Z", G.SerializeElement(ec_ihat.CreateContextBase(CTX_ISS))
     )
-    entries += entry("issue.session_id", SESSION_ID)
     anchor_state, commitment = ec_ihat.Commit(CTX_ISS)
     entries += entry("issue.commit.rand", source.rand())
     entries += entry(
         "issue.commit.state",
         b"".join(G.SerializeScalar(s) for s in anchor_state),
     )
-    encoded = wire.EncodeCommitMessage(SESSION_ID, commitment)
+    encoded = wire.EncodeCommitMessage(commitment)
     entries += entry("issue.commit.message", encoded)
-    _, commitment = wire.DecodeCommitMessage(encoded)
+    commitment = wire.DecodeCommitMessage(encoded)
     client_state, challenge = ec_ihat.Challenge(
         pkA, CTX_ISS, CTX_RED, commitment
     )
@@ -122,9 +120,9 @@ def _render(source: Source) -> str:
             )
         ),
     )
-    encoded = wire.EncodeChallengeMessage(SESSION_ID, challenge)
+    encoded = wire.EncodeChallengeMessage(challenge)
     entries += entry("issue.challenge.message", encoded)
-    _, challenge = wire.DecodeChallengeMessage(encoded)
+    challenge = wire.DecodeChallengeMessage(encoded)
     response = ec_ihat.Respond(skA, anchor_state, challenge)
     encoded = wire.EncodeResponseMessage(response)
     entries += entry("issue.response.message", encoded)

@@ -58,9 +58,6 @@ class Reader:
     def vector(self) -> bytes:
         return self.take(self.length())
 
-    def session_id(self) -> bytes:
-        return self.take(Nn)
-
     def element(self) -> Element:
         return G.DeserializeElement(self.take(G.Ne))
 
@@ -79,33 +76,27 @@ class Reader:
             raise DeserializeError("trailing bytes in EC-IHAT message")
 
 
-def EncodeCommitMessage(session_id: bytes, commitment: Commitment) -> bytes:
-    return (
-        session_id
-        + G.SerializeElement(commitment.A)
-        + G.SerializeElement(commitment.C)
-    )
+def EncodeCommitMessage(commitment: Commitment) -> bytes:
+    return G.SerializeElement(commitment.A) + G.SerializeElement(commitment.C)
 
 
-def DecodeCommitMessage(data: bytes) -> tuple[bytes, Commitment]:
+def DecodeCommitMessage(data: bytes) -> Commitment:
     reader = Reader(data)
-    session_id = reader.session_id()
     A = reader.element()
     C = reader.element()
     reader.finish()
-    return (session_id, Commitment(A, C))
+    return Commitment(A, C)
 
 
-def EncodeChallengeMessage(session_id: bytes, challenge: Scalar) -> bytes:
-    return session_id + G.SerializeScalar(challenge)
+def EncodeChallengeMessage(challenge: Scalar) -> bytes:
+    return G.SerializeScalar(challenge)
 
 
-def DecodeChallengeMessage(data: bytes) -> tuple[bytes, Scalar]:
+def DecodeChallengeMessage(data: bytes) -> Scalar:
     reader = Reader(data)
-    session_id = reader.session_id()
     challenge = reader.scalar()
     reader.finish()
-    return (session_id, challenge)
+    return challenge
 
 
 def EncodeResponseMessage(response: Response) -> bytes:
