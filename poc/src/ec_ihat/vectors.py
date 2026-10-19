@@ -1,4 +1,4 @@
-"""Generate the draft's test vectors: python -m rollatini.vectors.
+"""Generate the draft's test vectors: python -m ec_ihat.vectors.
 
 Every algorithm is a deterministic function of the bytes it draws from
 `random`. The generator serves those bytes from SHAKE128 of a fixed label,
@@ -10,13 +10,13 @@ this module alone.
 
 from hashlib import shake_128
 
-from . import common, protocol as rollatini, wire
+from . import common, protocol as ec_ihat, wire
 
-DERIVE_INFO = b"Rollatini test vectors"
-CTX_ISS = b"Rollatini test vectors issuance context"
-CTX_RED = b"Rollatini test vectors redemption context"
-SESSION_ID = b"Rollatini test vector session id"
-CHALLENGE_DIGEST = b"Rollatini test vectors challenge digest"
+DERIVE_INFO = b"EC-IHAT test vectors"
+CTX_ISS = b"EC-IHAT test vectors issuance context"
+CTX_RED = b"EC-IHAT test vectors redemption context"
+SESSION_ID = b"EC-IHAT test vector session id 1"
+CHALLENGE_DIGEST = b"EC-IHAT test vectors challenge digest"
 # Anchor Set sizes and the position of the issuing Anchor in each.
 REDEMPTIONS = [(2, 1), (5, 3), (1, 0)]
 
@@ -57,7 +57,7 @@ def block(entries: str) -> str:
 
 def render() -> str:
     saved_random = common.secrets.token_bytes
-    source = Source(b"Rollatiniv1-P256-SHA256 test vectors")
+    source = Source(b"EC-IHATv1-P256-SHA256 test vectors")
     setattr(common.secrets, "token_bytes", source)
     try:
         return _render(source)
@@ -66,13 +66,13 @@ def render() -> str:
 
 
 def _render(source: Source) -> str:
-    G = rollatini.G
-    out = "## Ciphersuite {#rollatini-tv-suite}\n\n" + block(
+    G = ec_ihat.G
+    out = "## Ciphersuite {#ec-ihat-tv-suite}\n\n" + block(
         entry("suite.identifier", b"P256-SHA256")
     )
 
-    scalars = G.DeriveScalars(source(rollatini.Nseed), DERIVE_INFO, 3)
-    out += "\n## Scalar Derivation {#rollatini-tv-derive}\n\n" + block(
+    scalars = G.DeriveScalars(source(ec_ihat.Nseed), DERIVE_INFO, 3)
+    out += "\n## Scalar Derivation {#ec-ihat-tv-derive}\n\n" + block(
         entry("derive.info", DERIVE_INFO)
         + entry("derive.rand", source.rand())
         + entry(
@@ -82,7 +82,7 @@ def _render(source: Source) -> str:
     )
 
     skA, pkA = G.GenerateKeyPair()
-    out += "\n## Key Pair {#rollatini-tv-key}\n\n" + block(
+    out += "\n## Key Pair {#ec-ihat-tv-key}\n\n" + block(
         entry("key.rand", source.rand())
         + entry("key.skA", G.SerializeScalar(skA))
         + entry("key.pkA", G.SerializeElement(pkA))
@@ -92,10 +92,10 @@ def _render(source: Source) -> str:
     entries = entry("issue.ctx_iss", CTX_ISS)
     entries += entry("issue.ctx_red", CTX_RED)
     entries += entry(
-        "issue.Z", G.SerializeElement(rollatini.CreateContextBase(CTX_ISS))
+        "issue.Z", G.SerializeElement(ec_ihat.CreateContextBase(CTX_ISS))
     )
     entries += entry("issue.session_id", SESSION_ID)
-    anchor_state, commitment = rollatini.Commit(CTX_ISS)
+    anchor_state, commitment = ec_ihat.Commit(CTX_ISS)
     entries += entry("issue.commit.rand", source.rand())
     entries += entry(
         "issue.commit.state",
@@ -104,7 +104,7 @@ def _render(source: Source) -> str:
     encoded = wire.EncodeCommitMessage(SESSION_ID, commitment)
     entries += entry("issue.commit.message", encoded)
     _, commitment = wire.DecodeCommitMessage(encoded)
-    client_state, challenge = rollatini.Challenge(
+    client_state, challenge = ec_ihat.Challenge(
         pkA, CTX_ISS, CTX_RED, commitment
     )
     entries += entry("issue.challenge.rand", source.rand())
@@ -125,14 +125,14 @@ def _render(source: Source) -> str:
     encoded = wire.EncodeChallengeMessage(SESSION_ID, challenge)
     entries += entry("issue.challenge.message", encoded)
     _, challenge = wire.DecodeChallengeMessage(encoded)
-    response = rollatini.Respond(skA, anchor_state, challenge)
+    response = ec_ihat.Respond(skA, anchor_state, challenge)
     encoded = wire.EncodeResponseMessage(response)
     entries += entry("issue.response.message", encoded)
     response = wire.DecodeResponseMessage(encoded)
-    endorsement = rollatini.Finalize(pkA, client_state, response)
-    assert rollatini.Verify(pkA, endorsement, CTX_ISS, CTX_RED)
+    endorsement = ec_ihat.Finalize(pkA, client_state, response)
+    assert ec_ihat.Verify(pkA, endorsement, CTX_ISS, CTX_RED)
     entries += entry("issue.endorsement", wire.EncodeEndorsement(endorsement))
-    out += "\n## Issuance {#rollatini-tv-issue}\n\n" + block(entries)
+    out += "\n## Issuance {#ec-ihat-tv-issue}\n\n" + block(entries)
 
     for n, index in REDEMPTIONS:
         key = f"redeem{n}"
@@ -149,7 +149,7 @@ def _render(source: Source) -> str:
             b"".join(G.SerializeElement(pk) for pk in anchor_set),
         )
         entries += entry(key + ".challenge_digest", CHALLENGE_DIGEST)
-        redemption = rollatini.Redeem(
+        redemption = ec_ihat.Redeem(
             anchor_set, index, endorsement, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         rand = source.rand()
@@ -159,12 +159,12 @@ def _render(source: Source) -> str:
         encoded = wire.EncodeRedemption(redemption)
         entries += entry(key + ".message", encoded)
         redemption = wire.DecodeRedemption(encoded, n)
-        nf = rollatini.VerifyRedemption(
+        nf = ec_ihat.VerifyRedemption(
             anchor_set, redemption, CTX_ISS, CTX_RED, CHALLENGE_DIGEST
         )
         entries += entry(key + ".nf", nf)
         title = f"Redemption Against {n} Anchor{'s' if n > 1 else ''}"
-        out += f"\n## {title} {{#rollatini-tv-{key}}}\n\n" + block(entries)
+        out += f"\n## {title} {{#ec-ihat-tv-{key}}}\n\n" + block(entries)
     return out
 
 

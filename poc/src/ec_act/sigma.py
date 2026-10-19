@@ -1,9 +1,9 @@
-"""Run ACT's proofs on the CFRG reference code, unchanged.
+"""Run EC-ACT's proofs on the CFRG reference code, unchanged.
 
 ``poc/vendor/sigma-protocols`` is the draft-irtf-cfrg-sigma-protocols
 repository at its ``-03`` tag. Its modules import each other by bare name,
 so its ``poc`` directory goes on ``sys.path`` once, here. Nothing upstream
-is copied or patched. This module bridges the Rollatini group to upstream's,
+is copied or patched. This module bridges the EC-IHAT group to upstream's,
 exposes the upstream procedures under the draft's names, and compiles
 relations written in the draft's notation.
 """
@@ -16,15 +16,15 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Any, NamedTuple
 
-from rollatini.ciphersuite import DeserializeError
-from rollatini.ciphersuite import P256Element as Element
-from rollatini.ciphersuite import P256Group
-from rollatini.ciphersuite import P256Scalar as Scalar
+from ec_ihat.ciphersuite import DeserializeError
+from ec_ihat.ciphersuite import P256Element as Element
+from ec_ihat.ciphersuite import P256Group
+from ec_ihat.ciphersuite import P256Scalar as Scalar
 
 UPSTREAM = Path(__file__).resolve().parents[2] / "vendor/sigma-protocols/poc"
 if not (UPSTREAM / "sigma_protocols.py").is_file():
     raise ImportError(
-        "ACT needs the pinned sigma-protocols submodule. From the repository "
+        "EC-ACT needs the pinned sigma-protocols submodule. From the repository "
         "root, run: git submodule update --init poc/vendor/sigma-protocols"
     )
 if str(UPSTREAM) not in sys.path:
@@ -42,7 +42,7 @@ SerializeLinearRelation = sigma_protocols.serialize_linear_relation
 def ProveCompact(
     tag: bytes, relation: Any, witness: Sequence[Scalar], rng: Any
 ) -> bytes:
-    """Upstream ``prove_compact``; the witness is given as Rollatini scalars."""
+    """Upstream ``prove_compact``; the witness is given as EC-IHAT scalars."""
     return bytes(
         sigma_protocols.prove_compact(
             tag, relation, [int(w) for w in witness], rng
@@ -59,12 +59,12 @@ def VerifyCompact(tag: bytes, relation: Any, proof: bytes) -> bool:
 
 
 class Group(groups.PrimeOrderGroup):
-    """Upstream's group interface over the Rollatini group.
+    """Upstream's group interface over the EC-IHAT group.
 
     Upstream defines its protocol over an abstract prime-order group and
-    ships a pure-Python P-256. This class presents Rollatini's P-256, whose
+    ships a pure-Python P-256. This class presents EC-IHAT's P-256, whose
     arithmetic is native, through the same interface, so the proofs run
-    on the same elements the rest of ACT uses. Upstream represents the
+    on the same elements the rest of EC-ACT uses. Upstream represents the
     identity as ``None``; the encodings coincide (compressed SEC1).
     """
 

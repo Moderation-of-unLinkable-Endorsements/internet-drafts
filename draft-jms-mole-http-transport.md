@@ -95,8 +95,8 @@ type-specific payloads directly, without outer type or length wrappers.
 
 Payload parameter names end in `-T`, where `T` is a registered endorsement or
 credential type from {{PROTOCOLS}}, written as exactly four lowercase
-hexadecimal digits. For example, Rollatini (endorsement type 0x0002) is
-challenged with `redeem-0002`, and ACT (credential type 0x0001) is presented
+hexadecimal digits. For example, EC-IHAT (endorsement type 0x0002) is
+challenged with `redeem-0002`, and EC-ACT (credential type 0x0001) is presented
 with `presentation-0001`. Recipients also accept uppercase digits, since
 parameter names are case-insensitive ({{Section 11.2 of HTTP}}). Type 0x0000
 is invalid.
@@ -192,7 +192,7 @@ with the type-specific grant message as its body. The media type is
 the same four-digit hexadecimal encoding. The response uses
 `application/mole-endorsement-response` with the same type. The Client MUST
 reject a mismatched type. There is no outer `EndorsementRequest` or
-`EndorsementResponse` wrapper. The first Rollatini request has empty content:
+`EndorsementResponse` wrapper. The first EC-IHAT request has empty content:
 
 ~~~
 Content-Type: application/mole-endorsement-request; type=0002
@@ -227,7 +227,7 @@ Mole-Credential: response-0001="<issuance-response>"
 The Moderator challenges with the credential type:
 
 ~~~
-WWW-Authenticate: Mole challenge-0001="<act-challenge>"
+WWW-Authenticate: Mole challenge-0001="<ec-act-challenge>"
 ~~~
 
 A challenge in a `401` response means the resource requires a presentation.
@@ -312,7 +312,7 @@ TODO. The list to cover:
    (same Moderator, type, key and context, scope), and that reuse never
    permits reuse of a spent Credential or Endorsement.
 3. Request binding: this document defines no canonical HTTP request
-   serialization. ACT `request_context` must cover what the Moderator
+   serialization. EC-ACT `request_context` must cover what the Moderator
    authorizes, including the body. Reverse flow has no request binding.
 4. Recovery: what recovery reveals and its lack of Client authentication
    beyond the handle.

@@ -1,9 +1,9 @@
 ---
-title: "Moussaka"
-abbrev: "Moussaka"
+title: "VOLE-IHAT"
+abbrev: "VOLE-IHAT"
 category: info
 
-docname: draft-authors-mole-ihat-moussaka-latest
+docname: draft-authors-mole-vole-ihat-latest
 submissiontype: IETF
 number:
 date:
@@ -15,7 +15,7 @@ keyword:
   - privacy
 venue:
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-moussaka.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-ihat.html"
 
 author:
 
@@ -30,13 +30,13 @@ author:
     email: chrispatton+ietf@gmail.com
 
 normative:
-  IHAT-ROLLATINI:
-    title: "Rollatini: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html
+  EC-IHAT:
+    title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html
 
-  ACT-RATATOUILLE:
-    title: "Ratatouille"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act-ratatouille.html
+  VOLE-ACT:
+    title: "VOLE-ACT"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html
 
   FIPS202:  # TurboShortSHAKE128(M,d) = Sponge[Keccak-p[800, 12], pad10*1, 800–256](M||1111,d)
     title: "SHA-3 Standard: Permutation-Based Hash and Extendable-Output Functions"
@@ -156,9 +156,9 @@ normative:
         name: Bo-Yin Yang
 
 informative:
-  ACT:
-    title: "Anonymous Credit Tokens (ACT)"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html
+  EC-ACT:
+    title: "EC-ACT: Anonymous Credit Tokens"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html
 
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"
@@ -188,8 +188,8 @@ informative:
 
 --- abstract
 
-This document specifies Moussaka, a candidate post-quantum Issuer-Hiding
-Anonymous Token (IHAT). Moussaka is based on the UOV digital signature scheme
+This document specifies VOLE-IHAT, a candidate post-quantum Issuer-Hiding
+Anonymous Token (IHAT). VOLE-IHAT is based on the UOV digital signature scheme
 and the VOLE-in-the-Head proof system (a component of the FAEST signature
 scheme). The anchor issues a token by signing a commitment to the client's
 state; to redeem a token, the client proves knowledge of the opening of this
@@ -207,27 +207,27 @@ commitment is instantiated with `Keccak-p[800,12]`.
 An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
 Moderator without revealing which Anchor issued the token. Instead, the client
 proves the token was issued by some Anchor in the Anchor Set trusted by the
-Moderator. Rollatini is also designed to be post-issuance unlinkable, meaning
+Moderator. EC-IHAT is also designed to be post-issuance unlinkable, meaning
 the redemption of a token cannot be linked to its issuance.
 
-Rollatini meets these privacy goals unconditionally, meaning regardless of its
+EC-IHAT meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
 its public key.
 
-This document specifies Moussaka, an Issuer-Hiding Anonymous Token that is
-plausibly fully post-quantum secure. Similar to {{ACT-RATATOUILLE}}, its design
+This document specifies VOLE-IHAT, an Issuer-Hiding Anonymous Token that is
+plausibly fully post-quantum secure. Similar to {{VOLE-ACT}}, its design
 is based on the PoMFRIT blind signature scheme {{PoMFRIT}}, which combines a
 post-quantum signature scheme with a suitable zero-knowledge proof system and
 commitment scheme. Specifically, the signer signs a commitment to the message,
 and the verifier checks a zero-knowledge proof-of-knowledge of the signature
-and the opening of the commitment. Moussaka extends this paradigm in the
+and the opening of the commitment. VOLE-IHAT extends this paradigm in the
 natural way: rather than prove knowledge of a signature under the public key of
 a particular Anchor, the Client proves knowledge of a signature under some
 public key in the Anchor Set.
 
-Moussaka has significantly higher bandwidth cost compared to Rollatini:
+VOLE-IHAT has significantly higher bandwidth cost compared to EC-IHAT:
 
 1. each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
    set {{UOV}});
@@ -241,31 +241,31 @@ Moussaka has significantly higher bandwidth cost compared to Rollatini:
 > for issuance and another for redemption) using the more invasive techniques
 > from {{PoMFRIT}}, Algorithm 2.
 
-On the other hand, Moussaka is round optimal: only two moves are required for
-issuance, whereas Rollatini requires three.
+On the other hand, VOLE-IHAT is round optimal: only two moves are required for
+issuance, whereas EC-IHAT requires three.
 
 The remainder of this document is structured as follows. {{conventions}}
 defines some conventions and notation. {{overview}} provides a high-level
 overview of the protocol. {{preliminaries}} defines the relevant interfaces for
-the signature scheme, commitment scheme, and proof system used by Moussaka and
+the signature scheme, commitment scheme, and proof system used by VOLE-IHAT and
 provides normative references for their specifications. {{protocol}} specifies
 the protocol in full detail. Finally, {{security}} enumerates some security
 considerations for implementers and adopters.
 
-> TODO(cjpatton) Our pseudocode is derived from an old version of ACT, but MoLE
-> ACT {{ACT}} now uses Python, as does {{IHAT-ROLLATINI}}. Consider transcribing
-> our pseudocode into Python. (Likewise for Ratatouille.)
+> TODO(cjpatton) Our pseudocode is derived from an old version of EC-ACT, but
+> {{EC-ACT}} now uses Python, as does {{EC-IHAT}}. Consider transcribing
+> our pseudocode into Python. (Likewise for VOLE-ACT.)
 
 # Conventions and Definitions {#conventions}
 
 {::boilerplate bcp14-tagged}
 
 This document follows the same conventions and uses the same notation as
-{{ACT-RATATOUILLE}}.
+{{VOLE-ACT}}.
 
 # Overview {#overview}
 
-Moussaka makes use of three cryptographic primitives:
+VOLE-IHAT makes use of three cryptographic primitives:
 
 1. The Unbalanced Oil and Vinegar {{UOV}} digital signature scheme. Each Anchor
    uses a UOV secret key to issue tokens, and during redemption, the Client and
@@ -283,11 +283,11 @@ for `P` that can be used to efficiently sample signatures for a given target.
 
 Issuance binds a token to an issuance context `ctx_iss` agreed upon by the
 Client, Anchor, and Moderator, and a redemption context `ctx_red` agreed upon
-by the Client and Moderator {{IHAT-ROLLATINI}}. The protocol commits to both
+by the Client and Moderator {{EC-IHAT}}. The protocol commits to both
 contexts during issuance: the Anchor verifies the `ctx_iss` binding during
 issuance, and the Moderator verifies both the `ctx_iss` and `ctx_red` binding
-during redemption. Note that Moussaka constrains how these values are chosen
-compared to {{IHAT-ROLLATINI}}; see {{commitment}} for details.
+during redemption. Note that VOLE-IHAT constrains how these values are chosen
+compared to {{EC-IHAT}}; see {{commitment}} for details.
 
 The issuance protocol is as follows:
 
@@ -338,11 +338,11 @@ justification.
 
 The procedures `KP800()`, `UOV.CompactKeyGen()`, `UOV.ExpandPK()`,
 `UOV.ExpandSK()`, `UOV.DerivePreimage()`, `PKDigest()`, `VOLEitH.Prove()`, and
-`VOLEitH.Verify()` are defined as in {{ACT-RATATOUILLE}}. We adopt the uov-Ip
+`VOLEitH.Verify()` are defined as in {{VOLE-ACT}}. We adopt the uov-Ip
 parameter set (NIST Level 1) for UOV. That is, for the remainder of this
 document, let `n=119`, `m=45`, and `q=2^8`.
 
-Moussaka also fixes the following parameters, named as in {{ACT-RATATOUILLE}}:
+VOLE-IHAT also fixes the following parameters, named as in {{VOLE-ACT}}:
 
 - `nf_len`: the nullifier length in bytes. Its value SHALL be `24`.
 
@@ -361,7 +361,7 @@ Moussaka also fixes the following parameters, named as in {{ACT-RATATOUILLE}}:
 A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The template for domain separation is the same as
-{{ACT-RATATOUILLE}}.
+{{VOLE-ACT}}.
 
 A global constant `MAX_ANCHORS` defines the maximum size of an Anchor Set. Its
 value SHALL be `64`.
@@ -394,7 +394,7 @@ KeyGen():
 
 ## Commitment {#commitment}
 
-A Moussaka token commits the Client to a nullifier, an issuance context, and a
+A VOLE-IHAT token commits the Client to a nullifier, an issuance context, and a
 redemption context. The commitment is generated by sampling a randomizer `r <-
 F_q^r_len` and running the following procedure:
 
@@ -419,13 +419,13 @@ Com(nf, ctx_iss, ctx_red, r):
 The layout of `state` is chosen so that the entire commitment is computed with
 a single application of the permutation. The zero padding is sized so that
 `state` is always 100 bytes. This layout also constrains the lengths of the
-inputs relative to {{IHAT-ROLLATINI}}: `nf_len` is 24 bytes, whereas
-{{IHAT-ROLLATINI}} uses a 32-byte nullifier, and `ctx_len` is 16 bytes, whereas
-{{IHAT-ROLLATINI}} allows the contexts to be arbitrary byte strings.
+inputs relative to {{EC-IHAT}}: `nf_len` is 24 bytes, whereas
+{{EC-IHAT}} uses a 32-byte nullifier, and `ctx_len` is 16 bytes, whereas
+{{EC-IHAT}} allows the contexts to be arbitrary byte strings.
 
 > TODO(cjpatton) Consider bumping the nullifier length to `32` to match
-> {{IHAT-ROLLATINI}} and guidelines for choosing the context strings. Honestly,
-> truncating a hash to 16 bytes is not terrible. (Likewise for Ratatouille.)
+> {{EC-IHAT}} and guidelines for choosing the context strings. Honestly,
+> truncating a hash to 16 bytes is not terrible. (Likewise for VOLE-ACT.)
 
 ## Issuance
 
@@ -456,7 +456,7 @@ The encoding of the instance is defined as `t || ctx_iss`.
 
 ### Issue Request
 
-To request a Moussaka token from an Anchor, the Client runs the following
+To request a VOLE-IHAT token from an Anchor, the Client runs the following
 procedure.
 
 ~~~~pseudocode
@@ -541,7 +541,7 @@ of a sequence of UOV public keys `P[0], ..., P[N-1]`. The Anchor Set MUST NOT
 be empty and MUST NOT have more than `MAX_ANCHORS` elements, that is, `0 < N
 <= MAX_ANCHORS`. They also agree on `challenge_digest`, which binds the
 redemption to the challenge that triggered it. It is computed from the
-Moderator's challenge as described in {{IHAT-ROLLATINI}}; this document treats
+Moderator's challenge as described in {{EC-IHAT}}; this document treats
 it as an opaque byte string of length `32`.
 
 Let `i` in `[N]` be the index of the issuing Anchor. The witness for the
@@ -669,7 +669,7 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
 
 > TODO Prove the following claims.
 
-Issuer-hiding and post-issuance unlinkability of Moussaka reduce to the
+Issuer-hiding and post-issuance unlinkability of VOLE-IHAT reduce to the
 zero-knowledge property of the VOLEitH proof system and the hiding property of
 our commitment. One-more-unforgeability reduces to witness-extractability of
 VOLEitH, binding of the commitment, and the one-more-UOV assumption
@@ -678,7 +678,7 @@ assumption than standard UOV ({{UOV}}, Definition 2) that requires some
 scrutiny before we rely on it too heavily.
 
 > NOTE Here's a sketch of the reduction to one-more-UOV. The same idea seems to
-> apply to Ratatouille {{ACT-RATATOUILLE}} as well.
+> apply to {{VOLE-ACT}} as well.
 >
 > We consider a simplified version of the protocol, basically a blind signature
 > built in the same framework. During redemption, the Client proves knowledge of
@@ -713,24 +713,24 @@ scrutiny before we rely on it too heavily.
 > wants. It now only needs to find a collision in the remaining bits of the
 > image.
 
-> NOTE Both Moussaka and Ratatouille can avoid the stronger one-more-UOV
+> NOTE Both VOLE-IHAT and VOLE-ACT can avoid the stronger one-more-UOV
 > assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
 > by sampling a signing salt and using Keccak-p[800,12] to hash the input and
 > the salt.
 >
-> For Moussaka, the cost of this would be an additional hash evaluation in the
-> circuit. For Ratatouille, we would just need to add a salt to `Tag()`, which
+> For VOLE-IHAT, the cost of this would be an additional hash evaluation in the
+> circuit. For VOLE-ACT, we would just need to add a salt to `Tag()`, which
 > adds a little bit to the witness.
 
 > NOTE Nothing ties the issuance of a token to the Anchor. We could consider
 > adding the Anchor public key to the encoding of the instance, like we do for
-> the redemption proof. (Likewise for Ratatouille.)
+> the redemption proof. (Likewise for VOLE-ACT.)
 
 ## Choice of Keccak-p[800,12]
 
 The commitment `Com()` uses `Keccak-p[800,12]` for the same reasons as the
-commitment of Ratatouille-KP800, namely to reduce the size of the VOLEitH
-proofs. See {{ACT-RATATOUILLE}} for discussion.
+commitment of VOLE-ACT-KP800, namely to reduce the size of the VOLEitH
+proofs. See {{VOLE-ACT}} for discussion.
 
 # IANA Considerations
 

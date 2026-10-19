@@ -1,9 +1,9 @@
 ---
-title: "Anonymous Credit Tokens (ACT)"
-abbrev: "ACT"
+title: "EC-ACT: Anonymous Credit Tokens"
+abbrev: "EC-ACT"
 category: info
 
-docname: draft-authors-mole-act-latest
+docname: draft-authors-mole-ec-act-latest
 submissiontype: IETF
 number:
 date:
@@ -21,7 +21,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-act.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html"
 
 author:
  -
@@ -38,12 +38,12 @@ author:
     email: armfazh@cloudflare.com
 
 normative:
-  IHAT-ROLLATINI:
-    title: "Rollatini: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ihat-rollatini.html
+  EC-IHAT:
+    title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html
     date: 2026
     seriesinfo:
-      Internet-Draft: draft-authors-mole-ihat-rollatini
+      Internet-Draft: draft-authors-mole-ec-ihat
     author:
       -
         ins: S. Schlesinger
@@ -135,15 +135,15 @@ informative:
 
 --- abstract
 
-This document specifies Anonymous Credit Tokens (ACT), a keyed-verification
-anonymous credential scheme with a hidden credit balance. A Client spends a
+This document specifies EC-ACT, a keyed-verification anonymous credential
+scheme with a hidden credit balance. A Client spends a
 public amount and receives a fresh Credential for the remaining balance and
 a return amount chosen by the issuer. The issuer verifies each spend without
 learning the balance or linking it to issuance or to other spends.
 
-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
+EC-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
 This document defines its cryptographic operations, encodings, and security
-requirements. The MoLE protocols use ACT as a Credential scheme.
+requirements. The MoLE protocols use EC-ACT as a Credential scheme.
 
 --- middle
 
@@ -151,7 +151,7 @@ requirements. The MoLE protocols use ACT as a Credential scheme.
 
 Applications such as MoLE require an updateable state managed by a
 client but authenticated by a server, with stringent requirements on
-unlinkability of updates and tests. Anonymous Credit Tokens provides
+unlinkability of updates and tests. EC-ACT provides
 such functionality: a Client holds a balance that is authenticated via
 signature issued by a Moderator, and can be told to update the balance
 in a verifiable manner.
@@ -164,14 +164,14 @@ The capitalized terms Client, Moderator, and Credential are used as
 defined in {{ARCH}}; a lowercase credential is the generic cryptographic
 notion. The message-encoding conventions, Python notation, and helpers
 `I2OSP`, `U16Prefixed`, `random`, and `Seed` are those of
-Section 2 of {{IHAT-ROLLATINI}}. The algorithms use `bytes` for byte strings,
+Section 2 of {{EC-IHAT}}. The algorithms use `bytes` for byte strings,
 `int` for integers, and `Sequence` and `NamedTuple` from Python's `typing`
 module. Record fields appear in the same order as their tuple representation.
 
 The group `G`, protocol context `ctx_proto`, seed length `Nseed`,
-generators, and balance width `L` are globals fixed by the ACT
-configuration ({{act-config}}). Shared group methods from {{IHAT-ROLLATINI}} use
-the ACT group instance `G`, which stores `ctx_proto` and applies ACT
+generators, and balance width `L` are globals fixed by the EC-ACT
+configuration ({{ec-act-config}}). Shared group methods from {{EC-IHAT}} use
+the EC-ACT group instance `G`, which stores `ctx_proto` and applies EC-ACT
 domain separation. Both schemes use `Nseed = 48`. Public byte-string
 inputs retain the length bounds
 specified by the operation that uses them.
@@ -181,7 +181,7 @@ specified by the operation that uses them.
 This document contains executable Python code to specify much of the
 protocol.
 
-ACT uses three three dependencies:
+EC-ACT uses three three dependencies:
 
 Group:
 : A prime-order group implementing the interface in {{group}}. {{ciphersuites}}
@@ -189,16 +189,16 @@ Group:
 
 Hash:
 : A cryptographic hash function, used by the `HashToGroup`, `HashToScalar`,
-  and derivation algorithms that the group of {{IHAT-ROLLATINI}} provides.
+  and derivation algorithms that the group of {{EC-IHAT}} provides.
 
 Sigma protocol:
 : The compact non-interactive Sigma protocol of {{SIGMA}}, instantiated in
-  {{act-proofs}}.
+  {{ec-act-proofs}}.
 
 ## Prime-Order Group {#group}
 
-ACT uses the prime-order group interface and the `Element` and `Scalar`
-types of Section 3.1 of {{IHAT-ROLLATINI}}, instantiated as in {{ciphersuites}}.
+EC-ACT uses the prime-order group interface and the `Element` and `Scalar`
+types of Section 3.1 of {{EC-IHAT}}, instantiated as in {{ciphersuites}}.
 The prime `p = G.Order()` is the group order and the scalar-field modulus.
 The Python interface provides `G.scalar(x)` for an integer `x` in
 `[0, G.Order())`, `s.isZero()` for a scalar, and `A.isIdentity()` for an
@@ -209,9 +209,9 @@ an element `A` is `G.Identity() - A`.
 ## Errors {#errors}
 
 `DeserializeError`, `VerifyError`, `DeriveError`, and `ValueError` have the
-meanings given in Section 3.2 of {{IHAT-ROLLATINI}}. ACT additionally uses
+meanings given in Section 3.2 of {{EC-IHAT}}. EC-ACT additionally uses
 `AmountError` when a balance or amount is outside the range admitted by
-{{act-amounts}}:
+{{ec-act-amounts}}:
 
 ~~~ python
 class AmountError(ValueError):
@@ -223,10 +223,10 @@ An implementation that raises an error MUST abort the affected protocol run.
 ## Deriving Scalars {#derive-scalar}
 
 Use `G.DeriveScalars(rand: bytes, info: bytes, count: int) ->
-list[Scalar]` from Section 4.2 of {{IHAT-ROLLATINI}}, using the ACT group
+list[Scalar]` from Section 4.2 of {{EC-IHAT}}, using the EC-ACT group
 instance initialized with `ctx_proto`. It rejects `rand` whose length is not
 `Nseed` with `ValueError`, and raises `DeriveError` in the negligible event that
-a derived scalar is zero. ACT applies the following requirements to this
+a derived scalar is zero. EC-ACT applies the following requirements to this
 shared algorithm.
 
 `rand` MUST be `Nseed` bytes of output of `random` and MUST NOT be used for
@@ -238,15 +238,15 @@ For a uniformly random string of this length, the resulting scalar has
 statistical distance at most `2^-128` from uniform over the nonzero scalars,
 conditioned on the result being nonzero. The 16-byte margin follows the
 hash-to-field method for a 128-bit security target
-({{Section 5 of HASH2CURVE}}). {{act-security}} describes the random-oracle
+({{Section 5 of HASH2CURVE}}). {{ec-act-security}} describes the random-oracle
 analysis needed to apply this sampling bound to the derived scalar and
 nonce vectors.
 
 ## Key Generation {#keygen}
 
 Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
-4.4 of {{IHAT-ROLLATINI}}, with the ACT group instance of {{act-config}}. Both
-return `tuple[Scalar, Element]`; ACT names the returned keys `(skM,
+4.4 of {{EC-IHAT}}, with the EC-ACT group instance of {{ec-act-config}}. Both
+return `tuple[Scalar, Element]`; EC-ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
 `G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
 
@@ -275,7 +275,7 @@ A presentation hides its Credential's balance beyond the public amounts
 and the predicates they establish. It is intended to be unlinkable to the
 issuance or refund that produced that Credential and to other
 presentations, subject to the assumptions and anonymity-set requirements
-of {{act-security}}.
+of {{ec-act-security}}.
 
 The scheme is a two-party protocol between a Client and a Moderator. The
 Moderator holds a key pair `(skM, pkM)` and is both the issuer and the
@@ -286,7 +286,7 @@ request/response exchange followed by a Client-local finalization.
 For spending, both parties know `s`, the spend amount, `a`,
 the maximum refund, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
-({{act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
+({{ec-act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
 digest of the encoded challenge.
 
 ~~~
@@ -320,7 +320,7 @@ digest of the encoded challenge.
 
    credential = FinalizeRefund(pkM, ctx_cred, state, refund)
 ~~~
-{: #fig-act title="Credential issuance and spending overview"}
+{: #fig-ec-act title="Credential issuance and spending overview"}
 
 The Moderator chooses the initial balance `c` and the return amount `t`
 according to its policy; both are outside the scope of this document, as is
@@ -328,7 +328,7 @@ the nullifier store the Moderator keeps to reject a second spend of the same
 Credential. {{PROTOCOLS}} specifies both, together with the carriage of the
 four messages.
 
-## Configuration {#act-config}
+## Configuration {#ec-act-config}
 
 A ciphersuite ({{ciphersuites}}) is identified by an ASCII byte string
 `identifier`, and both parties MUST agree on it before
@@ -337,7 +337,7 @@ ciphersuite of {{ciphersuites}}; its protocol context is
 
 ~~~ python
 def CreateCredentialProtocolContext(identifier: bytes) -> bytes:
-    return b"ACTv1-" + identifier
+    return b"EC-ACTv1-" + identifier
 ~~~
 
 Throughout this section and wherever the algorithms of this section are
@@ -354,14 +354,14 @@ largest balance. The Moderator publishes `L` together with its public key
 ({{PROTOCOLS}}); a Client MUST use the published value.
 
 `L` is fixed for the lifetime of a key and credential context.
-{{act-security}} shows by induction over issuances and refunds that every
+{{ec-act-security}} shows by induction over issuances and refunds that every
 balance the Moderator has signed lies below `2^L`, assuming one value of `L`
 per key and context. A Moderator that changes `L` MUST also change the
 credential context or the key. Deployments are RECOMMENDED to include `L` in
 the credential context, for instance by appending `I2OSP(L, 1)` to it, so
 that changing `L` changes the context.
 
-### Generators {#act-generators}
+### Generators {#ec-act-generators}
 
 The scheme uses the group generator `B = G.Generator()` and four further
 elements `H1`, `H2`, `H3`, `H4`, fixed by the ciphersuite:
@@ -377,13 +377,13 @@ def CreateGenerators() -> tuple[Element, Element, Element, Element]:
 ~~~
 
 `H1` commits to the balance, `H2` to the nullifier, `H3` is the blinding
-base, and `H4` binds the credential context ({{act-context}}). The discrete
+base, and `H4` binds the credential context ({{ec-act-context}}). The discrete
 logarithm of any of these elements with respect to any other, or to `B`, MUST
 NOT be known to any party; deriving them by hashing fixed labels ensures this.
 The five elements are pairwise distinct except with negligible probability;
 an implementation MAY verify this once when instantiating a ciphersuite.
 
-### Key Generation {#act-keygen}
+### Key Generation {#ec-act-keygen}
 
 A Moderator holds a key pair `(skM, pkM)`, generated with `G.GenerateKeyPair`
 of {{keygen}} under the protocol context of this section, or derived from a
@@ -391,7 +391,7 @@ seed with `G.DeriveKeyPair`. The Moderator publishes `SerializeElement(pkM)` in
 its configuration ({{PROTOCOLS}}). The signing key `skM` is also the
 verification key: `VerifySpend` requires it.
 
-## Credential Context {#act-context}
+## Credential Context {#ec-act-context}
 
 Every Credential is bound at issuance to a *credential context* `ctx_cred`,
 an opaque byte string of at most `2^16 - 1` bytes chosen by the Moderator and
@@ -419,9 +419,9 @@ was issued under fails verification; the mismatch is not otherwise
 signalled.
 
 The set of Clients sharing a credential context MUST be coarse; see
-{{act-security}}.
+{{ec-act-security}}.
 
-## Amounts {#act-amounts}
+## Amounts {#ec-act-amounts}
 
 Balances and amounts are nonnegative integers below `2^L`. On the wire they
 are `uint64` values; in the algebra they enter as scalars.
@@ -470,7 +470,7 @@ depends only on `m`, which is public.
 A party that receives an amount MUST check that it is below `2^L` before
 using it, and MUST raise an `AmountError` otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
-interpret this difference over the integers ({{act-security}}).
+interpret this difference over the integers ({{ec-act-security}}).
 
 The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`, the bound
 `2^L - 1 - (s + a)` in `ProveSpend` and `VerifySpend`, `t <= s + a`
@@ -479,7 +479,7 @@ are between integers. Each sum can reach `2^(L+1) - 2`, which does not fit
 in a `uint64` when `L = 64`, and an implementation MUST compute them
 without overflow.
 
-## Zero-Knowledge Proofs {#act-proofs}
+## Zero-Knowledge Proofs {#ec-act-proofs}
 
 Each proof of this document is a compact NARG string
 ({{Section 5.5 of SIGMA}}) for a linear relation declared where it is
@@ -493,7 +493,7 @@ The ciphersuite is `sigma-proofs_Shake128_P256` of
 with the same element and scalar encodings, so statement elements are
 encoded identically in both documents.
 
-### Tags {#act-tags}
+### Tags {#ec-act-tags}
 
 Every proof is bound to a *tag* ({{Section 5.1 of SIGMA}}) built by `Tag`
 from a label naming the operation and a possibly empty list of *bindings*:
@@ -514,14 +514,14 @@ distinct inputs yield distinct tags ({{Section 5.1 of FIAT-SHAMIR}}).
 Bindings are arbitrary byte strings, not the US-ASCII text that section
 recommends; the length prefixes keep the tag unambiguous.
 
-### Prover Nonces {#act-prover-nonces}
+### Prover Nonces {#ec-act-prover-nonces}
 
 `ProveCompact` draws one nonce per witness scalar from its `rng`, in
 scalar-index order. The `rng` MUST return, on its `i`-th call, the value
 that `ProverNonces.random_scalar` computes below. The nonces are derived
-together with `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the
+together with `G.DeriveNonces` (Section 4.3 of {{EC-IHAT}}) from the
 witness, the session, the relation, and fresh randomness; see "Derived prover
-nonces" in {{act-security}}.
+nonces" in {{ec-act-security}}.
 
 ~~~ python
 class ProverNonces:
@@ -555,11 +555,11 @@ This rule binds only the prover; a verifier following {{SIGMA}} accepts
 these proofs unchanged. The derivation is deterministic in the witness,
 the tag, the relation, and `rand`: replaying the bytes of `random`
 reproduces a proof byte for byte, which the test vectors of
-{{act-test-vectors}} rely on, and a random source that repeats all of `rand`
+{{ec-act-test-vectors}} rely on, and a random source that repeats all of `rand`
 reproduces the same proof.
 A retried operation draws fresh `rand` and produces a different proof.
 
-### Proving and Verifying {#act-prove}
+### Proving and Verifying {#ec-act-prove}
 
 A relation is proven and verified as follows, where `relation` is the
 declared relation compiled as in {{Section 3.4 of SIGMA}}, and
@@ -584,7 +584,7 @@ def Verify(
     return VerifyCompact(tag, relation, proof)
 ~~~
 
-## Issuance {#act-issuance}
+## Issuance {#ec-act-issuance}
 
 Issuance produces a signature on the attributes `(c, k, r, ctx)`, whose
 group-element encoding is `B + c * H1 + k * H2 + r * H3 + ctx * H4`.
@@ -626,15 +626,15 @@ class Credential(NamedTuple):
     e: Scalar
 ~~~
 
-### Signing Exponent {#act-signing-exponent}
+### Signing Exponent {#ec-act-signing-exponent}
 
-`IssueResponse` here and `IssueRefund` ({{act-refund}}) choose the
+`IssueResponse` here and `IssueRefund` ({{ec-act-refund}}) choose the
 exponent `e` of the signature `(A, e)`. It is derived with `G.DeriveNonces`
-(Section 4.3 of {{IHAT-ROLLATINI}}) from the signing key, the group-element
+(Section 4.3 of {{EC-IHAT}}) from the signing key, the group-element
 encoding of the signed attributes, and fresh randomness. Repeating these
 inputs reproduces the same signature. Changing the signed encoding changes
 the derivation input even when the random source repeats
-({{act-security}}).
+({{ec-act-security}}).
 
 ~~~ python
 def SigningExponent(
@@ -656,7 +656,7 @@ accompanying proof, and `X_A` is the group-element encoding being signed.
 The abort when `e + skM` is zero has probability about `1/p`; a caller that
 retries draws fresh randomness.
 
-### Issuance Request {#act-issue-request}
+### Issuance Request {#ec-act-issue-request}
 
 The Client commits to a fresh nullifier `k` and blinding factor `r`, and
 proves that it knows the opening:
@@ -687,9 +687,9 @@ The nullifier `k` is revealed when the Credential is spent, and the
 Moderator uses it to reject a second spend. A Client MUST NOT reuse it
 across Credentials, and MUST NOT finalize one `state` against two
 responses: the two Credentials would share `k`, and at most one of them
-can be spent ({{act-security}}).
+can be spent ({{ec-act-security}}).
 
-### Issuance Response {#act-issue-response}
+### Issuance Response {#ec-act-issue-response}
 
 The Moderator checks the request, chooses the balance `c`, and signs the
 encoding `X_A = B + c * H1 + ctx * H4 + K` as `A = X_A / (e + skM)`. It
@@ -736,9 +736,9 @@ def IssueResponse(
 ~~~
 
 The check `c < 2^L` bounds every issued balance; the soundness of
-spending relies on it ({{act-security}}).
+spending relies on it ({{ec-act-security}}).
 
-### Issuance Finalization {#act-finalize-issuance}
+### Issuance Finalization {#ec-act-finalize-issuance}
 
 The Client checks the response and assembles the Credential.
 
@@ -767,10 +767,10 @@ def FinalizeIssue(
 ~~~
 
 A Credential is the tuple `(k, c, r, A, e)`; its encoding, for storage, is
-given in {{act-wire}}. It is never sent. The Client also retains
+given in {{ec-act-wire}}. It is never sent. The Client also retains
 `ctx_cred`, which is not part of the Credential but is needed to spend it.
 
-## Spending {#act-spending}
+## Spending {#ec-act-spending}
 
 Spending consumes a Credential with balance `c` and produces one with
 balance `c - s + t`. The amount `s` and the top-up allowance `a` are
@@ -790,7 +790,7 @@ succeeds.
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
 Client. The spend proof uses `Tag(b"Spend", [ctx_spend])`, with
-`ctx_spend` as its sole binding ({{act-tags}}). {{PROTOCOLS}}
+`ctx_spend` as its sole binding ({{ec-act-tags}}). {{PROTOCOLS}}
 sets it to the SHA-256 digest of the challenge that triggered the
 presentation. The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
@@ -831,7 +831,7 @@ class RefundMessage(NamedTuple):
 
 An absent `Com_c` is `None`.
 
-### The Spend Relation {#act-spend-relation}
+### The Spend Relation {#ec-act-spend-relation}
 
 A spend shows that the *remainder* `v1 = c - s` of the hidden balance `c`
 satisfies
@@ -844,14 +844,14 @@ The lower bound shows that the Credential covers the spend, and the upper
 bound that the *topped-up balance* `c + a = s + v1 + a` is below `2^L`, so
 the refund may return up to `s + a` without the balance exceeding
 `2^L - 1`. A single range proof over the bits of `v1`, weighted by
-`w = RangeWeights(m)` ({{act-amounts}}), shows both. A spend with
+`w = RangeWeights(m)` ({{ec-act-amounts}}), shows both. A spend with
 `s + a >= 2^L` cannot satisfy them and is rejected with an `AmountError`.
 The number `n = len(w)` of bit commitments is the bit length of `m` and is
 fixed by the public amounts.
 
 A *refresh*, with `s = a = 0`, needs no range proof: the remainder is the
 balance `c`, whose range follows from issuance and prior refunds
-({{act-security}}). It commits to `c` in a single commitment `Com_c`
+({{ec-act-security}}). It commits to `c` in a single commitment `Com_c`
 instead. The relation therefore has two shapes, selected by whether
 `s + a` is zero; a group marked with a condition below is present exactly
 when it holds.
@@ -894,13 +894,13 @@ prover. The sum equation ties the committed bits to the balance: given
 the third equation, its left-hand side opens under `H1` to `s + v1` with
 `v1 = sum_j w[j] * b1[j]`, so `c = s + v1` with `0 <= v1 <= m`. Its
 left-hand side is `s * H1 + K_prime`, with `K_prime` the commitment the
-refund signs ({{act-refund}}); including `K_n` keeps it from being the
+refund signs ({{ec-act-refund}}); including `K_n` keeps it from being the
 identity element when `s = 0` and `m = 0`, which {{SIGMA}} would reject.
 The weights are public scalars of the relation, computed by both parties
 from `s` and `a`. In a refresh, `Com_c` opens to `c` directly. The
 witness scalars are supplied in the order listed.
 
-### Spend Proof Generation {#act-prove-spend}
+### Spend Proof Generation {#ec-act-prove-spend}
 
 The Client rerandomizes its signature, commits to the next nullifier and
 to the remainder, and proves the spend relation.
@@ -992,11 +992,11 @@ second call on the same Credential value. The Client MUST treat the
 Credential as spent, and MUST have stored `state` durably, no later than
 the moment `proof` becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
-reveals the same nullifier ({{act-security}}). `state` holds everything
+reveals the same nullifier ({{ec-act-security}}). `state` holds everything
 `FinalizeRefund` needs. {{PROTOCOLS}} additionally requires retaining
 `proof` for refund recovery.
 
-### Spend Verification {#act-verify-spend}
+### Spend Verification {#ec-act-verify-spend}
 
 The Moderator checks the spend proof under its own key and contexts.
 
@@ -1025,12 +1025,12 @@ def VerifySpend(
         raise VerifyError
 ~~~
 
-The shape of `proof` is fixed by `s` and `a` ({{act-wire}}): `Com_c` is
+The shape of `proof` is fixed by `s` and `a` ({{ec-act-wire}}): `Com_c` is
 present exactly when `s + a = 0`, and otherwise `Com1` holds one
 commitment per weight of `RangeWeights(2^L - 1 - (s + a))`; a message of
 any other shape is rejected at deserialization, and `SpendRelation` raises
-a `VerifyError` on one. The amount checks of {{act-amounts}} precede
-verification ({{act-security}}).
+a `VerifyError` on one. The amount checks of {{ec-act-amounts}} precede
+verification ({{ec-act-security}}).
 
 `VerifySpend` does not check whether `k` has been seen before, nor whether
 the Moderator is willing to grant the top-up `a`. The Moderator MUST do
@@ -1038,7 +1038,7 @@ both. It MUST record `k` atomically, failing if `k` is already recorded,
 and MUST NOT accept the spend or release a refund unless `k` was recorded
 ({{PROTOCOLS}}).
 
-### Refund Issuance {#act-refund}
+### Refund Issuance {#ec-act-refund}
 
 After a successful `VerifySpend`, the Moderator signs the remainder plus
 its chosen return amount, proving the `Signature` relation under the
@@ -1086,12 +1086,12 @@ def IssueRefund(
     return RefundMessage(A, e, t, pok)
 ~~~
 
-The comparison `t <= s + a` is between integers ({{act-amounts}}). This
+The comparison `t <= s + a` is between integers ({{ec-act-amounts}}). This
 bound keeps the new balance below `2^L` without a range proof over the
-refund ({{act-security}}). The Moderator places the new balance anywhere in
+refund ({{ec-act-security}}). The Moderator places the new balance anywhere in
 `[c - s, c + a]` without learning where in that interval it falls.
 
-### Refund Finalization {#act-finalize-refund}
+### Refund Finalization {#ec-act-finalize-refund}
 
 The Client checks the refund and assembles its new Credential.
 
@@ -1131,9 +1131,9 @@ Moderator can answer with the refund it issued, which requires storing
 it with the nullifier, or run `IssueRefund` again. The latter produces a
 second signature under a different exponent; this is harmless, because
 every refund of one spend carries the nullifier `kstar`, so at most one
-of them can ever be spent ({{act-security}}).
+of them can ever be spent ({{ec-act-security}}).
 
-## Encodings {#act-wire}
+## Encodings {#ec-act-wire}
 
 This section gives the encoding of the four messages exchanged and of the
 Credential the Client stores. `Element` and `Scalar` are the fixed-length
@@ -1141,9 +1141,9 @@ encodings of `SerializeElement` and `SerializeScalar`, of `Ne` and `Ns`
 bytes. A recipient MUST deserialize every received `Element` and `Scalar`
 and MUST raise a `DeserializeError` if deserialization fails, which in
 particular rejects the identity element. Amounts are `uint64` values,
-checked against `2^L` as {{act-amounts}} requires.
+checked against `2^L` as {{ec-act-amounts}} requires.
 
-Every `pok` field is a compact NARG string ({{act-proofs}}) of
+Every `pok` field is a compact NARG string ({{ec-act-proofs}}) of
 `(Nw + 1) * Ns` bytes, where `Nw` is the number of witness scalars of its
 relation: `2` for the request, `1` for the response and the refund, and
 for the spend
@@ -1211,7 +1211,7 @@ struct {
 ~~~
 
 Neither context appears in these messages; both are inputs held by each party
-({{act-context}}, {{act-spending}}). The Credential is held by the Client
+({{ec-act-context}}, {{ec-act-spending}}). The Credential is held by the Client
 and never sent:
 
 ~~~ tls-presentation
@@ -1228,42 +1228,42 @@ With `Ne = 33` and `Ns = 32`, the request is `129` bytes and the response
 and refund are `137` bytes each. The spend message is `468` bytes for a
 refresh (`s = a = 0`) and otherwise `129 * n + 403` bytes, at most
 `129 * L + 403`, with `n = L` whenever `s + a < 2^(L-1)`. The spend message
-dominates and is linear in `L`; {{act-config}} asks deployments to keep `L`
+dominates and is linear in `L`; {{ec-act-config}} asks deployments to keep `L`
 small for this reason.
 
 # Ciphersuites {#ciphersuites}
 
 A ciphersuite fixes the group, hash functions, encodings, and domain separation
-tags. Both parties MUST agree on the ciphersuite as specified in {{act-config}}.
+tags. Both parties MUST agree on the ciphersuite as specified in {{ec-act-config}}.
 
-`ctx_proto` is as computed in {{act-config}}. The seed length, that of the
+`ctx_proto` is as computed in {{ec-act-config}}. The seed length, that of the
 random input to every derivation, is `Nseed = 48` bytes.
 
-ACTv1 is specified against the `-03` revisions of {{SIGMA}} and
+EC-ACTv1 is specified against the `-03` revisions of {{SIGMA}} and
 {{FIAT-SHAMIR}}. A later revision that changes the NARG string or its
 derivation MUST be adopted under a new ciphersuite identifier, and so a new
-`ctx_proto`; `ACTv1-P256-SHA256` then never denotes two transcript
+`ctx_proto`; `EC-ACTv1-P256-SHA256` then never denotes two transcript
 formats.
 
 > **TODO.** Revisit once {{SIGMA}} and {{FIAT-SHAMIR}} are stable, and
 > move the pin to `-04` when it is published.
 
-## ACT(P-256, SHA-256)
+## EC-ACT(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) for the group and
 SHA-256 for the hash function. The value of the ciphersuite
 identifier is `b"P256-SHA256"`.
 
 Use the P-256 group, SHA-256 hash, hash-to-curve and hash-to-scalar
-algorithms, and canonical encodings of Section 7.1 of {{IHAT-ROLLATINI}}. ACT
+algorithms, and canonical encodings of Section 7.1 of {{EC-IHAT}}. EC-ACT
 uses `Ne = 33`, `Ns = 32`, and `Nseed = 48`. Instantiate every hash with the
-ACT `ctx_proto` of {{act-config}}, including the explicit DSTs of
+EC-ACT `ctx_proto` of {{ec-act-config}}, including the explicit DSTs of
 `G.DeriveScalars`, `G.ExpandScalars`, `G.DeriveNonces`, and
 `G.DeriveKeyPair`.
 
 For this ciphersuite `MAX_BIT_LENGTH = 64`,
 which allows amounts to be carried as `uint64` values and keeps `2^(L+1)`
-far below the group order ({{act-security}}).
+far below the group order ({{ec-act-security}}).
 
 
 ## Randomness {#randomness}
@@ -1271,28 +1271,28 @@ far below the group order ({{act-security}}).
 Every random value in this document is drawn with `random` and consumed in
 inputs of `Nseed` bytes, by `G.DeriveScalars` ({{derive-scalar}}), by
 `G.DeriveKeyPair` ({{keygen}}) for a key, or, for the values listed below, by
-`G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}); no scalar is sampled
+`G.DeriveNonces` (Section 4.3 of {{EC-IHAT}}); no scalar is sampled
 directly. Implementations MUST draw with a cryptographically secure random
 number generator and MUST NOT reuse randomness across derivations. Randomness is
 as sensitive as the values derived from it, and the constant-time requirement
-of {{act-security}} covers both.
+of {{ec-act-security}} covers both.
 
 The following values MUST be derived with `G.DeriveNonces`, with the inputs
 stated where they are used; drawing them directly is not conformant:
 
 * the Moderator's signing exponent `e` in `IssueResponse` and
-  `IssueRefund`, through `SigningExponent` ({{act-signing-exponent}});
+  `IssueRefund`, through `SigningExponent` ({{ec-act-signing-exponent}});
 * every nonce of a `ProveCompact` prover of the Credential scheme,
-  through `ProverNonces` ({{act-prover-nonces}}).
+  through `ProverNonces` ({{ec-act-prover-nonces}}).
 
 The Client's `k`, `r`, `r1`, `r2`, `kstar`, `rn`, `rc`, and `s1` are
 derived with `G.DeriveScalars` from randomness alone; a repetition among them
 harms only that Client. The signing exponent and the prover nonces are also
 derived from a secret, because a repeated signing exponent, or a prover nonce
 repeated under a different challenge, can compromise `skM` or reveal a
-witness scalar ({{act-security}}).
+witness scalar ({{ec-act-security}}).
 
-# Security Considerations {#act-security}
+# Security Considerations {#ec-act-security}
 
 The Credential scheme is a keyed-verification anonymous credential {{KVAC}}
 over the pairing-free BBS-style signature of {{BBS}} as analysed by {{TZ23}},
@@ -1305,10 +1305,10 @@ Assumptions:
 : Credit conservation rests on the q-SDH assumption in `G`, for the
   unforgeability of the signature {{TZ23}}; on no party knowing a nontrivial
   linear relation among `B`, `H1`, `H2`, `H3`, and `H4`, which the
-  hash-to-curve derivation of {{act-generators}} provides in the random
+  hash-to-curve derivation of {{ec-act-generators}} provides in the random
   oracle model; and on the random oracle model for `HashToGroup`,
   `HashToScalar`, and the Fiat-Shamir transform of {{FIAT-SHAMIR}}, with the
-  special soundness of the relations of {{act-proofs}}. The reduction is
+  special soundness of the relations of {{ec-act-proofs}}. The reduction is
   expected to follow that of {{TZ23}} in the algebraic group model with a
   programmable random oracle: the keyed-verification oracle is answered
   from the adversary's algebraic representations, since `skM * B`,
@@ -1338,7 +1338,7 @@ Credit conservation:
   * every such signature was produced by `IssueResponse` or `IssueRefund`,
     whose signing oracles are constrained by the proofs they verify, or
     q-SDH is broken;
-  * the balance constraints of {{act-spend-relation}} hold over the integers
+  * the balance constraints of {{ec-act-spend-relation}} hold over the integers
     ("Amount validation" below), so the refund Credential has balance exactly
     `c - s + t`; and
   * a recorded nullifier is never counted twice.
@@ -1359,7 +1359,7 @@ Unlinkability:
   proof strategy replaces the derived vectors by independent random
   scalars, with a loss accounting for scalar-reduction bias,
   collisions, and queries to secret derivation inputs (Section 4.2 of
-  {{IHAT-ROLLATINI}}). Concrete bounds for this replacement and its
+  {{EC-IHAT}}). Concrete bounds for this replacement and its
   composition with the proofs remain to be established. The public
   amounts `s`, `a`, and `t`, and the configuration, determine which
   Credentials could have produced a presentation; {{PROTOCOLS}}
@@ -1396,14 +1396,14 @@ Randomness reuse:
   holding two Credentials with that exponent forge Credentials at any
   balance below `2^L`, each with a fresh nullifier, which the nullifier
   store cannot detect. Both values are therefore derived with
-  `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the key and the
-  operation ({{act-signing-exponent}}, {{act-prover-nonces}}), so that a rolled
+  `G.DeriveNonces` (Section 4.3 of {{EC-IHAT}}) from the key and the
+  operation ({{ec-act-signing-exponent}}, {{ec-act-prover-nonces}}), so that a rolled
   back or snapshotted random source reproduces an earlier response instead of
   yielding a second one. An implementation that draws either value
   directly MUST treat every repetition as a compromise of `skM`.
 
 Identity elements:
-: Deserialization rejects the identity element ({{act-wire}}), and the
+: Deserialization rejects the identity element ({{ec-act-wire}}), and the
   verifier of {{SIGMA}} rejects an instance that contains one. The check
   is soundness-critical for `A_prime`: were it the identity, `A_bar` would
   be too, the first spend equation would hold with `r2 = 0`, and the second
@@ -1452,7 +1452,7 @@ Constant time:
 
 Derived prover nonces:
 : `ProverNonces` derives the nonces of a proof together with
-  `G.DeriveNonces` (Section 4.3 of {{IHAT-ROLLATINI}}) from the witness, the
+  `G.DeriveNonces` (Section 4.3 of {{EC-IHAT}}) from the witness, the
   session, the relation, and `Nseed` bytes of fresh randomness. Its security
   analysis must establish that the nonce vector is indistinguishable from
   fresh uniform randomness to parties without the witness, as required by
@@ -1477,7 +1477,7 @@ Context granularity:
 
 Balance width:
 : `L` is public and identical for all Clients of a Moderator, and fixed for
-  the lifetime of a key and context ({{act-config}}). A Moderator that used
+  the lifetime of a key and context ({{ec-act-config}}). A Moderator that used
   different values of `L` for different Clients would partition them by the
   length of their spend proofs, and one that changed `L` under a key and
   context with outstanding Credentials would invalidate the balance
@@ -1491,18 +1491,18 @@ System requirements:
 
 # IANA Considerations {#iana}
 
-This document has no IANA actions. The ACT credential type is registered by
+This document has no IANA actions. The EC-ACT credential type is registered by
 {{PROTOCOLS}}.
 
 --- back
 
-# Test Vectors {#act-test-vectors}
+# Test Vectors {#ec-act-test-vectors}
 
 The vectors below cover the Credential scheme under the `P256-SHA256`
-ciphersuite at `L = 4`: the generators of {{act-generators}},
+ciphersuite at `L = 4`: the generators of {{ec-act-generators}},
 `CreateContextScalar`, one key pair, one issuance, and a chain of four
 spends with their refunds, one for each pair of zero and nonzero amounts
-`s` and `a` ({{act-spend-relation}}). Byte
+`s` and `a` ({{ec-act-spend-relation}}). Byte
 strings are in hexadecimal, wrapped at 64 digits with the continuation
 lines indented; amounts and `L` are decimal.
 
@@ -1522,331 +1522,331 @@ the `ClientSpendState` `(kstar, r_star, v1, s, a, K_prime)` as
 `SerializeScalar(kstar) || SerializeScalar(r_star) || I2OSP(v1, 8) ||
 I2OSP(s, 8) || I2OSP(a, 8) || SerializeElement(K_prime)`. Every message
 and `credential` entry is the
-encoding of {{act-wire}}, and the spend context of every spend is
+encoding of {{ec-act-wire}}, and the spend context of every spend is
 `ctx_spend`.
 
-## Ciphersuite {#act-tv-suite}
+## Ciphersuite {#ec-act-tv-suite}
 
 ~~~
 suite.identifier = 503235362d534841323536
-suite.ctx_proto = 41435476312d503235362d534841323536
+suite.ctx_proto = 45432d41435476312d503235362d534841323536
 suite.L = 4
 suite.H1 =
-    03c16cd46e4807f2e52d460f03b5e8e11bffee91d9c8bd7e1225c384eaf39cd1
-    ac
-suite.H2 =
-    0282697cb8474f49d091da0ac43c72353809a1999fea49a00a37037163279932
-    7b
-suite.H3 =
-    02597d0ba6b076b6c829b7253943ee3c4a796df35cc38bb6bce03e5398b14f02
+    021a3022391ada95c2e90ec5452609f54b6c72db02587405e64e23e1fb38e3a8
     dd
+suite.H2 =
+    02db70cf75af61816a299e607b0cb664d682416a82f62a34515849d42645b13c
+    4a
+suite.H3 =
+    02eb51113045f6834d61ab89b9c1b29e136d07f37bbb7e8ad02a871bee85708a
+    62
 suite.H4 =
-    02328e1b98965b32bb63af661190c98042ff24bf23c0fb1d5c6c7b38a3006bcd
-    80
+    035f47490268b4aff204f8dff672cf54b36e0d3c012617d480d1f7470734e844
+    c7
 suite.ctx_cred =
-    4143542d746573742d766563746f72732d636f6e74657874
+    45432d4143542d746573742d766563746f72732d636f6e74657874
 suite.ctx =
-    d1dda6b4b7a3ea5a1159fdde5652ead672730fed9941ca17f3a41220ca379b9a
+    d685e534e574bcedc28a422bcc0f68267c59cf633771c1ad1d2a76a18f404346
 ~~~
 
-## Key Pair {#act-tv-key}
+## Key Pair {#ec-act-tv-key}
 
 ~~~
 key.rand =
-    6b04e6141f669f915de1d7f0ed8b50405bf6fff65b3ef4a63b6610586ddc5e62
-    b22c98437bb5746647de22933c80f522
+    d069967f203df4d58f4430bf9cb90beb883d542d7c89c551db69dce42570bf4a
+    e3adacc80db708e282150cea9e505068
 key.skM =
-    6a998a9bd63b4efcd641c1e0e13e4dd6035f1ce748a6aa1461885e0454c928e1
+    34e271d1d4e404dc78a38a6b0ca4b3abc68bc4806b00997edbb901f13846f5f2
 key.pkM =
-    03513bbb46b2af7f4ed5304505528b96345064e50917e098630286c89383da72
-    22
+    03263eb172073519ff125b897fdc7569e4bd908debe19208b59361e21e8e4cad
+    78
 ~~~
 
-## Issuance {#act-tv-issue}
+## Issuance {#ec-act-tv-issue}
 
 ~~~
 issue.request.rand =
-    fba90a5829478c7590e20f1a6911d2b4f5a9a50bd4485c309c94fedad95f1f79
-    0e0bc9994cd3c165d19b78a7e328de6e2c4f77e3aa99f8050f4a0c7d4b52a219
-    4d33a5ea903a54a02a807cd6cdb7c269c2712669bbe6f5dfb13495eea30b7da9
+    90cc52ee9f2addb59f11528b75bfbf1c4cdf583ab8c00ab56193c6e78e451c38
+    cf21ac4d582578e7effb4a5af7bda867c14b1781c22924b02eb07e7a927fb859
+    e07b66ca27390f209cb05c52cf856e2020b6062f2b487698b71352f7e29bb10d
 issue.request.state =
-    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
-    6db698dc0ab0a626f2047331981742f4504932ef191ced0db687982bd5813eef
-    02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
-    63
+    10fc7a30fa9fd08188d3e32f3c41e9939a037700c010220403fdf14771559d46
+    645beb9f699d06abbe0346165bdebcf816b43b8b81c81010058d38878710906b
+    028c4625c08d866d63ac5fe067cadabf1e6432c11735dabd8127c0fe5fa42ea6
+    70
 issue.request.message =
-    02bc28c7238986ef41811943cfe8ccbfcb3cbe933f8a583f2190dc4187133197
-    63a204de1dd76434170a6b1c0a07c3836307c53a17011b1f899f1bd6c58712ac
-    86a4699524580fe3d4d305a96c18162b692adcecfd2c0ed4dbb04ce4aef93212
-    1b5c845702018bf287c839f24ee7cd6a3f43494249fd82f78bed467e1d6ab94b
-    3a
+    028c4625c08d866d63ac5fe067cadabf1e6432c11735dabd8127c0fe5fa42ea6
+    706708266fdc5bcd931f51be4ccb9b8cbb9944e9b89e52c2b980e83fe2c128f8
+    6f296f482c0ad3e5e389ab1a2f50be2ff4dd2dfa3ae79d2ab7c8d579fe7c34a7
+    ab69586198e6a59c857c1fc7db3ffbc8f74e3b448226431186283eae617f4521
+    57
 issue.response.c = 10
 issue.response.rand =
-    549a65b32ec23bbd0434f3787a143ef286df7fcc1a4afa990c0497780450f987
-    a98919981c0f9481c4eb6ee73b79569a2ea0fc45c81480ed4451367947c1cc19
-    ee957b16356a0ae63d6c83fbd9d757e69fa8138ada38975479fd20c98160eb78
+    84e42dfed8e44d65a2832ab18f705cf12dc961978c29d8baf4fe0113def1e4f7
+    d73a60863711e7ea31afc5a8d59d9a6b6f61ebce002cdc2d70122518f2092ba9
+    368e21e0538b2a242f17b497a4814c6fb4e97ccf81025b1c46821c40c455dc24
 issue.response.message =
-    0219c7ca1c950892496809a235512c49773a31a35520647b92ee8a25c76f9aae
-    68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58593a93883e7c9030
-    89000000000000000a229f0198688717aad558b8fb63fb983570067b333cec52
-    cdebfa26c0ee95cfe98d094fc061ecb10259a0fb576e39907f9ed97438cb414e
-    c162a58a26f51332a5
+    03971ccde028dee2ef52509320cdfc5f924404f78f5f761d77541eda9490a4cf
+    99756a4528f1acc3cca034306dd3b1898c4676bb78083492b67c4466d2951951
+    08000000000000000ae96a894b413d3b7505f9f4cc24641980ae58a9d2de237b
+    0d911e69856535b051719ee0ad06fa8d00303e873ae6b545d5d38b8a8a4ae938
+    8115a30988534d0e37
 issue.credential =
-    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
-    000000000000000a6db698dc0ab0a626f2047331981742f4504932ef191ced0d
-    b687982bd5813eef0219c7ca1c950892496809a235512c49773a31a35520647b
-    92ee8a25c76f9aae68bed08bbfced4c5b6eee438a45ca29d878db075b304fb58
-    593a93883e7c903089
+    10fc7a30fa9fd08188d3e32f3c41e9939a037700c010220403fdf14771559d46
+    000000000000000a645beb9f699d06abbe0346165bdebcf816b43b8b81c81010
+    058d38878710906b03971ccde028dee2ef52509320cdfc5f924404f78f5f761d
+    77541eda9490a4cf99756a4528f1acc3cca034306dd3b1898c4676bb78083492
+    b67c4466d295195108
 ~~~
 
-## Spend 1: ordinary spend (`s = 3`, `a = 0`) {#act-tv-spend1}
+## Spend 1: ordinary spend (`s = 3`, `a = 0`) {#ec-act-tv-spend1}
 
 ~~~
 spend1.s = 3
 spend1.a = 0
 spend1.ctx_spend =
-    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
-    74
+    45432d4143542d746573742d766563746f72732d6368616c6c656e67652d6469
+    67657374
 spend1.rand =
-    b429f745895b193f227dbad7fd1798339020f1ebb88b5e0429485e01bc34f6db
-    93c846f8766d5ec446946ef0d9c6a44873a0ef46a50e37eacf061d40d7440e34
-    516d54ee586c67dbb8fd0b7e931fb60a1731d3867e50bbaa1a7422f352070618
+    a343c4b867f1de824eb47951ed28c6d393fb2b9e31cab746571fabd63e7a79ea
+    e967796ab6f8b28ea5166350134dd2137fa525deec68d8126f7a3da4505122d1
+    a4bcb891b5fe184da4342a2b18c7a4c3466e334aedc6307f90951384e07c5e75
 spend1.state =
-    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
-    f7e364957859b60aec035e4b0bf64678b09f9d6c5f1c1027a788436ca7cacaa3
-    0000000000000007000000000000000300000000000000000232345a585cb476
-    6f98318ac4809ce88f4b1337ef21f0dd4407577c17a4ccc800
+    ca281b89a42946e503c819b3ed6d820b4946ed075c0ebd41e37ff7260bad4fdf
+    27f5bd121fcecb0785a455d46d36612fd193e06d5648369edcdca6a6376704cd
+    00000000000000070000000000000003000000000000000003f8c8bf93aacc88
+    ae2c498eadc68269d46b0e2e0314adc4bd6df38724bead6f02
 spend1.message =
-    45f6c6354b3a477530da6a339a6647bf1a18738f3e36197861ed0a435279c3ce
-    00000000000000030000000000000000037462d06d0e1857691e39027fb94ba9
-    87ee4d626b73957ef2577f4f7f80afdd8f031fd0f1ae300ef6086d3d1badbe53
-    fdc73af5a3a7c3c7e94d31dfc3e200f1b14c034b324fe0ceaf20d9c14192a366
-    9dde3854b90cbde819714214408c2173927e0d02e0976db98ca955ed1b86f1e6
-    f5be405c855fd65b3c6648f26851324d0cd17d5502d9013827da0c05338a3319
-    760b4d1d6804380d6f45614e70053a7808f4fa66ae02e2f88017a6fa3c10ff1c
-    9616a4b5db3837b0c9642f43b8ede8af8942e9a8a6bb02143dcd3e4c15cdd475
-    a94dc06eed156efed163051862ad7016ea1b90d4a646f7848e8dbc81145e73b4
-    a42094a5383ada620477c12da708f43cbbd6eb0f9cb30a8ddc23a908056971d7
-    fa2a7397c19466fe33eb3e824863f99e6496651cc669e20adac112c627a2e40b
-    4a56ce28d75f9d59de1c39e80096a2de5ad3bbe35219ecddb01ff085da60effc
-    fb9f2aa8e3276e55bfb5a080c17f403453b6214d165214eb27467bc9e04cde42
-    c79c007eebc0c8ec2b4b941766006bc3f950465ac92252b8fa03beced19c03b8
-    426c1772d50fc06b3a3be87f36639474961892b8e4e71757808bba75bc92afe5
-    83e8ba2b4aaa2e0b761893248e03d89dae765b410d7c289ed42b934a8652208f
-    970e64de474d362dc4fd360603b7822d6fbbd5e9eefb4f7b9d7d70795e3650a2
-    26cbb69d11f65bfc4055462b2645b485e7b943448aadc7dac30e2f9f12ce4868
-    981ca89cfc8c0a75dfe7e664da65f9b9f8f31d4777d0db35a6ba2420ad5aefda
-    e6273585403b78a1d0132383875488ef3cd6cb20dbcdd81ecb5cbf1349d05840
-    26634c125f72edbc18fa52fa9b4139794ddafffe668592b623b59af55af2d957
-    d0c7c8dda658e8847df3366d08c97826dbae3e22674bef611139052c1b9a3c79
-    0cb957e2b72bc4601f59f8eaa48f7b1574c18bb9c662243695528ace7be880d9
-    151574c6990893228af3876e4289eee997a5bff757e165c7f2578687b75a2b64
-    2bdbb6a888b030060573e5db031153e6f13dbd6317bfb51a9f85d90305120ccd
-    ef56e4cab06c5741a5799b1db53f087b5310b037f9caf53716d5d8e5d74b580f
-    6bb32469a3ef5a5c55a1c1073ec761013409734fdc04f62cefb9f63a7c6e8710
-    31bc0cc48ee1391c1aec4301764551985d84b488770ca4db2cd2d9fa982df8c8
-    db892d201048d18585c314913f87761b2bad1c6a9fbc01
+    10fc7a30fa9fd08188d3e32f3c41e9939a037700c010220403fdf14771559d46
+    0000000000000003000000000000000003e347ebc46950d96074e2033c46715f
+    fceb842c81395590069acaa188f413c69903589508c33878a080df7b65d6f345
+    f9d6fdf241f73fc593f5de7c61286d7acf9b03b117a3e919906a670ee02d6825
+    b0a8a4e54456148b87a66a8c9fd53fa6faadb50208fbedbb6e37f02474acfa6f
+    1fe051b6b15b6d31ff4865791eab72c10e7479ca03431c5a476b7070a48862a7
+    4365b8a2c334f61141260a664a60fbaa6b382a2ed6036fccf8dbb72e8ed2865b
+    475737e767d4aad1844fecb4ce8dd58ecd81d79bb02402448ed5928af211ecfa
+    5868159713a2560e6e2bafee5fd48f7ecd5fd974e69a4f6c243ad036550dab1e
+    5a5ebd6a3790f2918f6d59d2314f34e0f7452e66dd7aefb161f87018749558d1
+    c294573c794c785a147de8705b95a61269065e236c813ed6e87c31af5aba8cd8
+    a71cb95674cb95d728c4789047bd4a66111a93ce9760203863bf0db78e0030c0
+    d64a9ec43ec3353d734bf3e7e42caeae6237f24254c778f0bb5a2669c678803c
+    70b775d00fc4ac01d145eb975815e7e934f1307041dbcce38cdaefee312780ab
+    7f61f7d2341f7b1aabcaab8e31c3d20424271c4b31ee5093685ff17dadf3bbb3
+    9ae219c770bea16537e89b9a7cb75d588ce229d04f80345c19c6a480f9553d92
+    fb6e0adef3926ce503c33df08ed5dcade21700c3f0a5d33782a0b145cd2716e8
+    e2332d9325fce4ebe1edb78e10d443e2be9771d842991da98910461d7cfbe7ab
+    f0259a1923b2a2c29f66c369949ed4b2171cfc500f1a3e995a7b87bfe9443891
+    11a02ded19578826af776da483da19f31ce2ad566c34c1bf6d793cf41b152b99
+    3a6504d56ef53a73eb2a81a1551a6263b476c86bd181678922cbf7261ac4f04c
+    88b87c0d76b2cf9a4721250ce5ccb368ecd7ca20733151a9d59da0ce7bfb581e
+    ebe9500dba0f5d8b1470e8be96f0d93d70f4743e35d566b12c7af686e26c6620
+    44ab3b8bb7f0fabc28617f6e0e292f709b37edd1d5c9e712494b7c9779997c70
+    624da9b9c9c86e129763826b1ccad68f1f17abb38e2804911986b1198ead1e7f
+    bd0dd5ace2bbdc30d3e6dccee83711a278771a1063d21b60d7f8cdfa006a8faa
+    8d29a7bb281b0199b8c0d669b875828df17bc9c60f89589c8a518f2478104777
+    ebd6e96d2ed12be6af631bcb47efacf6855e7030dc9f847b40f364872d327c7a
+    b242517f421d11a1d23acebfba61439c7dff4dff3b4d49
 spend1.refund.t = 1
 spend1.refund.rand =
-    6e51457124402a73bb25609f1647ee9589b57e96c8bb852d18ed16dc8b9c00f9
-    79aa90e88908d06ea7ee259a2067e8981aa128ca2c16d17c0b0b145464a18fbb
-    c8c98bdcc8a5541494a93478aece76eb306943b6dcca8781fbc382b4e7801c6d
+    a29c40ee250bbc7f94fa1dfe1cd289fcc98b20049e52d83dbb5daf8de1f65d87
+    ea834ad411474fd77bd30ccebbda1e35261b6484a89d8ea28e306c7ebad73a3a
+    88a079153525b9bc4cf611118e7cd7fb40ed6636a3c6a6835009b24e8917ad93
 spend1.refund.message =
-    03d459d1901021a25d58dd90172550e220fe4f0d6991d4bd0c8a1d525912c52b
-    7ce59c090dede25a7af0262e28c095444730695fa793a549697c9b310980ff2d
-    980000000000000001cbdc26a6e1426ebd8efb28c38460d07afff64b97d4efb7
-    1c09357036e670ac6e93553de0af83b16236fc1228fcfe89a63c0d9436f2bcf6
-    595c70e2b0e747e2dc
+    03c5bdf7e351668081bdff1e550f95b07de28686632e223c829745839228f1b0
+    2f64c6ad4903faab1d30471713b00d14c8d6f74f3c892b6a7d9b320459d6b6bb
+    8c0000000000000001a0225cd9effadc5cd70ef74852d3257a27e1c75af96a67
+    21ff3fdc6271676f55d42d59544614da779fa9096cef8e27c9182ffd8694ec51
+    61a0324dc3ce7e0a42
 spend1.credential =
-    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
-    0000000000000008f7e364957859b60aec035e4b0bf64678b09f9d6c5f1c1027
-    a788436ca7cacaa303d459d1901021a25d58dd90172550e220fe4f0d6991d4bd
-    0c8a1d525912c52b7ce59c090dede25a7af0262e28c095444730695fa793a549
-    697c9b310980ff2d98
+    ca281b89a42946e503c819b3ed6d820b4946ed075c0ebd41e37ff7260bad4fdf
+    000000000000000827f5bd121fcecb0785a455d46d36612fd193e06d5648369e
+    dcdca6a6376704cd03c5bdf7e351668081bdff1e550f95b07de28686632e223c
+    829745839228f1b02f64c6ad4903faab1d30471713b00d14c8d6f74f3c892b6a
+    7d9b320459d6b6bb8c
 ~~~
 
-## Spend 2: refresh (`s = 0`, `a = 0`) {#act-tv-spend2}
+## Spend 2: refresh (`s = 0`, `a = 0`) {#ec-act-tv-spend2}
 
 ~~~
 spend2.s = 0
 spend2.a = 0
 spend2.ctx_spend =
-    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
-    74
+    45432d4143542d746573742d766563746f72732d6368616c6c656e67652d6469
+    67657374
 spend2.rand =
-    5df6aa3f75855db9c6eb9130e5fe4c7ea4173f47f405a3457518d227d0b83b1d
-    342ecfe0498cdb99911dbee6f1c2dd66adf61aba8249bc8b66dbeab6351dbe28
-    20ec0bec6a0fca3e98ae91f7d3ac00833552cda8198d8a585552c63b1b04a7f9
+    03590adbeaa38bf6bdfc6c77e94f7d8852569c457344b438fddd0f9c396531bb
+    2ab3a2d573e969ae7dfdd74291f5bcfba48c3799336404b50f08b0965e98f856
+    3613284307e32f57d0e64cead84d346b71dc0ed9d134b2b206170df388389775
 spend2.state =
-    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
-    5d634dda9fc8375ac6d2daa51cc50aca954fa420078c204349e1889a77d8b746
-    00000000000000080000000000000000000000000000000002396aab2696270d
-    5a81eefd48c992ed28d97873ab3685270a96f5ffee33bee181
+    e2c5d5f6303fcd004ed0934169501daacfbef52e18badcb9e288b3329948e266
+    fe1588e420eb910b3db621ad75227d26aa18bbbec572884943b869010c574570
+    000000000000000800000000000000000000000000000000039097f13bb706da
+    42b83612e50e0dcb3b421326d6d93a52aa1ae13b6200f2afae
 spend2.message =
-    ee61f8215ebb0ca69e29a0bc91cf184347223292ebc2d3c7b69fb3da1efa92d0
-    0000000000000000000000000000000002e68a1d96c0c023dd6d76b420b19a96
-    d44f9559bb911a3df744b18774111967cb02d848785598ec84ac1bf8c73efaf4
-    531fc309e0a98bdf232d6c66fbb5c844c0ce02ea09ac5c4013a19262e8479449
-    232c4b8da8769a34a13e01bf14175454ce2e4f0271058492ebfcf5032a715308
-    0bf06e4523f1566d331eb662e9009c304e8dd567c77dcde0fe277443f553cf59
-    bdc8754dbd078ff31a65cad623c3e19a914399bdc1ee32d9991b2c2615094b39
-    7bc69fd4ad423ed7eed2b72f0e9dc40d7a1410ec7ec45a47f7ba66ab61cf55a4
-    3bb8e8802355e5c062a20be8512c61bb4ede40586e8a4afc48ee5afb64784e05
-    fd8539f22b90c6ce32af98cd2d9ebbd42072c3596c7924efd2350c0f8c808347
-    b15964205c1bb9b2adcbda0dd209afce6733639797eabc41705faa9159f4d177
-    37ad6d6d7a0ebed0b52660149b06d4bd7d68ed91fb05b92531b18ee526867600
-    39abead792c71a39e788c067b1d850358e8ece26239daf6e3c5185a57406e895
-    a09bcda150d32b07f15db27b8a70cc7087f498710f71bdb9a148e7cd31b02ca9
-    ed019abb611bfeff955b874a1f9a45e3d2ea5044
+    ca281b89a42946e503c819b3ed6d820b4946ed075c0ebd41e37ff7260bad4fdf
+    0000000000000000000000000000000002af0791abafae532be3892ad2bb0d14
+    d8d4d6db82fb5e2732376fa962eced6c2102df52a12b26e00dc3e2c713438521
+    d783b65acad55ff9c7b63623aa5adcf00d5502089619e75542ff84944bdacda8
+    1fad238b286b38872a4818e9982df54b6202430316300ace17b546c4d319e104
+    1e14e1590e25f113b2fcbe4a2198a337653cd0af866e9537e9e1cdf957faf381
+    fc4718e29716d525753c21db484d9011040050df71e1bad74375a99c4bed4e9e
+    e9cbda7d0681e5b5a7cb93e45f76442478fc1b240eaa8d5b5cae759cb0d03be7
+    ddaedbcc38697578ebc5b9539ec7fa4baa1b9e802db0a0dc2f8113bc4cd7946d
+    09f1281d5d405bf5f80cbff7a015ba5b258325165be62fc93643159803706e0a
+    f64fc7eeb84f8e923b78d773ecf40f3a247b4707c9c6f3053f9d4c88490a72ee
+    8dd881aa5dc8f1ec7fe4b0a175db56e6a21d47e374bc81d1f71f9e762661772a
+    8ce52a6204920673ab459ad71d3f2a34177f20a5eb6fb1ae0f082c9a5e079cb7
+    00117118d2df6f08bbbc6c72dbc7739b5ef12af4392b64b0d1b8a6bcbf8edc10
+    f79b60fb97a0a77d10c2a7da08201d34af150294
 spend2.refund.t = 0
 spend2.refund.rand =
-    8ab63a8b3af08128540a7dd8c6b84b892a3f0b2d6c3120b8ea53b7f40044860b
-    33cb6e9930b235d1ac9a7c06261a2b26bba151899bb31a45a2988c425a2637fa
-    4e1a0d285364f8fa0cf0e0610feda3d4b9980d16bd3da29447ab44b49e3f4713
+    4af336412b38462f4341cc2c59890106574ac3337b88da1d48eb24a1e1cdfdb0
+    b0e8a47e9b37128c3058fa3d7c0772c1b81984214e8b1b925d56d19f3db0e760
+    3cbb462710dd437c47105c8c6eaf697eaa9882766c4eff6c503c804c143745a8
 spend2.refund.message =
-    02e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c553478dcdc94576686
-    8e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c12459afeeb16baffc85
-    3c0000000000000000eab936b5c1e13c20f73a1ecacbc286f2ac7afd4f748844
-    66435e2c12ed1da13a9a90d61edd767a5be2c6d00796b231311dc58e9e53208c
-    ddbdae9f0db8440f96
+    03ff6be15e4232edb30ef5578ee38559366ac33f06b8b90e795d3bf716c2102c
+    df4bd6980945347f79711707ef8eefaaee85eacc898d130507ac1a8e32d7505a
+    8b0000000000000000582d8a5ba13e7fcce6e04a53612da436a06e925e97e219
+    ebd82be05e52b3131ae6553f623363e8ef02d9b9a2ea376ac74fa1b36c9d4bbb
+    8d9f01fb59c157020f
 spend2.credential =
-    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
-    00000000000000085d634dda9fc8375ac6d2daa51cc50aca954fa420078c2043
-    49e1889a77d8b74602e4ca240712b4248e90bec8ed76f5b5a7008c65ada19c55
-    3478dcdc945766868e2cbe8e60e995e1443af12dd9b0487fdd1c6ef29d12c124
-    59afeeb16baffc853c
+    e2c5d5f6303fcd004ed0934169501daacfbef52e18badcb9e288b3329948e266
+    0000000000000008fe1588e420eb910b3db621ad75227d26aa18bbbec5728849
+    43b869010c57457003ff6be15e4232edb30ef5578ee38559366ac33f06b8b90e
+    795d3bf716c2102cdf4bd6980945347f79711707ef8eefaaee85eacc898d1305
+    07ac1a8e32d7505a8b
 ~~~
 
-## Spend 3: pure top-up (`s = 0`, `a = 2`) {#act-tv-spend3}
+## Spend 3: pure top-up (`s = 0`, `a = 2`) {#ec-act-tv-spend3}
 
 ~~~
 spend3.s = 0
 spend3.a = 2
 spend3.ctx_spend =
-    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
-    74
+    45432d4143542d746573742d766563746f72732d6368616c6c656e67652d6469
+    67657374
 spend3.rand =
-    cf496508c825bc711aac384f4620152a8d3fc3a2d1943dfcb9cf2eb9fdc410c6
-    f6dfbef97a289fc6550c72f79daef1e54f5cd0132ead59cf513fedf1fc5a05aa
-    a0255b3f53c1ed12fbb96bf52197b059d609431451b117381a5a06bd4be53ee4
+    24a32412b20712265bf9bd28b5d37200bdf1022dbc6243c71c8b0828cf40ef25
+    e03cf72bfcbe0e6b44b2d2bb199535aef568d662d65390a853e86f7868fe6dd6
+    bb3dee7e42a3c728a9185b7a246cac0bce2248632756ad88792481d1e942a60a
 spend3.state =
-    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
-    2e8a14c471534ba8155f3ce6b5c35a80fbc01eb46436a5a838627f3812d58267
-    000000000000000800000000000000000000000000000002020f606f4ab5e448
-    836d62a5b2ea85f96292dc0912c140aa960a7addd23f4d6d01
+    6b702de8c79573d19bae26457ce27017a2224b834e296eae4f0ce77673e443e2
+    70da003305191208879f280802f4ca421f63aec33a5446726ad4ab1993adfb35
+    0000000000000008000000000000000000000000000000020226b521f937bcd1
+    7b81cfdd877055077c4ed2788e9826351809692a61e9932fbc
 spend3.message =
-    fd4592710665751a2ea3160ea16fe18ea7986f5af765533d3985625d938456fb
-    0000000000000000000000000000000202f4e02b51f9f89f1fab195e19148e57
-    94e508de92a21d3fdb5b171877a44024bf02a085171bcf8e6bf704798b88161c
-    a627e9d027a5ac2865cc4a0404ac1c0fc45e02b9ab938fea505dc8d1b61bfacc
-    d5332c589877769039c6f5b10602195b9f90dc031d559d967a630462c4670990
-    674bd15289a1adaa37cac7f4ed83edea793aca1d03f235923a0186e270e8a766
-    1f8e9610dff7992803c94d8f363e509020ff55451603e6cc28fb65a2cd61ac86
-    5a38b208dca577799e9a5c60c6ed450a0c86051d15930389c406d1dde685f80c
-    e5e99b59bb7ce8c90bcc89fc4cf20bd9974279cdbcb0ce07d6a7819ed9526b3a
-    fe35fc5dab5ac6867abfa2cc0af0bc9c36c20608e8e8f6b295c8a5eef6a720a8
-    67f411df1183277d6050ec35d28944b4affc8a4205b2b3c383c28b9d3ba52fdd
-    de3e9b232e63a6c008549947d6bbdc951ac7cbcf6e3fb6296a861c5fbbf546a4
-    5fc7ea51b2e159d6c359abbe3196ee91f938ec4006c6ab3fd60161096009a07d
-    aaef82be6832bec4e29a6698ea8aa96f0e43fdd81dbb279931cd94e137b364aa
-    b095fe6c91278bd717bd5e6db18d2fcfb332cbbb8edfc1eb247adaa72ba20af9
-    6189fc4c9a1075dba798ad25692e5b16a5a909dd7f0a31e8f5ccd696b6af26c7
-    4537e5c258d964539de3e54ff7634cecb65dd498953fab93ef86bda084b76d23
-    98138cd4023718d34f6df824c70322f1aebd01128e70562291a2ae7fcd376926
-    d998fe8f6f9b1998f6c358d50c09572e663454bec04b5f6cb5a58e05422d9bb8
-    142f9bf2d2a7594d4d46784361b647a03b512a3e63a10e99b245f53ae8b620d1
-    ac1784204ac453c4a7197776a020b6135f242f4d5a11e1ff8191b86703e9aa13
-    f765ceea505d4850ad7e0ec395545445bc6df1df613d6067b18fa883cf400257
-    486b93d2b72f1cc1cd08d8fde3370e51c4d79750fa4eef4fb22bbcca8b87665b
-    a24b2c24b51e2736f85c5e24ae913aef5fffedcb6937c21d7f71387d6a1c50e6
-    9d787fe5e4a6b037dc0e817418c4fac3876d6b33d4cba3396d7a71d2173d3a8c
-    18c30fe499b1f947ff76348265d1b33b841ecf4f14a04cf49fc6f2ae6d9c6940
-    c0e867736470424f8fc8eb0fd9887100fa8e870c23260b03cef3f803c2110312
-    66a9906ddfdf7603b56adddc2437ae25b37b960b35f56ab1f0571092aa484039
-    2b87292f71ace4d260868e8d4978f73377d7ff3d29b37c
+    e2c5d5f6303fcd004ed0934169501daacfbef52e18badcb9e288b3329948e266
+    000000000000000000000000000000020286e279a9fa15d1a8850b35acada6fd
+    8bb66087d2a615ec02ae2308a590e957be021a50ddcc47d1b8e85a854ed385b0
+    9f783ea06b8d0098949c35211984a860977c0295842de3f0a9c00fdcc4389734
+    393df738a0e7f6ec08e65a8ed2580beebbf5a902f4d6bb38ba26f2d39fa4a845
+    383b1be2d8c2e2c9f59704e25352a882297c16cb02d41551f6f980addca30acf
+    704304280da75e47b21e444f300099e6926785b5520325625b86cb98543f70a6
+    5b240025e4a1912873c0a5a7239da2a8be1c8f756b7c03c932dea8cc13c6cf79
+    d87bc62b80f0ea1e099d4522edd7b16c6a65a08b89a780f9d66d55a9a577f51f
+    6738273ef3fbe2ccd917394bf1b7c2af0eeb7254c1c46120e3cc77cabff58a56
+    cfbb092e0eaa91ed78b3d6f7550b1e26281480fedede516f77d9a9b56b546627
+    cfbabb504a4ed5285dfe64be8d443671ede57f1b8e08acae8e4a173540fc14a7
+    a98aaf2d2b3f327ca8d52f349284311a108e6f157542f04fabbd9f9892266501
+    630c18868ed028469e9a8c307113efe709fa9a12e98c78a80634cf3e51fec896
+    12dfdb3878263da9b2ef4ee87e081fa522fb7c32a0b3a64a4499fe77b9d6e162
+    ef44ec14915b2a7674f2d374fddec708bfc23a89f4d0c600700ab7c8aca1a844
+    541ad72d6498f06aacc8587da53663b069e175b49f683cc491679858e7a39fce
+    a6f6a3e421db93744e1595d42b1312bb6d6be48d44a3762a59f448cb9681eb8a
+    6df3d1085ccbbf9c1ffe541cc8c2eabd5b5d2d63383564ffc59b15212e01b548
+    5809c25d564810e2f3bbb76d71357576632bb3b147db29038dc5193380d5d646
+    0e8149dd0d19b44d65f8b1c76efd896f089640607666ee8698ab261da99949a5
+    7f963cfa368633a33dd2cafe012e3cee4588b9ad0ae5715c23743fb7b4b11813
+    541cb63fa58fcd8d125efad3536ecb7f895a83b77a2dc52c6f36a1def7a86834
+    080f7412cfbaceca985421911a234fa004fdf89b98743de6c5d804cb31a01536
+    310d55f9e9ff433b887ae62c291604030d8774675ec065ca0c6df5c9d7579737
+    56a6dbe61cf3ee929ac92482c2bf450b0092502668e5febb4919c9bb225edbe2
+    5655c72140f79d3bebb653580e3e74a7c75f0e9984d2a28179ea14cc155a4ae6
+    d8d0f8164cc34b7a541eefdf941e909294b2c779ae8c24707e3ca622532753ec
+    cc6eec224e3824e7cb95dd884dbee608d7aef28fe86109
 spend3.refund.t = 2
 spend3.refund.rand =
-    951a4f39b3225c1929b35820269ac76d585baf0dbb927cd59f35addd001762b8
-    ca25145e7c4159cb30f4cadac6b2f274a710f8916b01e7aa657125ac036e074c
-    8dda6de23ecbfa7dba2bb3f490655c25fef2bfc2f3786596045b68563feeb24d
+    91389375873e00ce89289d026a010ed01427848a7ccf88f16edd7013072dfc65
+    2017448bba631f9f0975ac017a8e5bebae89b3a36bd2a5710a32012af07d2457
+    39c1aac9a875d43148101a6fc3f6ed92ddbceaf6d47c233eeeb153406405b579
 spend3.refund.message =
-    02845cc8aaaec2423bbf14d19685f58a139416dfe5d0fb7ab855cc50dbf063d7
-    0b918b2bccbfdd4cd8361b8c93d51d7231a77a84acd6f8c46e32df76cf6937de
-    7e00000000000000020de347e009d1d494a6620e6a32185d753f1a368e85b6be
-    e8e7b2998775d4807a9641533e73c9d52f69453ada2d7d201f3f15c4ec9c9a5e
-    b0a460dbba9d4ce10b
+    028eb7785090e04bd06f03fe909618b2e2c0a6cd4e0aa7a3f20ae41ad84fc9e5
+    8b991560e17771ba4439ee3ac5684e61bc08c8dd3ea2e4739aad158cf9727337
+    3f0000000000000002562ae12c4158aa88bae62147a3bd3364e62bddb9e5cc45
+    5585387a2d9ed9451a399bf1451e583dc1e1882b371adf106016c386267cfc19
+    7674a4252d0f0401bc
 spend3.credential =
-    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
-    000000000000000a2e8a14c471534ba8155f3ce6b5c35a80fbc01eb46436a5a8
-    38627f3812d5826702845cc8aaaec2423bbf14d19685f58a139416dfe5d0fb7a
-    b855cc50dbf063d70b918b2bccbfdd4cd8361b8c93d51d7231a77a84acd6f8c4
-    6e32df76cf6937de7e
+    6b702de8c79573d19bae26457ce27017a2224b834e296eae4f0ce77673e443e2
+    000000000000000a70da003305191208879f280802f4ca421f63aec33a544672
+    6ad4ab1993adfb35028eb7785090e04bd06f03fe909618b2e2c0a6cd4e0aa7a3
+    f20ae41ad84fc9e58b991560e17771ba4439ee3ac5684e61bc08c8dd3ea2e473
+    9aad158cf97273373f
 ~~~
 
-## Spend 4: spend with top-up (`s = 3`, `a = 2`) {#act-tv-spend4}
+## Spend 4: spend with top-up (`s = 3`, `a = 2`) {#ec-act-tv-spend4}
 
 ~~~
 spend4.s = 3
 spend4.a = 2
 spend4.ctx_spend =
-    4143542d746573742d766563746f72732d6368616c6c656e67652d6469676573
-    74
+    45432d4143542d746573742d766563746f72732d6368616c6c656e67652d6469
+    67657374
 spend4.rand =
-    a0197dc7f5d2128dceb0e4ac42a172d763b6d625df1d4bfcf61fd5fbfe7e222e
-    35144cbb058151ff0eba61a90575de984665140d18c49d11df66f7b77bc618b9
-    60599627a6606376365da00272f43dfe020306d04c39a7dd3c60a26a23830521
+    4d1b8c9d578f0b4bcc0de3b557693579cddf27a975168f9cee97d9b83ecf0bd2
+    efb0406a9e5eb1a7aab1db0b09e8d3b8bffceaff6e6136f97000c3e496b1a2c2
+    ce820e4dff38c6c020ce794d93ca508a237b75ee6e2b54873ca80d9e915fa255
 spend4.state =
-    a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
-    969cbf34727198c57a5fc735139b4ce8980fc8d5c41789ebbb52e630ebbfc628
-    000000000000000700000000000000030000000000000002024f97f8431c0246
-    608323fed9a160b0fe17c38d71874e0e33fb802f798e95cff3
+    ba2cd13a8b2e9aaf59bc2334a375fd9b66c9494591053370786ef3732ba7fb93
+    0535b57b758d30a850589bd1f682d8bc63db1a80976a7d9ccc95a8b900cdde7a
+    0000000000000007000000000000000300000000000000020344be4bd9b4dac8
+    589e9d36498ce79c0e91990edfa625d3feb4a9b394fcac9002
 spend4.message =
-    be60dec14d630dcb30a104bf6bc798bc60cf5ca35911d94bab03a27694bc5607
-    00000000000000030000000000000002038f7439520ceed497ae6834a6b239b3
-    9efba07cc708864ca4c9d73496efe88d4103bf1d582e87e40742b91be24fdf68
-    438e2f72ebf3a22ddacad4fdd73dbc3efaa002f1be336d8979887881554c386c
-    7cc0951b7f38572d1febd542a1b0145fb374c003359a94092b8d9c5b05e0818a
-    574f76c84bd9bf7d999d5d2a8e10a4fec59282460317b52c87074a03790419d6
-    ee5f92f6187c7d20c00341f76f7f43bc7705c0d92502f93967ce41252702b13e
-    2f53b8e13c5b90a4cb340ad22e0c43e5d4bf45cf82530316f790b968ec4a5444
-    e2153fb03ddda25a1383ba4160543fd6454352137f1174d0131f716ac762b3b3
-    aacc3c09d030050c49f5be1c6044997369d3f8f0c9076bad302f62b16181ba19
-    f96ea24a5491c2c0fbcee71fe4240bf7a0f8105a074b8aa624b55478b2f9ca61
-    b7c68f7b9f2059ba0f4ddaffd66f8d2bd070236bba498ee68e199a417b7782ca
-    2a178feba27e92276e0b65ad79f39ce85a6bca0fb16154a326c663da8685ecbb
-    7267d9833946cd50fb0ae5f71ff77caf55fbce0ab23a1e17fc4e297805f4d20e
-    5c367fb0329557f7880596b2b134c4629e61bca73a1d3e61f42175f70c2af5d4
-    6bdd75a72837628858bd0fef3e39e6ab1eb732773a9ca1aa924efccdcbb2311e
-    6497c635a9fb75607fb94c26dd0786a830bdbb41d202470b2e6fb3e6c562caf6
-    e28068a54d57c17c1853f7e05e287ae4aafc8992aacaa0ced3a7aa936f6d4a79
-    a0de667fc068a03c1449359d47924b64c46328f6fb4c4e47a3a2eb41eaf56f0c
-    bf27e613e82a5171e31c069651d6696ab2b09b0c9ed8d9bbc00ff75122aeaf5f
-    092be2894b2c9da98a689f50496dd6adfc2c0ec79290ed27c2b8c4d75d691112
-    8922a6e55871e8532a0f5e518eada6ea50e407e2d46253624c059e33d98e1fc0
-    d1dc9618735a4ab1b86ccc980e54fd37ab24eb72aa2119d9cd3ff3e392c1a589
-    f360f849e423e8f5881893e38f28b3816df294265d27b0d2ab09bc76ce504f53
-    d294fd93bf0f94d529cbefbb7145ccf3d7a73a6d52e317d5816a2f4bc35ab529
-    11037d53c446669dce370ffbba22a44cbbfc549449badf2167c77f1ee2cb30e5
-    b21b1502c2a65a1f7e416cb48f4d853d0c50ab31643d91c108c9f02160dcd994
-    dabd5ffba92dbbea3c1e6652a6f0be81996f48e020bf989c0a61254e3c5b8026
-    91ec348f88aba609de99052b75e6082e5a8a26d681f476
+    6b702de8c79573d19bae26457ce27017a2224b834e296eae4f0ce77673e443e2
+    0000000000000003000000000000000203376f8d281c2741e9ebe8e172af5b26
+    9ed6231737b566f572f4030abcd7d3f79202095af656b0913713805f5dda62f4
+    a4e91c78bc23affe077b3c0558d5b984e8f80226a4f630ea7db3ce072ce8adb0
+    23ebb49fffb821d5e4ddcf6bf5439043b734c0025660136119f3e7a30193b3bd
+    cea91942af6e08bf116793255da24677e82c6c630301b2fa79e7288810c4f48a
+    69e610af3febe9b5dfd68d71aaf846f0ed8bc3a933022bf3de971fba0d19a955
+    4d7d9ede4e6f3883bcd505a49f7976ba211fbbb7d17a034924ab1b22c67e23f3
+    a8752ba95133f9315cd28233e7a0dd3e4b884b63ab6a4a68183548e2bdb374d7
+    40a4e48ee490605e8e634067782f62a4852a5205dc8ef6b54ad054fd99b5830f
+    bf095ddd2227f670da4c4a4531eec1dab8197d6e5f3c7c0a4cbbf1ad10ee1e58
+    e8d8fc7582a5a5821c0f695b03791b36c9115c869b601ac6a93610fb375aa09f
+    2c0086e5b6e15fee782bcc1b0e399dce7a4f447e978dfaf8e0cc1f0491d66c0b
+    9ef4c86b0faa6700892a338d2685d534fc4a722ccb03701095dc3ddfa3b4a452
+    e9736037055499e1a70b0def55f86685a7227f883a2388e711639042c2c41f88
+    e694f3b429eecf6dc86fa4211406eb7d84715b07371defff565f0405aa1cd97c
+    561ee1db3bf4a2937c4e3171db862f8eb418bf7116f9b662ae59dff6c6d3f816
+    59b178725bfe43470e85d6daeb3eb73a2c0e784c13b71804179f524b9ed78d0d
+    56bbfce5674b85f2949c84d411a7edbdd7e1890901c06e996f988c255d74a876
+    68b60e594b6d5f3a5a47edcc1bb2bf256fd83fe949f5fd95a4bd64391d6126e3
+    c18a85fda5287ed937d1a1dad39a73400f3c5f87c3dd2a6df764c7e394bd3995
+    4e87b91bec790466900e658fe2f76d58413c06590003e1b48f36e7c8fc570236
+    9fbd660537888b21b65742777040404b45680d1d7d8a2f2923be07234dff626d
+    9ae2815831a89a4e3ba2f19da409527d9ab3abf7d2d6b5aada511774db5b9acc
+    5ccaba3e8cc930dc1b545e1934f9ca8178c12188a3c3dc285f5a5894815f9940
+    76af4a2d7903b5fad0c182b36bc124284f93fda7e3f0a8f29772f5033eff0680
+    559eba60cbfbd50fa76557956c4853ee9d30688e2ac376683193ee488bccb43b
+    64c7ba87c11276aaced1deeba9682971fd52a18c76cf10ba703f3134d79ebc95
+    b124483f59fd68519812f4abad7481c168cb8443de94b1
 spend4.refund.t = 5
 spend4.refund.rand =
-    752dc7ce9c6fb3e70d8c88a6bb1e1fa40b7956619b9571519feac0eae54c5cfa
-    e117914953d8c1f88b0035512fa223b8a67174046422dffb4a899546001bc936
-    82a8720ccd9fecd89f8e7b97f5ff29b951e586a5319626dd779b3fe45013dec5
+    322efd511af210cc6ad1e36ae1ecb099cb69e5bff36b940636e4027b623f2471
+    898b77c29145b2ceba5d1b20e87cac314ea10cfb902d280ed020163dc301219e
+    a1f437f9f71a35dceb6770d090d2c30a41de21f86a485a6381a43f50167d4582
 spend4.refund.message =
-    036cb8c7abe2c428b8e9de4d3e7063bebdeb2bf807dcc77d2b84bcc489c06774
-    8f7d2ccd560061fba71b7e6477013cb2a69a16bcb6fda9575625050187e4985e
-    340000000000000005bdd0e6bb456b4f862d2dafa13f8100866d753983bbe280
-    446ee0ceeb5c7bbacf0ec4de0fbd8a679f158ee2811ce29037e25cf77c65b9bb
-    9481c2f44924f2ae37
+    02b67226fef87f1f374cb9554faece12c083ee1d92ac1e4c8d7252d05cf150e5
+    0deb0ff6cd0918dfbdf5576fa52cac658a4b81b2d14f7abe7ab4d9bd981afd74
+    530000000000000005a489963fa647f132a55799807190de75be9b10a58a369a
+    992131ff9390337a3e46a9d2eff83f96abe347b6bcecaee752488a3440198185
+    4620ef4fca3d4caa5f
 spend4.credential =
-    a869aa59e7dbd1168f9c4edda1fa4529d5043b9a19101223228b773a941f4c17
-    000000000000000c969cbf34727198c57a5fc735139b4ce8980fc8d5c41789eb
-    bb52e630ebbfc628036cb8c7abe2c428b8e9de4d3e7063bebdeb2bf807dcc77d
-    2b84bcc489c067748f7d2ccd560061fba71b7e6477013cb2a69a16bcb6fda957
-    5625050187e4985e34
+    ba2cd13a8b2e9aaf59bc2334a375fd9b66c9494591053370786ef3732ba7fb93
+    000000000000000c0535b57b758d30a850589bd1f682d8bc63db1a80976a7d9c
+    cc95a8b900cdde7a02b67226fef87f1f374cb9554faece12c083ee1d92ac1e4c
+    8d7252d05cf150e50deb0ff6cd0918dfbdf5576fa52cac658a4b81b2d14f7abe
+    7ab4d9bd981afd7453
 ~~~
 
 # Acknowledgments

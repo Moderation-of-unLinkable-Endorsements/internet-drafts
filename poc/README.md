@@ -1,6 +1,6 @@
 # Reference implementation
 
-Python reference implementations of Rollatini and ACT. ACT's proofs run on the
+Python reference implementations of EC-IHAT and EC-ACT. EC-ACT's proofs run on the
 CFRG reference implementation of the Sigma Protocols and Fiat-Shamir drafts,
 which is a Git submodule. Initialize it from the repository root:
 
@@ -13,9 +13,9 @@ Then, from this directory:
 ```sh
 python3 -m venv .venv
 .venv/bin/pip install -e '.[test]'
-.venv/bin/python -m act.demo
-.venv/bin/python -m act.vectors
-.venv/bin/python -m rollatini.vectors
+.venv/bin/python -m ec_act.demo
+.venv/bin/python -m ec_act.vectors
+.venv/bin/python -m ec_ihat.vectors
 .venv/bin/pytest
 .venv/bin/mypy
 .venv/bin/pyflakes src tests
@@ -25,15 +25,15 @@ python3 -m venv .venv
 The demo issues a Credential and runs four spend/refund flows: an ordinary
 spend, a refresh, a pure top-up, and a combined spend and top-up, encoding
 every message on the way. Refreshes retain `Com_c`; other spends use a
-single range proof with weighted bit commitments. `act.vectors` and
-`rollatini.vectors` print the Test Vectors sections of the two drafts; tests
+single range proof with weighted bit commitments. `ec_act.vectors` and
+`ec_ihat.vectors` print the Test Vectors sections of the two drafts; tests
 regenerate them and compare.
 
-The algorithms in `src/act/protocol.py` match the draft's Python snippets;
-tests check that they stay in sync. `src/act/statements.py` compiles the
-draft's `Relation` blocks, `src/act/sigma.py` runs them on the pinned CFRG
-code, and `src/act/wire.py` holds the message encodings, as
-`src/rollatini/wire.py` does for Rollatini. ACT shares Rollatini's
+The algorithms in `src/ec_act/protocol.py` match the draft's Python snippets;
+tests check that they stay in sync. `src/ec_act/statements.py` compiles the
+draft's `Relation` blocks, `src/ec_act/sigma.py` runs them on the pinned CFRG
+code, and `src/ec_act/wire.py` holds the message encodings, as
+`src/ec_ihat/wire.py` does for EC-IHAT. EC-ACT shares EC-IHAT's
 group and derivation code. Each group instance carries its own protocol context and provides
 `G.DeriveScalars`, `G.DeriveNonces`, `G.DeriveKeyPair`, and
 `G.GenerateKeyPair`. Both schemes
@@ -44,7 +44,7 @@ checkers to reject scalars and elements from a different ciphersuite.
 This is a specification demo, not production cryptography. The Python code
 is not constant-time and does not securely erase secrets.
 
-Rollatini's commitment key generation walks the public edge from `Q` to `P(Q)`
+EC-IHAT's commitment key generation walks the public edge from `Q` to `P(Q)`
 in either direction, evaluating both byte-permutation directions at every
 step. Tests check that the operation schedule agrees for both orientations
 of the same edge and that existing proof outputs are preserved. These are

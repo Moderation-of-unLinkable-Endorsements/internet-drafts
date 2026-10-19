@@ -1,4 +1,4 @@
-"""Rollatini algorithms transcribed from draft-authors-mole-ihat-rollatini.md."""
+"""EC-IHAT algorithms transcribed from draft-authors-mole-ec-ihat.md."""
 
 from __future__ import annotations
 
