@@ -192,7 +192,9 @@ with the type-specific grant message as its body. The media type is
 the same four-digit hexadecimal encoding. The response uses
 `application/mole-endorsement-response` with the same type. The Client MUST
 reject a mismatched type. There is no outer `EndorsementRequest` or
-`EndorsementResponse` wrapper. The first EC-IHAT request has empty content:
+`EndorsementResponse` wrapper. The first EC-IHAT request carries a
+`GrantRequest` naming the number of Endorsements the Client asks for
+({{PROTOCOLS}}):
 
 ~~~
 Content-Type: application/mole-endorsement-request; type=0002

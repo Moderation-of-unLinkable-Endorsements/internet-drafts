@@ -361,9 +361,6 @@ DeserializeError:
 VerifyError:
 : A received value failed a verification check.
 
-SessionError:
-: A message was received for a session that is not in the expected state.
-
 DeriveError:
 : A deterministic derivation failed to produce a usable scalar. See
   {{derive-scalar}}.
@@ -386,10 +383,10 @@ messages are carried, nor how a Client that wants an Endorsement reaches an
 Anchor in the first place; both are the business of the transport, and a Client
 will in general have to signal its intent by some means that carries no
 protocol data. For example, over HTTP a Client might ask for issuance in a
-request with an empty body, receive the commitment in the response, send the
-challenge in a second request, and receive the response in the reply to that.
-{{wire}} specifies the encoding of the three messages and their mapping onto
-the exchanges of {{PROTOCOLS}}.
+request that names how many Endorsements it wants, receive the commitments in
+the response, send the challenges in a second request, and receive the
+responses in the reply to that. {{wire}} specifies the encoding of the three
+messages; {{PROTOCOLS}} specifies how they are batched and correlated.
 
 Neither context is carried in these messages. Both parties already hold the
 issuance context, having agreed on it out of band; the redemption context is
@@ -818,9 +815,8 @@ An Anchor MUST call `Respond` at most once per session state produced by
 distinct challenges on the same state discloses the signing key: from
 `s1 = a + c1 * y * skA` and `s2 = a + c2 * y * skA` with `c1 != c2`, and `y`
 revealed in the response, an attacker recovers
-`skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. An Anchor that receives a
-second `ChallengeMessage` for a session it has already answered MUST raise a
-`SessionError` and MUST NOT compute a response.
+`skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. An Anchor MUST NOT run
+`Respond` on a state it has already used or discarded.
 
 ## Client Finalization {#finalize}
 
@@ -929,8 +925,7 @@ where the last step uses `s = a + challenge * y * skA` and
 ## Encodings {#wire}
 
 This section gives the encoding of the three messages exchanged during
-issuance, of the session identifier that correlates them, and of the
-Endorsement they produce.
+issuance and of the Endorsement they produce.
 
 `Element` and `Scalar` are the fixed-length encodings produced by
 `SerializeElement` and `SerializeScalar`, of `Ne` and `Ns` bytes respectively.
@@ -943,30 +938,19 @@ elements.
 
 ### Issuance Messages {#issuance-messages}
 
-The three messages exchanged during issuance are carried in the
-`EndorsementRequest` and `EndorsementResponse` bodies defined in {{PROTOCOLS}},
-whose transport is HTTP. The first request is empty, and the corresponding
-response contains the `CommitMessage`; the second request contains the
-`ChallengeMessage`, and the corresponding response contains the
-`ResponseMessage`.
-
-The messages include a session identifier of `Nn` bytes that allows the Anchor
-to correlate the Client's challenge with the state corresponding to the
-Anchor's commitment. The Anchor opens the session with its commitment:
+The Anchor opens a session with its commitment:
 
 ~~~ tls-presentation
 struct {
-  opaque session_id[Nn];
   Element A;
   Element C;
 } CommitMessage;
 ~~~
 
-The Client replies with the blinded challenge, echoing the session identifier:
+The Client replies with the blinded challenge:
 
 ~~~ tls-presentation
 struct {
-  opaque session_id[Nn];
   Scalar challenge;
 } ChallengeMessage;
 ~~~
@@ -980,12 +964,6 @@ struct {
   Scalar t;
 } ResponseMessage;
 ~~~
-
-An Anchor MUST NOT have two open sessions with the same `session_id`, and MUST
-generate it with a cryptographically secure random number generator so that a
-Client cannot guess, and so collide with, another Client's session. An Anchor
-that receives a `ChallengeMessage` whose `session_id` does not correspond to one
-of its open sessions MUST raise a `SessionError`.
 
 ### Endorsement {#endorsement-encoding}
 
@@ -2102,9 +2080,8 @@ Single-use sessions:
   `skA = (s1 - s2) * ScalarInverse((c1 - c2) * y)`. The requirement extends to
   process restarts, to replicas sharing a signing key, and to any retry or
   replay of a `ChallengeMessage`: an Anchor MUST treat a session as closed the
-  moment it emits a response, and MUST answer a repeated `session_id` with a
-  `SessionError` rather than recomputing. Anchors are stateful for this
-  reason.
+  moment it emits a response, and MUST NOT recompute a response for a
+  repeated challenge on that session. Anchors are stateful for this reason.
 
 Context binding:
 : The issuance context enters both the commitment base and the challenge
@@ -2136,11 +2113,13 @@ Context granularity:
   property of the construction.
 
 Session identifiers:
-: The `session_id` of {{wire}} is chosen by the Anchor and so is a value
-  the Anchor recognises. It is confined to the transport: it is not an input to
-  any algorithm of {{issuance}}, nor is it included in the challenge transcript.
-  Were it bound into the Endorsement, the Anchor could recognise its own
-  identifier at redemption and link the redemption to the issuance session.
+: Any identifier the transport uses to correlate the messages of {{wire}},
+  such as the per-batch session identifier of {{PROTOCOLS}}, is chosen by the
+  Anchor and so is a value the Anchor recognises. It MUST be confined to the
+  transport: it is not an input to any algorithm of {{issuance}}, nor is it
+  included in the challenge transcript. Were it bound into the Endorsement,
+  the Anchor could recognise its own identifier at redemption and link the
+  redemption to the issuance session.
 
 Anonymity sets:
 : The effective privacy a Client obtains also depends on deployment properties
@@ -2180,9 +2159,8 @@ issuer-hiding proof. The `commit.state` entry is the
 followed by `SerializeScalar(gamma1) + SerializeScalar(gamma2) +
 SerializeScalar(c)`. `issue.Z` is `CreateContextBase(ctx_iss)`, and
 `key.P_pkA` is `P(pkA)`. Every message and `endorsement` entry is an encoding
-of {{wire}} or {{redemption-wire}}, and the commit and challenge messages
-carry `issue.session_id`. The keys of each Anchor Set other than `key.pkA`
-were generated for the vectors. Every redemption presents the same
+of {{wire}} or {{redemption-wire}}. The keys of each Anchor Set other than
+`key.pkA` were generated for the vectors. Every redemption presents the same
 Endorsement, which a Moderator would accept only once; each `nf` entry is the
 output of `VerifyRedemption`.
 
@@ -2233,8 +2211,6 @@ issue.ctx_red =
 issue.Z =
     02f9a6afb059d15adcaec09ed5b5986bdbff2d2f48102a8e0d5340f32b135534
     5a
-issue.session_id =
-    45432d49484154207465737420766563746f722073657373696f6e2069642031
 issue.commit.rand =
     0ba14197ea1f9b5f586cf5c3041288e81e9dc08fdefaf1c2aec55a90b7a2119b
     fe112f9c69b25a25ba8778044c8b8193
@@ -2243,7 +2219,6 @@ issue.commit.state =
     129b59d6269a5f982b314865ca56fc7ecf907529ff1c2c0944e23b7e915d92fe
     c34d0a3f8cd5d3e20875b244e1530bba5dbec428af00027d22039f7dda8db087
 issue.commit.message =
-    45432d49484154207465737420766563746f722073657373696f6e2069642031
     033f90a0d4b5e1ea3f6c18976a84012bfbcbd8507f77c064ab7bd9fb60ab7f49
     c803c38d94c9d4ff61f0e27f63099cfd7a0894f8829837b94fd7706e738f57e5
     2bf4
@@ -2259,7 +2234,6 @@ issue.challenge.state =
     b09aa9f4e511dd6d87a9df6cbf59dc076388ae8fa79962364d4e70102bcd22ff
     f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd19
 issue.challenge.message =
-    45432d49484154207465737420766563746f722073657373696f6e2069642031
     838f0e04447101fc590f5ec39c90a8be7bd45329346c6216148a1467bc325eef
 issue.response.message =
     455e3d35da4bd2ce0930aacafdcbee388a9c0a753c2d35574853badb06ad7a7c

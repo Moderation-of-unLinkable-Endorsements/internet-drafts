@@ -378,28 +378,82 @@ Redemption Context
 
 ### Grant
 
-The grant takes two HTTP exchanges and three protocol messages. The Anchor
-speaks first, as specified by {{EC-IHAT}}:
+A grant issues a batch of one or more Endorsements under the same `pkA` and
+`ctx_iss`. It takes two HTTP exchanges and four messages. Each Endorsement in
+the batch is the output of its own EC-IHAT issuance session ({{EC-IHAT}}); the
+batch carries the messages of all its sessions together, and a single
+`session_id` correlates them:
 
-1. The Client sends a grant POST with empty content. The Anchor
-   runs `Commit(ctx_iss)`, stores the returned state under a fresh
-   `session_id`, and returns a `CommitMessage` in the response body.
-2. The Client runs `Challenge(pkA, ctx_iss, ctx_red, commitment)`, stores the
-   returned state, and sends a `ChallengeMessage` containing the returned
-   issuance challenge and opaque `session_id`. The Anchor atomically claims and
-   consumes that identifier before reading the single-use state. Only the
-   instance that wins the claim runs `Respond(skA, state, challenge)` and
-   returns a `ResponseMessage`.
-   Tombstones are retained through session expiry. All later requests for the
-   identifier fail without invoking `Respond`.
-3. The Client runs `Finalize(pkA, state, response)` as specified by
-   {{EC-IHAT}}. On failure it MUST discard the session state and MUST NOT
-   retry with that state. If the second response is lost, the Client starts
-   a fresh grant.
+~~~ tls-presentation
+struct {
+  uint16 count;
+} GrantRequest;
 
-`CommitMessage`, `ChallengeMessage`, `ResponseMessage`, `session_id`, and the
-Endorsement encoding are defined by {{EC-IHAT}}. The session identifier
-is only transport correlation and is not bound into the Endorsement.
+struct {
+  opaque session_id[32];
+  CommitMessage commitments<V>;
+} GrantCommitments;
+
+struct {
+  opaque session_id[32];
+  ChallengeMessage challenges<V>;
+} GrantChallenges;
+
+struct {
+  ResponseMessage responses<V>;
+} GrantResponses;
+~~~
+
+`CommitMessage`, `ChallengeMessage`, `ResponseMessage`, and the Endorsement
+encoding are defined by {{EC-IHAT}}. The `i`-th entry of `GrantChallenges`
+answers the `i`-th entry of `GrantCommitments`, and the `i`-th entry of
+`GrantResponses` answers the `i`-th entry of `GrantChallenges`.
+
+The grant proceeds as follows. The Anchor speaks first, as specified by
+{{EC-IHAT}}:
+
+1. The Client sends a grant POST with a `GrantRequest`, in which `count`,
+   at least 1, is the number of Endorsements it asks for. The Anchor
+   rejects a `count` of zero. It chooses a number `n` of Endorsements to grant
+   under its policy, with `1 <= n <= count`, and rejects the request if it
+   grants none. It runs `Commit(ctx_iss)` `n` times, stores the `n` returned
+   states together under a fresh `session_id`, and returns a
+   `GrantCommitments` carrying `session_id` and the `n` commitments in order.
+2. The Client rejects a `GrantCommitments` with more than `count`
+   commitments. For each commitment it runs
+   `Challenge(pkA, ctx_iss, ctx_red, commitment)`, and it stores the returned
+   states in order. It sends a `GrantChallenges` carrying the opaque
+   `session_id` and the returned issuance challenges in the same order.
+   The Anchor atomically claims and consumes that identifier before reading
+   the single-use states. Only the instance that wins the claim proceeds. It
+   rejects the request if the number of challenges differs from the number
+   of states. Otherwise it runs `Respond(skA, state, challenge)` for each
+   pair and returns the responses in a `GrantResponses`. If any `Respond`
+   fails, the Anchor discards every state of the batch and returns no
+   response. Tombstones are retained through session expiry. All later
+   requests for the identifier fail without invoking `Respond`.
+3. The Client rejects a `GrantResponses` whose number of responses differs
+   from the number of challenges it sent. It runs
+   `Finalize(pkA, state, response)` for each pair as specified by
+   {{EC-IHAT}}. If `Finalize` fails for any session, the grant fails: the
+   Client MUST discard the state of every session in the batch and every
+   Endorsement finalized from it, and MUST NOT retry with that state. If the
+   second response is lost, the Client starts a fresh grant.
+
+The Anchor MUST generate `session_id` with a cryptographically secure random
+number generator, so that a Client cannot guess, and so collide with,
+another Client's batch, and MUST NOT have two open batches with the same
+`session_id`. A `GrantChallenges` whose `session_id` does not name an open batch
+is rejected.
+
+Batching does not change the cryptographic guarantees. The sessions of a
+batch are concurrent sessions in the sense of {{EC-IHAT}}, whose one-more
+unforgeability holds under concurrency: a Client that completes a batch of
+`n` sessions obtains at most `n` Endorsements. Each session is blinded
+independently, so the Anchor cannot link an Endorsement to the batch that
+produced it, nor to its position in that batch. The Anchor does learn `count`
+and `n`. An Anchor counts every granted session against the Client's budget
+({{ARCHITECTURE}}).
 
 The Anchor learns neither `nf` nor the final Endorsement. Under the statistical
 blindness claim in {{EC-IHAT}}, its protocol transcript does not let it
@@ -1501,32 +1555,33 @@ type 0x0002 (Privacy Pass Reverse Flow) and accepts endorsement type
 Moderator.
 
 ~~~ aasvg
-+--------+         +--------+      +-----------+
-| Client |         | Anchor |      | Moderator |
-+---+----+         +---+----+      +-----+-----+
-    |                  |                 |
-    +--- empty body --->|                |
-    |<-- CommitMessage -+                |
-    +-- ChallengeMessage -->|            |
-    |<-- ResponseMessage ---+            |
-Finalize               |                 |
-    |<-------- ModeratorChallenge -------+
-    |   Redemption + IssuanceRequest      |
-    +------------------------------------>|
-    |<------------------------------------+
-    |   IssuanceResponse                  |
-Finalize               |                 |
-    |<-------- CredentialChallenge ------+
-    |   PresentationAndUpdate             |
-    +------------------------------------>|
-    |<------------------------------------+
-    |   Update                            |
-    |                  |                 |
++--------+             +--------+      +-----------+
+| Client |             | Anchor |      | Moderator |
++---+----+             +---+----+      +-----+-----+
+    |                      |                 |
+    +-- GrantRequest ----->|                 |
+    |<-- GrantCommitments -+                 |
+    +-- GrantChallenges -->|                 |
+    |<--- GrantResponses --+                 |
+Finalize                   |                 |
+    |<---------- ModeratorChallenge ---------+
+    |   Redemption + IssuanceRequest         |
+    +--------------------------------------->|
+    |<---------------------------------------+
+    |   IssuanceResponse                     |
+Finalize                   |                 |
+    |<--------- CredentialChallenge ---------+
+    |   PresentationAndUpdate                |
+    +--------------------------------------->|
+    |<---------------------------------------+
+    |   Update                               |
+    |                      |                 |
 ~~~
 {: #fig-example title="Complete exchange"}
 
-The grant follows {{ec-ihat}}. The Client finalizes the `ResponseMessage`
-into an Endorsement, then obtains a `ModeratorChallenge`, computes its digest,
+The grant follows {{ec-ihat}}. The Client finalizes each `ResponseMessage`
+in the `GrantResponses` into an Endorsement. It uses one of them here: it
+obtains a `ModeratorChallenge`, computes its digest,
 and sends the EC-IHAT `Redemption` with a Privacy Pass `TokenRequest` to
 the Redeem & Issue endpoint.
 
