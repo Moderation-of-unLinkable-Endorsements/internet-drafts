@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 16 April 2027                                           Mozilla
+Expires: 23 April 2027                                           Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                         13 October 2026
+                                                         20 October 2026
 
 
                           MoLE HTTP Transport
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 16 April 2027.
+   This Internet-Draft will expire on 23 April 2027.
 
 Copyright Notice
 
@@ -74,26 +74,16 @@ Copyright Notice
 Table of Contents
 
    1.  Introduction
-   2.  Terminology
-   3.  Presentation Language
-     3.1.  Optional Value
-     3.2.  Variable-Size Vector Length Headers
-   4.  HTTP Authentication Scheme
+   2.  Conventions and Definitions
+   3.  The Mole Authentication Scheme
+   4.  The Mole-Credential Field
    5.  Configuration
-   6.  Error Handling
-     6.1.  Endorsement
-       6.1.1.  Anchor -> Client
-       6.1.2.  Client <-> Anchor
-     6.2.  Issuance
-       6.2.1.  Moderator -> Client
-       6.2.2.  Client -> Moderator
-       6.2.3.  Moderator -> Client
+   6.  Exchanges
+     6.1.  Grant
+     6.2.  Redeem & Issue
      6.3.  Presentation
-       6.3.1.  Moderator -> Client - Challenge
-       6.3.2.  Client -> Moderator - Presentation
-       6.3.3.  Moderator -> Client - Update
-       6.3.4.  Client -> Moderator - Recovery
-       6.3.5.  ACT Responses
+     6.4.  Recovery
+     6.5.  Status Codes
    7.  Security Considerations
    8.  IANA Considerations
      8.1.  Authentication Scheme
@@ -106,9 +96,13 @@ Table of Contents
 
 1.  Introduction
 
-   TODO
+   [PROTOCOLS] defines the MoLE messages.  This document carries them
+   over HTTP.  Challenges and presentations use the Mole authentication
+   scheme [HTTP].  Credential material returns in the Mole-Credential
+   response header.  Grant exchanges with an Anchor are HTTP POST
+   requests defined in [PROTOCOLS].
 
-2.  Terminology
+2.  Conventions and Definitions
 
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
@@ -116,343 +110,254 @@ Table of Contents
    BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
    capitals, as shown here.
 
-3.  Presentation Language
+   Payload encodings and abstract operations are defined by [PROTOCOLS].
+   Header payloads use canonical unpadded base64url ([BASE64]).  HTTP
+   carries type-specific payloads directly, without outer type or length
+   wrappers.
 
-   This document uses the TLS presentation language [TLS13] to describe
-   the structure of protocol messages.  In addition to the base syntax,
-   it uses two additional features: the ability for fields to be
-   optional and the ability for vectors to have variable-size length
-   headers.
-
-3.1.  Optional Value
-
-   An optional value is encoded with a presence-signaling octet,
-   followed by the value itself if present.  When decoding, a presence
-   octet with a value other than 0 or 1 MUST be rejected as malformed.
-
-   struct {
-       uint8 present;
-       select (present) {
-           case 0: struct{};
-           case 1: T value;
-       };
-   } optional<T>;
-
-3.2.  Variable-Size Vector Length Headers
-
-   In the TLS presentation language, vectors are encoded as a sequence
-   of encoded elements prefixed with a length.  The length field has a
-   fixed size set by specifying the minimum and maximum lengths of the
-   encoded sequence of elements.
-
-   In this document, there are several vectors whose sizes vary over
-   significant ranges.  So instead of using a fixed-size length field,
-   it uses a variable-size length using a variable-length integer
-   encoding based on the one described in Section 16 of [QUIC].  They
-   differ only in that the one here requires a minimum-size encoding.
-   Instead of presenting min and max values, the vector description
-   simply includes a V.  For example:
-
-   struct {
-       uint32 fixed<0..255>;
-       opaque variable<V>;
-   } StructWithVectors;
-
-4.  HTTP Authentication Scheme
-
-   We describe the HTTP authentication method used by a Client that has
-   an Endorsement from an Anchor and obtains a Credential from a
-   Moderator.
-
-   The Mole authentication scheme follows the HTTP authentication
-   framework defined in [HTTP].  It carries challenges, redemptions, and
-   presentations: an Anchor or a Moderator challenges the Client, and
-   the Client answers in the Authorization header of a request.  Only
-   the grant exchanges with the Anchor sit outside the scheme.  Their
-   carriage is defined per endorsement protocol in [PROTOCOLS], for
-   example over HTTP POST.
+3.  The Mole Authentication Scheme
 
    +--------+                                +-----------+
    | Client |                                | Moderator |
    +---+----+                                +-----+-----+
        |                                           |
-       |<--- WWW-Authenticate: Mole challenge= ----+
+       |<--- WWW-Authenticate: Mole challenge-T= --+
        |                                           |
    (Redeem & Issue, if needed)                     |
        |                                           |
-       +--- Authorization: Mole presentation= ---->|
+       +--- Authorization: Mole presentation-T= -->|
        |                                           |
-       |<----------------------- Mole-Credential --+
+       |<------------ Mole-Credential: update-T= --+
        |                                           |
 
-   A challenge names a single endorsement or credential type.  To offer
-   a choice, a server sends multiple Mole challenges; the Client picks
-   one it supports and MUST ignore challenges whose type it does not
-   recognize.
+   Payload parameter names end in -T, where T is a registered
+   endorsement or credential type from [PROTOCOLS], written as exactly
+   four lowercase hexadecimal digits.  For example, EC-IHAT (endorsement
+   type 0x0002) is challenged with redeem-0002, and EC-ACT (credential
+   type 0x0001) is presented with presentation-0001.  Recipients also
+   accept uppercase digits, since parameter names are case-insensitive
+   (Section 11.2 of [HTTP]).  Type 0x0000 is invalid.
 
-   An Anchor carries an EndorsementChallenge in the endorse parameter.
-   A Moderator carries a ModeratorChallenge in the redeem parameter and
-   a CredentialChallenge in the challenge parameter.  These share an
-   outer layout and overlapping type values, so the parameter name, not
-   the octets, tells the Client which it holds.
+   Each Mole challenge has exactly one payload parameter:
 
-   All base64url values in this document are encoded without padding
-   ([BASE64]).
+           +=============+=============+=======================+
+           | Parameter   | Registry    | Decoded payload       |
+           +=============+=============+=======================+
+           | endorse-T   | Endorsement | Anchor context, empty |
+           |             |             | for the types here    |
+           +-------------+-------------+-----------------------+
+           | redeem-T    | Endorsement | RedemptionChallenge   |
+           +-------------+-------------+-----------------------+
+           | challenge-T | Credential  | Type-specific         |
+           |             |             | Challenge             |
+           +-------------+-------------+-----------------------+
+
+                       Table 1: Challenge parameters
+
+   A server offers a choice using separate Mole challenges.  The Client
+   ignores unknown types and chooses a supported configuration.  A
+   redeem-T challenge selects the endorsement type.  The Client selects
+   the credential type from the same Moderator's configuration,
+   independently of the endorsement type.
+
+   A Mole credential in Authorization selects one operation:
+
+     +================================+=============================+
+     | Parameters                     | Decoded payloads            |
+     +================================+=============================+
+     | redeem-E, credential-request-C | Redemption, IssuanceRequest |
+     +--------------------------------+-----------------------------+
+     | presentation-T                 | PresentationAndUpdate       |
+     +--------------------------------+-----------------------------+
+     | recovery-T                     | Recovery handle             |
+     +--------------------------------+-----------------------------+
+
+                    Table 2: Authorization parameters
+
+   E uses the endorsement registry.  C, presentation, and recovery use
+   the credential registry.  Only Redeem & Issue has two payload
+   parameters.  It requires exactly one of each, in either order.  Type
+   0001's empty redemption is carried as redeem-0001="".
+
+   Parameters use auth-param syntax (Section 11.2 of [HTTP]).  Values
+   can be tokens or quoted-strings.  Senders quote empty values.
+   Recipients unescape quoted-strings before decoding.  Multiple
+   challenges in one field follow Section 11.6.1 of [HTTP].  These rules
+   apply to each challenge separately.  Unknown parameters, including
+   realm, are ignored.  A name beginning with one of the operation
+   prefixes above but lacking exactly four hexadecimal digits is
+   malformed, not an unknown extension.  A recipient MUST reject
+   duplicate parameter names, mixed operations, and missing or extra
+   payload parameters, including payloads of unknown types.  It MUST
+   reject noncanonical base64url and, for known types, trailing bytes or
+   malformed content.  Clients ignore malformed challenges and may use
+   another one.
+
+   An unknown presentation type is treated as absent when authentication
+   is optional and rejected when required, as specified by [PROTOCOLS].
+   Other requests of unknown type are rejected.  Unknown types never
+   select a known payload decoder.  Greased types follow these same
+   rules.
+
+4.  The Mole-Credential Field
+
+   Mole-Credential returns credential material to the Client.  Its value
+   is one parameter, with the syntax above:
+
+          +============+========================================+
+          | Parameter  | Decoded payload                        |
+          +============+========================================+
+          | response-T | IssuanceResponse                       |
+          +------------+----------------------------------------+
+          | update-T   | Update, or empty for recorded NoUpdate |
+          +------------+----------------------------------------+
+
+                    Table 3: Mole-Credential parameters
+
+   T uses the credential registry and MUST match the pending exchange.
+   The field contains exactly one parameter and MUST NOT be repeated.
+   An empty update-T="" means the Moderator consumed the Credential
+   without replacement.  A nonempty value carries the type's Update.
+   Registered credential protocols MUST define nonempty Update
+   encodings.  A missing Mole-Credential field carries no such decision.
+   A Client MUST process Mole-Credential whatever the response status.
+   The credential result does not establish whether the protected
+   operation completed.  Recovery returns this result without another
+   operation attempt.
+
+   A server sending Mole-Credential MUST also send Cache-Control: no-
+   store.  A server answering cross-origin requests MUST list WWW-
+   Authenticate and Mole-Credential in Access-Control-Expose-Headers.
 
 5.  Configuration
 
-   Anchors and Moderators publish configuration used by Clients before
-   running the HTTP authentication flows.  Configuration includes
-   endpoint URLs, supported protocol types, public key material, and the
-   Anchor set associated with each Moderator policy.  Its contents and
-   format are defined in the Key Rotation and Discovery section of
-   [PROTOCOLS].
+   The Anchor and Moderator configurations are defined in [PROTOCOLS].
+   A Client stores each Credential with the Moderator and Redeem & Issue
+   endpoint it came from.  A Client that keeps a presentation for
+   recovery also keeps the HTTP request that carried it.
 
-   Clients MUST retain the authenticated association between each
-   Moderator, its Redeem & Issue endpoint, and the policies and
-   credential configurations it serves.  Cached Credentials MUST
-   identify this configuration so that the Client can select the
-   endpoint when it needs to obtain a Credential.  A Client that retains
-   a presentation for recovery MUST also retain the HTTP request needed
-   to resend it to its original destination.
+6.  Exchanges
 
-6.  Error Handling
+6.1.  Grant
 
-   Moderators can use MoLE as optional authentication.  A 200 response
-   MAY include a WWW-Authenticate: Mole challenge.  This tells the
-   Client that a later request can include a presentation, for example
-   to get a higher limit or avoid other friction.  In such deployments,
-   Clients SHOULD apply the greasing rules of [PROTOCOLS].
+   WWW-Authenticate: Mole endorse-0002=""
 
-   A 401 response with a WWW-Authenticate: Mole challenge means that the
-   Moderator requires MoLE, or another acceptable authentication scheme,
-   before serving the resource.  A 403 response means that policy
-   forbids the request.  Section 6.3.5 specifies the status codes and
-   credential headers for ACT exchanges.
+   The grant endpoint comes from Anchor configuration.  The Client sends
+   a POST with the type-specific grant message as its body.  The media
+   type is application/mole-endorsement-request with a required type
+   parameter using the same four-digit hexadecimal encoding.  The
+   response uses application/mole-endorsement-response with the same
+   type.  The Client MUST reject a mismatched type.  There is no outer
+   EndorsementRequest or EndorsementResponse wrapper.  The first EC-IHAT
+   request carries a GrantRequest naming the number of Endorsements the
+   Client asks for ([PROTOCOLS]):
 
-6.1.  Endorsement
+   Content-Type: application/mole-endorsement-request; type=0002
 
-   The criteria to provide an endorsement is left to the Anchor.  This
-   document only defines the HTTP carriage for the Endorsement protocol
-   messages.
+   The criteria for granting are the Anchor's.
 
-6.1.1.  Anchor -> Client
+6.2.  Redeem & Issue
 
-   struct {
-     uint16 endorsement_type;
-     opaque anchor_context<V>;
-   } EndorsementChallenge;
+   The Moderator challenges with the endorsement type:
 
-   *  endorse contains a base64url EndorsementChallenge value, encoded
-      per [BASE64].
+   WWW-Authenticate: Mole redeem-0002="<redemption-challenge>"
 
-   WWW-Authenticate: Mole endorse="<endorsement-challenge>",
-                          realm="anchor"
+   The Client answers with a POST to the Redeem & Issue endpoint from
+   configuration, whichever resource sent the challenge:
 
-6.1.2.  Client <-> Anchor
+   Authorization: Mole redeem-0002="<redemption>",
+                       credential-request-0001="<issuance-request>"
 
-   After receiving a challenge, the Client runs the grant exchanges with
-   the Anchor as defined by the endorsement protocol in [PROTOCOLS], for
-   example HTTP POST requests such as the ones defined there.  The
-   anchor_context from the challenge is carried into the first request
-   as specified by the endorsement type.
+   On success the Moderator answers 200 with:
 
-6.2.  Issuance
-
-6.2.1.  Moderator -> Client
-
-   struct {
-     uint16 endorsement_type; // always present, see PROTOCOLS
-     opaque challenge<V>;
-   } ModeratorChallenge;
-
-   *  redeem contains a base64url ModeratorChallenge value, encoded per
-      [BASE64].
-
-   The challenge field carries exactly the TLS encoding of the common
-   RedemptionChallenge defined in [PROTOCOLS].  Anchor material and
-   issuance contexts come from authenticated configuration; this
-   challenge is never sent to an Anchor.
-
-   WWW-Authenticate: Mole redeem="<moderator-challenge>",
-                          realm="moderator"
-
-6.2.2.  Client -> Moderator
-
-   The Client answers with a CredentialRequest ([PROTOCOLS]) in the
-   Authorization header of a POST request to the Moderator's Redeem &
-   Issue endpoint (Section 5), whichever resource sent the redeem
-   challenge.  It carries the endorsement redemption, bound to this
-   challenge, together with the issuance request.
-
-   Authorization: Mole credential-request="<credential-request>"
-
-6.2.3.  Moderator -> Client
-
-   The Moderator returns the CredentialResponse ([PROTOCOLS]) in the
-   Mole-Credential response header.
-
-   Mole-Credential: response="<credential-response>"
+   Mole-Credential: response-0001="<issuance-response>"
 
 6.3.  Presentation
 
-6.3.1.  Moderator -> Client - Challenge
+   The Moderator challenges with the credential type:
 
-   struct {
-     uint16 credential_type; // always present, see PROTOCOLS
-     opaque challenge<V>;
-   } CredentialChallenge;
+   WWW-Authenticate: Mole challenge-0001="<ec-act-challenge>"
 
-   *  challenge which contains a base64url CredentialChallenge value,
-      encoded per [BASE64]
+   A challenge in a 401 response means the resource requires a
+   presentation.  A challenge in a 200 response means a presentation is
+   optional, for instance to raise a limit.  Clients then apply the
+   greasing rules of [PROTOCOLS].
 
-   The challenge field carries exactly the type-specific challenge
-   defined for the named credential type in [PROTOCOLS].  The Moderator
-   endpoint for Redeem & Issue comes from configuration (Section 5).
+   The Client repeats the protected request with:
 
-   A field that binds a presentation to a request, such as the ACT
-   request_context of [PROTOCOLS], is constructed by the Moderator and
-   opaque to the Client, which uses the received challenge octets as the
-   credential type specifies.  This document defines no canonicalization
-   of HTTP requests.
+   Authorization: Mole presentation-0001="<presentation-and-update>"
 
-   WWW-Authenticate: Mole challenge="<credential-challenge>",
-                          realm="moderator"
+   The Moderator runs ProcessPresentation.  Every response to an
+   accepted presentation, fresh or not, MUST carry the recorded update,
+   including when the protected operation fails with a 4xx or 5xx
+   status:
 
-6.3.2.  Client -> Moderator - Presentation
+   Mole-Credential: update-0001="<update>"
 
-   struct {
-     uint16 credential_type; // always present, see PROTOCOLS
-     opaque presentation_and_update<V>;
-   } CredentialPresentation;
+   For a fresh result the Moderator attempts the protected operation and
+   returns its status.  For a result that is not fresh, it MUST return
+   409 (Section 15.5.10 of [HTTP]) and MUST NOT attempt the protected
+   operation.  A rejected presentation MUST NOT carry Mole-Credential.
 
-   The presentation_and_update field carries the PresentationAndUpdate
-   structure of the named credential type, defined in [PROTOCOLS].
-
-   Authorization: Mole presentation="<credential-presentation>"
-
-   A complete instantiation example is given in the appendix of
-   [PROTOCOLS].
-
-6.3.3.  Moderator -> Client - Update
-
-   TODO(thibault) 1.  Headers do not have a fixed protocol limit, but
-   large values are hard to deploy.  Other instantiations may define
-   another method, such as returning a URL that the client can fetch.
-   TBD
-
-   struct {
-     uint16 credential_type;
-     opaque update_response<V>;
-   } CredentialUpdate;
-
-   struct {
-     optional<CredentialUpdate> update;
-   } OptionalCredentialUpdate;
-
-   The update_response field carries the Update structure of the named
-   credential type, defined in [PROTOCOLS].
-
-   Updates use the same Mole-Credential header as issuance: both return
-   credential material from the Moderator.  The parameter distinguishes
-   them, response for issuance and update after a presentation.
-
-   The Moderator MUST send Mole-Credential with the update parameter
-   after accepting a presentation.  For ACCEPTED_WITH_UPDATE, the
-   optional update is present and carries the credential type's Update.
-   For ACCEPTED_NO_UPDATE, the optional update is absent.  The Client
-   MUST process this header even when the protected operation returns an
-   error status.
-
-   An absent optional update records the Moderator's decision to consume
-   the Credential without a replacement.  A missing header supplies no
-   such decision; Clients MUST apply the credential type's recovery
-   rules and single-use requirements.
-
-   *  update which contains a base64url OptionalCredentialUpdate value,
-      encoded per [BASE64]
-
-   Mole-Credential: update="<optional-credential-update>"
+   A Client that receives no Mole-Credential after sending a
+   presentation keeps its pending state and MAY recover (Section 6.4).
 
    Each credential type MUST define the challenge fields that partition
-   cached Credentials, or state that Credentials of that type are not
-   cacheable.
+   cached Credentials, or state that its Credentials are not cacheable.
 
-6.3.4.  Client -> Moderator - Recovery
+6.4.  Recovery
 
-   A Client missing the response to a presentation MAY send a handle
-   instead of resending it.
+   Instead of resending a presentation, a Client MAY send a POST with
+   empty content to the Redeem & Issue endpoint it stored with the
+   Credential:
 
-   struct {
-     uint16 credential_type;
-     opaque recovery_handle<V>;
-   } CredentialRecovery;
+   Authorization: Mole recovery-0001="<recovery-handle>"
 
-   The handle is defined by the credential type ([PROTOCOLS]).  It is
-   sent in a POST request with empty content to the Redeem & Issue
-   endpoint (Section 5):
-
-   Authorization: Mole recovery="<credential-recovery>"
-
-   The Moderator treats it as a byte-identical resend of the
-   presentation, using no other Client identifier.  It MUST NOT perform
-   the protected operation or verify a proof.  It answers 409 with the
-   recorded update while the result is retained, and 401 otherwise,
+   The recovery handle is defined by the credential type in [PROTOCOLS].
+   The Moderator treats it as the byte-identical presentation and uses
+   no other Client identifier.  It MUST NOT verify a proof or attempt
+   the protected operation.  If a result is still retained, it answers
+   200 with the recorded update-T, including the empty value for a
+   recorded NoUpdate.  Otherwise it answers 404 without Mole-Credential,
    whether or not a record exists.
 
-6.3.5.  ACT Responses
+6.5.  Status Codes
 
-   For credential type 0x0001, the Moderator MUST use the following
-   response rules.  The issuance rows apply to Redeem & Issue, and the
-   presentation rows apply to Presentation and Update and to recovery
-   requests (Section 6.3.4), as specified in [PROTOCOLS].
+   +===========================+====================+=================+
+   | Outcome                   | Status             | Mole-Credential |
+   +===========================+====================+=================+
+   | Malformed request         | 400                | none            |
+   +---------------------------+--------------------+-----------------+
+   | Missing, expired, or      | 401                | none            |
+   | invalid authentication    |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Rejected by policy before | 403                | none            |
+   | acceptance                |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Credential issued         | 200                | response-T      |
+   +---------------------------+--------------------+-----------------+
+   | Fresh accepted            | protected          | update-T        |
+   | presentation              | operation's status |                 |
+   +---------------------------+--------------------+-----------------+
+   | Duplicate presentation    | 409                | update-T        |
+   | with retained result sent |                    |                 |
+   | to the protected resource |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result retained | 200                | update-T        |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result          | 404                | none            |
+   | unavailable               |                    |                 |
+   +---------------------------+--------------------+-----------------+
 
-   +=========================+====================+====================+
-   | Outcome                 | HTTP status        | Mole-Credential    |
-   +=========================+====================+====================+
-   | Malformed request       | 400                | Omitted            |
-   | encoding                |                    |                    |
-   +-------------------------+--------------------+--------------------+
-   | Missing, expired, or    | 401                | Omitted            |
-   | invalid authentication  |                    |                    |
-   +-------------------------+--------------------+--------------------+
-   | Rejection by policy     | 403                | Omitted            |
-   | before acceptance       |                    |                    |
-   +-------------------------+--------------------+--------------------+
-   | Successful issuance     | 200                | response with the  |
-   |                         |                    | CredentialResponse |
-   +-------------------------+--------------------+--------------------+
-   | Newly accepted          | Protected          | update with the    |
-   | presentation            | operation's status | recorded result    |
-   +-------------------------+--------------------+--------------------+
-   | Recovery of an          | 409                | update with the    |
-   | accepted                |                    | recorded result    |
-   | presentation's result   |                    |                    |
-   +-------------------------+--------------------+--------------------+
+                         Table 4: Mole responses
 
-                        Table 1: ACT HTTP responses
+   The Moderator MUST use these rules for every credential type.  A 401
+   response MUST carry a Mole challenge for the required exchange.  A
+   403 returned by the protected operation after a fresh acceptance is
+   that operation's status, and carries the update.
 
-   A 401 response MUST include a WWW-Authenticate: Mole challenge for
-   the required exchange.  Invalid authentication includes an unknown or
-   retired key, an unaccepted credential context, a failed proof, or a
-   repeated nullifier for which recovery is unavailable.  A recoverable
-   byte-identical presentation or recovery request (Section 6.3.4) is
-   handled by the recovery row.
-
-   Acceptance of an ACT presentation is the recording of its result in
-   the nullifier store.  A response sent after that recording MUST carry
-   the recorded update, including when the protected operation fails
-   with a 4xx or 5xx status.  The update is present for a refund and
-   absent for a recorded NoUpdate decision.  Rejecting a presentation
-   MUST NOT create a nullifier record or carry a credential update.
-
-   A recovery response uses 409 (Conflict, Section 15.5.10 of [HTTP])
-   because the presentation has already been accepted.  It carries only
-   the recorded credential result and MUST NOT authorize another attempt
-   of the protected operation.  Application-specific recovery determines
-   the outcome of the earlier operation.  The Client finalizes a
-   recovered refund under the same rules as a refund received with the
-   original response.
+   A Client MUST NOT infer chain termination from any status without the
+   recorded empty update.
 
 7.  Security Considerations
 
@@ -460,17 +365,36 @@ Table of Contents
 
    TODO.  The list to cover:
 
-   1.  Challenge replay and caching: when a Client may reuse a cached
-       credential against a repeated challenge.
+   1.  Header size limits: request and response field limits a
+       deployment must provision for the payloads it offers, and the
+       status returned before acceptance when a payload does not fit.  A
+       Moderator must not consume an Endorsement, or record NoUpdate,
+       because a response would be too large.
 
-   2.  Header size limits and what happens when updates exceed them.
+   2.  Challenge caching and reuse: when a Client may reuse a cached
+       challenge (same Moderator, type, key and context, scope), and
+       that reuse never permits reuse of a spent Credential or
+       Endorsement.
+
+   3.  Request binding: this document defines no canonical HTTP request
+       serialization.  EC-ACT request_context must cover what the
+       Moderator authorizes, including the body.  Reverse flow has no
+       request binding.
+
+   4.  Recovery: what recovery reveals and its lack of Client
+       authentication beyond the handle.
+
+   5.  Grant and issuance recovery: a lost grant or issuance response
+       currently costs the Client its session or Endorsement.  Whether
+       to add recovery for these exchanges, and how to authenticate a
+       lookup by session ID or nullifier, is open.
 
 8.  IANA Considerations
 
 8.1.  Authentication Scheme
 
    This document registers the Mole authentication scheme, as defined in
-   Section 4, in the "HTTP Authentication Schemes" registry.
+   Section 3, in the "HTTP Authentication Schemes" registry.
 
 8.2.  HTTP Field Names
 
@@ -502,20 +426,11 @@ Table of Contents
               2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
               May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
 
-   [TLS13]    Rescorla, E., "The Transport Layer Security (TLS) Protocol
-              Version 1.3", RFC 8446, DOI 10.17487/RFC8446, August 2018,
-              <https://www.rfc-editor.org/rfc/rfc8446>.
-
 9.2.  Informative References
 
    [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
               Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
               <https://www.rfc-editor.org/rfc/rfc4648>.
-
-   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
-              Multiplexed and Secure Transport", RFC 9000,
-              DOI 10.17487/RFC9000, May 2021,
-              <https://www.rfc-editor.org/rfc/rfc9000>.
 
 Acknowledgments
 
