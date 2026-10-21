@@ -5,10 +5,10 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 22 April 2027                                        Cloudflare
+Expires: 24 April 2027                                        Cloudflare
                                                           S. Schlesinger
                                                                   Google
-                                                         19 October 2026
+                                                         21 October 2026
 
 
                                 VOLE-ACT
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2027.
+   This Internet-Draft will expire on 24 April 2027.
 
 Copyright Notice
 
@@ -110,6 +110,9 @@ Table of Contents
    Authors' Addresses
 
 1.  Introduction
+
+      NOTE An implementation is available at vole-mole
+      (https://github.com/cloudflareresearch/vole-mole).
 
       WARNING This document specifies a cryptographic protocol that has
       not yet undergone significant security analysis.  It's not yet
@@ -418,6 +421,12 @@ Table of Contents
    size of the proof, the relation must be designed to balance the size
    of the witness with the degree of the constraints.
 
+   Each witness variable is a vector over either F_2 or F_q.  In
+   VOLEitH, the witness is committed bit by bit, and the proof
+   implicitly checks that each committed value is in F_2.  A variable in
+   F_q^k is therefore committed as 8*k bits, and the relation can use
+   either these bits or the elements of F_q they encode.
+
       TODO(cjpatton) Figure out how to cite [FAEST] more precisely.
       Ideally it specifies a compiler of constraints into a proof, as in
       [SIGMA], but this is currently beyond the scope of what the FAEST
@@ -663,12 +672,12 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
     - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
-    - t: credit of the current state
+    - t: credit of the current state, in F_2^(8*L)
     - r: commitment opening of the current state, in F_q^r_len
-    - x: refund carried by the current state
+    - x: refund carried by the current state, in F_2^(8*L)
     - s: Issuer signature over the current state, in F_q^{n_uov}
     - nf': nullifier of the updated state, in F_q^nf_len
-    - t': credit of the updated state
+    - t': credit of the updated state, in F_2^(8*L)
     - r': commitment opening of the updated state, in F_q^r_len
 
   Constraints:
@@ -676,6 +685,12 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
     - c' = Com(nf', ctx_iss, t', r')         // V2: c' commits to updated state
     - t' = t + x - d                         // V3: credits are conserved
     - t', x, d in [2^(8*L)]                  // V4: credits are in range
+
+   Each credit value in the witness is the bit vector <t>_L (resp.
+   <x>_L, <t'>_L), i.e., the 8*L bits of its encoding.  Thus V4 holds by
+   construction.  V3 is an equation over the integers, not F_q: it is
+   checked bitwise as t + x = t' + d, with each sum computed by a
+   ripple-carry adder.
 
    Note that the same ctx_iss appears in V1 and V2, so the updated token
    is necessarily bound to the context the token was issued under.
@@ -1040,6 +1055,29 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
    permutation underlying MiniSHAKE [MiniSHAKE], a family of Keccak
    instances defined by the designers of Keccak for applications that
    hash many very short messages.
+
+   Com() reserves at least 128 bits of the initial state as constants,
+   namely the domain separation tag and the zero padding.  (Likewise for
+   Tag().)  This ensures the following attack on binding is not
+   feasible.  The attacker's goal is to find a second opening of a
+   commitment c, for example, a different nullifier for the same
+   commitment, which would allow a token to be spent twice.  Recall that
+   c is the first 32 bytes of the final state, i.e., the output of the
+   permutation; the remaining 68 bytes of the final state are discarded.
+   The attacker sets the first 32 bytes of the final state to c, chooses
+   the remaining 68 bytes arbitrarily, and applies the inverse of the
+   permutation.  The result is an initial state that maps to c, but it
+   is an opening of c only if its reserved bits match the expected
+   constants.
+
+      TODO(cjpatton) We may want to reserve more bits of the initial
+      state as constants, perhaps >= 256.
+
+   The same reasoning applies to Tag(), whose output is the first m_uov
+   bytes of the final state.  There, the attacker's goal is to find a
+   commitment and refund (c', x') != (c, x) for which Tag(c', x') =
+   Tag(c, x), so that the Issuer's signature over one also certifies the
+   other.
 
 7.3.  Proof status
 

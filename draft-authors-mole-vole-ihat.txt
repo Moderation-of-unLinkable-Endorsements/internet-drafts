@@ -5,8 +5,8 @@
 Network Working Group                                           T. Zhang
 Internet-Draft                University of Illinois at Urbana-Champaign
 Intended status: Informational                                 C. Patton
-Expires: 22 April 2027                                        Cloudflare
-                                                         19 October 2026
+Expires: 24 April 2027                                        Cloudflare
+                                                         21 October 2026
 
 
                                VOLE-IHAT
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 22 April 2027.
+   This Internet-Draft will expire on 24 April 2027.
 
 Copyright Notice
 
@@ -94,6 +94,9 @@ Table of Contents
    Authors' Addresses
 
 1.  Introduction
+
+      NOTE An implementation of VOLE-IHAT is available at vole-mole
+      (https://github.com/cloudflareresearch/vole-mole).
 
       WARNING This document specifies a cryptographic protocol that has
       not yet undergone significant security analysis.  It's not yet
@@ -221,11 +224,11 @@ Table of Contents
    In order to prove this statement with VOLEitH, we need to express it
    as a system of constraints over F_q.
 
-   The idea is to extend the witness with a "selector" vector b[0], ...,
-   b[N-1] for which b[u] = 1 if u = i and 0 otherwise.  The constraints
-   then check that the public key selected by b maps s to Com(nf,
-   ctx_iss, ctx_red, r) and that b is the indicator vector of a single
-   Anchor.  See Section 5.4 for details.
+   The idea is to extend the witness with a "selector" vector of bits b
+   for which b[u] = 1 if u = i and 0 otherwise.  The constraints then
+   check that the public key selected by b maps s to Com(nf, ctx_iss,
+   ctx_red, r) and that b is the indicator vector of a single Anchor.
+   See Section 5.4 for details.
 
    The commitment Com() is instantiated with a single evaluation of the
    Keccak-p[800,12] permutation [FIPS202].  Similar to TurboSHAKE
@@ -276,16 +279,6 @@ Table of Contents
 
    A global constant MAX_ANCHORS defines the maximum size of an Anchor
    Set. Its value SHALL be 64.
-
-      NOTE(cjpatton) In our implementation, the length of the selector
-      vector b is exactly MAX_ANCHORS: the last MAX_ANCHORS - N entries
-      are padded with 0s.  This ensures the witness length is known at
-      compile time, which is needed for faest-arch-opt
-      (https://github.com/faest-sign/faest-arch-opt).  For MAX_ANCHORS =
-      64, the witness for the padded selector vector is only 8 bytes (in
-      the implementation, the selector is stored as bits rather than
-      bytes), so removing the padding doesn't actually save very much.
-      Eventually the spec will be updated to match our implementation.
 
 5.1.  Anchor Key Generation
 
@@ -453,12 +446,20 @@ Table of Contents
 
    Let i in [N] be the index of the issuing Anchor.  The witness for the
    redemption proof is the opening r, the signature s, and the selector
-   vector b, where b[u] = 1 if u = i and 0 otherwise.  The relation
-   first selects the Anchor public key Q with the following procedure:
+   vector b in F_2^MAX_ANCHORS, where b[u] = 1 if u = i and 0 otherwise.
+   The length of b is fixed so that the size of the witness does not
+   depend on the size of the Anchor Set; entries b[N], ...,
+   b[MAX_ANCHORS-1] are always 0.  The relation first selects the Anchor
+   public key Q with the following procedure:
+
+      NOTE(cjpatton) Padding the selector vector to MAX_ANCHORS isn't
+      strictly necessary, but is convenient for our implementation, In
+      faest-arch-opt (https://github.com/faest-sign/faest-arch-opt), the
+      length of the witness must be known at compile time.
 
    Select(b, P):
      Input:
-       - b: selector vector, in F_q^N
+       - b: selector vector, in F_2^MAX_ANCHORS
        - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
 
      Output:
@@ -472,33 +473,39 @@ Table of Contents
        5.     Q[j] += b[u] * P[u][j]
        6. return Q
 
+   (Each b[u] is in F_2, a subfield of F_q, so the product b[u] *
+   P[u][j] is computed in F_q.)
+
    The first constraint is that Q(s) = Com(nf, ctx_iss, ctx_red, r).
    The remaining constraints prove that the selector vector is well-
-   formed, that is, exactly one entry is set.  Because F_q has
-   characteristic 2, the weight constraint sum(b) = 1 only tells us that
-   the number of nonzero entries is odd.  We also need some parity
-   constraints, namely sum(b[0..u+1]) * b[u+1] = 0 for all u in [N-1].
-   The redemption relation is defined as follows:
+   formed, that is, exactly one bit is set, and it is set for an Anchor
+   in the Anchor Set. The padding constraints b[u] = 0 for u in
+   [N..MAX_ANCHORS] ensure the latter.  Because b is a vector over F_2,
+   the weight constraint sum(b) = 1 only tells us that the number of set
+   bits is odd.  We also need some parity constraints, namely
+   sum(b[0..u+1]) * b[u+1] = 0 for all u in [MAX_ANCHORS-1].  The
+   redemption relation is defined as follows:
 
-   Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
-     Instance:
-       - P: Anchor Set of length N
-       - nf: nullifier, in F_q^nf_len
-       - ctx_iss: issuance context, in F_q^ctx_len
-       - ctx_red: redemption context, in F_q^ctx_len
+  Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
+    Instance:
+      - P: Anchor Set of length N
+      - nf: nullifier, in F_q^nf_len
+      - ctx_iss: issuance context, in F_q^ctx_len
+      - ctx_red: redemption context, in F_q^ctx_len
 
-     Witness:
-       - r: F_q^r_len
-       - s: F_q^n
-       - b: F_q^N
+    Witness:
+      - r: F_q^r_len
+      - s: F_q^n
+      - b: F_2^MAX_ANCHORS
 
-     Where:
-       - Q = Select(b, P)
+    Where:
+      - Q = Select(b, P)
 
-     Constraints:
-       - Q(s) = Com(nf, ctx_iss, ctx_red, r)
-       - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
-       - sum(b) = 1
+    Constraints:
+      - Q(s) = Com(nf, ctx_iss, ctx_red, r)
+      - b[u] = 0                               for u in [N..MAX_ANCHORS]
+      - sum(b[0..u+1]) * b[u+1] = 0            for u in [MAX_ANCHORS-1]
+      - sum(b) = 1
 
    Let "mous" || VERSION || "r0" be the domain separation tag for this
    relation.  The encoding of the instance is defined as
@@ -526,7 +533,7 @@ Table of Contents
 
      Steps:
        1. (nf, r, s) := token
-       2. b := 0^N  // selector vector
+       2. b := 0^MAX_ANCHORS  // selector vector
        3. b[i] := 1
        4. pf_red := VOLEitH.Prove(
             RedeemRelation,             // relation
@@ -635,8 +642,10 @@ Table of Contents
 6.1.  Choice of Keccak-p[800,12]
 
    The commitment Com() uses Keccak-p[800,12] for the same reasons as
-   the commitment of VOLE-ACT-KP800, namely to reduce the size of the
-   VOLEitH proofs.  See [VOLE-ACT] for discussion.
+   the commitment of VOLE-ACT, namely to reduce the size of the VOLEitH
+   proofs.  See [VOLE-ACT] for discussion.  Likewise, Com() reserves at
+   least 128 bits of the initial state as constants in order to prevent
+   the inversion attack described in [VOLE-ACT].
 
 7.  IANA Considerations
 

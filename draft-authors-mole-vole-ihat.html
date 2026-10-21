@@ -1054,7 +1054,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Zhang &amp; Patton</td>
-<td class="center">Expires 22 April 2027</td>
+<td class="center">Expires 24 April 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1067,12 +1067,12 @@ svg {
 <dd class="internet-draft">draft-authors-mole-vole-ihat-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-19" class="published">19 October 2026</time>
+<time datetime="2026-10-21" class="published">21 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-22">22 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-04-24">24 April 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1127,7 +1127,7 @@ commitment is instantiated with <code>Keccak-p[800,12]</code>.<a href="#section-
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 22 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 24 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1208,7 +1208,7 @@ commitment is instantiated with <code>Keccak-p[800,12]</code>.<a href="#section-
             <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
-                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-choice-of-keccak-p80012" class="internal xref">Choice of Keccak-p[800,12]</a></p>
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-choice-of-keccak-p80012" class="internal xref">Choice of <code>Keccak-p[800,12]</code></a></p>
 </li>
             </ul>
 </li>
@@ -1243,22 +1243,28 @@ commitment is instantiated with <code>Keccak-p[800,12]</code>.<a href="#section-
       </h2>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-1-1.1">
-          <p id="section-1-1.1.1">WARNING This document specifies a cryptographic protocol that has not yet
-undergone significant security analysis. It's not yet suitable for real world
-applications. Implement at your own risk.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
+          <p id="section-1-1.1.1">NOTE An implementation of VOLE-IHAT is available at
+<a href="https://github.com/cloudflareresearch/vole-mole">vole-mole</a>.<a href="#section-1-1.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-2">An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-1-2.1">
+          <p id="section-1-2.1.1">WARNING This document specifies a cryptographic protocol that has not yet
+undergone significant security analysis. It's not yet suitable for real world
+applications. Implement at your own risk.<a href="#section-1-2.1.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-1-3">An Issuer-Hiding Anonymous Token (IHAT) allows a Client to redeem a token with a
 Moderator without revealing which Anchor issued the token. Instead, the client
 proves the token was issued by some Anchor in the Anchor Set trusted by the
 Moderator. EC-IHAT is also designed to be post-issuance unlinkable, meaning
-the redemption of a token cannot be linked to its issuance.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">EC-IHAT meets these privacy goals unconditionally, meaning regardless of its
+the redemption of a token cannot be linked to its issuance.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-4">EC-IHAT meets these privacy goals unconditionally, meaning regardless of its
 computational resources, no attacker can learn which Anchor issued a token or
 to which Client it was issued. On the other hand, it is well known that a
 quantum attacker can forge tokens by recovering the Anchor's secret key from
-its public key.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<p id="section-1-4">This document specifies VOLE-IHAT, an Issuer-Hiding Anonymous Token that is
+its public key.<a href="#section-1-4" class="pilcrow">¶</a></p>
+<p id="section-1-5">This document specifies VOLE-IHAT, an Issuer-Hiding Anonymous Token that is
 plausibly fully post-quantum secure. Similar to <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>, its design
 is based on the PoMFRIT blind signature scheme <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, which combines a
 post-quantum signature scheme with a suitable zero-knowledge proof system and
@@ -1267,42 +1273,42 @@ and the verifier checks a zero-knowledge proof-of-knowledge of the signature
 and the opening of the commitment. VOLE-IHAT extends this paradigm in the
 natural way: rather than prove knowledge of a signature under the public key of
 a particular Anchor, the Client proves knowledge of a signature under some
-public key in the Anchor Set.<a href="#section-1-4" class="pilcrow">¶</a></p>
-<p id="section-1-5">VOLE-IHAT has significantly higher bandwidth cost compared to EC-IHAT:<a href="#section-1-5" class="pilcrow">¶</a></p>
-<ol start="1" type="1" class="normal type-1" id="section-1-6">
-<li id="section-1-6.1">
-          <p id="section-1-6.1.1">each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
-set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-6.1.1" class="pilcrow">¶</a></p>
+public key in the Anchor Set.<a href="#section-1-5" class="pilcrow">¶</a></p>
+<p id="section-1-6">VOLE-IHAT has significantly higher bandwidth cost compared to EC-IHAT:<a href="#section-1-6" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="normal type-1" id="section-1-7">
+<li id="section-1-7.1">
+          <p id="section-1-7.1.1">each Anchor public key is 45.5KB (this corresponds to the uov-Ip parameter
+set <span>[<a href="#UOV" class="cite xref">UOV</a>]</span>);<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-1-6.2">
-          <p id="section-1-6.2.1">the Client uploads 7.1KB during issuance; and<a href="#section-1-6.2.1" class="pilcrow">¶</a></p>
+        <li id="section-1-7.2">
+          <p id="section-1-7.2.1">the Client uploads 7.1KB during issuance; and<a href="#section-1-7.2.1" class="pilcrow">¶</a></p>
 </li>
-        <li id="section-1-6.3">
-          <p id="section-1-6.3.1">the Client uploads 8.6KB during redemption for an Anchor Set of up to 64
-Anchors.<a href="#section-1-6.3.1" class="pilcrow">¶</a></p>
+        <li id="section-1-7.3">
+          <p id="section-1-7.3.1">the Client uploads 8.6KB during redemption for an Anchor Set of up to 64
+Anchors.<a href="#section-1-7.3.1" class="pilcrow">¶</a></p>
 </li>
       </ol>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1-7.1">
-          <p id="section-1-7.1.1">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
+<li class="normal ulEmpty" id="section-1-8.1">
+          <p id="section-1-8.1.1">NOTE(tnyuzg) We might be able to reduce the size of both VOLEitH proofs (one
 for issuance and another for redemption) using the more invasive techniques
-from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-7.1.1" class="pilcrow">¶</a></p>
+from <span>[<a href="#PoMFRIT" class="cite xref">PoMFRIT</a>]</span>, Algorithm 2.<a href="#section-1-8.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-1-8">On the other hand, VOLE-IHAT is round optimal: only two moves are required for
-issuance, whereas EC-IHAT requires three.<a href="#section-1-8" class="pilcrow">¶</a></p>
-<p id="section-1-9">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
+<p id="section-1-9">On the other hand, VOLE-IHAT is round optimal: only two moves are required for
+issuance, whereas EC-IHAT requires three.<a href="#section-1-9" class="pilcrow">¶</a></p>
+<p id="section-1-10">The remainder of this document is structured as follows. <a href="#conventions" class="auto internal xref">Section 2</a>
 defines some conventions and notation. <a href="#overview" class="auto internal xref">Section 3</a> provides a high-level
 overview of the protocol. <a href="#preliminaries" class="auto internal xref">Section 4</a> defines the relevant interfaces for
 the signature scheme, commitment scheme, and proof system used by VOLE-IHAT and
 provides normative references for their specifications. <a href="#protocol" class="auto internal xref">Section 5</a> specifies
 the protocol in full detail. Finally, <a href="#security" class="auto internal xref">Section 6</a> enumerates some security
-considerations for implementers and adopters.<a href="#section-1-9" class="pilcrow">¶</a></p>
+considerations for implementers and adopters.<a href="#section-1-10" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-1-10.1">
-          <p id="section-1-10.1.1">TODO(cjpatton) Our pseudocode is derived from an old version of EC-ACT, but
+<li class="normal ulEmpty" id="section-1-11.1">
+          <p id="section-1-11.1.1">TODO(cjpatton) Our pseudocode is derived from an old version of EC-ACT, but
 <span>[<a href="#EC-ACT" class="cite xref">EC-ACT</a>]</span> now uses Python, as does <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>. Consider transcribing
-our pseudocode into Python. (Likewise for VOLE-ACT.)<a href="#section-1-10.1.1" class="pilcrow">¶</a></p>
+our pseudocode into Python. (Likewise for VOLE-ACT.)<a href="#section-1-11.1.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
 </section>
@@ -1382,10 +1388,10 @@ presents the nullifier in plaintext along with a VOLEitH proof of knowledge of
 <code>i, s, r</code> for which <code>P[i](s) = t</code> without revealing <code>i</code>. In order to prove this
 statement with VOLEitH, we need to express it as a system of constraints over
 <code>F_q</code>.<a href="#section-3-9" class="pilcrow">¶</a></p>
-<p id="section-3-10">The idea is to extend the witness with a "selector" vector <code>b[0], ..., b[N-1]</code>
-for which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The constraints then check
-that the public key selected by <code>b</code> maps <code>s</code> to <code>Com(nf, ctx_iss, ctx_red, r)</code>
-and that <code>b</code> is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for
+<p id="section-3-10">The idea is to extend the witness with a "selector" vector of bits <code>b</code> for
+which <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The constraints then check that
+the public key selected by <code>b</code> maps <code>s</code> to <code>Com(nf, ctx_iss, ctx_red, r)</code> and
+that <code>b</code> is the indicator vector of a single Anchor. See <a href="#redemption" class="auto internal xref">Section 5.4</a> for
 details.<a href="#section-3-10" class="pilcrow">¶</a></p>
 <p id="section-3-11">The commitment <code>Com()</code> is instantiated with a single evaluation of the
 <code>Keccak-p[800,12]</code> permutation <span>[<a href="#FIPS202" class="cite xref">FIPS202</a>]</span>. Similar to TurboSHAKE <span>[<a href="#RFC9861" class="cite xref">RFC9861</a>]</span>,
@@ -1397,7 +1403,7 @@ justification.<a href="#section-3-11" class="pilcrow">¶</a></p>
 <li class="normal ulEmpty" id="section-3-12.1">
           <p id="section-3-12.1.1">NOTE We can add multishow and late binding of redemption context by adding
 another hash evaluation to the redemption proof. Basically, we would use
-Keccak-p[800,12] to construct a PRF from which we derive the nullifier as
+<code>Keccak-p[800,12]</code> to construct a PRF from which we derive the nullifier as
 PRF(K, red_ctx) where K is a key committed to during issuance. See <a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45">issue
 45</a>.<a href="#section-3-12.1.1" class="pilcrow">¶</a></p>
 </li>
@@ -1447,18 +1453,6 @@ revisions to this document. The template for domain separation is the same as
 <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-5-2" class="pilcrow">¶</a></p>
 <p id="section-5-3">A global constant <code>MAX_ANCHORS</code> defines the maximum size of an Anchor Set. Its
 value <span class="bcp14">SHALL</span> be <code>64</code>.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5-4.1">
-          <p id="section-5-4.1.1">NOTE(cjpatton) In our implementation, the length of the selector vector <code>b</code> is
-exactly <code>MAX_ANCHORS</code>: the last <code>MAX_ANCHORS - N</code> entries are padded with
-<code>0</code>s. This ensures the witness length is known at compile time, which is
-needed for <a href="https://github.com/faest-sign/faest-arch-opt">faest-arch-opt</a>. For
-<code>MAX_ANCHORS = 64</code>, the witness for the padded selector vector is only 8 bytes
-(in the implementation, the selector is stored as bits rather than bytes), so
-removing the padding doesn't actually save very much. Eventually the spec will
-be updated to match our implementation.<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
 <div id="anchor-key-generation">
 <section id="section-5.1">
         <h3 id="name-anchor-key-generation">
@@ -1666,13 +1660,24 @@ Moderator's challenge as described in <span>[<a href="#EC-IHAT" class="cite xref
 it as an opaque byte string of length <code>32</code>.<a href="#section-5.4-1" class="pilcrow">¶</a></p>
 <p id="section-5.4-2">Let <code>i</code> in <code>[N]</code> be the index of the issuing Anchor. The witness for the
 redemption proof is the opening <code>r</code>, the signature <code>s</code>, and the selector vector
-<code>b</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The relation first selects
-the Anchor public key <code>Q</code> with the following procedure:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
-<div class="lang-pseudocode sourcecode" id="section-5.4-3">
+<code>b</code> in <code>F_2^MAX_ANCHORS</code>, where <code>b[u] = 1</code> if <code>u = i</code> and <code>0</code> otherwise. The
+length of <code>b</code> is fixed so that the size of the witness does not depend on the
+size of the Anchor Set; entries <code>b[N], ..., b[MAX_ANCHORS-1]</code> are always <code>0</code>.
+The relation first selects the Anchor public key <code>Q</code> with the following
+procedure:<a href="#section-5.4-2" class="pilcrow">¶</a></p>
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-5.4-3.1">
+            <p id="section-5.4-3.1.1">NOTE(cjpatton) Padding the selector vector to <code>MAX_ANCHORS</code> isn't strictly
+necessary, but is convenient for our implementation, In
+<a href="https://github.com/faest-sign/faest-arch-opt">faest-arch-opt</a>, the length of
+the witness must be known at compile time.<a href="#section-5.4-3.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<div class="lang-pseudocode sourcecode" id="section-5.4-4">
 <pre>
 Select(b, P):
   Input:
-    - b: selector vector, in F_q^N
+    - b: selector vector, in F_2^MAX_ANCHORS
     - P: Anchor Set, a sequence of N maps from F_q^n to F_q^m
 
   Output:
@@ -1685,15 +1690,19 @@ Select(b, P):
     4.   for j in [M]:
     5.     Q[j] += b[u] * P[u][j]
     6. return Q
-</pre><a href="#section-5.4-3" class="pilcrow">¶</a>
+</pre><a href="#section-5.4-4" class="pilcrow">¶</a>
 </div>
-<p id="section-5.4-4">The first constraint is that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code>. The
+<p id="section-5.4-5">(Each <code>b[u]</code> is in <code>F_2</code>, a subfield of <code>F_q</code>, so the product <code>b[u] *
+P[u][j]</code> is computed in <code>F_q</code>.)<a href="#section-5.4-5" class="pilcrow">¶</a></p>
+<p id="section-5.4-6">The first constraint is that <code>Q(s) = Com(nf, ctx_iss, ctx_red, r)</code>. The
 remaining constraints prove that the selector vector is well-formed, that is,
-exactly one entry is set. Because <code>F_q</code> has characteristic <code>2</code>, the weight
-constraint <code>sum(b) = 1</code> only tells us that the number of nonzero entries is
-odd. We also need some parity constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code>
-for all <code>u</code> in <code>[N-1]</code>. The redemption relation is defined as follows:<a href="#section-5.4-4" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.4-5">
+exactly one bit is set, and it is set for an Anchor in the Anchor Set. The
+padding constraints <code>b[u] = 0</code> for <code>u</code> in <code>[N..MAX_ANCHORS]</code> ensure the latter.
+Because <code>b</code> is a vector over <code>F_2</code>, the weight constraint <code>sum(b) = 1</code> only
+tells us that the number of set bits is odd. We also need some parity
+constraints, namely <code>sum(b[0..u+1]) * b[u+1] = 0</code> for all <code>u</code> in
+<code>[MAX_ANCHORS-1]</code>. The redemption relation is defined as follows:<a href="#section-5.4-6" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-7">
 <pre>
 Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
   Instance:
@@ -1705,25 +1714,26 @@ Relation RedeemRelation(P, nf, ctx_iss, ctx_red):
   Witness:
     - r: F_q^r_len
     - s: F_q^n
-    - b: F_q^N
+    - b: F_2^MAX_ANCHORS
 
   Where:
     - Q = Select(b, P)
 
   Constraints:
     - Q(s) = Com(nf, ctx_iss, ctx_red, r)
-    - sum(b[0..u+1]) * b[u+1] = 0            for u in [N-1]
+    - b[u] = 0                               for u in [N..MAX_ANCHORS]
+    - sum(b[0..u+1]) * b[u+1] = 0            for u in [MAX_ANCHORS-1]
     - sum(b) = 1
-</pre><a href="#section-5.4-5" class="pilcrow">¶</a>
+</pre><a href="#section-5.4-7" class="pilcrow">¶</a>
 </div>
-<p id="section-5.4-6">Let <code>"mous" || VERSION || "r0"</code> be the domain separation tag for this relation.
-The encoding of the instance is defined as<a href="#section-5.4-6" class="pilcrow">¶</a></p>
-<div class="alignLeft art-text artwork" id="section-5.4-7">
+<p id="section-5.4-8">Let <code>"mous" || VERSION || "r0"</code> be the domain separation tag for this relation.
+The encoding of the instance is defined as<a href="#section-5.4-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-5.4-9">
 <pre>
     &lt;MAX_ANCHORS&gt;_4 || &lt;N&gt;_4
     || PKDigest(P[0]) || ... || PKDigest(P[N-1])
     || nf || ctx_iss || ctx_red
-</pre><a href="#section-5.4-7" class="pilcrow">¶</a>
+</pre><a href="#section-5.4-9" class="pilcrow">¶</a>
 </div>
 <div id="redeem-request">
 <section id="section-5.4.1">
@@ -1748,7 +1758,7 @@ RedeemRequest(P, i, token, ctx_iss, ctx_red, challenge_digest):
 
   Steps:
     1. (nf, r, s) := token
-    2. b := 0^N  // selector vector
+    2. b := 0^MAX_ANCHORS  // selector vector
     3. b[i] := 1
     4. pf_red := VOLEitH.Prove(
          RedeemRelation,             // relation
@@ -1864,7 +1874,7 @@ image.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
 <li class="normal ulEmpty" id="section-6-5.1">
           <p id="section-6-5.1.1">NOTE Both VOLE-IHAT and VOLE-ACT can avoid the stronger one-more-UOV
 assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
-by sampling a signing salt and using Keccak-p[800,12] to hash the input and
+by sampling a signing salt and using <code>Keccak-p[800,12]</code> to hash the input and
 the salt.<a href="#section-6-5.1.1" class="pilcrow">¶</a></p>
 <p id="section-6-5.1.2">For VOLE-IHAT, the cost of this would be an additional hash evaluation in the
 circuit. For VOLE-ACT, we would just need to add a salt to <code>Tag()</code>, which
@@ -1881,11 +1891,13 @@ the redemption proof. (Likewise for VOLE-ACT.)<a href="#section-6-6.1.1" class="
 <div id="choice-of-keccak-p80012">
 <section id="section-6.1">
         <h3 id="name-choice-of-keccak-p80012">
-<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-choice-of-keccak-p80012" class="section-name selfRef">Choice of Keccak-p[800,12]</a>
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-choice-of-keccak-p80012" class="section-name selfRef">Choice of <code>Keccak-p[800,12]</code></a>
         </h3>
 <p id="section-6.1-1">The commitment <code>Com()</code> uses <code>Keccak-p[800,12]</code> for the same reasons as the
-commitment of VOLE-ACT-KP800, namely to reduce the size of the VOLEitH
-proofs. See <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span> for discussion.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+commitment of VOLE-ACT, namely to reduce the size of the VOLEitH
+proofs. See <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span> for discussion. Likewise, <code>Com()</code> reserves at least
+<code>128</code> bits of the initial state as constants in order to prevent the inversion
+attack described in <span>[<a href="#VOLE-ACT" class="cite xref">VOLE-ACT</a>]</span>.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
