@@ -2477,10 +2477,16 @@ attacker sets the first 32 bytes of the final state to <code>c</code>, chooses t
 remaining 68 bytes arbitrarily, and applies the inverse of the permutation. The
 result is an initial state that maps to <code>c</code>, but it is an opening of <code>c</code> only
 if its reserved bits match the expected constants.<a href="#section-7.2-3" class="pilcrow">¶</a></p>
-<p id="section-7.2-4">The same reasoning applies to <code>Tag()</code>, whose output is the first <code>m_uov</code> bytes
+<ul class="normal ulEmpty">
+<li class="normal ulEmpty" id="section-7.2-4.1">
+            <p id="section-7.2-4.1.1">TODO(cjpatton) We may want to reserve more bits of the initial state as
+constants, perhaps <code>&gt;= 256</code>.<a href="#section-7.2-4.1.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+<p id="section-7.2-5">The same reasoning applies to <code>Tag()</code>, whose output is the first <code>m_uov</code> bytes
 of the final state. There, the attacker's goal is to find a commitment and
 refund <code>(c', x') != (c, x)</code> for which <code>Tag(c', x') = Tag(c, x)</code>, so that the
-Issuer's signature over one also certifies the other.<a href="#section-7.2-4" class="pilcrow">¶</a></p>
+Issuer's signature over one also certifies the other.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="proof-status">

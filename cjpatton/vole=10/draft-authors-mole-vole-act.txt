@@ -1070,6 +1070,9 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
    is an opening of c only if its reserved bits match the expected
    constants.
 
+      TODO(cjpatton) We may want to reserve more bits of the initial
+      state as constants, perhaps >= 256.
+
    The same reasoning applies to Tag(), whose output is the first m_uov
    bytes of the final state.  There, the attacker's goal is to find a
    commitment and refund (c', x') != (c, x) for which Tag(c', x') =
