@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-20T04:02:51.937181+00:00",
+  "timestamp": "2026-10-22T03:51:49.727580+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1029,6 +1029,79 @@
       "body": "Similar to how we've removed budget privacy pass, it seems interesting to reconsider the list of endorsement/credentials we want the protocol draft to provide.\n\nThe current candidates would be\n\nEndorsement\n0. no endorsement\n1. ec ihat (rollatini)\n2. longfellow ihat circuit\n3. pq ihat (ratatouille)\n\nCredentials\n1. act\n2. Reverse flow privacy pass\n3. pq act (moussaka)\n\nAt least EC IHAT and ACT are going to see use. Possibly PQ ACT would be included per #143\n\nDoing this work would help with #108 raised by @wbl, even though that's going to possibly be recurrent work",
       "createdAt": "2026-10-15T22:35:44Z",
       "updatedAt": "2026-10-15T22:36:39Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 147,
+      "id": "I_kwDOSX6krs8AAAABY4AmVA",
+      "title": "protocols: Remove/Unwrap `ModeratorChallenge`",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/147",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "We made some changes in HTTP draft such that the type is carried by the authentication parameter name `-T` (e.g. `-0001`). This removes the need to have a `ModeratorChallenge` with a type prefix\n\nPointed out by @chris-wood",
+      "createdAt": "2026-10-21T16:20:03Z",
+      "updatedAt": "2026-10-21T16:20:03Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 148,
+      "id": "I_kwDOSX6krs8AAAABY4C0CQ",
+      "title": "protocols/http: discuss the joint vs split Moderator/Site setup",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/148",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "Site is not part of the architecture draft. Yet, there are deployment scenario where a moderator would manage reputatation of a user on behalf of a site. How does this interaction work in details may be deployment specific, but there are shared guidance depending on the actual deployment setup.\n\nWhere should such guidance live, and how granular they should be, is still TBD.\n\nPointed out by @chris-wood",
+      "createdAt": "2026-10-21T16:22:28Z",
+      "updatedAt": "2026-10-21T16:22:28Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 149,
+      "id": "I_kwDOSX6krs8AAAABY4FK5w",
+      "title": "http: Sequencing of Moderator issued challenges",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/149",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "question",
+        "http-transport"
+      ],
+      "body": "Upon seeing an unauthenticated request (given Mole is an auth scheme), a moderator may challenge the client to either redeem an endorsement and obtain a credential, or present a credential they hold.\n\nThere s currently no text as to how this shoud be ordered:\n1. should the moderator send two challenges\n2. should this be initiated by the client\n3. is there some shared challenges (and what are the implications)\n4. something else\n\nRaised by @chris-wood\n\nfyi @ekovac ",
+      "createdAt": "2026-10-21T16:25:01Z",
+      "updatedAt": "2026-10-21T16:25:01Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 150,
+      "id": "I_kwDOSX6krs8AAAABY5z4FA",
+      "title": "protocols: ACT Spend Commitment",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/150",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "protocols"
+      ],
+      "body": "In order to ensure that everyone is conveying the same information to Moderators, we should ensure that Moderators commit to the amount that clients are supposed to spend for each particular resource.",
+      "createdAt": "2026-10-21T18:25:34Z",
+      "updatedAt": "2026-10-21T18:26:11Z",
       "closedAt": null,
       "comments": []
     }
@@ -12284,7 +12357,7 @@
       "id": "PR_kwDOSX6krs8AAAABIN-Aig",
       "title": "vole: Be more precise about the witness",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/130",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -12293,17 +12366,19 @@
       ],
       "body": "In VOLEitH, the prover commits to each bit of the witness rather than bytes. The circuit constraints sometimes operate on GF(2); other times they're lifted to extensions of GF(2).",
       "createdAt": "2026-10-13T16:44:48Z",
-      "updatedAt": "2026-10-19T16:18:54Z",
+      "updatedAt": "2026-10-21T18:21:14Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "f9e592db4df395573e6e0d6d0fe9864164d85ace",
+      "baseRefOid": "b8de1ab171e36e85c11c132a84243d612d5a556a",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-8",
-      "headRefOid": "6c8d1b1c0f2372f6bacc8a52a037ceca9253e2ac",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "5270ee834c2da639036c0ddf1541792370fdeb0e",
+      "closedAt": "2026-10-21T18:21:13Z",
+      "mergedAt": "2026-10-21T18:21:13Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "6fd8ff3488fdecd65a1b46a28f9a7626a2ea5663"
+      },
       "comments": [],
       "reviews": [
         {
@@ -12326,7 +12401,7 @@
       "id": "PR_kwDOSX6krs8AAAABIOteHQ",
       "title": "vole: Document the purpose of constants in initial Keccak state",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/131",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -12335,26 +12410,95 @@
       ],
       "body": "While at it, fix some build warnings related to Keccak.",
       "createdAt": "2026-10-13T17:52:32Z",
-      "updatedAt": "2026-10-13T17:52:39Z",
+      "updatedAt": "2026-10-21T18:21:15Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-8",
-      "baseRefOid": "6c8d1b1c0f2372f6bacc8a52a037ceca9253e2ac",
+      "baseRefOid": "5270ee834c2da639036c0ddf1541792370fdeb0e",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole-9",
-      "headRefOid": "52546a3c1c7211b509d61975f046432e5140655a",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "8be4b6b44cdf2d0a030e2f7a6cf55ed21f7098a3",
+      "closedAt": "2026-10-21T18:21:15Z",
+      "mergedAt": "2026-10-21T18:21:15Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "01985c560e7592aae1ae4ac1d790c75586f29aa1"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTV3kjg",
+          "commit": {
+            "abbreviatedOid": "03c22c0"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-20T23:12:49Z",
+          "updatedAt": "2026-10-20T23:12:49Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "We might want at least 256 bits of margins. We already have more than 128.",
+              "createdAt": "2026-10-20T23:12:49Z",
+              "updatedAt": "2026-10-20T23:12:49Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTgVGfQ",
+          "commit": {
+            "abbreviatedOid": "b61c281"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "some nits, otherwise ok",
+          "createdAt": "2026-10-21T17:52:18Z",
+          "updatedAt": "2026-10-21T17:56:08Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "nits: i'm not sure if that's typical in crypto spec. could be relevant to have a [\"packet\" diagram](https://pele.run/examples#packet)",
+              "createdAt": "2026-10-21T17:52:18Z",
+              "updatedAt": "2026-10-21T17:56:08Z"
+            },
+            {
+              "originalPosition": 28,
+              "body": "didn't we say we would use direct names instead of cute ones?\n\nmaybe simply replace as follow and remove the `See {{VOLE-ACT}} for discussion.` sentence\n\n\n```suggestion\ncommitment of {{VOLE-ACT}}, namely to reduce the size of the VOLEitH\n```",
+              "createdAt": "2026-10-21T17:54:58Z",
+              "updatedAt": "2026-10-21T17:56:08Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTgZRHQ",
+          "commit": {
+            "abbreviatedOid": "b61c281"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-21T17:57:57Z",
+          "updatedAt": "2026-10-21T17:57:57Z",
+          "comments": [
+            {
+              "originalPosition": 18,
+              "body": "Yeah this would be useful. The format is likely to change though, so I don't way to add it right now.",
+              "createdAt": "2026-10-21T17:57:57Z",
+              "updatedAt": "2026-10-21T17:57:57Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 133,
       "id": "PR_kwDOSX6krs8AAAABIOzXeQ",
       "title": "vole: Point to vole-mole implementation",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/133",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -12363,19 +12507,75 @@
       ],
       "body": "Moussaka and Ratatouille are implemented here:\n<https://github.com/cloudflareresearch/vole-mole>\n\nThe specs are still incomplete. Ultimately the goal is to align the specs with vole-mole completely, but we're not yet sure where the boundary will be between these documents and the UOV and FAEST specs. IN the meantime, provide a reference for early adopters interested in the details.",
       "createdAt": "2026-10-13T18:00:50Z",
-      "updatedAt": "2026-10-13T18:00:50Z",
+      "updatedAt": "2026-10-21T18:21:16Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-9",
-      "baseRefOid": "52546a3c1c7211b509d61975f046432e5140655a",
+      "baseRefOid": "8be4b6b44cdf2d0a030e2f7a6cf55ed21f7098a3",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/vole=10",
-      "headRefOid": "b7b864ef08bc647009c5a1dc18c0640528b12797",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "1020acde76f3da3e6e3bae99aa9ed0b8e0b0df41",
+      "closedAt": "2026-10-21T18:21:16Z",
+      "mergedAt": "2026-10-21T18:21:16Z",
+      "mergedBy": "cjpatton",
+      "mergeCommit": {
+        "oid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1"
+      },
       "comments": [],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTV4ydw",
+          "commit": {
+            "abbreviatedOid": "aedbabf"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-20T23:15:30Z",
+          "updatedAt": "2026-10-20T23:15:30Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Should we add the language?",
+              "createdAt": "2026-10-20T23:15:30Z",
+              "updatedAt": "2026-10-20T23:15:30Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTV4-zA",
+          "commit": {
+            "abbreviatedOid": "aedbabf"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Seems OK as a note",
+          "createdAt": "2026-10-20T23:15:57Z",
+          "updatedAt": "2026-10-20T23:15:57Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABTfmV7A",
+          "commit": {
+            "abbreviatedOid": "aedbabf"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-21T16:51:25Z",
+          "updatedAt": "2026-10-21T16:51:25Z",
+          "comments": [
+            {
+              "originalPosition": 4,
+              "body": "Good catch fixed",
+              "createdAt": "2026-10-21T16:51:25Z",
+              "updatedAt": "2026-10-21T16:51:25Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 134,
