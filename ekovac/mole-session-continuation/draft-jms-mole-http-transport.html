@@ -1191,7 +1191,10 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-recovery" class="internal xref">Recovery</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
-                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-status-codes" class="internal xref">Status Codes</a></p>
+                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-session-continuation" class="internal xref">Session Continuation</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.6">
+                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-status-codes" class="internal xref">Status Codes</a></p>
 </li>
             </ul>
 </li>
@@ -1556,21 +1559,29 @@ Authorization: Mole presentation-0001="&lt;presentation-and-update&gt;"
 </pre><a href="#section-6.3-5" class="pilcrow">¶</a>
 </div>
 <p id="section-6.3-6">The Moderator runs <code>ProcessPresentation</code>. Every response to an accepted
-presentation, fresh or not, <span class="bcp14">MUST</span> carry the recorded update, including when
-the protected operation fails with a <code>4xx</code> or <code>5xx</code> status:<a href="#section-6.3-6" class="pilcrow">¶</a></p>
+presentation, fresh or not, <span class="bcp14">MUST</span> contain a session handle or a recorded update,
+including when the protected operation fails with a <code>4xx</code> or <code>5xx</code> status:<a href="#section-6.3-6" class="pilcrow">¶</a></p>
 <div class="alignLeft art-text artwork" id="section-6.3-7">
 <pre>
-Mole-Credential: update-0001="&lt;update&gt;"
+Mole-Credential: session-open="&lt;session-handle&gt;"
 </pre><a href="#section-6.3-7" class="pilcrow">¶</a>
 </div>
-<p id="section-6.3-8">For a fresh result the Moderator attempts the protected operation and
+<p id="section-6.3-8">or<a href="#section-6.3-8" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.3-9">
+<pre>
+Mole-Credential: update-0001="&lt;update&gt;"
+</pre><a href="#section-6.3-9" class="pilcrow">¶</a>
+</div>
+<p id="section-6.3-10">For a fresh result the Moderator attempts the protected operation and
 returns its status. For a result that is not fresh, it <span class="bcp14">MUST</span> return <code>409</code>
 (<span><a href="https://rfc-editor.org/rfc/rfc9110#section-15.5.10" class="relref">Section 15.5.10</a> of [<a href="#HTTP" class="cite xref">HTTP</a>]</span>) and <span class="bcp14">MUST NOT</span> attempt the protected operation.
-A rejected presentation <span class="bcp14">MUST NOT</span> carry <code>Mole-Credential</code>.<a href="#section-6.3-8" class="pilcrow">¶</a></p>
-<p id="section-6.3-9">A Client that receives no <code>Mole-Credential</code> after sending a presentation
-keeps its pending state and <span class="bcp14">MAY</span> recover (<a href="#recovery" class="auto internal xref">Section 6.4</a>).<a href="#section-6.3-9" class="pilcrow">¶</a></p>
-<p id="section-6.3-10">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
-Credentials, or state that its Credentials are not cacheable.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
+A rejected presentation <span class="bcp14">MUST NOT</span> carry <code>Mole-Credential</code>.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
+<p id="section-6.3-11">A Client that receives no <code>Mole-Credential</code> after sending a presentation
+keeps its pending state and <span class="bcp14">MAY</span> recover (<a href="#recovery" class="auto internal xref">Section 6.4</a>).<a href="#section-6.3-11" class="pilcrow">¶</a></p>
+<p id="section-6.3-12">A client that receives <code>Mole-Credential: session-open</code> after sending a
+presentation <span class="bcp14">MUST NOT</span> present the same credential in a any subsequent request.<a href="#section-6.3-12" class="pilcrow">¶</a></p>
+<p id="section-6.3-13">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
+Credentials, or state that its Credentials are not cacheable.<a href="#section-6.3-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="recovery">
@@ -1593,10 +1604,45 @@ operation. If a result is still retained, it answers <code>200</code> with the r
 answers <code>404</code> without <code>Mole-Credential</code>, whether or not a record exists.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="status-codes">
+<div id="session">
 <section id="section-6.5">
+        <h3 id="name-session-continuation">
+<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-session-continuation" class="section-name selfRef">Session Continuation</a>
+        </h3>
+<p id="section-6.5-1">If the client receives <code>Mole-Credential: session-open-T=&lt;session-handle&gt;</code>,
+the client <span class="bcp14">SHOULD</span> send subsequent requests for other resources to the same origin
+with the header <code>Authorization: Mole session=&lt;session-handle&gt;</code>.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+<p id="section-6.5-2">TODO. Formalize this. UUID? Maybe leave this only loosely defined?
+<code>session-handle</code> <span class="bcp14">MUST</span> be a large, non-consecutively-generated number.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
+<p id="section-6.5-3">When the moderator receives a request containing <code>Authorization: Mole session=&lt;session-handle&gt;</code>,
+if <code>session-handle</code> corresponds to a previous <code>Mole-Credential: session-open=&lt;session-handle&gt;</code>
+returned by the moderator, and no <code>Mole-Credential: update-T=&lt;..&gt;</code> has been sent in response
+to a previous request that contains the same <code>session-handle</code> then the server <span class="bcp14">SHOULD</span> respond
+with the corresponding resource or status code for the underlying operation.
+The moderator <span class="bcp14">MAY</span> return a <code>401</code> status to indicate that the session has expired; such a response
+from the server <span class="bcp14">MUST</span> also contain an <code>Mole-Credential: update-T=&lt;..&gt;</code> corresponding to the current session.
+Such a response <span class="bcp14">MUST</span> contain one of <code>WWW-Authenticate: Mole challenge-T="&lt;ec-act-challenge&gt;"</code> or
+<code>WWW-Authenticate: Mole redeem-T="&lt;redemption-challenge&gt;"</code>.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+<p id="section-6.5-4">The moderator <span class="bcp14">MAY</span> consider a session expired at any time.<a href="#section-6.5-4" class="pilcrow">¶</a></p>
+<p id="section-6.5-5">TODO. Add non-normative aside to identify the reasons why a moderator may want to expire a session.
+Examples: The request would consume more resources than the current underlying credential
+commits to, the moderator has access to application-specific information indicating that the client
+is untrustworthy, or the task serving the client is about to terminate and needs to hand off to another
+task.<a href="#section-6.5-5" class="pilcrow">¶</a></p>
+<p id="section-6.5-6">If, in response to a request containing a <code>session-handle</code>, a client receives <code>Mole-Credential: update-T=&lt;...&gt;</code>,
+the client <span class="bcp14">MUST</span> treat that <code>session-handle</code> as invalidated and remove it from its state,
+applying the credential update as defined in {#presentation}.<a href="#section-6.5-6" class="pilcrow">¶</a></p>
+<p id="section-6.5-7">A client receiving <code>WWW-Authenticate: Mole challenge-T=</code> or <code>WWW-Authenticate: redeem-T="&lt;redemption-challenge&gt;"
+from the moderator in response to a request containing a </code>session-handle` <span class="bcp14">SHOULD</span> proceed as defined in {#presentation}
+or {#redeem-issue} as appropriate.<a href="#section-6.5-7" class="pilcrow">¶</a></p>
+<p id="section-6.5-8">At any time a client <span class="bcp14">MAY</span> issue a request to a moderator containing the header <code>Authorization: Mole session-finalize="&lt;session-handle&gt;"</code>;
+if the moderator receives such a request, it <span class="bcp14">MUST</span> respond with with an update as described in {#presentation}.<a href="#section-6.5-8" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="status-codes">
+<section id="section-6.6">
         <h3 id="name-status-codes">
-<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-status-codes" class="section-name selfRef">Status Codes</a>
+<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-status-codes" class="section-name selfRef">Status Codes</a>
         </h3>
 <span id="name-mole-responses"></span><div id="tab-status">
 <table class="center" id="table-4">
@@ -1650,6 +1696,13 @@ answers <code>404</code> without <code>Mole-Credential</code>, whether or not a 
 </td>
             </tr>
             <tr>
+              <td class="text-left" rowspan="1" colspan="1">Fresh accepted presentation</td>
+              <td class="text-left" rowspan="1" colspan="1">protected operation's status</td>
+              <td class="text-left" rowspan="1" colspan="1">
+                <code>session-open-T</code>
+</td>
+            </tr>
+            <tr>
               <td class="text-left" rowspan="1" colspan="1">Duplicate presentation with retained result sent to the protected resource</td>
               <td class="text-left" rowspan="1" colspan="1">
                 <code>409</code>
@@ -1677,12 +1730,12 @@ answers <code>404</code> without <code>Mole-Credential</code>, whether or not a 
           </tbody>
         </table>
 </div>
-<p id="section-6.5-2">The Moderator <span class="bcp14">MUST</span> use these rules for every credential type. A <code>401</code>
+<p id="section-6.6-2">The Moderator <span class="bcp14">MUST</span> use these rules for every credential type. A <code>401</code>
 response <span class="bcp14">MUST</span> carry a <code>Mole</code> challenge for the required exchange. A <code>403</code>
 returned by the protected operation after a fresh acceptance is that
-operation's status, and carries the update.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.5-3">A Client <span class="bcp14">MUST NOT</span> infer chain termination from any status without the
-recorded empty update.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+operation's status, and carries the update.<a href="#section-6.6-2" class="pilcrow">¶</a></p>
+<p id="section-6.6-3">A Client <span class="bcp14">MUST NOT</span> infer chain termination from any status without the
+recorded empty update.<a href="#section-6.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
