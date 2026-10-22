@@ -244,8 +244,14 @@ Authorization: Mole presentation-0001="<presentation-and-update>"
 ~~~
 
 The Moderator runs `ProcessPresentation`. Every response to an accepted
-presentation, fresh or not, MUST carry the recorded update, including when
-the protected operation fails with a `4xx` or `5xx` status:
+presentation, fresh or not, MUST contain a session handle or a recorded update,
+including when the protected operation fails with a `4xx` or `5xx` status:
+
+~~~
+Mole-Credential: session-open="<session-handle>"
+~~~
+
+or
 
 ~~~
 Mole-Credential: update-0001="<update>"
@@ -258,6 +264,9 @@ A rejected presentation MUST NOT carry `Mole-Credential`.
 
 A Client that receives no `Mole-Credential` after sending a presentation
 keeps its pending state and MAY recover ({{recovery}}).
+
+A client that receives `Mole-Credential: session-open` after sending a
+presentation MUST NOT present the same credential in a any subsequent request.
 
 Each credential type MUST define the challenge fields that partition cached
 Credentials, or state that its Credentials are not cacheable.
@@ -278,6 +287,44 @@ operation. If a result is still retained, it answers `200` with the recorded
 `update-T`, including the empty value for a recorded `NoUpdate`. Otherwise it
 answers `404` without `Mole-Credential`, whether or not a record exists.
 
+## Session Continuation {#session}
+
+If the client receives `Mole-Credential: session-open-T=<session-handle>`,
+the client SHOULD send subsequent requests for other resources to the same origin
+with the header `Authorization: Mole session=<session-handle>`.
+
+TODO. Formalize this. UUID? Maybe leave this only loosely defined?
+`session-handle` MUST be a large, non-consecutively-generated number.
+
+When the moderator receives a request containing `Authorization: Mole session=<session-handle>`,
+if `session-handle` corresponds to a previous `Mole-Credential: session-open=<session-handle>`
+returned by the moderator, and no `Mole-Credential: update-T=<..>` has been sent in response
+to a previous request that contains the same `session-handle` then the server SHOULD respond
+with the corresponding resource or status code for the underlying operation.
+The moderator MAY return a `401` status to indicate that the session has expired; such a response
+from the server MUST also contain an `Mole-Credential: update-T=<..>` corresponding to the current session.
+Such a response MUST contain one of `WWW-Authenticate: Mole challenge-T="<ec-act-challenge>"` or
+`WWW-Authenticate: Mole redeem-T="<redemption-challenge>"`.
+
+The moderator MAY consider a session expired at any time.
+
+TODO. Add non-normative aside to identify the reasons why a moderator may want to expire a session.
+Examples: The request would consume more resources than the current underlying credential
+commits to, the moderator has access to application-specific information indicating that the client
+is untrustworthy, or the task serving the client is about to terminate and needs to hand off to another
+task.
+
+If, in response to a request containing a `session-handle`, a client receives `Mole-Credential: update-T=<...>`,
+the client MUST treat that `session-handle` as invalidated and remove it from its state,
+applying the credential update as defined in {#presentation}.
+
+A client receiving `WWW-Authenticate: Mole challenge-T=` or `WWW-Authenticate: redeem-T="<redemption-challenge>"
+from the moderator in response to a request containing a `session-handle` SHOULD proceed as defined in {#presentation}
+or {#redeem-issue} as appropriate.
+
+At any time a client MAY issue a request to a moderator containing the header `Authorization: Mole session-finalize="<session-handle>"`;
+if the moderator receives such a request, it MUST respond with with an update as described in {#presentation}.
+
 ## Status Codes {#status-codes}
 
 | Outcome | Status | Mole-Credential |
@@ -287,6 +334,7 @@ answers `404` without `Mole-Credential`, whether or not a record exists.
 | Rejected by policy before acceptance | `403` | none |
 | Credential issued | `200` | `response-T` |
 | Fresh accepted presentation | protected operation's status | `update-T` |
+| Fresh accepted presentation | protected operation's status | `session-open-T` |
 | Duplicate presentation with retained result sent to the protected resource | `409` | `update-T` |
 | Recovery, result retained | `200` | `update-T` |
 | Recovery, result unavailable | `404` | none |
