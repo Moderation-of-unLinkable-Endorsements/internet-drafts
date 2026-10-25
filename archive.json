@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-22T03:51:49.727580+00:00",
+  "timestamp": "2026-10-25T03:49:35.311547+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -441,7 +441,7 @@
       ],
       "body": "HTTP transport leverages HTTP header fields. There might be denployment constraints on their size, for most of the flows (redeem&issue, presentation&update)\n\nWe have to add considerations around that",
       "createdAt": "2026-07-08T07:46:13Z",
-      "updatedAt": "2026-10-15T00:26:55Z",
+      "updatedAt": "2026-10-22T22:25:25Z",
       "closedAt": null,
       "comments": [
         {
@@ -450,6 +450,27 @@
           "body": "still an open issue. @ekovac fyi",
           "createdAt": "2026-10-15T00:26:55Z",
           "updatedAt": "2026-10-15T00:26:55Z"
+        },
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "At L=8 (so, 256 distinct states, which might be overkill) a presentation is going to be 1.9K after b64 encoding. That's a bit heavy, but I'm not sure what the 99.9%th percentile header size is for complicated enterprise deployments, so that might be OK?",
+          "createdAt": "2026-10-22T16:19:49Z",
+          "updatedAt": "2026-10-22T16:19:49Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "This is true of ACT as of today. VOLE-ACT (for PQ forgery resistance) is bigger than this. See Cloudflare [implementation for instance](https://github.com/cloudflareresearch/vole-mole/blob/main/docs/perf.md).\n\nTO me that reinforces the need for a \"session like\" mechanism",
+          "createdAt": "2026-10-22T17:34:11Z",
+          "updatedAt": "2026-10-22T17:34:11Z"
+        },
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "Right. It'll definitely need a session-like mechanism (see #151 for a pass at this) but if this gets much bigger than 2K or so we might have to scrap using headers to carry the challenge information at all, even once or twice per exchange, and switch to using request bodies. Which is a bit of a bummer, since it means we'll need significantly more parallel requests alongside the actual application traffic.",
+          "createdAt": "2026-10-22T22:25:25Z",
+          "updatedAt": "2026-10-22T22:25:25Z"
         }
       ]
     },
@@ -1083,9 +1104,17 @@
       ],
       "body": "Upon seeing an unauthenticated request (given Mole is an auth scheme), a moderator may challenge the client to either redeem an endorsement and obtain a credential, or present a credential they hold.\n\nThere s currently no text as to how this shoud be ordered:\n1. should the moderator send two challenges\n2. should this be initiated by the client\n3. is there some shared challenges (and what are the implications)\n4. something else\n\nRaised by @chris-wood\n\nfyi @ekovac ",
       "createdAt": "2026-10-21T16:25:01Z",
-      "updatedAt": "2026-10-21T16:25:01Z",
+      "updatedAt": "2026-10-22T19:05:43Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "For EC-IHAT redemption and EC-ACT presentation, the challenge is fairly small, on the order of 10s of bytes, assuming the anchor-set for redemption is delivered to the client out-of-band such as through a config. Supplying both might be OK, with the client preferring to respond to the presentation challenge if possible.",
+          "createdAt": "2026-10-22T17:48:52Z",
+          "updatedAt": "2026-10-22T19:05:43Z"
+        }
+      ]
     },
     {
       "number": 150,
@@ -13066,6 +13095,32 @@
           "comments": []
         }
       ]
+    },
+    {
+      "number": 151,
+      "id": "PR_kwDOSX6krs8AAAABKFbxLQ",
+      "title": "Add session continuation to HTTP transport draft.",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/151",
+      "state": "OPEN",
+      "author": "ekovac",
+      "authorAssociation": "NONE",
+      "assignees": [],
+      "labels": [],
+      "body": "\r\n# Motivation\r\nA purely synchronous credential presentation process will be insufficient to allow a moderator to make decisions about whether to refund/credit/revoke a given credential. As a sequence of presentations of synchronously updated credentials are not linkable with one another (except perhaps incidentally through other, potentially unreliable signals like cookies, IP address, etc,) it's necessary for the moderator to be able to \"hold\" a credential temporarily while observing the behavior of a particular client to determine if it's sending excessive traffic or engaging in unusual access patterns.\r\n\r\nThree useful side effects of this type of session:\r\n* The majority of traffic will not need to involve a new presentation roundtrip and computation.\r\n* Depending on the moderator's configuration, tracking the session's resource consumption and behavior may only require partially- or eventually- consistent global state\r\n* A moderator that needs to \"raise shields,\" as it were, under periods of excess traffic can choose to be more strict about requiring a MoLE presentation + session in order to service requests without fear of drastically increasing the load on their nullifier database.\r\n\r\n# Alternatives considered: \r\n## TLS Session Resumption/Preshared Key ([RFC 9846 2.2](http://rfc-editor.org/info/rfc9846/#name-resumption-and-pre-shared-k))\r\nRelying on the TLS Preshared key and session resumption mechanisms means that the moderator implementation will be tightly coupled with the TLS layer in a way that will make implementation more difficult and will potentially limit future use of MoLE if subsequent versions of TLS change the semantics of session resumption.\r\n\r\n## Moderator-defined, OR Specification-defined, but using cookies\r\n\r\nThe options for the moderator doing its own implementation-defined session management are limited. Off the top of my head, the moderator could use TLS Session Resumption/PSK (see above,) IP address, Cookies, or more complex browser fingerprinting signals to achieve the same ends. Using IP address means that this system becomes ineffective for roaming connections, CGNAT, multiple clients within a household, etc. Using complex browser fingerprinting signals also risks collisions, so you'll still need some unique identifier per session anyway. This leaves cookies.\r\n\r\nReusing cookies poses risks. If the Moderator and Site are only loosely integrated, such as a CDN acting as Moderator and sitting in front of a naively-configured Site, then the Site's application logic may inadvertently collide with whatever cookie name we use, or send headers such as `Clear-Site-Data: \"cookies\"` that would break the current session (barring specialized logic in the user agent to defer this for the session cookie and triggering the termination/update request instead.) This would leave the CDN in the position of needing to modify response headers from the underlying service in order to maintain the integrity of the moderator session in a way that might interfere with the underlying application's functionality.\r\n\r\nLeaving the session management entirely moderator defined will only allow us to eliminate *some* of these signalling mechanisms. Ultimately, a user agent of any kind will need to be able to reliably determine when, eg, to attempt a credential recovery, and to know how to signal to a moderator when it expects it won't be connecting again (such as the end of a commandline tool's task, or the last browser tab for a given origin closing.)\r\n\r\n# Privacy Considerations\r\n\r\nProbably needs to be expanded on somewhat, but to be clear: In order avoid creating a new way to link clients, this needs to be partitioned by origin to not provide a new vector to identify when the same client is connected to two different sites that use the same moderator. While in most cases IP address will already provide that signal, there are configurations where that concern is mitigated and so this would reintroduce that signal.",
+      "createdAt": "2026-10-22T17:52:56Z",
+      "updatedAt": "2026-10-23T15:36:02Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "ekovac/mole-session-continuation",
+      "headRefOid": "324c136cae38e9f14b70f7f83b562a02b88b78aa",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
     }
   ]
 }
