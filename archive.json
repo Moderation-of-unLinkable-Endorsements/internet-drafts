@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-25T03:49:35.311547+00:00",
+  "timestamp": "2026-10-27T04:15:14.037689+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1104,7 +1104,7 @@
       ],
       "body": "Upon seeing an unauthenticated request (given Mole is an auth scheme), a moderator may challenge the client to either redeem an endorsement and obtain a credential, or present a credential they hold.\n\nThere s currently no text as to how this shoud be ordered:\n1. should the moderator send two challenges\n2. should this be initiated by the client\n3. is there some shared challenges (and what are the implications)\n4. something else\n\nRaised by @chris-wood\n\nfyi @ekovac ",
       "createdAt": "2026-10-21T16:25:01Z",
-      "updatedAt": "2026-10-22T19:05:43Z",
+      "updatedAt": "2026-10-26T20:30:07Z",
       "closedAt": null,
       "comments": [
         {
@@ -1113,6 +1113,13 @@
           "body": "For EC-IHAT redemption and EC-ACT presentation, the challenge is fairly small, on the order of 10s of bytes, assuming the anchor-set for redemption is delivered to the client out-of-band such as through a config. Supplying both might be OK, with the client preferring to respond to the presentation challenge if possible.",
           "createdAt": "2026-10-22T17:48:52Z",
           "updatedAt": "2026-10-22T19:05:43Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I always imagined the client would want to show a presentation, and then would reinteract to learn that it could get one by an endorsement, but we probably save a bunch of performance through sending the challenge. However, that challenge then links the endorsement redemption to this interaction, which is something I thought we wanted to avoid (although my memory is fuzzy on that part).",
+          "createdAt": "2026-10-26T20:30:07Z",
+          "updatedAt": "2026-10-26T20:30:07Z"
         }
       ]
     },
@@ -1130,9 +1137,50 @@
       ],
       "body": "In order to ensure that everyone is conveying the same information to Moderators, we should ensure that Moderators commit to the amount that clients are supposed to spend for each particular resource.",
       "createdAt": "2026-10-21T18:25:34Z",
-      "updatedAt": "2026-10-21T18:26:11Z",
+      "updatedAt": "2026-10-26T20:28:28Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm not sure this is a good idea. Adjusting thresholds dynamically is going to be an important part of tuning MOLE deployments and adapting to attacker behavior, and the information learned will still be a bit. ",
+          "createdAt": "2026-10-26T20:28:28Z",
+          "updatedAt": "2026-10-26T20:28:28Z"
+        }
+      ]
+    },
+    {
+      "number": 152,
+      "id": "I_kwDOSX6krs8AAAABZ_64GQ",
+      "title": "Should MOLE define session semantics",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/152",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "As defined, the HTTP transport follows a request/response pattern. This is to preserve unlinkability between requests. This is highlighted in [\"Presentation and Request\" diagram](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-7.3)\n\nThis is a restriction over the [privacy goals of the Architecture](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-5-2.1.1), which state:\n\n> Endorsement Grants and Redemptions are Unlinkable - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the **session** in which the Endorsement was granted to the **session** in which it was redeemed.\n\nThere are useful use of sessions. In particular, they would allow for the presentation and the update to be decoupled, on the wire, and through time.\n\nOn the wire, this enables to have credential presentation be sent as a POST request for instance so that it's not constrained by HTTP header size limitation seen in deployment (see issue #34).\n\nThrough time, this would allow a moderator to limit the number of presentation through a session, and consider more data point before providing an associated refund. This is a motivation listed in #151.\n\nThis is an issue that is present as part of the HTTP transport, but will be true of all other mechanism that will be developped.\n\nI believe we should consider:\n1. gather a clear list of use cases where a session is required\n2. having a definition for session\n3. adding some protocol (architecture?) consideration about the privacy vs utility tradeoff to guide both transport mechanism and deployments\n\nNone of this would prevent a session mechanism to be defined by future deployments/protocols that build on mole. The question is how core such a design is to the system.",
+      "createdAt": "2026-10-26T12:32:53Z",
+      "updatedAt": "2026-10-26T22:10:59Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "I think linkage across requests within a session is fine (and necessary) so long as it doesn't bleed across origins, as I mention in #151 . As a practical matter, such linkage is already possible, albeit imperfectly, via existing mechanisms like IP address, 1P cookies in browsers, etc.",
+          "createdAt": "2026-10-26T14:56:13Z",
+          "updatedAt": "2026-10-26T14:56:13Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Akamai bot detection products already have a session cookie involved, and I always thought that clearance would result in having to set a cookie so that other assets protected by MOLE wouldn't result in redundant challenges. However, that session may expire from the servers perspective while the client thinks its still valid, which would be a problem for when we want to requery MOLE in the world with very limited querying.\n\nI think there's at least three different things we could want:\n\n1. Wanting to lock a token until assessing behavior and then returning credits or destroying the credential. This sort of delayed flow imposes some requirements on the backend storage\n2.  Associating a MOLE interaction with state that can be used to verify it happened, with applications to things like other transports/avoding size, no-colocated moderators, JS based injections to interact with the moderator. This is not about a global backend store nor is there much required on the client implementation.\n3.  A scope for updates to mandatorily apply to the same token as initially presented/to limit the leakage of information. May or may not be the same thing as 2.\n\nSince we have reduced the expressivity of ACT to a single counter (and are leaking a bunch more from updates), at least initially, the impact of 3 is somewhat less. The total credit of a client is not impacted by how it is divided, dust issues aside, so there is little reason to enforce updates on the same token. The impact of 1 for solving the issues in #151 I think is also reduced: a moderator can always initiate an interaction to credit a well behaved client with a bunch more credit, and we would need to introduce a locked state on tokens as things lie now (although there is a concept of only one presented token in the client).\n\nThat leaves 2. There are two very reasonable deployment models that pull in opposite directions here. One is an existing PrivacyPass deployment being upgraded. The closer what we do looks to privacy pass the better, and so header transport, no additional baggage getting placed anywhere. The other is integration as a signal into an existing bot management solution, and I might be very biased, but there are certain considerations that make modifying request handling on the site a taller order. There we want to have as much as possible pushed to nonblocking connections, lots of data that lets the moderator authenticate a signal to the JS that interacts with the underlying model and lets the origin authenticate a transaction to the moderator via that mechanism.\n\nIn conclusion I do think we'll want some more flexibility, but the simplest deployments (from some perspective) probably don't need this, but some very reasonable ones need something a little different where an existing session is used.",
+          "createdAt": "2026-10-26T22:10:59Z",
+          "updatedAt": "2026-10-26T22:10:59Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -13108,7 +13156,7 @@
       "labels": [],
       "body": "\r\n# Motivation\r\nA purely synchronous credential presentation process will be insufficient to allow a moderator to make decisions about whether to refund/credit/revoke a given credential. As a sequence of presentations of synchronously updated credentials are not linkable with one another (except perhaps incidentally through other, potentially unreliable signals like cookies, IP address, etc,) it's necessary for the moderator to be able to \"hold\" a credential temporarily while observing the behavior of a particular client to determine if it's sending excessive traffic or engaging in unusual access patterns.\r\n\r\nThree useful side effects of this type of session:\r\n* The majority of traffic will not need to involve a new presentation roundtrip and computation.\r\n* Depending on the moderator's configuration, tracking the session's resource consumption and behavior may only require partially- or eventually- consistent global state\r\n* A moderator that needs to \"raise shields,\" as it were, under periods of excess traffic can choose to be more strict about requiring a MoLE presentation + session in order to service requests without fear of drastically increasing the load on their nullifier database.\r\n\r\n# Alternatives considered: \r\n## TLS Session Resumption/Preshared Key ([RFC 9846 2.2](http://rfc-editor.org/info/rfc9846/#name-resumption-and-pre-shared-k))\r\nRelying on the TLS Preshared key and session resumption mechanisms means that the moderator implementation will be tightly coupled with the TLS layer in a way that will make implementation more difficult and will potentially limit future use of MoLE if subsequent versions of TLS change the semantics of session resumption.\r\n\r\n## Moderator-defined, OR Specification-defined, but using cookies\r\n\r\nThe options for the moderator doing its own implementation-defined session management are limited. Off the top of my head, the moderator could use TLS Session Resumption/PSK (see above,) IP address, Cookies, or more complex browser fingerprinting signals to achieve the same ends. Using IP address means that this system becomes ineffective for roaming connections, CGNAT, multiple clients within a household, etc. Using complex browser fingerprinting signals also risks collisions, so you'll still need some unique identifier per session anyway. This leaves cookies.\r\n\r\nReusing cookies poses risks. If the Moderator and Site are only loosely integrated, such as a CDN acting as Moderator and sitting in front of a naively-configured Site, then the Site's application logic may inadvertently collide with whatever cookie name we use, or send headers such as `Clear-Site-Data: \"cookies\"` that would break the current session (barring specialized logic in the user agent to defer this for the session cookie and triggering the termination/update request instead.) This would leave the CDN in the position of needing to modify response headers from the underlying service in order to maintain the integrity of the moderator session in a way that might interfere with the underlying application's functionality.\r\n\r\nLeaving the session management entirely moderator defined will only allow us to eliminate *some* of these signalling mechanisms. Ultimately, a user agent of any kind will need to be able to reliably determine when, eg, to attempt a credential recovery, and to know how to signal to a moderator when it expects it won't be connecting again (such as the end of a commandline tool's task, or the last browser tab for a given origin closing.)\r\n\r\n# Privacy Considerations\r\n\r\nProbably needs to be expanded on somewhat, but to be clear: In order avoid creating a new way to link clients, this needs to be partitioned by origin to not provide a new vector to identify when the same client is connected to two different sites that use the same moderator. While in most cases IP address will already provide that signal, there are configurations where that concern is mitigated and so this would reintroduce that signal.",
       "createdAt": "2026-10-22T17:52:56Z",
-      "updatedAt": "2026-10-23T15:36:02Z",
+      "updatedAt": "2026-10-26T12:33:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
@@ -13119,7 +13167,15 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "moved the discussion on sessions to #152 ",
+          "createdAt": "2026-10-26T12:33:12Z",
+          "updatedAt": "2026-10-26T12:33:12Z"
+        }
+      ],
       "reviews": []
     }
   ]
