@@ -7,8 +7,8 @@ This is the working area for MOLE IETF drafts. The current items are as follow
 1. [Architecture](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-architecture.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-architecture/))
 2. [HTTP Transport](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-http-transport.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-http-transport/))
 3. [Protocols](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-protocols/))
-4. [EC-IHAT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html) - an Issuer-Hiding Anonymous Token (IHAT), the MOLE Endorsement scheme
-5. [EC-ACT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html) - the MOLE Credential scheme
+4. [EC-IHAT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html) - Issuer-Hiding Anonymous Token
+5. [EC-ACT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html) - Anonymous Credit Token
 
 You can find all drafts and diff on [GitHub Pages](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/).
 
