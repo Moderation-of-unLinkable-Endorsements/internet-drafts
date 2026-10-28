@@ -143,13 +143,13 @@ learning the balance or linking it to issuance or to other spends.
 
 EC-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
 This document defines its cryptographic operations, encodings, and security
-requirements. The MoLE protocols use EC-ACT as a Credential scheme.
+requirements. The MOLE protocols use EC-ACT as a Credential scheme.
 
 --- middle
 
 # Introduction
 
-Applications such as MoLE require an updateable state managed by a
+Applications such as MOLE require an updateable state managed by a
 client but authenticated by a server, with stringent requirements on
 unlinkability of updates and tests. EC-ACT provides
 such functionality: a Client holds a balance that is authenticated via

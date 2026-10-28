@@ -1,6 +1,6 @@
 ---
-title: "MoLE HTTP Transport"
-abbrev: "MoLE HTTP Transport"
+title: "MOLE HTTP Transport"
+abbrev: "MOLE HTTP Transport"
 category: info
 
 docname: draft-jms-mole-http-transport-latest
@@ -39,7 +39,7 @@ author:
 normative:
   HTTP: RFC9110
   PROTOCOLS: #I-D.draft-jms-mole-protocols
-    title: MoLE Protocols
+    title: MOLE Protocols
     target: https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/
 
 informative:
@@ -49,7 +49,7 @@ informative:
 
 --- abstract
 
-MoLE targets browser deployments, so Clients, Anchors, and Moderators need
+MOLE targets browser deployments, so Clients, Anchors, and Moderators need
 an HTTP transport for the protocol flows defined by the architecture.
 
 This document defines the `Mole` HTTP authentication scheme, which carries
@@ -62,7 +62,7 @@ the Anchor are defined per protocol in {{PROTOCOLS}}.
 
 # Introduction
 
-{{PROTOCOLS}} defines the MoLE messages. This document carries them over
+{{PROTOCOLS}} defines the MOLE messages. This document carries them over
 HTTP. Challenges and presentations use the `Mole` authentication scheme
 {{HTTP}}. Credential material returns in the `Mole-Credential` response
 header. Grant exchanges with an Anchor are HTTP POST requests defined in

@@ -1,6 +1,6 @@
 ---
-title: "Moderation of unLinkable Endorsements (MoLE) Architecture"
-abbrev: "MoLE Architecture"
+title: "Moderation of unLinkable Endorsements (MOLE) Architecture"
+abbrev: "MOLE Architecture"
 category: info
 
 docname: draft-jms-mole-architecture-latest
@@ -52,9 +52,9 @@ informative:
 
 --- abstract
 
-Moderation of unLinkable Endorsements (MoLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access.
+Moderation of unLinkable Endorsements (MOLE) is an architecture that lets a party performing access control (a Moderator) bootstrap trust in a client from a third party (an Anchor) that already has a trust relationship with that client, and then adjust that trust over time in response to the client's behaviour, for example by dynamically rate-limiting access.
 
-MoLE targets open deployments, in which independent parties may be responsible for access control and for vouching for clients, whilst maintaining strong privacy protections for clients. These protections are designed to hold even if participants in the ecosystem collude or otherwise misbehave.
+MOLE targets open deployments, in which independent parties may be responsible for access control and for vouching for clients, whilst maintaining strong privacy protections for clients. These protections are designed to hold even if participants in the ecosystem collude or otherwise misbehave.
 
 This document specifies the roles, the information flows between them, the privacy and security requirements, and deployment considerations.
 
@@ -68,9 +68,9 @@ system. Newer approaches like Privacy Pass {{RFC9576}} enable access control
 without identification, but they provide no privacy-preserving way to bootstrap
 trust in a client and cannot adjust that trust dynamically over time.
 
-MoLE aims to address these gaps and enable privacy-preserving access control in an open ecosystem. This means supporting a deployment where clients are trying to access resources from multiple independent services, each performing independent access control and potentially relying on different third parties to vouch for the trustworthiness of clients. Building a system which can support both openness and privacy is a key requirement and differentiator of MoLE.
+MOLE aims to address these gaps and enable privacy-preserving access control in an open ecosystem. This means supporting a deployment where clients are trying to access resources from multiple independent services, each performing independent access control and potentially relying on different third parties to vouch for the trustworthiness of clients. Building a system which can support both openness and privacy is a key requirement and differentiator of MOLE.
 
-MoLE has three distinct roles. Clients seek to access resources protected by
+MOLE has three distinct roles. Clients seek to access resources protected by
 Moderators, who set and enforce access control policy. A Moderator may have no
 direct trust relationship with a Client, but instead trusts Anchors, who do have
 a relationship with some Clients, to vouch for them. A given Moderator may trust
@@ -101,9 +101,9 @@ as well as the anticipated deployment model.
 
 # Use Cases {#use-cases}
 
-MoLE is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MoLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
+MOLE is applicable to any system where Moderators wish to rate-limit access to resources without having a direct relationship with those clients, instead trusting third parties to vouch for trustworthy users. MOLE tolerates third parties making incorrect decisions, e.g. trusting a malicious client, and enables Moderators to respond dynamically to limit abuse.
 
-MoLE targets an open system like the web where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.
+MOLE targets an open system like the web where a population of Moderators and Anchors make independent decisions about their access control policy, which Anchors they trust, and which users are Endorsed. This contrasts with a closed system where the parties participating in the system are known a priori and can be expected to coordinate their deployment configuration.
 
 ## Reduced-Friction Challenges {#uc-friction}
 
@@ -117,7 +117,7 @@ access the site legitimately.
 
 However, other sites may have access to relatively rich context about a user, e.g. because
 the user maintains an account, made a payment, or provided some other scarce
-signal to the site. MoLE enables such sites to act as Anchors which grant
+signal to the site. MOLE enables such sites to act as Anchors which grant
 Endorsements to users, suitable for bootstrapping trust when users visit new sites for the first time.
 
 In this use case, the site acts as or works with a Moderator.
@@ -224,12 +224,12 @@ The following terms are used throughout this document:
 
 **Anonymity Set:**
 : The set of Clients among which a given Client is indistinguishable during an
-  interaction. The strength of MoLE's unlinkability and Anchor-hiding properties
+  interaction. The strength of MOLE's unlinkability and Anchor-hiding properties
   depends on the size of this set.
 
 # Overview
 
-MoLE is composed of three distinct flows:
+MOLE is composed of three distinct flows:
 Endorsement, in which a Client obtains an Endorsement signifying
 its trust relationship with an Anchor; Redeem & Issue, in which a Client redeems an
 Endorsement from an Anchor to obtain a Credential from a Moderator without
@@ -263,7 +263,7 @@ presently in good standing with the Moderator in order to access a resource.
     |                     |<======== Update ========|
     |                     |                         |
 ~~~
-{: #fig-mole-architecture title="MoLE Architecture Overview"}
+{: #fig-mole-architecture title="MOLE Architecture Overview"}
 
 During Endorsement, a Client interacts with an Anchor with which it has a
 trust relationship. The nature of the trust relationship is specific to the Anchor and may be based on some kind
@@ -284,7 +284,7 @@ Moderator's chosen predicate. The Moderator can also update the state of the Cre
 
 # Privacy Goals and Threat Model {#privacy-properties}
 
-MoLE deployments aim to provide three privacy properties for Clients:
+MOLE deployments aim to provide three privacy properties for Clients:
 
 1. *Endorsement Grants and Redemptions are Unlinkable* - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the session in which the Endorsement was granted to the session in which it was redeemed.
 
@@ -308,7 +308,7 @@ Anchor in its Anchor Set provides no Anchor-hiding.
 
 Further considerations for maximizing the size of these sets are set out in the Privacy Considerations section.
 
-MoLE's privacy properties are intended to hold in the face of strong attackers who:
+MOLE's privacy properties are intended to hold in the face of strong attackers who:
 
 * May act in the role of Anchor, Moderator, or Client.
 * May collude with other Anchors and Moderators in order to try to identify Clients.
@@ -320,23 +320,23 @@ Some attackers may exploit information not directly revealed by the protocol, fo
  - Network metadata like IP addresses
  - Implementation fingerprinting
 
-These side channels, which depend on details specific to each deployment, may compromise the privacy properties of MoLE and are discussed further in the Privacy Considerations.
+These side channels, which depend on details specific to each deployment, may compromise the privacy properties of MOLE and are discussed further in the Privacy Considerations.
 
 # Security Goals and Threat Model
 
-MoLE's security properties are intended for Moderators. Moderators can be assured:
+MOLE's security properties are intended for Moderators. Moderators can be assured:
 
 - When they accept an Endorsement, that it corresponds to exactly one Endorsement granted by a trusted Anchor.
 - When they accept a Credential under a given predicate, that the Credential is one they previously issued with a matching predicate. Once a Credential has been presented, it will not be accepted again unless the Moderator chooses to re-issue it.
 
 Collectively, these two properties allow Moderators to dynamically rate-limit access to the population of Anchor-endorsed Clients. If Endorsements could be redeemed, or Credentials presented, multiple times, it would allow malicious Clients to obtain additional Credentials which could be used to bypass rate limits.
 
-MoLE's security properties are intended to hold in the face of coordinated attackers who:
+MOLE's security properties are intended to hold in the face of coordinated attackers who:
 - Can control a number of Clients and deviate from the protocol.
 - Cannot violate the endorsement criteria of a Moderator's trusted Anchors but may control other Anchors.
 - Do not have access to a CRQC.
 
-MoLE considers a CRQC for its privacy properties like Anchor-hiding and unlinkability, because a CRQC deployed in the future could be used to analyse protocol transcripts recorded today and so identify Clients. By contrast, MoLE's security properties hold until an attacker gains access to a CRQC; once they do, only future protocol sessions are affected.
+MOLE considers a CRQC for its privacy properties like Anchor-hiding and unlinkability, because a CRQC deployed in the future could be used to analyse protocol transcripts recorded today and so identify Clients. By contrast, MOLE's security properties hold until an attacker gains access to a CRQC; once they do, only future protocol sessions are affected.
 
 # Flows
 
@@ -355,7 +355,7 @@ MoLE considers a CRQC for its privacy properties like Anchor-hiding and unlinkab
 EndorsementFinalization        |
     |                          |
 ~~~
-{: #fig-mole-architecture-endorsement title="MoLE Endorsement"}
+{: #fig-mole-architecture-endorsement title="MOLE Endorsement"}
 
 The Endorsement flow allows an Anchor to provide a Client with an Endorsement, signalling its trust in the client. Depending on the deployment, the Endorsement flow might be triggered by the Anchor pro-actively, or it may be requested by the Client according to need.
 
@@ -397,7 +397,7 @@ EndorsementRedemption                           |
 CredentialFinalization                          |
     |                                           |
 ~~~
-{: #fig-mole-architecture-issuance title="MoLE Redeem & Issue"}
+{: #fig-mole-architecture-issuance title="MOLE Redeem & Issue"}
 
 The Redeem & Issue flow allows an Anchor's trust in a Client to be communicated to a Moderator, enabling a new Credential to be issued with an initial amount of trust.
 
@@ -438,7 +438,7 @@ CredentialPresentation                          |
 CredentialFinalization                          |
     |                                           |
 ~~~
-{: #fig-mole-architecture-presentation title="MoLE Presentation"}
+{: #fig-mole-architecture-presentation title="MOLE Presentation"}
 
 Moderators trigger Presentations when they want to perform an access control check.
 The client will consult its stored Credentials and identify if it has a Credential for this Moderator.
@@ -469,29 +469,29 @@ This guides how Moderator's should select suitable Anchors, seeking to cover the
 
 ## Discriminatory Treatment
 
-In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MoLE does not change this but does provide a new privacy preserving access control mechanism.
+In general servers already have the ability to deploy access control mechanisms to protect resources under their control. MOLE does not change this but does provide a new privacy preserving access control mechanism.
 
 In {{Section 5.1 of RFC9576}}, Privacy Pass Issuers were encouraged to support a diverse range of attesters in order to reduce the possibility of discriminatory treatment by token verifiers. However, arranging many attesters to agree to use a single issuer is challenging. It requires coordinating changes in the trusted attesters with each downstream verifier. If downstream verifiers have differing token value requirements, this creates friction which leads to partitioning by issuer which reduces client privacy. There is also little incentive for high value attesters to share fate with low value attesters.
 
-The use of Anchors in MoLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.
+The use of Anchors in MOLE and support for multiple Anchors mitigates this issue. Rather than requiring Issuers to coordinate with their Verifiers as to Attestor policy, instead Anchors can individually issue according to their own policies and Moderators can choose which anchors to trust. Moving the decision on aggregation from Issuers to Verifiers resolves the tension inherent in Privacy Pass.
 
 Further, the use of Anchor-Blinding prevents this from being a privacy risk for Clients, since even if Anchors are very fine grained and specific to a particular attestation type, the Moderator does not learn which Anchor was used and so cannot discriminate on this basis. This relies on the Moderator's Anchor set being large and not being partitioned on something specific to the client, which is discussed further in the Privacy Considerations section.
 
 ## Centralization
 
-{{Section 5.2 of RFC9576}} identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MoLE aims to avoid the same centralization risk through a number of mechanisms.
+{{Section 5.2 of RFC9576}} identifies Centralization as a major risk from Privacy Pass, in large part due to the motivation for sharing Issuers as described in the previous section. MOLE aims to avoid the same centralization risk through a number of mechanisms.
 
 The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.
 
-MoLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MoLE enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
+MOLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MOLE enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
 
 However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.
 
 ## Deployment in a Web Context
 
-In a Web setting, the MoLE architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.
+In a Web setting, the MOLE architecture may be deployed in several different configurations. For example, the Moderator could be deployed in front of a site, mediating access to protected resources directly, or it could be deployed as an independent service which the site interacts with on the back-end, or the Moderator could be a third party service which communicates with the site through an information flow mediated by the user-agent.
 
-Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MoLE endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.
+Many browsers limit the flow of information between distinct top-level origins, for example by partitioning cookies and other state. In a web context, MOLE endorsements and credentials may be used without partitioning to enable a limited form of cross-site information transfer. However, user-agents must employ suitable safeguards to ensure that the information flow is limited in line with the user-agent's privacy posture, specific recommendations are given in the Privacy Considerations.
 
 # Security Considerations
 
@@ -503,7 +503,7 @@ Moderator key compromise will enable an attack to produce as many credentials as
 
 ## State Management
 
-MoLE requires all parties to maintain state in order to uphold its security and
+MOLE requires all parties to maintain state in order to uphold its security and
 privacy properties.
 
 **Anchors** which grant Endorsements on the basis of some long term account
@@ -548,7 +548,7 @@ It maybe that some deployments are comfortable with a weaker form of consistency
 
 ## Side Channels
 
-MoLE does not address all channels that can identify Clients. For example, side channels may reveal information about the user's Client, associated user-agent, hardware configuration, network address or similar information which can be used to cut the user's practical anonymity set. This type of side channel exists largely outside of the architecture's deployment and needs deployment-specific mitigations.
+MOLE does not address all channels that can identify Clients. For example, side channels may reveal information about the user's Client, associated user-agent, hardware configuration, network address or similar information which can be used to cut the user's practical anonymity set. This type of side channel exists largely outside of the architecture's deployment and needs deployment-specific mitigations.
 
 Timing side channels may also reduce the practical anonymity set. For example, Redeem & Issue may be performed in response to a challenge for a Presentation by a Moderator. Based on the latency which the Client takes to answer the Presentation Challenge and can likely infer that the Client's presentation can be linked to just-issued Credential. Further, the Moderator can even control how long Redeem & Issue takes in order to actively cut the anonymity set. Clients can reduce their vulnerability to this type of attack by imposing a limit after which they will not attempt a presentation with a fresh credential after Redeem & Issue.
 

@@ -404,7 +404,7 @@ F_256^k` means to choose `k` random bytes and assign them to `r`.
 VOLE-ACT makes use of three cryptographic primitives:
 
 1. The Unbalanced Oil and Vinegar {{UOV}} digital signature scheme. The Issuer,
-   such as a MoLE Moderator {{ARCHITECTURE}}, uses a long-lived UOV secret key
+   such as a MOLE Moderator {{ARCHITECTURE}}, uses a long-lived UOV secret key
    to issue tokens, and the Client uses the corresponding public key to
    generate proofs of knowledge.
 

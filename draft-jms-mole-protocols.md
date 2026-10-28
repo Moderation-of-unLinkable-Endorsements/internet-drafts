@@ -1,6 +1,6 @@
 ---
-title: "MoLE Protocols"
-abbrev: "MoLE Protocols"
+title: "MOLE Protocols"
+abbrev: "MOLE Protocols"
 category: info
 
 docname: draft-jms-mole-protocols-latest
@@ -63,7 +63,7 @@ informative:
 
 --- abstract
 
-This document defines protocols that instantiate the MoLE architecture: two
+This document defines protocols that instantiate the MOLE architecture: two
 endorsement protocols, by which a Client proves to a Moderator that it holds
 an Endorsement from a trusted Anchor without revealing which one, and two
 credential protocols, by which a Moderator issues, verifies, and updates
@@ -75,7 +75,7 @@ establishes the registries that identify these protocols.
 
 # Introduction
 
-The MoLE architecture {{ARCHITECTURE}} defines three roles. Clients obtain
+The MOLE architecture {{ARCHITECTURE}} defines three roles. Clients obtain
 Endorsements from Anchors, redeem them at Moderators in exchange for
 Credentials, and present those Credentials to Moderators to access
 resources. The architecture states the required properties of Endorsements
@@ -87,7 +87,7 @@ identified by a type value from a registry established in this document
 presentations is defined by {{HTTP-TRANSPORT}}. This document defines the
 messages and their processing rules.
 
-TODO: the protocols below reflect our current understanding of how MoLE
+TODO: the protocols below reflect our current understanding of how MOLE
 may work, and showcase agility. They are not final. Some may be removed,
 others added.
 
@@ -370,7 +370,7 @@ Issuance Context
   {{key-rotation}}.
 
 Redemption Context
-: `ctx_red`, the ASCII string `"MoLE-EC-IHAT-ctx_red-v1"`, without a
+: `ctx_red`, the ASCII string `"MOLE-EC-IHAT-ctx_red-v1"`, without a
   terminating NUL byte. This fixed, domain-separated value is the same for all
   Moderators. This is the cryptographic redemption Context defined by
   {{EC-IHAT}}, not a Moderator Challenge. A specific redemption operation
@@ -569,7 +569,7 @@ atomic replay protection check.
 Longfellow does not inherently require an Anchor to change its issuance
 protocol. Scarcity then depends on the legacy credential's own issuance limits
 and on whether it contains a credential-bound Client secret suitable for
-nullifier derivation. An Anchor that participates in MoLE can control scarcity
+nullifier derivation. An Anchor that participates in MOLE can control scarcity
 and arrange for such a secret to be committed during issuance. Some existing
 credential formats may already provide a suitable Client-contributed or
 device-bound secret. The one-nullifier-per-origin-and-epoch rule lets the
@@ -1428,7 +1428,7 @@ Verification cost:
 
 # IANA Considerations {#iana}
 
-This document sketches two candidate registries under a future "MoLE"
+This document sketches two candidate registries under a future "MOLE"
 group. The values below are candidate values for discussion in this -00
 draft and are not stable assignments.
 
@@ -1442,7 +1442,7 @@ Context. A credential registration MUST define `IssuanceRequest`,
 behavior, and Challenge-to-Context derivation. Type-specific Update encodings
 MUST be nonempty so HTTP can represent `NoUpdate` as an empty payload.
 
-## MoLE Endorsement Types
+## MOLE Endorsement Types
 
 | Value           | Name                          | Reference      |
 |:----------------|:------------------------------|:---------------|
@@ -1451,7 +1451,7 @@ MUST be nonempty so HTTP can represent `NoUpdate` as an empty payload.
 | 0x0002          | EC-IHAT                        | {{ec-ihat}}     |
 | 0x0003          | Longfellow                    | {{longfellow}} |
 | 0xFF00 - 0xFFFF | Reserved for testing          | this document  |
-{: #endorsement-types title="Candidate MoLE Endorsement Type Values"}
+{: #endorsement-types title="Candidate MOLE Endorsement Type Values"}
 
 The registration template contains:
 
@@ -1481,9 +1481,9 @@ The following initial registrations are candidates only.
 * Publicly Verifiable: Yes
 * Reference: {{longfellow}}
 
-## MoLE Credential Types
+## MOLE Credential Types
 
-One MoLE credential type identifies the issuance, presentation, and update
+One MOLE credential type identifies the issuance, presentation, and update
 payloads defined by a credential protocol.
 
 | Value           | Name                       | Reference             |
@@ -1493,7 +1493,7 @@ payloads defined by a credential protocol.
 | 0x0002          | Privacy Pass Reverse Flow  | {{credential-reverse}} |
 | 0x0A0A, 0x1A1A, ..., 0xFAFA | Reserved for greasing | {{greasing}} |
 | 0xFF00 - 0xFFFF | Reserved for testing       | this document         |
-{: #credential-types title="Candidate MoLE Credential Type Values"}
+{: #credential-types title="Candidate MOLE Credential Type Values"}
 
 The registration template contains:
 
@@ -1534,7 +1534,7 @@ random bytes ({{greasing}}).
 |:--------------------------------------|:--------------------------|
 | application/mole-endorsement-request  | {{endorsement-protocols}} |
 | application/mole-endorsement-response | {{endorsement-protocols}} |
-{: #media-types-table title="MoLE Media Types"}
+{: #media-types-table title="MOLE Media Types"}
 
 Both media types require a `type` parameter containing the four-digit
 hexadecimal endorsement type defined by {{HTTP-TRANSPORT}}. Bodies are the
