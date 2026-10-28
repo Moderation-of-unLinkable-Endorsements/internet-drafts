@@ -152,7 +152,7 @@ informative:
 --- abstract
 
 This document specifies EC-IHAT, a cryptographic construction used to
-produce and consume MoLE Endorsements. An Endorsement is an anonymous token that
+produce and consume MOLE Endorsements. An Endorsement is an anonymous token that
 an Anchor issues to a Client, and that the Client later redeems at a Moderator
 without the Anchor being able to link the redemption to the issuance.
 
@@ -165,7 +165,7 @@ encoding, and context-binding rules that both the Anchor and the Client follow.
 
 # Introduction
 
-MoLE Endorsements have a number of constraints imposed by the architecture
+MOLE Endorsements have a number of constraints imposed by the architecture
 {{ARCH}}. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
@@ -189,7 +189,7 @@ later be used:
   Moderator. This may be used to prevent Endorsement reuse across Moderators
   without requiring a synchronized state between them.
 
-{{PROTOCOLS}} maps the cryptographic algorithms to the MoLE grant and
+{{PROTOCOLS}} maps the cryptographic algorithms to the MOLE grant and
 redemption APIs. It supplies the issuance and redemption contexts; this
 document treats those contexts as opaque byte strings.
 
@@ -584,7 +584,7 @@ most `2^16 - 1` bytes. Because the encoded message is itself passed to
 enforced by `U16Prefixed`. The two contexts are bound by deliberately different
 means, reflecting who is trusted to choose each.
 
-{{PROTOCOLS}} specifies how MoLE obtains these contexts from configuration.
+{{PROTOCOLS}} specifies how MOLE obtains these contexts from configuration.
 The examples below illustrate their cryptographic roles and do not define
 alternative context encodings.
 
