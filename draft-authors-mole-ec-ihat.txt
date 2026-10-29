@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                   W. Ladd
-Expires: 24 April 2027                               Akamai Technologies
+Expires: 2 May 2027                                  Akamai Technologies
                                                              D. I. Mohan
                                          Georgia Institute of Technology
-                                                         21 October 2026
+                                                         29 October 2026
 
 
                EC-IHAT: An Issuer-Hiding Anonymous Token
@@ -17,7 +17,7 @@ Expires: 24 April 2027                               Akamai Technologies
 Abstract
 
    This document specifies EC-IHAT, a cryptographic construction used to
-   produce and consume MoLE Endorsements.  An Endorsement is an
+   produce and consume MOLE Endorsements.  An Endorsement is an
    anonymous token that an Anchor issues to a Client, and that the
    Client later redeems at a Moderator without the Anchor being able to
    link the redemption to the issuance.
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2027.
+   This Internet-Draft will expire on 2 May 2027.
 
 Copyright Notice
 
@@ -126,7 +126,7 @@ Table of Contents
 
 1.  Introduction
 
-   MoLE Endorsements have a number of constraints imposed by the
+   MOLE Endorsements have a number of constraints imposed by the
    architecture [ARCH].  They must be unlinkable by the Anchor that
    issued them, they must be publicly verifiable, and a redemption must
    hide which Anchor issued the Endorsement among the set of Anchors a
@@ -153,7 +153,7 @@ Table of Contents
       Endorsement reuse across Moderators without requiring a
       synchronized state between them.
 
-   [PROTOCOLS] maps the cryptographic algorithms to the MoLE grant and
+   [PROTOCOLS] maps the cryptographic algorithms to the MOLE grant and
    redemption APIs.  It supplies the issuance and redemption contexts;
    this document treats those contexts as opaque byte strings.
 
@@ -538,7 +538,7 @@ Table of Contents
    contexts are bound by deliberately different means, reflecting who is
    trusted to choose each.
 
-   [PROTOCOLS] specifies how MoLE obtains these contexts from
+   [PROTOCOLS] specifies how MOLE obtains these contexts from
    configuration.  The examples below illustrate their cryptographic
    roles and do not define alternative context encodings.
 

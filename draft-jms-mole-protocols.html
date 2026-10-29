@@ -4,12 +4,12 @@
 <meta charset="utf-8">
 <meta content="Common,Latin" name="scripts">
 <meta content="initial-scale=1.0" name="viewport">
-<title>MoLE Protocols</title>
+<title>MOLE Protocols</title>
 <meta content="Samuel Schlesinger" name="author">
 <meta content="Dennis Jackson" name="author">
 <meta content="Thibault Meunier" name="author">
 <meta content="
-       This document defines protocols that instantiate the MoLE architecture: two
+       This document defines protocols that instantiate the MOLE architecture: two
 endorsement protocols, by which a Client proves to a Moderator that it holds
 an Endorsement from a trusted Anchor without revealing which one, and two
 credential protocols, by which a Moderator issues, verifies, and updates
@@ -1050,12 +1050,12 @@ svg {
 <table class="ears">
 <thead><tr>
 <td class="left">Internet-Draft</td>
-<td class="center">MoLE Protocols</td>
+<td class="center">MOLE Protocols</td>
 <td class="right">October 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 24 April 2027</td>
+<td class="center">Expires 2 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-jms-mole-protocols-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-21" class="published">21 October 2026</time>
+<time datetime="2026-10-29" class="published">29 October 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-04-24">24 April 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1091,10 +1091,10 @@ svg {
 </dd>
 </dl>
 </div>
-<h1 id="title">MoLE Protocols</h1>
+<h1 id="title">MOLE Protocols</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">This document defines protocols that instantiate the MoLE architecture: two
+<p id="section-abstract-1">This document defines protocols that instantiate the MOLE architecture: two
 endorsement protocols, by which a Client proves to a Moderator that it holds
 an Endorsement from a trusted Anchor without revealing which one, and two
 credential protocols, by which a Moderator issues, verifies, and updates
@@ -1131,7 +1131,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 24 April 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1293,7 +1293,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
             <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1">
-                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-mole-endorsement-types" class="internal xref">MoLE Endorsement Types</a></p>
+                <p id="section-toc.1-1.9.2.1.1"><a href="#section-9.1" class="auto internal xref">9.1</a>.  <a href="#name-mole-endorsement-types" class="internal xref">MOLE Endorsement Types</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.1.2.1">
                     <p id="section-toc.1-1.9.2.1.2.1.1"><a href="#section-9.1.1" class="auto internal xref">9.1.1</a>.  <a href="#name-ec-ihat-2" class="internal xref">EC-IHAT</a></p>
@@ -1304,7 +1304,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
                 </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2">
-                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-mole-credential-types" class="internal xref">MoLE Credential Types</a></p>
+                <p id="section-toc.1-1.9.2.2.1"><a href="#section-9.2" class="auto internal xref">9.2</a>.  <a href="#name-mole-credential-types" class="internal xref">MOLE Credential Types</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.2.2.1">
                     <p id="section-toc.1-1.9.2.2.2.1.1"><a href="#section-9.2.1" class="auto internal xref">9.2.1</a>.  <a href="#name-ec-act-4" class="internal xref">EC-ACT</a></p>
@@ -1351,7 +1351,7 @@ establishes the registries that identify these protocols.<a href="#section-abstr
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">The MoLE architecture <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> defines three roles. Clients obtain
+<p id="section-1-1">The MOLE architecture <span>[<a href="#ARCHITECTURE" class="cite xref">ARCHITECTURE</a>]</span> defines three roles. Clients obtain
 Endorsements from Anchors, redeem them at Moderators in exchange for
 Credentials, and present those Credentials to Moderators to access
 resources. The architecture states the required properties of Endorsements
@@ -1361,7 +1361,7 @@ identified by a type value from a registry established in this document
 (<a href="#iana" class="auto internal xref">Section 9</a>). The HTTP carriage of challenges, requests, redemptions, and
 presentations is defined by <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. This document defines the
 messages and their processing rules.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">TODO: the protocols below reflect our current understanding of how MoLE
+<p id="section-1-3">TODO: the protocols below reflect our current understanding of how MOLE
 may work, and showcase agility. They are not final. Some may be removed,
 others added.<a href="#section-1-3" class="pilcrow">¶</a></p>
 <p id="section-1-4">An Endorsement establishes eligibility for Credential issuance under the
@@ -1741,7 +1741,7 @@ opaque byte string. Endorsements are valid for that epoch, see
             <dd class="break"></dd>
 <dt id="section-4.4.1-2.7">Redemption Context</dt>
             <dd style="margin-left: 1.5em" id="section-4.4.1-2.8">
-              <p id="section-4.4.1-2.8.1"><code>ctx_red</code>, the ASCII string <code>"MoLE-EC-IHAT-ctx_red-v1"</code>, without a
+              <p id="section-4.4.1-2.8.1"><code>ctx_red</code>, the ASCII string <code>"MOLE-EC-IHAT-ctx_red-v1"</code>, without a
 terminating NUL byte. This fixed, domain-separated value is the same for all
 Moderators. This is the cryptographic redemption Context defined by
 <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>, not a Moderator Challenge. A specific redemption operation
@@ -1986,7 +1986,7 @@ atomic replay protection check.<a href="#section-4.5.2-6" class="pilcrow">¶</a>
 <p id="section-4.5.3-1">Longfellow does not inherently require an Anchor to change its issuance
 protocol. Scarcity then depends on the legacy credential's own issuance limits
 and on whether it contains a credential-bound Client secret suitable for
-nullifier derivation. An Anchor that participates in MoLE can control scarcity
+nullifier derivation. An Anchor that participates in MOLE can control scarcity
 and arrange for such a secret to be committed during issuance. Some existing
 credential formats may already provide a suitable Client-contributed or
 device-bound secret. The one-nullifier-per-origin-and-epoch rule lets the
@@ -3199,7 +3199,7 @@ small <code>L</code>.<a href="#section-8.1-1.14.1" class="pilcrow">¶</a></p>
       <h2 id="name-iana-considerations">
 <a href="#section-9" class="section-number selfRef">9. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-9-1">This document sketches two candidate registries under a future "MoLE"
+<p id="section-9-1">This document sketches two candidate registries under a future "MOLE"
 group. The values below are candidate values for discussion in this -00
 draft and are not stable assignments.<a href="#section-9-1" class="pilcrow">¶</a></p>
 <p id="section-9-2">New registrations use Specification Required as defined by <span>[<a href="#IANA" class="cite xref">IANA</a>]</span>. A
@@ -3214,13 +3214,13 @@ behavior, and Challenge-to-Context derivation. Type-specific Update encodings
 <div id="mole-endorsement-types">
 <section id="section-9.1">
         <h3 id="name-mole-endorsement-types">
-<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-mole-endorsement-types" class="section-name selfRef">MoLE Endorsement Types</a>
+<a href="#section-9.1" class="section-number selfRef">9.1. </a><a href="#name-mole-endorsement-types" class="section-name selfRef">MOLE Endorsement Types</a>
         </h3>
 <span id="name-candidate-mole-endorsement-"></span><div id="endorsement-types">
 <table class="center" id="table-3">
           <caption>
 <a href="#table-3" class="selfRef">Table 3</a>:
-<a href="#name-candidate-mole-endorsement-" class="selfRef">Candidate MoLE Endorsement Type Values</a>
+<a href="#name-candidate-mole-endorsement-" class="selfRef">Candidate MOLE Endorsement Type Values</a>
           </caption>
 <thead>
             <tr>
@@ -3338,15 +3338,15 @@ Anchor secret key material.<a href="#section-9.1-3.4.1" class="pilcrow">¶</a></
 <div id="mole-credential-types">
 <section id="section-9.2">
         <h3 id="name-mole-credential-types">
-<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-mole-credential-types" class="section-name selfRef">MoLE Credential Types</a>
+<a href="#section-9.2" class="section-number selfRef">9.2. </a><a href="#name-mole-credential-types" class="section-name selfRef">MOLE Credential Types</a>
         </h3>
-<p id="section-9.2-1">One MoLE credential type identifies the issuance, presentation, and update
+<p id="section-9.2-1">One MOLE credential type identifies the issuance, presentation, and update
 payloads defined by a credential protocol.<a href="#section-9.2-1" class="pilcrow">¶</a></p>
 <span id="name-candidate-mole-credential-t"></span><div id="credential-types">
 <table class="center" id="table-4">
           <caption>
 <a href="#table-4" class="selfRef">Table 4</a>:
-<a href="#name-candidate-mole-credential-t" class="selfRef">Candidate MoLE Credential Type Values</a>
+<a href="#name-candidate-mole-credential-t" class="selfRef">Candidate MOLE Credential Type Values</a>
           </caption>
 <thead>
             <tr>
@@ -3483,7 +3483,7 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
 <table class="center" id="table-5">
           <caption>
 <a href="#table-5" class="selfRef">Table 5</a>:
-<a href="#name-mole-media-types" class="selfRef">MoLE Media Types</a>
+<a href="#name-mole-media-types" class="selfRef">MOLE Media Types</a>
           </caption>
 <thead>
             <tr>

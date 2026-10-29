@@ -5,18 +5,18 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 24 April 2027                                           Mozilla
+Expires: 2 May 2027                                              Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                         21 October 2026
+                                                         29 October 2026
 
 
-                             MoLE Protocols
+                             MOLE Protocols
                     draft-jms-mole-protocols-latest
 
 Abstract
 
-   This document defines protocols that instantiate the MoLE
+   This document defines protocols that instantiate the MOLE
    architecture: two endorsement protocols, by which a Client proves to
    a Moderator that it holds an Endorsement from a trusted Anchor
    without revealing which one, and two credential protocols, by which a
@@ -52,7 +52,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 24 April 2027.
+   This Internet-Draft will expire on 2 May 2027.
 
 Copyright Notice
 
@@ -108,10 +108,10 @@ Table of Contents
    8.  Security Considerations
      8.1.  EC-ACT
    9.  IANA Considerations
-     9.1.  MoLE Endorsement Types
+     9.1.  MOLE Endorsement Types
        9.1.1.  EC-IHAT
        9.1.2.  Longfellow
-     9.2.  MoLE Credential Types
+     9.2.  MOLE Credential Types
        9.2.1.  EC-ACT
        9.2.2.  Privacy Pass Reverse Flow
        9.2.3.  Greased Values
@@ -125,7 +125,7 @@ Table of Contents
 
 1.  Introduction
 
-   The MoLE architecture [ARCHITECTURE] defines three roles.  Clients
+   The MOLE architecture [ARCHITECTURE] defines three roles.  Clients
    obtain Endorsements from Anchors, redeem them at Moderators in
    exchange for Credentials, and present those Credentials to Moderators
    to access resources.  The architecture states the required properties
@@ -140,7 +140,7 @@ Table of Contents
    processing rules.
 
    TODO: the protocols below reflect our current understanding of how
-   MoLE may work, and showcase agility.  They are not final.  Some may
+   MOLE may work, and showcase agility.  They are not final.  Some may
    be removed, others added.
 
    An Endorsement establishes eligibility for Credential issuance under
@@ -425,7 +425,7 @@ Table of Contents
       issues under.  It is an opaque byte string.  Endorsements are
       valid for that epoch, see Section 6.
 
-   Redemption Context  ctx_red, the ASCII string "MoLE-EC-IHAT-ctx_red-
+   Redemption Context  ctx_red, the ASCII string "MOLE-EC-IHAT-ctx_red-
       v1", without a terminating NUL byte.  This fixed, domain-separated
       value is the same for all Moderators.  This is the cryptographic
       redemption Context defined by [EC-IHAT], not a Moderator
@@ -628,7 +628,7 @@ Table of Contents
    issuance protocol.  Scarcity then depends on the legacy credential's
    own issuance limits and on whether it contains a credential-bound
    Client secret suitable for nullifier derivation.  An Anchor that
-   participates in MoLE can control scarcity and arrange for such a
+   participates in MOLE can control scarcity and arrange for such a
    secret to be committed during issuance.  Some existing credential
    formats may already provide a suitable Client-contributed or device-
    bound secret.  The one-nullifier-per-origin-and-epoch rule lets the
@@ -1534,7 +1534,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 9.  IANA Considerations
 
-   This document sketches two candidate registries under a future "MoLE"
+   This document sketches two candidate registries under a future "MOLE"
    group.  The values below are candidate values for discussion in this
    -00 draft and are not stable assignments.
 
@@ -1550,7 +1550,7 @@ FinalizeUpdate(presentation_state, update, configuration)
    encodings MUST be nonempty so HTTP can represent NoUpdate as an empty
    payload.
 
-9.1.  MoLE Endorsement Types
+9.1.  MOLE Endorsement Types
 
        +=================+=========================+===============+
        | Value           | Name                    | Reference     |
@@ -1566,7 +1566,7 @@ FinalizeUpdate(presentation_state, update, configuration)
        | 0xFF00 - 0xFFFF | Reserved for testing    | this document |
        +-----------------+-------------------------+---------------+
 
-              Table 3: Candidate MoLE Endorsement Type Values
+              Table 3: Candidate MOLE Endorsement Type Values
 
    The registration template contains:
 
@@ -1608,9 +1608,9 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    *  Reference: Section 4.5
 
-9.2.  MoLE Credential Types
+9.2.  MOLE Credential Types
 
-   One MoLE credential type identifies the issuance, presentation, and
+   One MOLE credential type identifies the issuance, presentation, and
    update payloads defined by a credential protocol.
 
       +=================+===========================+===============+
@@ -1628,7 +1628,7 @@ FinalizeUpdate(presentation_state, update, configuration)
       | 0xFF00 - 0xFFFF | Reserved for testing      | this document |
       +-----------------+---------------------------+---------------+
 
-               Table 4: Candidate MoLE Credential Type Values
+               Table 4: Candidate MOLE Credential Type Values
 
    The registration template contains:
 
@@ -1686,7 +1686,7 @@ FinalizeUpdate(presentation_state, update, configuration)
            | application/mole-endorsement-response | Section 4 |
            +---------------------------------------+-----------+
 
-                         Table 5: MoLE Media Types
+                         Table 5: MOLE Media Types
 
    Both media types require a type parameter containing the four-digit
    hexadecimal endorsement type defined by [HTTP-TRANSPORT].  Bodies are
