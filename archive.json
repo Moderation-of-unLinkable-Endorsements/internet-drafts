@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-27T04:15:14.037689+00:00",
+  "timestamp": "2026-10-29T04:56:32.294836+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -52,6 +52,11 @@
       "name": "wire breaking",
       "description": null,
       "color": "aaaaaa"
+    },
+    {
+      "name": "pact-biweekly-agenda",
+      "description": "To be brought up at PACT Biweekly",
+      "color": "e135e7"
     }
   ],
   "issues": [
@@ -1085,9 +1090,17 @@
       ],
       "body": "Site is not part of the architecture draft. Yet, there are deployment scenario where a moderator would manage reputatation of a user on behalf of a site. How does this interaction work in details may be deployment specific, but there are shared guidance depending on the actual deployment setup.\n\nWhere should such guidance live, and how granular they should be, is still TBD.\n\nPointed out by @chris-wood",
       "createdAt": "2026-10-21T16:22:28Z",
-      "updatedAt": "2026-10-21T16:22:28Z",
+      "updatedAt": "2026-10-28T22:46:33Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I agree we need to do this, and I think there's a few possible axes we need to be aware of. The first is how the client sees the moderator and the site, the second is the degree of control the moderator has over site handling. These then implicate how the client can be guided.\n\nAlong the first axis, the big distinction is moderator same origin with the site, or moderator not same origin with the site. Not same origin can probably be solved via CORS unless I'm missing something.\n\nThe second axis ranges from every request can have its processing modified to support MOLE (some classic CDN cases), some injection/special paths can happen, but most requests can't be modified in handling, to the site is loading external JS and has fixed middleware on the site and everyone just has to deal with the limitations. This kind of thing can happen when MOLE is being integrated with other signals in a preexisting framework. There probably is some server side parts as well, but the updateability will vary.\n\nIf site behavior can be modified, then it's about intermediary site communication of how behavior is seen. If not, it's a much more complex integration problem that also has to convey the results of challenges (likely aligned to the first axis as well).",
+          "createdAt": "2026-10-28T22:46:33Z",
+          "updatedAt": "2026-10-28T22:46:33Z"
+        }
+      ]
     },
     {
       "number": 149,
@@ -1159,11 +1172,12 @@
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [
-        "question"
+        "question",
+        "pact-biweekly-agenda"
       ],
       "body": "As defined, the HTTP transport follows a request/response pattern. This is to preserve unlinkability between requests. This is highlighted in [\"Presentation and Request\" diagram](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-7.3)\n\nThis is a restriction over the [privacy goals of the Architecture](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-5-2.1.1), which state:\n\n> Endorsement Grants and Redemptions are Unlinkable - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the **session** in which the Endorsement was granted to the **session** in which it was redeemed.\n\nThere are useful use of sessions. In particular, they would allow for the presentation and the update to be decoupled, on the wire, and through time.\n\nOn the wire, this enables to have credential presentation be sent as a POST request for instance so that it's not constrained by HTTP header size limitation seen in deployment (see issue #34).\n\nThrough time, this would allow a moderator to limit the number of presentation through a session, and consider more data point before providing an associated refund. This is a motivation listed in #151.\n\nThis is an issue that is present as part of the HTTP transport, but will be true of all other mechanism that will be developped.\n\nI believe we should consider:\n1. gather a clear list of use cases where a session is required\n2. having a definition for session\n3. adding some protocol (architecture?) consideration about the privacy vs utility tradeoff to guide both transport mechanism and deployments\n\nNone of this would prevent a session mechanism to be defined by future deployments/protocols that build on mole. The question is how core such a design is to the system.",
       "createdAt": "2026-10-26T12:32:53Z",
-      "updatedAt": "2026-10-26T22:10:59Z",
+      "updatedAt": "2026-10-28T20:25:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -1179,8 +1193,33 @@
           "body": "Akamai bot detection products already have a session cookie involved, and I always thought that clearance would result in having to set a cookie so that other assets protected by MOLE wouldn't result in redundant challenges. However, that session may expire from the servers perspective while the client thinks its still valid, which would be a problem for when we want to requery MOLE in the world with very limited querying.\n\nI think there's at least three different things we could want:\n\n1. Wanting to lock a token until assessing behavior and then returning credits or destroying the credential. This sort of delayed flow imposes some requirements on the backend storage\n2.  Associating a MOLE interaction with state that can be used to verify it happened, with applications to things like other transports/avoding size, no-colocated moderators, JS based injections to interact with the moderator. This is not about a global backend store nor is there much required on the client implementation.\n3.  A scope for updates to mandatorily apply to the same token as initially presented/to limit the leakage of information. May or may not be the same thing as 2.\n\nSince we have reduced the expressivity of ACT to a single counter (and are leaking a bunch more from updates), at least initially, the impact of 3 is somewhat less. The total credit of a client is not impacted by how it is divided, dust issues aside, so there is little reason to enforce updates on the same token. The impact of 1 for solving the issues in #151 I think is also reduced: a moderator can always initiate an interaction to credit a well behaved client with a bunch more credit, and we would need to introduce a locked state on tokens as things lie now (although there is a concept of only one presented token in the client).\n\nThat leaves 2. There are two very reasonable deployment models that pull in opposite directions here. One is an existing PrivacyPass deployment being upgraded. The closer what we do looks to privacy pass the better, and so header transport, no additional baggage getting placed anywhere. The other is integration as a signal into an existing bot management solution, and I might be very biased, but there are certain considerations that make modifying request handling on the site a taller order. There we want to have as much as possible pushed to nonblocking connections, lots of data that lets the moderator authenticate a signal to the JS that interacts with the underlying model and lets the origin authenticate a transaction to the moderator via that mechanism.\n\nIn conclusion I do think we'll want some more flexibility, but the simplest deployments (from some perspective) probably don't need this, but some very reasonable ones need something a little different where an existing session is used.",
           "createdAt": "2026-10-26T22:10:59Z",
           "updatedAt": "2026-10-26T22:10:59Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Trying to summarize all the points from today's meeting on this issue:\n\n1.  @SamuelSchlesinger is pretty sure that we need delayed updates in a lot of realistic scenarios, and that means some sort of session relation between handing the token out and getting it back. Some others are less sure including @wbl \n2. Everyone who deals with browsers thinks touching cookies is a bad idea, linking two messy complicated things together.\n3.  Headers might not be a good transport given size constraints, and if a side-request is needed there has to be a way to link to original request. There are some positive benefits of having things in headers due to interactions with other things.\n4. Cookies alone don't work for recovery because of the atomicity requirements.\n5. Cookies are liftable, more easily than a token that's already locked on the server.\n6. It's possible to work with JS over origin processing changes by designating certain paths. Some deployments might have a harder time (opening another issue about it)\n7. There's a bit of drift between the explainer and the choices made in ACT crypto as a result of point 1 and possibly others.\n8. The degree of concurrency with site interactions interacts with the number of tokens required from an endorser in exchange for an anchor token.\n9. Not all deployments will need this functionality, and there is utility even without it. We still need to decide if the origin trial includes it.\n\nPersonally I think this is very messy, and if we can at all punt until after the origin trial we should.",
+          "createdAt": "2026-10-28T20:25:36Z",
+          "updatedAt": "2026-10-28T20:25:36Z"
         }
       ]
+    },
+    {
+      "number": 155,
+      "id": "I_kwDOSX6krs8AAAABatt75Q",
+      "title": "MOLE support advertisement",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/155",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "http-transport"
+      ],
+      "body": "I suspect that we need some way to advertise MOLE support in requests. Otherwise WWW-Authenticate comes back, and the user agent gives up. ",
+      "createdAt": "2026-10-28T21:23:23Z",
+      "updatedAt": "2026-10-28T21:23:23Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -13174,6 +13213,120 @@
           "body": "moved the discussion on sessions to #152 ",
           "createdAt": "2026-10-26T12:33:12Z",
           "updatedAt": "2026-10-26T12:33:12Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 153,
+      "id": "PR_kwDOSX6krs8AAAABLFdwQw",
+      "title": "Parallelism in README.md",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/153",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "List the EC-IHAT and EC-ACT with parallel constructions.",
+      "createdAt": "2026-10-27T18:12:52Z",
+      "updatedAt": "2026-10-27T21:34:41Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl-patch-1",
+      "headRefOid": "dbfd1ebc57d169cc0052f5071a0aab85686bd2c7",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABUj0CQg",
+          "commit": {
+            "abbreviatedOid": "dbfd1eb"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-27T21:34:41Z",
+          "updatedAt": "2026-10-27T21:34:41Z",
+          "comments": [
+            {
+              "originalPosition": 5,
+              "body": "i have to say i fear that `the MOLE XXX scheme` does not read well, given that we expect that there'd be multiple schemes.\n\nmaybe we should use\n\n```\n- Anonymous Credit Token\n```\n\nand not mention the mole scheme, which, as i understand, are part of the protocol draft atm.",
+              "createdAt": "2026-10-27T21:34:41Z",
+              "updatedAt": "2026-10-27T21:34:41Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 154,
+      "id": "PR_kwDOSX6krs8AAAABLU-Zsw",
+      "title": "transport: add signoff to hint at end of session",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/154",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "This is part of the discussion of session semantics. Note there's a bit of a challenge with moderators being first party or third party with origin while cookies do their own thing, but I do appreciate this might be an us (and some other vendor) problem, though solutions appreciated.",
+      "createdAt": "2026-10-28T17:52:21Z",
+      "updatedAt": "2026-10-28T18:02:57Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "wbl/signoff-path",
+      "headRefOid": "376eede347498fa93288bf55fcd8fa9eda9b9ea6",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 156,
+      "id": "PR_kwDOSX6krs8AAAABLX_TVQ",
+      "title": "Rename MoLE to MOLE",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/156",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-10-28T21:56:00Z",
+      "updatedAt": "2026-10-28T22:01:40Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/MoLE",
+      "headRefOid": "23c8eee242af6de739416c00451ae9cb9e92fe4b",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Why though?",
+          "createdAt": "2026-10-28T21:57:33Z",
+          "updatedAt": "2026-10-28T21:57:33Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Why though?\r\n\r\nJust trying to ensure we spell it in one way:\r\nhttps://ietf.slack.com/archives/C0BSCHU32SG/p1793118680533089",
+          "createdAt": "2026-10-28T22:01:40Z",
+          "updatedAt": "2026-10-28T22:01:40Z"
         }
       ],
       "reviews": []
