@@ -11,6 +11,8 @@ from ec_ihat.ciphersuite import (
     SelectBytes,
 )
 
+SALT = bytes(range(32))
+
 
 def test_select_bytes():
     left = bytearray(range(256))
@@ -55,13 +57,13 @@ def test_permutation_pair_has_same_schedule_for_both_orientations(
     valid = suite.IsValidPermutationEncoding
     decode = group.DeserializeElement
 
-    def record_forward(buf):
+    def record_forward(salt, buf):
         events.append("forward")
-        return forward(buf)
+        return forward(salt, buf)
 
-    def record_backward(buf):
+    def record_backward(salt, buf):
         events.append("backward")
-        return backward(buf)
+        return backward(salt, buf)
 
     def record_select(left, right, choose_right):
         events.append("select")
@@ -85,12 +87,12 @@ def test_permutation_pair_has_same_schedule_for_both_orientations(
     lengths = set()
     for sample in range(1, 33):
         Q = group.ScalarMultGen(group.scalar(sample))
-        PQ = group.P(Q)
+        PQ = group.P(SALT, Q)
         events.clear()
-        assert group.PermutationPair(Q, False) == (Q, PQ)
+        assert group.PermutationPair(SALT, Q, False) == (Q, PQ)
         right_events = events.copy()
         events.clear()
-        assert group.PermutationPair(PQ, True) == (Q, PQ)
+        assert group.PermutationPair(SALT, PQ, True) == (Q, PQ)
         assert events == right_events
 
         steps = events.count("forward")
@@ -111,16 +113,16 @@ def test_permutation_pair_handles_fixed_points(monkeypatch, bind_left):
     group = P256Group(b"test")
     calls = []
 
-    def forward(buf):
+    def forward(salt, buf):
         calls.append("forward")
         return buf.copy()
 
-    def backward(buf):
+    def backward(salt, buf):
         calls.append("backward")
         return buf.copy()
 
     monkeypatch.setattr(suite, "PermuteBytes", forward)
     monkeypatch.setattr(suite, "UnpermuteBytes", backward)
     point = group.Generator()
-    assert group.PermutationPair(point, bind_left) == (point, point)
+    assert group.PermutationPair(SALT, point, bind_left) == (point, point)
     assert calls == ["forward", "backward"]

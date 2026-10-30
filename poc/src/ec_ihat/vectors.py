@@ -16,6 +16,7 @@ DERIVE_INFO = b"EC-IHAT test vectors"
 CTX_ISS = b"EC-IHAT test vectors issuance context"
 CTX_RED = b"EC-IHAT test vectors redemption context"
 CHALLENGE_DIGEST = b"EC-IHAT test vectors challenge digest"
+PERMUTATION_SALT = bytes(range(32))
 # Anchor Set sizes and the position of the issuing Anchor in each.
 REDEMPTIONS = [(2, 1), (5, 3), (1, 0)]
 
@@ -85,7 +86,8 @@ def _render(source: Source) -> str:
         entry("key.rand", source.rand())
         + entry("key.skA", G.SerializeScalar(skA))
         + entry("key.pkA", G.SerializeElement(pkA))
-        + entry("key.P_pkA", G.SerializeElement(G.P(pkA)))
+        + entry("key.P_salt", PERMUTATION_SALT)
+        + entry("key.P_pkA", G.SerializeElement(G.P(PERMUTATION_SALT, pkA)))
     )
 
     entries = entry("issue.ctx_iss", CTX_ISS)
@@ -154,6 +156,17 @@ def _render(source: Source) -> str:
         (delta,) = G.DeriveScalars(common.Seed(rand, 0), b"delta", 1)
         entries += entry(key + ".rand", rand)
         entries += entry(key + ".delta", G.SerializeScalar(delta))
+        salt = G.PermutationSalt(
+            ec_ihat.ProofStatement(
+                anchor_set,
+                redemption.X_hat,
+                redemption.shown,
+                CTX_ISS,
+                CTX_RED,
+                CHALLENGE_DIGEST,
+            )
+        )
+        entries += entry(key + ".salt", salt)
         encoded = wire.EncodeRedemption(redemption)
         entries += entry(key + ".message", encoded)
         redemption = wire.DecodeRedemption(encoded, n)

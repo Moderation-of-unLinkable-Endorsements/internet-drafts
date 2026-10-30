@@ -417,17 +417,6 @@ issuance and redemption contexts of {{context-binding}}: those are inputs to
 the protocol, chosen by its participants, whereas `ctx_proto` is fixed by the
 ciphersuite.
 
-Every hash this document computes, other than the round functions of the
-permutation `P` ({{permutation}}), is domain-separated by `ctx_proto`, which
-appears in its DST. `HashToGroup` and `HashToScalar` are so parameterized
-({{ciphersuites}}), as are `G.DeriveScalars` and `G.ExpandScalars`
-({{derive-scalar}}) and `G.DeriveNonces` ({{derive-nonce}}). Every algorithm
-below therefore depends
-on `ctx_proto`, even where it does not appear, and a value produced under one
-ciphersuite does not verify under another. The Python group instance `G`
-stores this context as `G.ctx_proto`. The group methods below use `self` for
-that instance, so the context is fixed when `G` is constructed.
-
 ## Deriving Scalars {#derive-scalar}
 
 The group method `G.DeriveScalars` derives `count` values in the scalar field
@@ -1168,13 +1157,16 @@ This document uses the commitment of the appendix of {{STACKSIG}} over pairs,
 and then assembles them into a tree. The inputs to the commitments are arbitrary
 strings of bytes, and the outputs are compressed group elements.
 
-The commitment to a pair uses a permutation `P` on group elements. The
-inverse of this permutation is denoted `Pinv` ({{permutation}}).  The
+The commitment to a pair uses a permutation `P` on group elements, keyed by
+a byte string `salt` that the proof derives from its statement
+({{proof-challenge}}). The inverse of this permutation is denoted `Pinv`
+({{permutation}}). Every commitment of one proof uses the same `salt`. The
 two values are hashed to scalars and committed under the bases `Q` and
-`P(Q)`:
+`P(salt, Q)`:
 
 ~~~python
 def CommitStep(
+    salt: bytes,
     Q: Element,
     left: bytes,
     right: bytes,
@@ -1183,25 +1175,28 @@ def CommitStep(
     C = (
         randomness * B
         + G.HashToScalar(left) * Q
-        + G.HashToScalar(right) * G.P(Q)
+        + G.HashToScalar(right) * G.P(salt, Q)
     )
     return G.SerializeElement(C)
 ~~~
 
 The committer knows the discrete logarithm of one base, and that is the
 position it can later open to another value. A key that binds the `left`
-position is one whose `P(Q)` has the known logarithm, and vice versa:
+position is one whose `P(salt, Q)` has the known logarithm, and vice versa:
 
 ~~~python
-def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
+def GenerateStep(
+    salt: bytes, bind_left: bool, secret: Scalar
+) -> Element:
     T = secret * B
-    (Q, _) = G.PermutationPair(T, bind_left)
+    (Q, _) = G.PermutationPair(salt, T, bind_left)
     return Q
 ~~~
 
 `bind_left` is a secret boolean: true binds the left position and false
-binds the right. `G.PermutationPair` ({{permutation-pair}}) returns `(Q, P(Q))`,
-with `T = P(Q)` when binding left and `T = Q` when binding right. It walks
+binds the right. `G.PermutationPair` ({{permutation-pair}}) returns
+`(Q, P(salt, Q))`, with `T = P(salt, Q)`, that is `Q = Pinv(salt, T)`, when
+binding left and `T = Q` when binding right. It walks
 the same permutation edge in either case, hiding which endpoint has the
 known logarithm. Its second output can be cached for use in `CommitStep`.
 
@@ -1224,6 +1219,7 @@ a vector of odd length carries its last element up unchanged.
 
 ~~~python
 def VecCommit(
+    salt: bytes,
     V: Sequence[bytes],
     commitment_keys: Sequence[Element],
     openings: Sequence[Scalar],
@@ -1235,14 +1231,20 @@ def VecCommit(
     for i in range(len(V) // 2):
         V_prime.append(
             CommitStep(
-                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+                salt,
+                commitment_keys[0],
+                V[2 * i],
+                V[2 * i + 1],
+                openings[0],
             )
         )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
+    return VecCommit(
+        salt, V_prime, commitment_keys[1:], openings[1:]
+    )
 ~~~
 
 A vector of `n` values has `Depth(n)` levels, each with one key and one
@@ -1262,12 +1264,14 @@ its own trapdoor:
 
 ~~~python
 def GenerateVecBind(
-    index: int, trapdoors: Sequence[Scalar]
+    salt: bytes, index: int, trapdoors: Sequence[Scalar]
 ) -> list[Element]:
     commitment_keys = []
     for j in range(len(trapdoors)):
         bind_left = ((index >> j) & 1) == 0
-        commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+        commitment_keys.append(
+            GenerateStep(salt, bind_left, trapdoors[j])
+        )
     return commitment_keys
 ~~~
 
@@ -1276,6 +1280,7 @@ under one opening per level:
 
 ~~~python
 def CommitValAtPlace(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     n: int,
     index: int,
@@ -1284,7 +1289,7 @@ def CommitValAtPlace(
 ) -> bytes:
     V = [b"" for _ in range(n)]
     V[index] = value
-    return VecCommit(V, commitment_keys, openings)
+    return VecCommit(salt, V, commitment_keys, openings)
 ~~~
 
 Once the other leaves are known, each level's opening is shifted so that the
@@ -1294,6 +1299,7 @@ its opening.
 
 ~~~python
 def VecEquivocate(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     trapdoors: Sequence[Scalar],
     openings: Sequence[Scalar],
@@ -1321,16 +1327,19 @@ def VecEquivocate(
     for i in range(len(old) // 2):
         Q = commitment_keys[0]
         old_prime.append(
-            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+            CommitStep(
+                salt, Q, old[2 * i], old[2 * i + 1], openings[0]
+            )
         )
         new_prime.append(
-            CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+            CommitStep(salt, Q, new[2 * i], new[2 * i + 1], opening)
         )
     if len(old) % 2 == 1:
         old_prime.append(old[-1])
         new_prime.append(new[-1])
 
     rest = VecEquivocate(
+        salt,
         commitment_keys[1:],
         trapdoors[1:],
         openings[1:],
@@ -1342,6 +1351,7 @@ def VecEquivocate(
 
 
 def VecEquivocateFromZero(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     trapdoors: Sequence[Scalar],
     openings: Sequence[Scalar],
@@ -1351,17 +1361,18 @@ def VecEquivocateFromZero(
     V = [b"" for _ in new]
     V[index] = new[index]
     return VecEquivocate(
-        commitment_keys, trapdoors, openings, V, new, index
+        salt, commitment_keys, trapdoors, openings, V, new, index
     )
 ~~~
 
 ### The Permutation {#permutation}
 
-`P` is a permutation on the elements of `G`, computed on their compressed
-encodings by cycle walking: a permutation of the encoding space is applied
-until the result decodes to an element, and `Pinv` walks the same cycle
-backwards. Since a permutation partitions its domain into cycles, the two
-are inverse to each other.
+`P` is a family of permutations on the elements of `G`, indexed by a salt.
+Each is computed on compressed encodings by cycle walking: a permutation of
+the encoding space is applied until the result decodes to an element, and
+`Pinv` walks the same cycle backwards under the same salt. Since a
+permutation partitions its domain into cycles, the two are inverse to each
+other.
 
 The following direct implementations define the permutation and its
 inverse for the P-256 group. Other ciphersuites MUST
@@ -1372,11 +1383,11 @@ be side-channel resistant. In particular, its execution does not
 distinguish the two binding directions when its outputs are fixed.
 
 ~~~python
-def P(self, element: Element) -> Element:
+def P(self, salt: bytes, element: Element) -> Element:
     buf = bytearray(self.SerializeElement(element))
     buf[0] = buf[0] - 0x02
     while True:
-        buf = PermuteBytes(buf)
+        buf = PermuteBytes(salt, buf)
         try:
             return self.DeserializeElement(
                 bytes([buf[0] + 0x02]) + bytes(buf[1:])
@@ -1384,11 +1395,11 @@ def P(self, element: Element) -> Element:
         except DeserializeError:
             continue
 
-def Pinv(self, element: Element) -> Element:
+def Pinv(self, salt: bytes, element: Element) -> Element:
     buf = bytearray(self.SerializeElement(element))
     buf[0] = buf[0] - 0x02
     while True:
-        buf = UnpermuteBytes(buf)
+        buf = UnpermuteBytes(salt, buf)
         try:
             return self.DeserializeElement(
                 bytes([buf[0] + 0x02]) + bytes(buf[1:])
@@ -1402,46 +1413,54 @@ The permutation of the encoding space is an eight-round Feistel network over
 bit. Each iteration of the loop below computes two rounds, one per half:
 
 ~~~python
-def PermuteBytes(buf: bytearray) -> bytearray:
+def PermuteBytes(salt: bytes, buf: bytearray) -> bytearray:
+    if len(salt) != 32:
+        raise ValueError("salt must be exactly 32 bytes")
     left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
     for i in range(4):
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        mask = _sha256(salt + I2OSP(i, 1) + right)
+        left = bytearray(_xor(left, mask[0:17]))
         left[0] = left[0] & 0x01
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+        mask = _sha256(salt + I2OSP(0x80 + i, 1) + left)
+        right = bytearray(_xor(right, mask[0:16]))
     return left + right
 
-def UnpermuteBytes(buf: bytearray) -> bytearray:
+def UnpermuteBytes(salt: bytes, buf: bytearray) -> bytearray:
+    if len(salt) != 32:
+        raise ValueError("salt must be exactly 32 bytes")
     left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
     for i in reversed(range(4)):
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        mask = _sha256(salt + I2OSP(0x80 + i, 1) + left)
+        right = bytearray(_xor(right, mask[0:16]))
+        mask = _sha256(salt + I2OSP(i, 1) + right)
+        left = bytearray(_xor(left, mask[0:17]))
         left[0] = left[0] & 0x01
     return left + right
 ~~~
 
-The binding argument of {{security-considerations}} models `P` as a random
-permutation. An eight-round balanced Feistel network with independent random
-round functions is indifferentiable from a random permutation {{DS15}}. Here
-the round functions are SHA-256 separated by label, over halves of 129 and
-128 bits, an imbalance {{DS15}} does not cover.
+The salt of a proof is derived from its statement ({{proof-challenge}}) with
+SHA-256, as in `PermuteBytes`:
+
+~~~python
+def PermutationSalt(self, instance: bytes) -> bytes:
+    tag = b"PermutationSalt-" + self.ctx_proto
+    return _sha256(U16Prefixed(tag) + instance)
+~~~
 
 #### Walking a Permutation Edge {#permutation-pair}
 
-`G.PermutationPair(T, bind_left)` returns `(Q, P(Q))`. If `bind_left` is true,
-it walks backwards from `T = P(Q)` to `Q`. Otherwise it walks forwards from
-`T = Q` to `P(Q)`. At each iteration it computes both one-step byte
+`G.PermutationPair(salt, T, bind_left)` returns `(Q, P(salt, Q))`. If
+`bind_left` is true, it walks backwards from `T = P(salt, Q)` to
+`Q = Pinv(salt, T)`. Otherwise it walks forwards from `T = Q` to
+`P(salt, Q)`. At each iteration it computes both one-step byte
 permutations, selects the next encoding using the secret bit, and tests
 whether that encoding is valid. It selects the order of the endpoints before
 decoding them, so both final decodings operate on the same public values
-`Q` and `P(Q)`, in that order.
+`Q` and `P(salt, Q)`, in that order.
 
 ~~~python
 def PermutationPair(
-    self, element: Element, bind_left: bool
+    self, salt: bytes, element: Element, bind_left: bool
 ) -> tuple[Element, Element]:
     if not isinstance(bind_left, bool):
         raise ValueError("bind_left must be a boolean")
@@ -1449,8 +1468,8 @@ def PermutationPair(
     start[0] -= 0x02
     buf = start
     while True:
-        forward = PermuteBytes(buf)
-        backward = UnpermuteBytes(buf)
+        forward = PermuteBytes(salt, buf)
+        backward = UnpermuteBytes(salt, buf)
         buf = SelectBytes(forward, backward, bind_left)
         if IsValidPermutationEncoding(buf):
             break
@@ -1517,19 +1536,22 @@ provide these constant-time guarantees.
 
 To see why the loop may stop at the first valid encoding, fix the public
 output `Q`. Let `k` be the number of applications of `PermuteBytes` needed
-to reach `P(Q)` from `Q`. None of the `k - 1` intermediate encodings is
-valid. Walking backwards from `P(Q)` therefore reaches `Q` after exactly
+to reach `P(salt, Q)` from `Q`. None of the `k - 1` intermediate encodings
+is valid. Walking backwards from `P(salt, Q)` therefore reaches `Q` after
+exactly
 `k` applications of `UnpermuteBytes`, with the same sequence of validity
 results: `k - 1` failures followed by one success. Each orientation executes
 one forward permutation, one inverse permutation, one selection, and one
 validity test per iteration. Thus the observable operation schedule depends
-only on `Q`, which is included in the proof, and can be reproduced from it.
+only on `Q`, which is included in the proof, and the salt, which is derived
+from the public statement, and can be reproduced from them.
 This argument also covers fixed points and does not assume that `P` is
 random.
 
 Implementations MUST NOT optimize away the unused permutation direction.
-Calling `Pinv(T)` only for left binding leaks the direction directly.
-Computing `Pinv(T)` for both directions and selecting an endpoint afterwards
+Calling `Pinv(salt, T)` only for left binding leaks the direction directly.
+Computing `Pinv(salt, T)` for both directions and selecting an endpoint
+afterwards
 also leaks: for a fixed public `Q`, its walk length describes the edge
 leaving `Q` in one case and the edge entering `Q` in the other. Both one-step
 permutations MUST be computed on each iteration of the selected walk.
@@ -1540,7 +1562,8 @@ permutations MUST be computed on each iteration of the selected walk.
 rerandomized key `X_hat`, the signature being presented (encoded by the
 endorsement), the issuance and redemption context, and the challenge digest. The
 Fiat-Shamir challenge covers it together with the first move of the proof, which
-is the commitment keys and the root of the tree.
+is the commitment keys and the root of the tree. The salt of the permutation
+({{permutation}}) is also derived from it.
 
 ~~~python
 def ProofStatement(
@@ -1610,6 +1633,14 @@ prefixes of their own; the number of commitment keys, `q = Depth(n)`, is
 determined by `n`. The label `"IssuerProof"` separates this transcript from the
 issuance transcript of {{challenge}}, which is hashed with the same function.
 
+The salt of the permutation is `G.PermutationSalt(instance)`, where
+`instance` is the output of `ProofStatement`. The ciphersuite defines this
+derivation together with the permutation ({{permutation}}). The Client and
+the Moderator both compute the salt from the statement before they generate
+or check any commitment key. The statement includes the Moderator's
+`challenge_digest`, so a Client cannot predict the salt of a redemption
+before the Moderator issues that challenge.
+
 ### Proving {#prove-issuer}
 
 ~~~python
@@ -1650,10 +1681,12 @@ def ProveIssuer(
     trapdoors = derived[1 : q + 1]
     first_openings = derived[q + 1 :]
     T = r * B
+    salt = G.PermutationSalt(instance)
 
-    commitment_keys = GenerateVecBind(index, trapdoors)
+    commitment_keys = GenerateVecBind(salt, index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
     root = CommitValAtPlace(
+        salt,
         commitment_keys,
         len(Y),
         index,
@@ -1679,7 +1712,7 @@ def ProveIssuer(
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         V.append(G.SerializeElement(commitment))
     openings = VecEquivocateFromZero(
-        commitment_keys, trapdoors, first_openings, V, index
+        salt, commitment_keys, trapdoors, first_openings, V, index
     )
 
     return (proof_challenge, response, commitment_keys, openings)
@@ -1688,7 +1721,8 @@ def ProveIssuer(
 `ProveIssuer` derives the nonce `r`, the trapdoors of the `q` commitment
 keys, and the `q` openings of its first move with one call to
 `G.DeriveNonces` ({{derive-nonce}}), with `delta` and `index` as the secret
-and the proof statement as the instance.
+and the proof statement as the instance. Every commitment of the tree uses
+the salt of that statement.
 
 The first move commits only the path from leaf `index` to the root: at each
 level the Client commits the value it holds on one side and an empty value
@@ -1732,7 +1766,16 @@ def VerifyIssuer(
             return False
         V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(V, commitment_keys, openings)
+    instance = ProofStatement(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+    )
+    salt = G.PermutationSalt(instance)
+    root = VecCommit(salt, V, commitment_keys, openings)
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
@@ -1759,7 +1802,7 @@ rejects a branch commitment equal to the identity element, which
 `SerializeElement` cannot encode and which a Client can produce on its own
 branch by answering `response = -proof_challenge * delta`. An interior node
 is the identity only for a Client that knows a discrete logarithm relation
-among `B`, `Q`, and `P(Q)` for the key `Q` of its level, which the binding
+among `B`, `Q`, and `P(salt, Q)` for the key `Q` of its level, which the binding
 property of {{pbvc}} rules out, so `VecCommit` does not check for it.
 
 A proof produced by `ProveIssuer` is accepted by `VerifyIssuer`. On branch
@@ -1975,13 +2018,15 @@ DeserializeScalar(buf):
   {{SEC1}}. Raise a `DeserializeError` if the result is not in
   `[0, Order()-1]`.
 
-P:
-: The SHA-256 Feistel permutation and cycle walk in {{permutation}}.
+P(salt, A):
+: The salted SHA-256 Feistel permutation and cycle walk in {{permutation}},
+  with a salt of 32 bytes. `PermutationSalt(instance)` derives the salt of a
+  proof from its statement with SHA-256, as in {{permutation}}.
   Compressed SEC1 prefixes are `0x02` and `0x03`; subtracting `0x02` gives
   the one-bit prefix used by the byte permutation. `Pinv` reverses the
-  walk. `PermutationPair` ({{permutation-pair}}) is used during commitment
-  key generation. For a random encoding permutation, the walk takes about
-  two iterations on average.
+  walk. `PermutationPair(salt, A, bind_left)` ({{permutation-pair}}) is
+  used during commitment key generation. For a random encoding permutation,
+  the walk takes about two iterations on average.
 
 # Security Considerations {#security-considerations}
 
@@ -2043,12 +2088,22 @@ Partially binding commitments:
   without which a position could be opened to a colliding value and no
   discrete logarithm would be extractable. Binding is computational. A
   Client that opens the value under base `Q` two ways knows the discrete
-  logarithm of `Q`, and one that opens the value under `P(Q)` two ways knows
-  that of `P(Q)`; the key generation gives it one of the two. Opening both
+  logarithm of `Q`, and one that opens the value under `P(salt, Q)` two ways
+  knows that of `P(salt, Q)`; the key generation gives it one of the two.
+  Opening both
   positions would require both logarithms. That a `Q` with both known is as
   hard to find as a discrete logarithm when `P` is modelled as a random
   permutation ({{permutation}}) is the assumption under which the pair
-  commitment of the appendix of {{STACKSIG}} binds.
+  commitment of the appendix of {{STACKSIG}} binds. For the Feistel
+  instantiation of `P` this model is a heuristic: the indifferentiability
+  result it rests on (cf. {{DS15}}) gives no meaningful concrete bound at this
+  size. The permutation is salted by the proof statement ({{proof-challenge}}),
+  so a `Q` with both logarithms known is useful only in a proof of the statement
+  it was found for.
+
+  > TODO To close the heuristic gap, consider a direct proof modeling the round
+  > function as a random oracle. This also addresses a smaller gap: our Feistel
+  > network is imbalanced, whereas {{DS15}} assumes a balanced network.
 
 Constant-time proving:
 : `ProveIssuer` treats one leaf, and one side of each node on the path to it,
@@ -2158,11 +2213,12 @@ issuer-hiding proof. The `commit.state` entry is the
 `challenge.state` entry is `nf + SerializeScalar(r1) + SerializeScalar(r2)`
 followed by `SerializeScalar(gamma1) + SerializeScalar(gamma2) +
 SerializeScalar(c)`. `issue.Z` is `CreateContextBase(ctx_iss)`, and
-`key.P_pkA` is `P(pkA)`. Every message and `endorsement` entry is an encoding
-of {{wire}} or {{redemption-wire}}. The keys of each Anchor Set other than
-`key.pkA` were generated for the vectors. Every redemption presents the same
-Endorsement, which a Moderator would accept only once; each `nf` entry is the
-output of `VerifyRedemption`.
+`key.P_pkA` is `P(key.P_salt, pkA)`. Every message and `endorsement` entry is
+an encoding of {{wire}} or {{redemption-wire}}. The keys of each Anchor Set
+other than `key.pkA` were generated for the vectors. Every redemption presents
+the same Endorsement, which a Moderator would accept only once; each `salt`
+entry is `G.PermutationSalt` of its proof statement, and each `nf` entry is
+the output of `VerifyRedemption`.
 
 ## Ciphersuite {#ec-ihat-tv-suite}
 
@@ -2194,9 +2250,11 @@ key.skA =
 key.pkA =
     024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
     3f
+key.P_salt =
+    000102030405060708090a0b0c0d0e0f101112131415161718191a1b1c1d1e1f
 key.P_pkA =
-    0275d05750b95cb2dc26b3a961ce6eb7e90b19f31388dfdb5654bc504541b1d8
-    b7
+    022349e752c5b61f05e387dbbf08aa334dc85001ac81e90cba0f89e7aed2da18
+    2d
 ~~~
 
 ## Issuance {#ec-ihat-tv-issue}
@@ -2264,6 +2322,8 @@ redeem2.rand =
     1ce24800e438f27ff3aa9c3fa1575f10cee63ab4bbac324a1a4895786f016573
 redeem2.delta =
     d3aca91a849c8f30aa7a3f31842ff2bb535b6b34d676c7cd77c5a0125e72db28
+redeem2.salt =
+    db7687dd8cc0a7e6731af2e9de880da5908a451260372b6181123ba808c44ddb
 redeem2.message =
     029dc60bb0c07274bb09cff84e5202354bc5116b9f56f4776ad74a6f296428c4
     7ef97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
@@ -2271,11 +2331,11 @@ redeem2.message =
     192718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
     c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
     951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
-    d9dcdb1bf2752d262faa01e23f63177aab005ca60ef098b466ba32c4c09b13c5
-    5f68ce1afdfbc9550f9e4f6aca1b57cd42e9607f199b96f3835d986364aec9b2
-    4021026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
-    345128206ff15e6c7ae1ad15f0e8419c98b5f3d8608f7997489f1aa2d3fd7e01
-    6b9365c8
+    d9f91547c1967645320b46efbe6c11601a29282e1908c6165190f562b3480c7e
+    e6d1bd2eeb0f41867b3d4f555e92c7cd7acc4d0fd5b165aa4e037978016ecb43
+    b821026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
+    345128203673cb90da1e54f38f58ba9ffb7dc9a3bd3a916aed65f5b5c5484b8f
+    f804edda
 redeem2.nf =
     1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
@@ -2300,6 +2360,8 @@ redeem5.rand =
     0608494028ab6ec5236a2bf4876c767dd834ca244fb1af8ce935c346cafa1005
 redeem5.delta =
     b8efd6a9a93354b0ef988ba6add03fbb843c83f7d776c5088e80537440776855
+redeem5.salt =
+    3e0e5e55b2d453f60de65a233aca6bceb0d716a541ea97c78acb510c1d07eb83
 redeem5.message =
     036e54617195473504812e14b44912097f62b6f7d72f7e88b6e571bc41a0394a
     7cf97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd
@@ -2307,15 +2369,15 @@ redeem5.message =
     662718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
     c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
     951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
-    d950529d143f3c4f71f4270f4d7f84b9c3d2b1d1c5daa4c0caf8ee1d338885f1
-    a4691136fa0520c546bbff2a00faf6a012faf8c281ee8385c0d6a8116e85a2c8
-    704063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
+    d9e9a2e1cd5eb2dd42a7e2ba34883750979fdf5ace7eaf9a1d3befe229376d3c
+    f0b9a87f16a6e6573b7743f31e10f17e57a5ffee0285b79f08bb0023e25a3e10
+    114063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
     72b908c1027b75353c0b05b768798410106bb01a761634cc29423c8b45e96b3a
-    f1441349bb037610019efbae269ac174e983ecae9ffa9c73e225e8ba54b706d7
-    c164e4392e1540609574c0a33b601e403d4fd5bbf057fd6e5d05f11fb9168629
-    9a16416ae73880abd3d3ddef893007f0933b35454109117b243e8ff280c6435e
-    dcf1087b97724a42a805bd91e9545402352ca0200f3bdcd0117ad57684009761
-    b065ee322027e03f
+    f1441349bb0212174a0c466637d9772b6081abf543b8d5e900cd491a7d257c9f
+    1805144e0f844060f3a56b49e610fff8e7622b11e34ab6bd02ca9a41ecda3970
+    3789c4b3dcacccda611d46de6e9ce5497461312b591adb43f12afb36afae34a3
+    be9488ef65be3bc4e5ec307ddb04007f6ee49ff40fa8c93f23577ed03dc11228
+    06443642e76b81b2
 redeem5.nf =
     1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
@@ -2336,6 +2398,8 @@ redeem1.rand =
     5ff5bbe0b582a64a6f2db846184d541ab636e578683fcb9b9acc2ab1bbf1bdac
 redeem1.delta =
     ff8c0a8d5403241b69df67b3ef9f16474021cb373a4715dc5426ef490e5231c3
+redeem1.salt =
+    41afed96500d12d18a1f417fbde7189ed9dd2b89d615911fcd0d783f8cdd07c0
 redeem1.message =
     03300196a535ec07e6d8462cc80360e9630ca3a6d5d3a2b67fa241f6a929c816
     a5f97e91e88b4fe26b2f6f80faa20499b2cc8448674d53792e386223cc1396dd

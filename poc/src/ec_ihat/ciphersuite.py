@@ -104,24 +104,28 @@ def PadToBlock(value: bytes) -> bytes:
     return value + bytes(-len(value) % s_in_bytes)
 
 
-def PermuteBytes(buf: bytearray) -> bytearray:
+def PermuteBytes(salt: bytes, buf: bytearray) -> bytearray:
+    if len(salt) != 32:
+        raise ValueError("salt must be exactly 32 bytes")
     left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
     for i in range(4):
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        mask = _sha256(salt + I2OSP(i, 1) + right)
+        left = bytearray(_xor(left, mask[0:17]))
         left[0] = left[0] & 0x01
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
+        mask = _sha256(salt + I2OSP(0x80 + i, 1) + left)
+        right = bytearray(_xor(right, mask[0:16]))
     return left + right
 
 
-def UnpermuteBytes(buf: bytearray) -> bytearray:
+def UnpermuteBytes(salt: bytes, buf: bytearray) -> bytearray:
+    if len(salt) != 32:
+        raise ValueError("salt must be exactly 32 bytes")
     left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
     for i in reversed(range(4)):
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
+        mask = _sha256(salt + I2OSP(0x80 + i, 1) + left)
+        right = bytearray(_xor(right, mask[0:16]))
+        mask = _sha256(salt + I2OSP(i, 1) + right)
+        left = bytearray(_xor(left, mask[0:17]))
         left[0] = left[0] & 0x01
     return left + right
 
@@ -359,11 +363,15 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
             raise DeserializeError("P-256 scalar is out of range")
         return P256Scalar(scalar)
 
-    def P(self, element: P256Element) -> P256Element:
+    def PermutationSalt(self, instance: bytes) -> bytes:
+        tag = b"PermutationSalt-" + self.ctx_proto
+        return _sha256(U16Prefixed(tag) + instance)
+
+    def P(self, salt: bytes, element: P256Element) -> P256Element:
         buf = bytearray(self.SerializeElement(element))
         buf[0] = buf[0] - 0x02
         while True:
-            buf = PermuteBytes(buf)
+            buf = PermuteBytes(salt, buf)
             try:
                 return self.DeserializeElement(
                     bytes([buf[0] + 0x02]) + bytes(buf[1:])
@@ -371,11 +379,11 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
             except DeserializeError:
                 continue
 
-    def Pinv(self, element: P256Element) -> P256Element:
+    def Pinv(self, salt: bytes, element: P256Element) -> P256Element:
         buf = bytearray(self.SerializeElement(element))
         buf[0] = buf[0] - 0x02
         while True:
-            buf = UnpermuteBytes(buf)
+            buf = UnpermuteBytes(salt, buf)
             try:
                 return self.DeserializeElement(
                     bytes([buf[0] + 0x02]) + bytes(buf[1:])
@@ -384,7 +392,7 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
                 continue
 
     def PermutationPair(
-        self, element: P256Element, bind_left: bool
+        self, salt: bytes, element: P256Element, bind_left: bool
     ) -> tuple[P256Element, P256Element]:
         if not isinstance(bind_left, bool):
             raise ValueError("bind_left must be a boolean")
@@ -392,8 +400,8 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         start[0] -= 0x02
         buf = start
         while True:
-            forward = PermuteBytes(buf)
-            backward = UnpermuteBytes(buf)
+            forward = PermuteBytes(salt, buf)
+            backward = UnpermuteBytes(salt, buf)
             buf = SelectBytes(forward, backward, bind_left)
             if IsValidPermutationEncoding(buf):
                 break
