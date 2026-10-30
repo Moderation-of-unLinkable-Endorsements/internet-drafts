@@ -19,6 +19,9 @@ from ec_ihat.protocol import (
 
 from ec_ihat.common import random
 
+SALT = bytes(range(32))
+
+
 def _issue(ctx_iss=b"epoch-1", ctx_red=b"moderator-1"):
     skA, pkA = protocol.G.DeriveKeyPair(bytes(range(48)), b"anchor")
     anchor_state, commitment = Commit(ctx_iss)
@@ -72,8 +75,9 @@ def test_respond_rejects_zero_challenge():
 
 # TODO: Remove these smoke tests once end-to-end tests exercise these functions.
 def test_commit_step_runs_without_raising(monkeypatch):
-    monkeypatch.setattr(protocol.G, "P", lambda point: point)
+    monkeypatch.setattr(protocol.G, "P", lambda salt, point: point)
     protocol.CommitStep(
+        SALT,
         protocol.G.Generator(),
         bytes(protocol.Nseed),
         bytes([1]) * protocol.Nseed,
@@ -85,14 +89,14 @@ def test_commit_step_runs_without_raising(monkeypatch):
 def test_generate_step_preserves_key_and_trapdoor(bind_left):
     secret = protocol.Scalar(12345)
     T = secret * protocol.B
-    expected = protocol.G.Pinv(T) if bind_left else T
-    assert protocol.GenerateStep(bind_left, secret) == expected
+    expected = protocol.G.Pinv(SALT, T) if bind_left else T
+    assert protocol.GenerateStep(SALT, bind_left, secret) == expected
 
 
 @pytest.mark.parametrize("bind_left", ["left", "right", None, 0, 1])
 def test_generate_step_rejects_non_boolean_direction(bind_left):
     with pytest.raises(ValueError, match="bind_left must be a boolean"):
-        protocol.GenerateStep(bind_left, protocol.Scalar(12345))
+        protocol.GenerateStep(SALT, bind_left, protocol.Scalar(12345))
 
 
 def test_equivocate_step_runs_without_raising():
@@ -106,6 +110,7 @@ def test_equivocate_step_runs_without_raising():
 
 def test_vec_commit_runs_without_raising(monkeypatch):
     protocol.VecCommit(
+        SALT,
         [bytes(protocol.Nseed), bytes([1]) * protocol.Nseed],
         [protocol.G.Generator()],
         [protocol.Scalar(1)],
@@ -275,12 +280,14 @@ def test_vector_commitment_comprehensive():
         for j in range(0, i):
             trapdoor = protocol.G.DeriveScalars(random(48), b"test", q)
             opening = protocol.G.DeriveScalars(random(48), b"test", q)
-            keys = GenerateVecBind(j, trapdoor)
-            comm = CommitValAtPlace(keys, i, j, b"Bob", opening)
+            keys = GenerateVecBind(SALT, j, trapdoor)
+            comm = CommitValAtPlace(SALT, keys, i, j, b"Bob", opening)
             V = [random(32) for i in range(0, i)]
             V[j] = b"Bob"
-            newopen = VecEquivocateFromZero(keys, trapdoor, opening, V, j)
-            comm2 = VecCommit(V, keys, newopen)
+            newopen = VecEquivocateFromZero(
+                SALT, keys, trapdoor, opening, V, j
+            )
+            comm2 = VecCommit(SALT, V, keys, newopen)
             assert comm == comm2
 
 def test_verify_end_to_end():
@@ -313,9 +320,9 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         calls.append(length)
         return bytes(i % 256 for i in range(length))
 
-    def previous_generate_step(bind_left, secret):
+    def previous_generate_step(salt, bind_left, secret):
         T = secret * protocol.B
-        return protocol.G.Pinv(T) if bind_left else T
+        return protocol.G.Pinv(salt, T) if bind_left else T
 
     monkeypatch.setattr(protocol, "random", fixed_random)
     for index in range(size):
@@ -335,6 +342,36 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
         ) == endorsement.nf
 
+
+
+def test_permutation_salt_binds_the_statement():
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, protocol.G.ScalarMultGen(protocol.Scalar(2))]
+    args = (b"epoch-1", b"moderator-1", b"digest")
+    instance = protocol.ProofStatement(anchor_set, pkA, endorsement, *args)
+    salt = protocol.G.PermutationSalt(instance)
+    assert len(salt) == 32
+    other = protocol.ProofStatement(
+        anchor_set, pkA, endorsement, *args[:2], b"other digest"
+    )
+    assert protocol.G.PermutationSalt(other) != salt
+
+
+def test_verification_under_another_salt_fails(monkeypatch):
+    _, pkA, endorsement = _issue()
+    anchor_set = [protocol.G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
+    anchor_set.append(pkA)
+    args = (b"epoch-1", b"moderator-1", b"digest")
+    redemption = protocol.Redeem(anchor_set, 2, endorsement, *args)
+    assert protocol.VerifyRedemption(anchor_set, redemption, *args)
+    salt = protocol.G.PermutationSalt
+    monkeypatch.setattr(
+        protocol.G,
+        "PermutationSalt",
+        lambda instance: salt(instance + b"other"),
+    )
+    with pytest.raises(VerifyError):
+        protocol.VerifyRedemption(anchor_set, redemption, *args)
 
 
 def test_depth():

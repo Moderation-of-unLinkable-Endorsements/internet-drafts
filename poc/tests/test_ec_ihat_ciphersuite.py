@@ -1,3 +1,4 @@
+import hashlib
 import json
 from pathlib import Path
 
@@ -91,11 +92,14 @@ def test_scalar_arithmetic_reduces_modulo_order():
     assert difference_result == Scalar(ORDER - 1)
     assert product_result == Scalar(ORDER - 2)
 
+SALT = bytes(range(32))
+
+
 def test_p_not_identity():
     group = P256Group(b"test")
     for i in range(1, 100):
         elt = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt)
+        elt2 = group.P(SALT, elt)
         res = elt - elt2
         assert not res.isIdentity()
 
@@ -103,8 +107,8 @@ def test_p_invertable():
     group = P256Group(b"test")
     for i in range(1, 100):
         elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt1)
-        elt3 = group.Pinv(elt2)
+        elt2 = group.P(SALT, elt1)
+        elt3 = group.Pinv(SALT, elt2)
         res = elt1 - elt3
         assert res.isIdentity()
 
@@ -112,10 +116,19 @@ def test_p_not_involution():
     group = P256Group(b"test")
     for i in range(1, 100):
         elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt1)
-        elt3 = group.P(elt2)
+        elt2 = group.P(SALT, elt1)
+        elt3 = group.P(SALT, elt2)
         res = elt1 - elt3
         assert not res.isIdentity()
+
+
+def test_p_depends_on_salt():
+    group = P256Group(b"test")
+    other = bytes(31) + b"\x01"
+    for i in range(1, 20):
+        elt = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
+        assert group.P(SALT, elt) != group.P(other, elt)
+        assert group.Pinv(other, group.P(other, elt)) == elt
 
 
 def test_permute_bytes_is_a_permutation():
@@ -123,9 +136,57 @@ def test_permute_bytes_is_a_permutation():
 
     for i in range(32):
         buf = bytearray([i & 1]) + bytearray(range(i, i + 32))
-        out = PermuteBytes(buf)
+        out = PermuteBytes(SALT, buf)
         assert len(out) == 33 and out[0] in (0, 1)
-        assert UnpermuteBytes(out) == buf
+        assert UnpermuteBytes(SALT, out) == buf
+
+
+@pytest.mark.parametrize("length", [0, 31, 33])
+def test_permute_bytes_rejects_bad_salt_length(length):
+    from ec_ihat.ciphersuite import PermuteBytes, UnpermuteBytes
+
+    buf = bytearray(33)
+    for permute in (PermuteBytes, UnpermuteBytes):
+        with pytest.raises(ValueError, match="salt"):
+            permute(bytes(length), buf)
+
+
+def test_round_function_inputs_fit_one_block(monkeypatch):
+    # SHA-256 pads a message of at most 55 bytes into one 64-byte block, so
+    # each round costs a single compression.
+    import ec_ihat.ciphersuite as suite
+
+    inputs = []
+    sha256 = suite._sha256
+
+    def record(data):
+        inputs.append(data)
+        return sha256(data)
+
+    monkeypatch.setattr(suite, "_sha256", record)
+    out = suite.PermuteBytes(SALT, bytearray(33))
+    suite.UnpermuteBytes(SALT, out)
+    assert len(inputs) == 16
+    assert all(data[:32] == SALT for data in inputs)
+    # The round byte is i for left round i and 0x80 + i for right round i;
+    # left rounds read the 16-byte right half, right rounds the 17-byte left.
+    rounds = {(data[32], len(data)) for data in inputs}
+    assert rounds == {(i, 49) for i in range(4)} | {
+        (0x80 + i, 50) for i in range(4)
+    }
+
+
+def test_permutation_salt_is_separated_by_protocol_context():
+    from ec_ihat.common import U16Prefixed
+
+    instance = b"statement"
+    salt = P256Group(b"test").PermutationSalt(instance)
+    assert len(salt) == 32
+    assert salt != P256Group(b"other").PermutationSalt(instance)
+    expected = hashlib.sha256(
+        U16Prefixed(b"PermutationSalt-test") + instance
+    ).digest()
+    assert salt == expected
 
 
 def test_derive_nonces_binds_every_input():

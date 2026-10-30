@@ -232,6 +232,7 @@ def Statements(
 
 
 def CommitStep(
+    salt: bytes,
     Q: Element,
     left: bytes,
     right: bytes,
@@ -240,14 +241,16 @@ def CommitStep(
     C = (
         randomness * B
         + G.HashToScalar(left) * Q
-        + G.HashToScalar(right) * G.P(Q)
+        + G.HashToScalar(right) * G.P(salt, Q)
     )
     return G.SerializeElement(C)
 
 
-def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
+def GenerateStep(
+    salt: bytes, bind_left: bool, secret: Scalar
+) -> Element:
     T = secret * B
-    (Q, _) = G.PermutationPair(T, bind_left)
+    (Q, _) = G.PermutationPair(salt, T, bind_left)
     return Q
 
 
@@ -260,6 +263,7 @@ def EquivocateStep(
 
 
 def VecCommit(
+    salt: bytes,
     V: Sequence[bytes],
     commitment_keys: Sequence[Element],
     openings: Sequence[Scalar],
@@ -271,14 +275,20 @@ def VecCommit(
     for i in range(len(V) // 2):
         V_prime.append(
             CommitStep(
-                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+                salt,
+                commitment_keys[0],
+                V[2 * i],
+                V[2 * i + 1],
+                openings[0],
             )
         )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
+    return VecCommit(
+        salt, V_prime, commitment_keys[1:], openings[1:]
+    )
 
 
 def Depth(n: int) -> int:
@@ -350,16 +360,19 @@ def ComputeProofChallenge(
 
 
 def GenerateVecBind(
-    index: int, trapdoors: Sequence[Scalar]
+    salt: bytes, index: int, trapdoors: Sequence[Scalar]
 ) -> list[Element]:
     commitment_keys = []
     for j in range(len(trapdoors)):
         bind_left = ((index >> j) & 1) == 0
-        commitment_keys.append(GenerateStep(bind_left, trapdoors[j]))
+        commitment_keys.append(
+            GenerateStep(salt, bind_left, trapdoors[j])
+        )
     return commitment_keys
 
 
 def CommitValAtPlace(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     n: int,
     index: int,
@@ -368,10 +381,11 @@ def CommitValAtPlace(
 ) -> bytes:
     V = [b"" for _ in range(n)]
     V[index] = value
-    return VecCommit(V, commitment_keys, openings)
+    return VecCommit(salt, V, commitment_keys, openings)
 
 
 def VecEquivocate(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     trapdoors: Sequence[Scalar],
     openings: Sequence[Scalar],
@@ -399,16 +413,19 @@ def VecEquivocate(
     for i in range(len(old) // 2):
         Q = commitment_keys[0]
         old_prime.append(
-            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+            CommitStep(
+                salt, Q, old[2 * i], old[2 * i + 1], openings[0]
+            )
         )
         new_prime.append(
-            CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
+            CommitStep(salt, Q, new[2 * i], new[2 * i + 1], opening)
         )
     if len(old) % 2 == 1:
         old_prime.append(old[-1])
         new_prime.append(new[-1])
 
     rest = VecEquivocate(
+        salt,
         commitment_keys[1:],
         trapdoors[1:],
         openings[1:],
@@ -420,6 +437,7 @@ def VecEquivocate(
 
 
 def VecEquivocateFromZero(
+    salt: bytes,
     commitment_keys: Sequence[Element],
     trapdoors: Sequence[Scalar],
     openings: Sequence[Scalar],
@@ -429,7 +447,7 @@ def VecEquivocateFromZero(
     V = [b"" for _ in new]
     V[index] = new[index]
     return VecEquivocate(
-        commitment_keys, trapdoors, openings, V, new, index
+        salt, commitment_keys, trapdoors, openings, V, new, index
     )
 
 
@@ -470,10 +488,12 @@ def ProveIssuer(
     trapdoors = derived[1 : q + 1]
     first_openings = derived[q + 1 :]
     T = r * B
+    salt = G.PermutationSalt(instance)
 
-    commitment_keys = GenerateVecBind(index, trapdoors)
+    commitment_keys = GenerateVecBind(salt, index, trapdoors)
     # First move: commit along the binding path; other leaves empty.
     root = CommitValAtPlace(
+        salt,
         commitment_keys,
         len(Y),
         index,
@@ -499,7 +519,7 @@ def ProveIssuer(
         commitment = BranchCommitment(proof_challenge, response, Y[i])
         V.append(G.SerializeElement(commitment))
     openings = VecEquivocateFromZero(
-        commitment_keys, trapdoors, first_openings, V, index
+        salt, commitment_keys, trapdoors, first_openings, V, index
     )
 
     return (proof_challenge, response, commitment_keys, openings)
@@ -535,7 +555,16 @@ def VerifyIssuer(
             return False
         V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(V, commitment_keys, openings)
+    instance = ProofStatement(
+        anchor_set,
+        X_hat,
+        endorsement,
+        ctx_iss,
+        ctx_red,
+        challenge_digest,
+    )
+    salt = G.PermutationSalt(instance)
+    root = VecCommit(salt, V, commitment_keys, openings)
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
