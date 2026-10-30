@@ -1,0 +1,453 @@
+
+
+
+
+Network Working Group                                     S. Schlesinger
+Internet-Draft                                                Google LLC
+Intended status: Informational                                D. Jackson
+Expires: 3 May 2027                                              Mozilla
+                                                              T. Meunier
+                                                              Cloudflare
+                                                         30 October 2026
+
+
+                          MOLE HTTP Transport
+                  draft-jms-mole-http-transport-latest
+
+Abstract
+
+   MOLE targets browser deployments, so Clients, Anchors, and Moderators
+   need an HTTP transport for the protocol flows defined by the
+   architecture.
+
+   This document defines the Mole HTTP authentication scheme, which
+   carries challenges and presentations for the endorsement and
+   credential flows, and the headers used to return credential material.
+   The grant exchanges with the Anchor are defined per protocol in
+   [PROTOCOLS].
+
+About This Document
+
+   This note is to be removed before publishing as an RFC.
+
+   The latest revision of this draft can be found at https://moderation-
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-
+   http-transport.html.  Status information for this document may be
+   found at https://datatracker.ietf.org/doc/draft-jms-mole-http-
+   transport/.
+
+   Source for this draft and an issue tracker can be found at
+   https://github.com/Moderation-of-unLinkable-Endorsements/internet-
+   drafts.
+
+Status of This Memo
+
+   This Internet-Draft is submitted in full conformance with the
+   provisions of BCP 78 and BCP 79.
+
+   Internet-Drafts are working documents of the Internet Engineering
+   Task Force (IETF).  Note that other groups may also distribute
+   working documents as Internet-Drafts.  The list of current Internet-
+   Drafts is at https://datatracker.ietf.org/drafts/current/.
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
+
+   This Internet-Draft will expire on 3 May 2027.
+
+Copyright Notice
+
+   Copyright (c) 2026 IETF Trust and the persons identified as the
+   document authors.  All rights reserved.
+
+   This document is subject to BCP 78 and the IETF Trust's Legal
+   Provisions Relating to IETF Documents (https://trustee.ietf.org/
+   license-info) in effect on the date of publication of this document.
+   Please review these documents carefully, as they describe your rights
+   and restrictions with respect to this document.  Code Components
+   extracted from this document must include Revised BSD License text as
+   described in Section 4.e of the Trust Legal Provisions and are
+   provided without warranty as described in the Revised BSD License.
+
+Table of Contents
+
+   1.  Introduction
+   2.  Conventions and Definitions
+   3.  The Mole Authentication Scheme
+   4.  The Mole-Credential Field
+   5.  Configuration
+   6.  Exchanges
+     6.1.  Grant
+     6.2.  Redeem & Issue
+     6.3.  Presentation
+     6.4.  Recovery
+     6.5.  Status Codes
+   7.  Security Considerations
+   8.  IANA Considerations
+     8.1.  Authentication Scheme
+     8.2.  HTTP Field Names
+   9.  References
+     9.1.  Normative References
+     9.2.  Informative References
+   Acknowledgments
+   Authors' Addresses
+
+1.  Introduction
+
+   [PROTOCOLS] defines the MOLE messages.  This document carries them
+   over HTTP.  Challenges and presentations use the Mole authentication
+   scheme [HTTP].  Credential material returns in the Mole-Credential
+   response header.  Grant exchanges with an Anchor are HTTP POST
+   requests defined in [PROTOCOLS].
+
+2.  Conventions and Definitions
+
+   The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
+   "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
+   "OPTIONAL" in this document are to be interpreted as described in
+   BCP 14 [RFC2119] [RFC8174] when, and only when, they appear in all
+   capitals, as shown here.
+
+   Payload encodings and abstract operations are defined by [PROTOCOLS].
+   Header payloads use canonical unpadded base64url ([BASE64]).  HTTP
+   carries type-specific payloads directly, without outer type or length
+   wrappers.
+
+3.  The Mole Authentication Scheme
+
+   +--------+                                +-----------+
+   | Client |                                | Moderator |
+   +---+----+                                +-----+-----+
+       |                                           |
+       |<--- WWW-Authenticate: Mole challenge-T= --+
+       |                                           |
+   (Redeem & Issue, if needed)                     |
+       |                                           |
+       +--- Authorization: Mole presentation-T= -->|
+       |                                           |
+       |<------------ Mole-Credential: update-T= --+
+       |                                           |
+
+   Payload parameter names end in -T, where T is a registered
+   endorsement or credential type from [PROTOCOLS], written as exactly
+   four lowercase hexadecimal digits.  For example, EC-IHAT (endorsement
+   type 0x0002) is challenged with redeem-0002, and EC-ACT (credential
+   type 0x0001) is presented with presentation-0001.  Recipients also
+   accept uppercase digits, since parameter names are case-insensitive
+   (Section 11.2 of [HTTP]).  Type 0x0000 is invalid.
+
+   Each Mole challenge has exactly one payload parameter:
+
+           +=============+=============+=======================+
+           | Parameter   | Registry    | Decoded payload       |
+           +=============+=============+=======================+
+           | endorse-T   | Endorsement | Anchor context, empty |
+           |             |             | for the types here    |
+           +-------------+-------------+-----------------------+
+           | redeem-T    | Endorsement | RedemptionChallenge   |
+           +-------------+-------------+-----------------------+
+           | challenge-T | Credential  | Type-specific         |
+           |             |             | Challenge             |
+           +-------------+-------------+-----------------------+
+
+                       Table 1: Challenge parameters
+
+   A server offers a choice using separate Mole challenges.  The Client
+   ignores unknown types and chooses a supported configuration.  A
+   redeem-T challenge selects the endorsement type.  The Client selects
+   the credential type from the same Moderator's configuration,
+   independently of the endorsement type.
+
+   A Mole credential in Authorization selects one operation:
+
+     +================================+=============================+
+     | Parameters                     | Decoded payloads            |
+     +================================+=============================+
+     | redeem-E, credential-request-C | Redemption, IssuanceRequest |
+     +--------------------------------+-----------------------------+
+     | presentation-T                 | PresentationAndUpdate       |
+     +--------------------------------+-----------------------------+
+     | recovery-T                     | Recovery handle             |
+     +--------------------------------+-----------------------------+
+
+                    Table 2: Authorization parameters
+
+   E uses the endorsement registry.  C, presentation, and recovery use
+   the credential registry.  Only Redeem & Issue has two payload
+   parameters.  It requires exactly one of each, in either order.  Type
+   0001's empty redemption is carried as redeem-0001="".
+
+   Parameters use auth-param syntax (Section 11.2 of [HTTP]).  Values
+   can be tokens or quoted-strings.  Senders quote empty values.
+   Recipients unescape quoted-strings before decoding.  Multiple
+   challenges in one field follow Section 11.6.1 of [HTTP].  These rules
+   apply to each challenge separately.  Unknown parameters, including
+   realm, are ignored.  A name beginning with one of the operation
+   prefixes above but lacking exactly four hexadecimal digits is
+   malformed, not an unknown extension.  A recipient MUST reject
+   duplicate parameter names, mixed operations, and missing or extra
+   payload parameters, including payloads of unknown types.  It MUST
+   reject noncanonical base64url and, for known types, trailing bytes or
+   malformed content.  Clients ignore malformed challenges and may use
+   another one.
+
+   An unknown presentation type is treated as absent when authentication
+   is optional and rejected when required, as specified by [PROTOCOLS].
+   Other requests of unknown type are rejected.  Unknown types never
+   select a known payload decoder.  Greased types follow these same
+   rules.
+
+4.  The Mole-Credential Field
+
+   Mole-Credential returns credential material to the Client.  Its value
+   is one parameter, with the syntax above:
+
+          +============+========================================+
+          | Parameter  | Decoded payload                        |
+          +============+========================================+
+          | response-T | IssuanceResponse                       |
+          +------------+----------------------------------------+
+          | update-T   | Update, or empty for recorded NoUpdate |
+          +------------+----------------------------------------+
+
+                    Table 3: Mole-Credential parameters
+
+   T uses the credential registry and MUST match the pending exchange.
+   The field contains exactly one parameter and MUST NOT be repeated.
+   An empty update-T="" means the Moderator consumed the Credential
+   without replacement.  A nonempty value carries the type's Update.
+   Registered credential protocols MUST define nonempty Update
+   encodings.  A missing Mole-Credential field carries no such decision.
+   A Client MUST process Mole-Credential whatever the response status.
+   The credential result does not establish whether the protected
+   operation completed.  Recovery returns this result without another
+   operation attempt.
+
+   A server sending Mole-Credential MUST also send Cache-Control: no-
+   store.  A server answering cross-origin requests MUST list WWW-
+   Authenticate and Mole-Credential in Access-Control-Expose-Headers.
+
+5.  Configuration
+
+   The Anchor and Moderator configurations are defined in [PROTOCOLS].
+   A Client stores each Credential with the Moderator and Redeem & Issue
+   endpoint it came from.  A Client that keeps a presentation for
+   recovery also keeps the HTTP request that carried it.
+
+6.  Exchanges
+
+6.1.  Grant
+
+   WWW-Authenticate: Mole endorse-0002=""
+
+   The grant endpoint comes from Anchor configuration.  The Client sends
+   a POST with the type-specific grant message as its body.  The media
+   type is application/mole-endorsement-request with a required type
+   parameter using the same four-digit hexadecimal encoding.  The
+   response uses application/mole-endorsement-response with the same
+   type.  The Client MUST reject a mismatched type.  There is no outer
+   EndorsementRequest or EndorsementResponse wrapper.  The first EC-IHAT
+   request carries a GrantRequest naming the number of Endorsements the
+   Client asks for ([PROTOCOLS]):
+
+   Content-Type: application/mole-endorsement-request; type=0002
+
+   The criteria for granting are the Anchor's.
+
+6.2.  Redeem & Issue
+
+   The Moderator challenges with the endorsement type:
+
+   WWW-Authenticate: Mole redeem-0002="<redemption-challenge>"
+
+   The Client answers with a POST to the Redeem & Issue endpoint from
+   configuration, whichever resource sent the challenge:
+
+   Authorization: Mole redeem-0002="<redemption>",
+                       credential-request-0001="<issuance-request>"
+
+   On success the Moderator answers 200 with:
+
+   Mole-Credential: response-0001="<issuance-response>"
+
+6.3.  Presentation
+
+   The Moderator challenges with the credential type:
+
+   WWW-Authenticate: Mole challenge-0001="<ec-act-challenge>"
+
+   A challenge in a 401 response means the resource requires a
+   presentation.  A challenge in a 200 response means a presentation is
+   optional, for instance to raise a limit.  Clients then apply the
+   greasing rules of [PROTOCOLS].
+
+   The Client repeats the protected request with:
+
+   Authorization: Mole presentation-0001="<presentation-and-update>"
+
+   The Moderator runs ProcessPresentation.  Every response to an
+   accepted presentation, fresh or not, MUST carry the recorded update,
+   including when the protected operation fails with a 4xx or 5xx
+   status:
+
+   Mole-Credential: update-0001="<update>"
+
+   For a fresh result the Moderator attempts the protected operation and
+   returns its status.  For a result that is not fresh, it MUST return
+   409 (Section 15.5.10 of [HTTP]) and MUST NOT attempt the protected
+   operation.  A rejected presentation MUST NOT carry Mole-Credential.
+
+   A Client that receives no Mole-Credential after sending a
+   presentation keeps its pending state and MAY recover (Section 6.4).
+
+   Each credential type MUST define the challenge fields that partition
+   cached Credentials, or state that its Credentials are not cacheable.
+
+6.4.  Recovery
+
+   Instead of resending a presentation, a Client MAY send a POST with
+   empty content to the Redeem & Issue endpoint it stored with the
+   Credential:
+
+   Authorization: Mole recovery-0001="<recovery-handle>"
+
+   The recovery handle is defined by the credential type in [PROTOCOLS].
+   The Moderator treats it as the byte-identical presentation and uses
+   no other Client identifier.  It MUST NOT verify a proof or attempt
+   the protected operation.  If a result is still retained, it answers
+   200 with the recorded update-T, including the empty value for a
+   recorded NoUpdate.  Otherwise it answers 404 without Mole-Credential,
+   whether or not a record exists.
+
+6.5.  Status Codes
+
+   +===========================+====================+=================+
+   | Outcome                   | Status             | Mole-Credential |
+   +===========================+====================+=================+
+   | Malformed request         | 400                | none            |
+   +---------------------------+--------------------+-----------------+
+   | Missing, expired, or      | 401                | none            |
+   | invalid authentication    |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Rejected by policy before | 403                | none            |
+   | acceptance                |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Credential issued         | 200                | response-T      |
+   +---------------------------+--------------------+-----------------+
+   | Fresh accepted            | protected          | update-T        |
+   | presentation              | operation's status |                 |
+   +---------------------------+--------------------+-----------------+
+   | Duplicate presentation    | 409                | update-T        |
+   | with retained result sent |                    |                 |
+   | to the protected resource |                    |                 |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result retained | 200                | update-T        |
+   +---------------------------+--------------------+-----------------+
+   | Recovery, result          | 404                | none            |
+   | unavailable               |                    |                 |
+   +---------------------------+--------------------+-----------------+
+
+                         Table 4: Mole responses
+
+   The Moderator MUST use these rules for every credential type.  A 401
+   response MUST carry a Mole challenge for the required exchange.  A
+   403 returned by the protected operation after a fresh acceptance is
+   that operation's status, and carries the update.
+
+   A Client MUST NOT infer chain termination from any status without the
+   recorded empty update.
+
+7.  Security Considerations
+
+   All exchanges defined in this document MUST be carried over HTTPS.
+
+   TODO.  The list to cover:
+
+   1.  Header size limits: request and response field limits a
+       deployment must provision for the payloads it offers, and the
+       status returned before acceptance when a payload does not fit.  A
+       Moderator must not consume an Endorsement, or record NoUpdate,
+       because a response would be too large.
+
+   2.  Challenge caching and reuse: when a Client may reuse a cached
+       challenge (same Moderator, type, key and context, scope), and
+       that reuse never permits reuse of a spent Credential or
+       Endorsement.
+
+   3.  Request binding: this document defines no canonical HTTP request
+       serialization.  EC-ACT request_context must cover what the
+       Moderator authorizes, including the body.  Reverse flow has no
+       request binding.
+
+   4.  Recovery: what recovery reveals and its lack of Client
+       authentication beyond the handle.
+
+   5.  Grant and issuance recovery: a lost grant or issuance response
+       currently costs the Client its session or Endorsement.  Whether
+       to add recovery for these exchanges, and how to authenticate a
+       lookup by session ID or nullifier, is open.
+
+8.  IANA Considerations
+
+8.1.  Authentication Scheme
+
+   This document registers the Mole authentication scheme, as defined in
+   Section 3, in the "HTTP Authentication Schemes" registry.
+
+8.2.  HTTP Field Names
+
+   This document registers the Mole-Credential field name in the
+   "Hypertext Transfer Protocol (HTTP) Field Name Registry".
+
+   Endorsement and credential type values are registered in [PROTOCOLS],
+   not in this document.
+
+9.  References
+
+9.1.  Normative References
+
+   [HTTP]     Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
+              Ed., "HTTP Semantics", STD 97, RFC 9110,
+              DOI 10.17487/RFC9110, June 2022,
+              <https://www.rfc-editor.org/rfc/rfc9110>.
+
+   [PROTOCOLS]
+              "MOLE Protocols", n.d., <https://datatracker.ietf.org/doc/
+              draft-jms-mole-protocols/00/>.
+
+   [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
+              Requirement Levels", BCP 14, RFC 2119,
+              DOI 10.17487/RFC2119, March 1997,
+              <https://www.rfc-editor.org/rfc/rfc2119>.
+
+   [RFC8174]  Leiba, B., "Ambiguity of Uppercase vs Lowercase in RFC
+              2119 Key Words", BCP 14, RFC 8174, DOI 10.17487/RFC8174,
+              May 2017, <https://www.rfc-editor.org/rfc/rfc8174>.
+
+9.2.  Informative References
+
+   [BASE64]   Josefsson, S., "The Base16, Base32, and Base64 Data
+              Encodings", RFC 4648, DOI 10.17487/RFC4648, October 2006,
+              <https://www.rfc-editor.org/rfc/rfc4648>.
+
+Acknowledgments
+
+   TODO acknowledge.
+
+Authors' Addresses
+
+   Samuel Schlesinger
+   Google LLC
+   Email: sgschlesinger@gmail.com
+
+
+   Dennis Jackson
+   Mozilla
+   Email: ietf@dennis-jackson.uk
+
+
+   Thibault Meunier
+   Cloudflare
+   Email: ot-ietf@thibault.uk
