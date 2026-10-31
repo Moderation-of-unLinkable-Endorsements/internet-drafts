@@ -847,7 +847,8 @@ satisfies
 The lower bound shows that the Credential covers the spend, and the upper
 bound that the *topped-up balance* `c + a = s + v1 + a` is below `2^L`, so
 the Moderator may choose a return amount `t <= s + a` without the
-resulting balance exceeding `2^L - 1`. A single range proof over the bits of `v1`, weighted by
+resulting balance exceeding `2^L - 1`. A single range proof over the bits of
+`v1`, weighted by
 `w = RangeWeights(m)` ({{ec-act-amounts}}), shows both. A spend with
 `s + a >= 2^L` cannot satisfy them and is rejected with an `AmountError`.
 The number `n = len(w)` of bit commitments is the bit length of `m` and is
