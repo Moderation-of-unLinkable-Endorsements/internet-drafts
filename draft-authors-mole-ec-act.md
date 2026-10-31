@@ -138,8 +138,8 @@ informative:
 This document specifies EC-ACT, a keyed-verification anonymous credential
 scheme with a hidden credit balance. A Client spends a
 public amount and receives a fresh Credential for the remaining balance and
-a return amount chosen by the issuer. The issuer verifies each spend without
-learning the balance or linking it to issuance or to other spends.
+a return amount chosen by the Moderator. The Moderator verifies each spend
+without learning the balance or linking it to issuance or to other spends.
 
 EC-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
 This document defines its cryptographic operations, encodings, and security
@@ -181,7 +181,7 @@ specified by the operation that uses them.
 This document contains executable Python code to specify much of the
 protocol.
 
-EC-ACT uses three three dependencies:
+EC-ACT uses three dependencies:
 
 Group:
 : A prime-order group implementing the interface in {{group}}. {{ciphersuites}}
@@ -233,14 +233,18 @@ shared algorithm.
 more than one derivation. An algorithm derives all of its scalars with one
 call, under an `info` string that names it. See {{randomness}}.
 
-The hash-to-scalar method reduces an `Ns + 16`-byte string modulo `p`.
-For a uniformly random string of this length, the resulting scalar has
-statistical distance at most `2^-128` from uniform over the nonzero scalars,
-conditioned on the result being nonzero. The 16-byte margin follows the
-hash-to-field method for a 128-bit security target
-({{Section 5 of HASH2CURVE}}). {{ec-act-security}} describes the random-oracle
-analysis needed to apply this sampling bound to the derived scalar and
-nonce vectors.
+For the `P256-SHA256` ciphersuite, `Ns = 32` bytes is the scalar encoding
+length, while `Nseed = 48` bytes is the seed length. The group order `p` is
+a 256-bit prime (`2^255 < p < 2^256`). The hash-to-scalar method reduces an
+`Ns + 16 = 48`-byte string modulo `p`. If the input string is uniform, the
+resulting scalar, conditioned on being nonzero, has statistical distance at
+most `2^-128` from uniform over the nonzero scalars. The 16-byte margin
+follows the hash-to-field method for a 128-bit security target
+({{Section 5 of HASH2CURVE}}).
+
+This is a sampling bound for a uniform byte string; it does not establish
+that the deterministic hash-derived scalars or nonces are uniform.
+{{ec-act-security}} describes their analysis and the remaining proof gaps.
 
 ## Key Generation {#keygen}
 
@@ -256,7 +260,7 @@ An Anonymous Credit Token is a
 keyed-verification anonymous credential {{KVAC}} over a privately
 verifiable, pairing-free BBS-style signature {{BBS}} {{TZ23}}, whose
 hidden state is a *balance* `c`: a nonnegative integer number of credits.
-An Moderator issues a Credential with an initial balance of its choosing,
+A Moderator issues a Credential with an initial balance of its choosing,
 and the Client later *spends* from it. A spend reveals a public amount `s`
 and proves, in zero knowledge, that the Credential holds at least `s`
 credits. It also reveals a nullifier, which the Moderator checks against
@@ -278,8 +282,8 @@ presentations, subject to the assumptions and anonymity-set requirements
 of {{ec-act-security}}.
 
 The scheme is a two-party protocol between a Client and a Moderator. The
-Moderator holds a key pair `(skM, pkM)` and is both the issuer and the
-verifier: Credentials are not publicly verifiable, and only their issuer can
+Moderator holds a key pair `(skM, pkM)` and both issues and verifies
+Credentials: they are not publicly verifiable, and only the Moderator can
 check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.
 
@@ -472,12 +476,12 @@ using it, and MUST raise an `AmountError` otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers ({{ec-act-security}}).
 
-The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`, the bound
-`2^L - 1 - (s + a)` in `ProveSpend` and `VerifySpend`, `t <= s + a`
-in `IssueRefund`, and `t <= s + a` and `v1 + t < 2^L` in `FinalizeRefund`
-are between integers. Each sum can reach `2^(L+1) - 2`, which does not fit
-in a `uint64` when `L = 64`, and an implementation MUST compute them
-without overflow.
+The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`,
+`0 <= 2^L - 1 - (s + a)` (equivalently, `s + a < 2^L`) in `ProveSpend`
+and `VerifySpend`, `t <= s + a` in `IssueRefund`, and `t <= s + a`
+and `v1 + t < 2^L` in `FinalizeRefund` are integer comparisons. Each
+sum can reach `2^(L+1) - 2`, which does not fit in a `uint64` when
+`L = 64`, and an implementation MUST compute them without overflow.
 
 ## Zero-Knowledge Proofs {#ec-act-proofs}
 
@@ -842,8 +846,8 @@ satisfies
 
 The lower bound shows that the Credential covers the spend, and the upper
 bound that the *topped-up balance* `c + a = s + v1 + a` is below `2^L`, so
-the refund may return up to `s + a` without the balance exceeding
-`2^L - 1`. A single range proof over the bits of `v1`, weighted by
+the Moderator may choose a return amount `t <= s + a` without the
+resulting balance exceeding `2^L - 1`. A single range proof over the bits of `v1`, weighted by
 `w = RangeWeights(m)` ({{ec-act-amounts}}), shows both. A spend with
 `s + a >= 2^L` cannot satisfy them and is rejected with an `AmountError`.
 The number `n = len(w)` of bit commitments is the bit length of `m` and is
