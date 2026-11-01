@@ -288,7 +288,7 @@ check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.
 
 For spending, both parties know `s`, the spend amount, `a`,
-the maximum refund, and a *spend context*
+the top-up allowance, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
 ({{ec-act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
 digest of the encoded challenge.
@@ -477,11 +477,13 @@ bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers ({{ec-act-security}}).
 
 The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`,
-`0 <= 2^L - 1 - (s + a)` (equivalently, `s + a < 2^L`) in `ProveSpend`
-and `VerifySpend`, `t <= s + a` in `IssueRefund`, and `t <= s + a`
-and `v1 + t < 2^L` in `FinalizeRefund` are integer comparisons. Each
-sum can reach `2^(L+1) - 2`, which does not fit in a `uint64` when
-`L = 64`, and an implementation MUST compute them without overflow.
+`s + a < 2^L` in `VerifySpend`, `t <= s + a` in `IssueRefund`, and
+`t <= s + a` and `v1 + t < 2^L` in `FinalizeRefund` are integer
+comparisons. The condition `s + a < 2^L` is equivalent to
+`0 <= 2^L - 1 - (s + a)`; in `ProveSpend` it follows from the first two
+comparisons rather than a separate check. Each sum can reach
+`2^(L+1) - 2`, which does not fit in a `uint64` when `L = 64`, and an
+implementation MUST compute them without overflow.
 
 ## Zero-Knowledge Proofs {#ec-act-proofs}
 
@@ -847,9 +849,8 @@ satisfies
 The lower bound shows that the Credential covers the spend, and the upper
 bound that the *topped-up balance* `c + a = s + v1 + a` is below `2^L`, so
 the Moderator may choose a return amount `t <= s + a` without the
-resulting balance exceeding `2^L - 1`. A single range proof over the bits of
-`v1`, weighted by
-`w = RangeWeights(m)` ({{ec-act-amounts}}), shows both. A spend with
+resulting balance exceeding `2^L - 1`. A single range proof over the bits
+of `v1`, weighted by `w = RangeWeights(m)` ({{ec-act-amounts}}), shows both. A spend with
 `s + a >= 2^L` cannot satisfy them and is rejected with an `AmountError`.
 The number `n = len(w)` of bit commitments is the bit length of `m` and is
 fixed by the public amounts.
