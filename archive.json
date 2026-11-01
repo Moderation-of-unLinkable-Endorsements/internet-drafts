@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-10-29T04:56:32.294836+00:00",
+  "timestamp": "2026-11-01T05:03:17.740918+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1217,9 +1217,48 @@
       ],
       "body": "I suspect that we need some way to advertise MOLE support in requests. Otherwise WWW-Authenticate comes back, and the user agent gives up. ",
       "createdAt": "2026-10-28T21:23:23Z",
-      "updatedAt": "2026-10-28T21:23:23Z",
+      "updatedAt": "2026-10-29T18:10:11Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "WWW-Authenticate comes back because there is a challenge. I would understand you want a way to advertise mole support by the server outside of a challenge mechanism. Is that right?",
+          "createdAt": "2026-10-29T08:22:01Z",
+          "updatedAt": "2026-10-29T08:22:01Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I want the client to advertise support for MOLE. Maybe its somewhere and I missed it. The reason is that unconditionally sending a challenge has bad UX implications for clients that don't understand it.\n\n(Yes, this doesn't matter in some deployment settings, but I think if you don't want JS you need it as a path might need it. Or you do ugly pixel tricks)",
+          "createdAt": "2026-10-29T18:10:11Z",
+          "updatedAt": "2026-10-29T18:10:11Z"
+        }
+      ]
+    },
+    {
+      "number": 158,
+      "id": "I_kwDOSX6krs8AAAABbcL4lQ",
+      "title": "Naming: \"credential\" is pretty bad",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/158",
+      "state": "OPEN",
+      "author": "martinthomson",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
+      "createdAt": "2026-10-31T15:18:35Z",
+      "updatedAt": "2026-10-31T17:31:22Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I like pot for the conciseness and brevity. In my mind, I associated it with a container rather than an object in itself.\n\nI would suggest Card. A card is something people can obtain when visiting places. They hold it, they carry it. It may contains varying amount of information, either printed, encoded in the chip, or something you can perform an operation on. Sometimes, cards might be fully in paper and represent a capacity (could be a punched card). If a card is expired, voided, or lost, you can request a new one. Overall, card tend to convey information.\n\nIn any case, I agree we should move away from the generic term.",
+          "createdAt": "2026-10-31T17:31:22Z",
+          "updatedAt": "2026-10-31T17:31:22Z"
+        }
+      ]
     }
   ],
   "pulls": [
@@ -13276,7 +13315,7 @@
       "labels": [],
       "body": "This is part of the discussion of session semantics. Note there's a bit of a challenge with moderators being first party or third party with origin while cookies do their own thing, but I do appreciate this might be an us (and some other vendor) problem, though solutions appreciated.",
       "createdAt": "2026-10-28T17:52:21Z",
-      "updatedAt": "2026-10-28T18:02:57Z",
+      "updatedAt": "2026-10-29T18:22:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
@@ -13287,7 +13326,22 @@
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "How do we indicate on non-MoLE requests from the client between presentation and update that they are associated with that MoLE session in this model? Just rely on the moderator to use cookies or similar to associate those application requests with the client?",
+          "createdAt": "2026-10-29T17:42:01Z",
+          "updatedAt": "2026-10-29T17:42:01Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@ekovac Yeah, that's the idea, which might need a sentence or two. In applications where MOLE has to coexist with an existing bunch of signals and clearence mechanisms this is pretty useful, or when there's an already existing session cookie for some reason.",
+          "createdAt": "2026-10-29T18:22:12Z",
+          "updatedAt": "2026-10-29T18:22:12Z"
+        }
+      ],
       "reviews": []
     },
     {
@@ -13295,24 +13349,26 @@
       "id": "PR_kwDOSX6krs8AAAABLX_TVQ",
       "title": "Rename MoLE to MOLE",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/156",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
       "labels": [],
       "body": "",
       "createdAt": "2026-10-28T21:56:00Z",
-      "updatedAt": "2026-10-28T22:01:40Z",
+      "updatedAt": "2026-10-29T09:40:56Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/MoLE",
       "headRefOid": "23c8eee242af6de739416c00451ae9cb9e92fe4b",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-10-29T08:22:52Z",
+      "mergedAt": "2026-10-29T08:22:52Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "b663bea8b2d93e01094177b015125cfb2046e101"
+      },
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -13327,9 +13383,162 @@
           "body": "> Why though?\r\n\r\nJust trying to ensure we spell it in one way:\r\nhttps://ietf.slack.com/archives/C0BSCHU32SG/p1793118680533089",
           "createdAt": "2026-10-28T22:01:40Z",
           "updatedAt": "2026-10-28T22:01:40Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Thanks for the change!",
+          "createdAt": "2026-10-29T08:23:07Z",
+          "updatedAt": "2026-10-29T08:23:07Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "But why this way? Of in acronyms is typically lowercase.",
+          "createdAt": "2026-10-29T09:19:40Z",
+          "updatedAt": "2026-10-29T09:19:40Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "my 2cts is that it's easier to write. everything with the same case. some things are not really rational.",
+          "createdAt": "2026-10-29T09:40:56Z",
+          "updatedAt": "2026-10-29T09:40:56Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABU25fIQ",
+          "commit": {
+            "abbreviatedOid": "23c8eee"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-29T08:22:42Z",
+          "updatedAt": "2026-10-29T08:22:42Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 157,
+      "id": "PR_kwDOSX6krs8AAAABL3ksGA",
+      "title": "EC-IHAT: Add a salt to the permutation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/157",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto",
+        "wire breaking"
+      ],
+      "body": "The bound of Theorem 1 of {{DS15}} for indifferentiability of `P()` from a random permutation is quite loose, at $7400448 \\cdot q^8 / 2^n$, where $q$ is the number of `P()` queries made by the adversary and $n$ is the size of each half in the Feistel network. In our case, $n\\in{128,129}$, so the bound becomes vacuous at $q \\approx 2^15$ queries. A direct proof modeling the Feistel round function as a random oracle might yield a better bound, but in lieu of such a proof, to be on the safe side, we should contain the blast radius of an attack as much as possible.\r\n\r\nAdd a salt, bound to the redemption proof and challenge, to each round of Fesiteling. This ensures whatever computation the attacker does to exploit differentiability of `P()` is applicable to a single run of the protocol.",
+      "createdAt": "2026-10-30T21:46:03Z",
+      "updatedAt": "2026-10-31T02:44:15Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b663bea8b2d93e01094177b015125cfb2046e101",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "cjpatton/ihat-perm-salt",
+      "headRefOid": "8a370b6f7633ba7720bb8d5f5761f4be481f3c19",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "Moved to draft, I wanna think about this a bit more.",
+          "createdAt": "2026-10-31T02:44:15Z",
+          "updatedAt": "2026-10-31T02:44:15Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVOKHNQ",
+          "commit": {
+            "abbreviatedOid": "8a370b6"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T21:55:28Z",
+          "updatedAt": "2026-10-30T21:55:28Z",
+          "comments": [
+            {
+              "originalPosition": 241,
+              "body": "Changed the labels so that we can keep the input below 64 bytes, which is the input length of the compression function. ",
+              "createdAt": "2026-10-30T21:55:28Z",
+              "updatedAt": "2026-10-30T21:55:28Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVOLfMw",
+          "commit": {
+            "abbreviatedOid": "8a370b6"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-10-30T21:58:31Z",
+          "updatedAt": "2026-10-30T21:58:38Z",
+          "comments": [
+            {
+              "originalPosition": 462,
+              "body": "Any instantiation of the ROM technically gives no guarantees also but if this makes people sleep better at night sure.\n\nI do think we then need to ensure that even of the parameters are malicious the commitment is zero knowledge with respect to the index. I think that's right.",
+              "createdAt": "2026-10-30T21:58:31Z",
+              "updatedAt": "2026-10-30T21:58:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVOPPbA",
+          "commit": {
+            "abbreviatedOid": "8a370b6"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T22:05:33Z",
+          "updatedAt": "2026-10-30T22:05:33Z",
+          "comments": [
+            {
+              "originalPosition": 462,
+              "body": "> Any instantiation of the ROM technically gives no guarantees also but if this makes people sleep better at night sure.\r\n\r\nYour point here is a red herring. There could be an attack that exploits the structure of the permutation without exploiting the structure the round function. Probably not, but the bound doesn't rule that out. So yes, I'm being cautious.\r\n\r\n> I do think we then need to ensure that even of the parameters are malicious the commitment is zero knowledge with respect to the index. I think that's right.\r\n\r\nI don't think we have a privacy issue. My concern is about binding.\r\n",
+              "createdAt": "2026-10-30T22:05:33Z",
+              "updatedAt": "2026-10-30T22:07:12Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVOQWXw",
+          "commit": {
+            "abbreviatedOid": "8a370b6"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-10-30T22:08:09Z",
+          "updatedAt": "2026-10-30T22:08:09Z",
+          "comments": [
+            {
+              "originalPosition": 462,
+              "body": "Now i understand. I agree this makes sense.",
+              "createdAt": "2026-10-30T22:08:09Z",
+              "updatedAt": "2026-10-30T22:08:09Z"
+            }
+          ]
+        }
+      ]
     }
   ]
 }
