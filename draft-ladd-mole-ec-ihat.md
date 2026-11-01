@@ -1,9 +1,9 @@
 ---
-title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
+title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
 abbrev: "EC-IHAT"
 category: info
 
-docname: draft-authors-mole-ec-ihat-latest
+docname: draft-ladd-mole-ec-ihat-latest
 submissiontype: IETF
 number:
 date:
@@ -20,7 +20,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html"
 
 author:
  -
@@ -2017,9 +2017,10 @@ Unforgeability under rerandomization:
   Thus, Theorem 1 of {{FFKLLS26}} reduces issuer-hiding one-more unforgeability
   to {{TESSZHU}}, provided the issuer-hiding proof is straight-line extractable.
 
-  > TODO Appendix C claims straight-line extractability for {{SIGMA}}, but not
-  > {{STACKSIG}}. Decide how to justify this gap. Perhaps we expect a direct
-  > proof (rather than composition via Theorem 1) to be possible.
+  Appendix C of {{FFKLLS26}} claims straight-line extractability for
+  {{SIGMA}}, but does not establish it for the stacked proof used here.
+  Applying Theorem 1 to this construction therefore remains an open
+  proof obligation.
 
 Issuer hiding:
 : Theorem 2 of {{FFKLLS26}} establishes issuer-hiding blindness from perfect
@@ -2353,4 +2354,5 @@ redeem1.nf =
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+The authors thank Christopher Patton and Thibault Meunier for review and
+improvements to the protocol description.

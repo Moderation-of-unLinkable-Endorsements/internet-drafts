@@ -31,8 +31,8 @@ author:
 
 normative:
   EC-IHAT:
-    title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html
+    title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
 
   VOLE-ACT:
     title: "VOLE-ACT"
@@ -158,7 +158,7 @@ normative:
 informative:
   EC-ACT:
     title: "EC-ACT: Anonymous Credit Tokens"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html
 
   PoMFRIT:
     title: "Concretely Efficient Blind Signatures Based on VOLE-in-the-Head Proofs and the MAYO Trapdoor"

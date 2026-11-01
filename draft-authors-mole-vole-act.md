@@ -162,7 +162,7 @@ informative:
   ARCHITECTURE: I-D.draft-jms-mole-architecture
   EC-ACT:
     title: "EC-ACT: Anonymous Credit Tokens"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html
   SIGMA: I-D.draft-irtf-cfrg-sigma-protocols
 
   PoMFRIT:

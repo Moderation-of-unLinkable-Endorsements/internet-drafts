@@ -35,7 +35,7 @@ def definitions(
 
 
 def test_ec_act_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-ec-act.md").read_text()
+    draft = (ROOT / "draft-schlesinger-mole-ec-act.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )
@@ -48,7 +48,7 @@ def test_ec_act_snippets_match_implementation():
 
 
 def test_ec_ihat_snippets_match_implementation():
-    draft = (ROOT / "draft-authors-mole-ec-ihat.md").read_text()
+    draft = (ROOT / "draft-ladd-mole-ec-ihat.md").read_text()
     snippets = "\n\n".join(
         re.findall(r"(?ms)^~~~\s*python\n(.*?)^~~~", draft)
     )

@@ -3,7 +3,7 @@ title: "EC-ACT: Anonymous Credit Tokens"
 abbrev: "EC-ACT"
 category: info
 
-docname: draft-authors-mole-ec-act-latest
+docname: draft-schlesinger-mole-ec-act-latest
 submissiontype: IETF
 number:
 date:
@@ -21,7 +21,7 @@ venue:
 #  mail: "public-antifraud@w3.org"
 #  arch: "https://lists.w3.org/Archives/Public/public-antifraud/"
   github: "Moderation-of-unLinkable-Endorsements/internet-drafts"
-  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html"
+  latest: "https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html"
 
 author:
  -
@@ -39,14 +39,16 @@ author:
 
 normative:
   EC-IHAT:
-    title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html
+    title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
     date: 2026
     seriesinfo:
-      Internet-Draft: draft-authors-mole-ec-ihat
+      Internet-Draft: draft-ladd-mole-ec-ihat
     author:
       -
         ins: S. Schlesinger
+      -
+        ins: W. Ladd
       -
         ins: D. I. Mohan
   ARCH: I-D.draft-jms-mole-architecture
@@ -1251,9 +1253,6 @@ derivation MUST be adopted under a new ciphersuite identifier, and so a new
 `ctx_proto`; `EC-ACTv1-P256-SHA256` then never denotes two transcript
 formats.
 
-> **TODO.** Revisit once {{SIGMA}} and {{FIAT-SHAMIR}} are stable, and
-> move the pin to `-04` when it is published.
-
 ## EC-ACT(P-256, SHA-256)
 
 This ciphersuite uses P-256 (secp256r1) for the group and
@@ -1322,10 +1321,12 @@ Assumptions:
   derived signing exponents are programmed. {{BBDT16}} covers the
   keyed-verification setting for the underlying MAC.
 
-> **TODO.** Write out the credit-conservation reduction and the statistical
-> unlinkability argument for the idealized scheme, together with bounds
-> for the concrete scalar and nonce derivations in the random oracle model.
-> Analyze unlinkability against quantum random-oracle queries.
+The credit-conservation reduction and the statistical unlinkability
+argument for the idealized scheme remain to be written out. Bounds for
+the concrete scalar and nonce derivations in the random oracle model,
+and unlinkability against quantum random-oracle queries, also remain
+open. The arguments below describe the intended guarantees and proof
+strategy.
 
 Credit conservation:
 : Fix a Moderator key, a credential context, and a balance width `L`. For
@@ -1858,4 +1859,6 @@ spend4.credential =
 # Acknowledgments
 {:numbered="false"}
 
-TODO acknowledge.
+The authors thank Watson Ladd for the single range proof construction,
+and Christopher Patton and Thibault Meunier for review and improvements
+to the protocol description.
