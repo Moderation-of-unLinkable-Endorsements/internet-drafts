@@ -1,0 +1,54 @@
+name: Apply and validate EC-ACT review fixes
+on:
+  push:
+    branches: [fix/ec-act-katz-review]
+    paths: [.github/workflows/review-fix-once.yml]
+permissions:
+  contents: write
+jobs:
+  fix:
+    if: github.repository == 'SamuelSchlesinger/internet-drafts'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.sha }}
+      - name: Apply the reviewed prose changes
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          import re
+          import subprocess
+          path = Path('draft-authors-mole-ec-act.md')
+          before = path.read_text()
+          assert subprocess.check_output(['git', 'hash-object', str(path)], text=True).strip() == '218a7fe4c2dd966056d186b5d166aaf228787c16', 'Draft changed; review again before editing'
+          changes = [
+              ('the maximum refund, and a *spend context*', 'the top-up allowance, and a *spend context*'),
+              ('The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`,\n`0 <= 2^L - 1 - (s + a)` (equivalently, `s + a < 2^L`) in `ProveSpend`\nand `VerifySpend`, `t <= s + a` in `IssueRefund`, and `t <= s + a`\nand `v1 + t < 2^L` in `FinalizeRefund` are integer comparisons. Each\nsum can reach `2^(L+1) - 2`, which does not fit in a `uint64` when\n`L = 64`, and an implementation MUST compute them without overflow.',
+               'The comparisons `s <= c` and `c + a < 2^L` in `ProveSpend`,\n`s + a < 2^L` in `VerifySpend`, `t <= s + a` in `IssueRefund`, and\n`t <= s + a` and `v1 + t < 2^L` in `FinalizeRefund` are integer\ncomparisons. The condition `s + a < 2^L` is equivalent to\n`0 <= 2^L - 1 - (s + a)`; in `ProveSpend` it follows from the first two\ncomparisons rather than a separate check. Each sum can reach\n`2^(L+1) - 2`, which does not fit in a `uint64` when `L = 64`, and an\nimplementation MUST compute them without overflow.'),
+              ('resulting balance exceeding `2^L - 1`. A single range proof over the bits of\n`v1`, weighted by\n`w = RangeWeights(m)`',
+               'resulting balance exceeding `2^L - 1`. A single range proof over the bits\nof `v1`, weighted by `w = RangeWeights(m)`'),
+          ]
+          after = before
+          for old, new in changes:
+              assert after.count(old) == 1, repr(old)
+              after = after.replace(old, new)
+          blocks = lambda text: re.findall(r'^~~~[^\n]*\n.*?^~~~\s*$', text, re.M | re.S)
+          assert blocks(before) == blocks(after), 'Pseudocode or vectors changed'
+          path.write_text(after)
+          print('Verified: all fenced pseudocode, wire formats, and test vectors are unchanged.')
+          PY
+          git diff --check
+          git diff --stat
+      - name: Commit only the draft edits
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add draft-authors-mole-ec-act.md
+          git commit -m 'act: distinguish top-up allowance from refund and clarify the implied bound' -m 'Assisted by ChatGPT.'
+          git push origin HEAD:refs/heads/fix/ec-act-katz-review
+      - name: Build the EC-ACT draft
+        uses: martinthomson/i-d-template@v1
+        with:
+          make: draft-authors-mole-ec-act.html draft-authors-mole-ec-act.txt
+          token: ${{ github.token }}
