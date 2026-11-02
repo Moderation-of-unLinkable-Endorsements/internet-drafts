@@ -38,11 +38,10 @@ author:
 
 normative:
   ARCH: I-D.draft-jms-mole-architecture
-  PROTOCOLS: I-D.draft-jms-mole-protocols
-  HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   HASH2CURVE: RFC9380
   I2OSP: RFC8017
   OPRF: RFC9497
+  QUIC: RFC9000
   TLS13: RFC8446
   NISTCurves:
     title: "Digital Signature Standard (DSS)"
@@ -189,10 +188,6 @@ later be used:
   Moderator. This may be used to prevent Endorsement reuse across Moderators
   without requiring a synchronized state between them.
 
-{{PROTOCOLS}} maps the cryptographic algorithms to the MOLE grant and
-redemption APIs. It supplies the issuance and redemption contexts; this
-document treats those contexts as opaque byte strings.
-
 The remainder of this document is organized as follows. After defining
 conventions and cryptographic preliminaries ({{preliminaries}}), we given an
 overview of issuance and specify some functionalities common to issuance and
@@ -213,10 +208,9 @@ are used as defined in {{ARCH}}.
 
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation ({{Section 3 of TLS13}}). Moreover, all constants are in network byte
-order. This document also uses the variable-size vector convention `<V>`
-defined in {{HTTP-TRANSPORT}}: the length prefix of such a vector is a
-variable-length integer in its minimum-size encoding, so its width depends on
-the length of the contents it carries.
+order. For variable-size vectors written `<V>`, the length prefix is a
+variable-length integer ({{Section 16 of QUIC}}), whose width depends on the
+length of the contents it carries. The minimum-size encoding is recommended.
 
 Algorithms are specified in Python and use the following functions, types, and
 notation.
@@ -386,7 +380,7 @@ protocol data. For example, over HTTP a Client might ask for issuance in a
 request that names how many Endorsements it wants, receive the commitments in
 the response, send the challenges in a second request, and receive the
 responses in the reply to that. {{wire}} specifies the encoding of the three
-messages; {{PROTOCOLS}} specifies how they are batched and correlated.
+messages.
 
 Neither context is carried in these messages. Both parties already hold the
 issuance context, having agreed on it out of band; the redemption context is
@@ -401,7 +395,7 @@ the session that produced it.
 
 A ciphersuite ({{ciphersuites}}) is identified by an ASCII string
 `identifier`. Both parties MUST agree on the ciphersuite before running the
-protocol; {{PROTOCOLS}} describes how this agreement is reached.
+protocol.
 
 The protocol context, written `ctx_proto`, is the domain separation tag that
 this document derives from that identifier:
@@ -571,8 +565,7 @@ def GenerateKeyPair(self) -> tuple[Scalar, Element]:
     return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 ~~~
 
-The Anchor publishes `SerializeElement(pkA)` in its configuration; see
-{{PROTOCOLS}}.
+The Anchor publishes `SerializeElement(pkA)` in its configuration.
 
 ## Context Binding {#context-binding}
 
@@ -584,9 +577,7 @@ most `2^16 - 1` bytes. Because the encoded message is itself passed to
 enforced by `U16Prefixed`. The two contexts are bound by deliberately different
 means, reflecting who is trusted to choose each.
 
-{{PROTOCOLS}} specifies how MOLE obtains these contexts from configuration.
-The examples below illustrate their cryptographic roles and do not define
-alternative context encodings.
+The examples below illustrate their cryptographic roles.
 
 The issuance context, written `ctx_iss`, restricts when, and potentially where,
 an Endorsement may be redeemed; it might for example name the epoch the
@@ -1034,10 +1025,11 @@ Redeem                                                     |
 parties MUST use the same list in the same order. A proof computed over a
 different list or order will not verify.
 
-`challenge_digest` binds the redemption to the challenge that triggered it. It
-is computed from the Moderator's challenge as specified in {{PROTOCOLS}}, and
-this document treats it as an opaque byte string. Note that this challenge is
-the Moderator's, and has nothing to do with the issuance challenge of
+`challenge_digest` binds the redemption to the challenge that triggered it.
+This document treats it as an opaque byte string. The Moderator SHOULD set it
+to a collision-resistant digest, such as SHA-256, of the encoded challenge, so
+that a redemption produced for one challenge does not verify under another.
+Note that this challenge is the Moderator's, and has nothing to do with the issuance challenge of
 {{challenge}}.
 
 In the remainder, let `index` denote the index of the issuing Anchor in
@@ -1884,8 +1876,7 @@ clear in the redemption, and a Moderator that accepts a redemption MUST reject
 it if it has already recorded that `nf`, and MUST record `nf` before granting
 anything on the strength of it. A Moderator SHOULD scope its nullifier store to
 the issuance context, since an Endorsement issued under a different `ctx_iss`
-does not verify anyway. {{PROTOCOLS}} places these checks, and the check that
-`ctx_iss` is current, at the Moderator.
+does not verify anyway.
 
 An Anchor Set of one key gives a tree of depth zero: the redemption carries
 no commitment keys or openings, and the issuer-hiding proof is a proof of
@@ -1894,8 +1885,8 @@ the Anchor Set itself does; see {{security-considerations}}.
 
 ## Encodings {#redemption-wire}
 
-In {{PROTOCOLS}}, a Client sends the encoded `Redemption` with the issuance
-request in Redeem & Issue.
+A Client sends the encoded `Redemption` to the Moderator in the Redeem & Issue
+flow ({{ARCH}}).
 
 ~~~ tls-presentation
 struct {
@@ -2115,12 +2106,11 @@ Context granularity:
 
 Session identifiers:
 : Any identifier the transport uses to correlate the messages of {{wire}},
-  such as the per-batch session identifier of {{PROTOCOLS}}, is chosen by the
-  Anchor and so is a value the Anchor recognises. It MUST be confined to the
-  transport: it is not an input to any algorithm of {{issuance}}, nor is it
-  included in the challenge transcript. Were it bound into the Endorsement,
-  the Anchor could recognise its own identifier at redemption and link the
-  redemption to the issuance session.
+  such as a per-batch session identifier, is chosen by the Anchor and so is a value the Anchor recognises. It MUST be
+  confined to the transport: it is not an input to any algorithm of
+  {{issuance}}, nor is it included in the challenge transcript. Were it bound
+  into the Endorsement, the Anchor could recognise its own identifier at
+  redemption and link the redemption to the issuance session.
 
 Anonymity sets:
 : The effective privacy a Client obtains also depends on deployment properties
@@ -2129,8 +2119,7 @@ Anonymity sets:
 
 # IANA Considerations {#iana}
 
-This document has no IANA actions. The endorsement type for the scheme
-specified here is registered by {{PROTOCOLS}}.
+This document has no IANA actions.
 
 
 --- back
