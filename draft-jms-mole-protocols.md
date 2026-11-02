@@ -752,9 +752,11 @@ ctx_cred = credential_context || I2OSP(L, 1)
 which includes `L` as {{EC-ACT}} recommends. A Moderator expires every
 outstanding Credential under a key by retiring its `credential_context`,
 without changing the key. A refund is issued under the context of the spent
-Credential, so balances do not carry over to a new context. A Moderator
-SHOULD accept both the old and successor credential contexts during a
-transition period.
+Credential, so balances do not carry over to a new context. Moderators can
+accept old and new credential contexts during a transition period to ensure
+a seamless transition across clients. Dropping support for an old credential
+context also drops support for clients which have not discovered the new
+credential context.
 Clients obtain Credentials under the new context through Redeem & Issue;
 this document does not specify balance migration.
 
