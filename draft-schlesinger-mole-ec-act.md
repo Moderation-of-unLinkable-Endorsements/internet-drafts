@@ -244,7 +244,7 @@ most `2^-128` from uniform over the nonzero scalars. The 16-byte margin
 follows the hash-to-field method for a 128-bit security target
 ({{Section 5 of HASH2CURVE}}).
 
-This is a sampling bound for a uniform byte string; it does not establish
+This is a sampling bound for a uniform byte string. It does not establish
 that the deterministic hash-derived scalars or nonces are uniform.
 {{ec-act-security}} describes their analysis and the remaining proof gaps.
 
@@ -272,7 +272,8 @@ In the same exchange the Moderator issues a *refund*: a message containing
 a signature, a public return amount `t`, and a proof of correct signing.
 The Client combines this message with its saved spend state to finalize a
 fresh Credential with balance `c - s + t`. Every spend declares a public
-*top-up allowance* `a`. When no top-up is allowed, the spend sets `a = 0`.
+*top-up allowance* `a`, the maximum permitted increase in the balance.
+When no top-up is allowed, the spend sets `a = 0`.
 The Moderator chooses `t` with `0 <= t <= s + a`, so the balance increases
 exactly when `t > s`, by at most `a`. With `a = 0`, the return amount is
 at most `s`.
