@@ -465,7 +465,7 @@ to provide. Moderation quality therefore depends on Anchor quality.
 
 While Moderators can change Anchor sets and measure observed behavior, e.g.,
 by removing a single Anchor and seeing if "abuse" reduces, this practice
-is undesirable. Stable and consistent Anchor sets, which are part of a Moderator
+is undesirable, and dependent on Client implementation and deployments. Stable and consistent Anchor sets, which are part of a Moderator
 configuration, are needed for Client privacy. Moreover, this behavior is
 effectively a way for Moderators to infer information about Clients (which
 Anchor did they use) through implicit signals.
