@@ -38,9 +38,7 @@ author:
 
 normative:
   HTTP: RFC9110
-  PROTOCOLS: #I-D.draft-jms-mole-protocols
-    title: MOLE Protocols
-    target: https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/
+  PROTOCOLS: I-D.draft-jms-mole-protocols
 
 informative:
   BASE64: RFC4648
@@ -65,8 +63,7 @@ the Anchor are defined per protocol in {{PROTOCOLS}}.
 {{PROTOCOLS}} defines the MOLE messages. This document carries them over
 HTTP. Challenges and presentations use the `Mole` authentication scheme
 {{HTTP}}. Credential material returns in the `Mole-Credential` response
-header. Grant exchanges with an Anchor are HTTP POST requests defined in
-{{PROTOCOLS}}.
+header. Grant exchanges with an Anchor are defined in {{PROTOCOLS}}.
 
 # Conventions and Definitions
 
@@ -190,8 +187,7 @@ The grant endpoint comes from Anchor configuration. The Client sends a POST
 with the type-specific grant message as its body. The media type is
 `application/mole-endorsement-request` with a required `type` parameter using
 the same four-digit hexadecimal encoding. The response uses
-`application/mole-endorsement-response` with the same type. The Client MUST
-reject a mismatched type. There is no outer `EndorsementRequest` or
+`application/mole-endorsement-response` with the same type. There is no outer `EndorsementRequest` or
 `EndorsementResponse` wrapper. The first EC-IHAT request carries a
 `GrantRequest` naming the number of Endorsements the Client asks for
 ({{PROTOCOLS}}):
@@ -201,6 +197,12 @@ Content-Type: application/mole-endorsement-request; type=0002
 ~~~
 
 The criteria for granting are the Anchor's.
+
+The Anchor returns 200 (OK) with the response media type only when it produced
+a complete grant response. A Client MUST reject a non-success status, an
+unexpected media type, a response whose type differs from its request, trailing
+bytes, or malformed type-specific content. Clients MUST NOT automatically
+redirect a grant POST carrying protocol state.
 
 ## Redeem & Issue {#redeem-issue}
 

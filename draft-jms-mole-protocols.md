@@ -45,7 +45,6 @@ normative:
   EC-IHAT:
     title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
-  HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk
   QUIC: RFC9000
@@ -83,9 +82,7 @@ and Credentials but does not say how to build them. This document does.
 
 It defines two endorsement protocols and two credential protocols. Each is
 identified by a type value from a registry established in this document
-({{iana}}). The HTTP carriage of challenges, requests, redemptions, and
-presentations is defined by {{HTTP-TRANSPORT}}. This document defines the
-messages and their processing rules.
+({{iana}}). This document defines the messages and their processing rules.
 
 TODO: the protocols below reflect our current understanding of how MOLE
 may work, and showcase agility. They are not final. Some may be removed,
@@ -160,7 +157,7 @@ The value 0x0000 is reserved in both registries and MUST NOT appear on the
 wire. Endorsement type 0x0001 means that no Endorsement is required.
 
 A Moderator Challenge has no payload wrapper. The HTTP challenge parameter
-identifies the endorsement or credential type ({{HTTP-TRANSPORT}}), and the
+identifies the endorsement or credential type, and the
 decoded payload is the type-specific Challenge. Hashes cover those decoded
 octets, never HTTP parameter names, quoting, or base64url text.
 
@@ -237,15 +234,8 @@ Finalize                          |
 ~~~
 {: #fig-endorsement-flow title="Endorsement grant and redemption"}
 
-Exchanges with the Anchor are HTTP POST requests carrying the type-specific
-grant messages directly, as specified in {{HTTP-TRANSPORT}}. The endorsement
-type determines how many exchanges are needed and the message at each step.
-
-The Anchor returns 200 (OK) with the response media type only when it produced
-a complete grant response. A Client MUST reject a non-success status, an
-unexpected media type, a response whose type differs from its request, trailing
-bytes, or malformed type-specific content. Clients MUST NOT automatically
-redirect a grant POST carrying protocol state.
+The endorsement type determines how many exchanges are needed and the message
+at each step.
 
 Every endorsement protocol defines a `Redemption` structure, sent with the
 issuance request in Redeem & Issue ({{credential-protocols}}).
@@ -597,7 +587,7 @@ Finalize                                    |
 Redeem & Issue carries a redemption and an issuance request. The Moderator
 runs the endorsement protocol's `FinalizeRedeem` before accepting issuance.
 Presentation carries `PresentationAndUpdate` and returns `Update` or a recorded
-`NoUpdate` decision. {{HTTP-TRANSPORT}} carries these payloads directly.
+`NoUpdate` decision.
 
 `CredentialRequest` names the pair of Redeem & Issue payloads: the
 endorsement type and its `Redemption`, and the credential type and its
@@ -724,8 +714,6 @@ destination ({{ec-act-missing-refund}}). `ProcessPresentation` returns
 `ACCEPTED_WITH_UPDATE` with a refund, and `ACCEPTED_NO_UPDATE` when the
 Moderator declines to refund. For a retry answered from a record
 ({{ec-act-missing-refund}}), it returns the recorded result with `fresh` false.
-The EC-ACT response rules in {{HTTP-TRANSPORT}} define the HTTP status and
-`Mole-Credential` header for each outcome.
 
 ### Configuration {#ec-act-configuration}
 
@@ -841,7 +829,7 @@ wants to lower balances challenges with `s > 0` and returns `t < s`; one that
 wants to raise them offers `a > 0`. `credential_context` repeats the
 configured value, so that a Client can tell that its Credential has expired
 without refetching the configuration. It is the challenge field that
-partitions cached Credentials ({{HTTP-TRANSPORT}}).
+partitions cached Credentials.
 
 #### Challenge Binding {#ec-act-challenge-binding}
 
@@ -944,7 +932,7 @@ result, and step 4 follows.
    recorded credential result as an `Update`: the refund, or, for
    `NoUpdate`, an absent update, which leaves the Client without a
    replacement. The Moderator MUST include this result even when the
-   protected operation fails ({{HTTP-TRANSPORT}}).
+   protected operation fails.
 
 Spending credits authorizes one attempt of the protected operation. A
 failure after step 3 can charge the Client without completing step 4; a
@@ -1019,12 +1007,11 @@ Recovery remains available after the presentation's challenge expires:
 * For a recorded `Refund(t)`, the Moderator returns the refund it stored.
 * For a recorded `NoUpdate`, the Moderator returns an absent update.
 
-The recovery handle ({{HTTP-TRANSPORT}}) is
+The recovery handle is
 `key_id || SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate)`.
 
 The Moderator MUST NOT authorize another operation for a recorded nullifier,
-and MUST NOT change a recorded decision. HTTP status codes for recovery and
-retries are specified in {{HTTP-TRANSPORT}}.
+and MUST NOT change a recorded decision.
 
 Once recovery ends, a retry is rejected, and the Client MUST discard the
 spend state. To continue, it runs Redeem & Issue. The Moderator MUST retain
@@ -1136,7 +1123,7 @@ If concurrent presentations race to record the nonce, only the winner returns
 the recorded presentation digest matches. Otherwise it rejects the request.
 Once the result expires, the retained nonce still prevents another acceptance.
 
-The recovery handle ({{HTTP-TRANSPORT}}) is
+The recovery handle is
 `token.token_key_id || token.nonce || SHA-256(PresentationAndUpdate)`.
 
 ### Limitations
@@ -1256,6 +1243,9 @@ The serialization, for instance JSON or CBOR, is to be defined with the
 configuration's authentication and consistency checks. In JSON, `bstr`
 values are unpadded base64url strings.
 
+TODO: define how a Client discovers the configuration URI, and the
+configuration media type, together with the serialization.
+
 # Privacy Considerations {#privacy-considerations}
 
 TODO. Follow {{ARCHITECTURE}} and cover:
@@ -1327,8 +1317,7 @@ Timing:
 
 # Security Considerations {#security-considerations}
 
-All exchanges defined in this document and {{HTTP-TRANSPORT}} MUST be
-carried over HTTPS.
+All exchanges defined in this document MUST be carried over HTTPS.
 
 TODO. The list to cover:
 
@@ -1521,9 +1510,9 @@ random bytes ({{greasing}}).
 {: #media-types-table title="MOLE Media Types"}
 
 Both media types require a `type` parameter containing the four-digit
-hexadecimal endorsement type defined by {{HTTP-TRANSPORT}}. Bodies are the
-type-specific binary grant messages. Duplicate or mismatched type parameters
-are rejected. Neither type has optional parameters defined here.
+hexadecimal endorsement type value ({{iana}}). Bodies
+are the type-specific binary grant messages. Duplicate or mismatched type
+parameters are rejected. Neither type has optional parameters defined here.
 
 > **Editor note.** The final registry names and expert-review instructions
 > remain to be specified.
@@ -1576,8 +1565,7 @@ Privacy Pass `TokenChallenge` and sends `PresentationAndUpdate`.
 
 A fresh acceptance authorizes one attempt of the protected operation. The
 response carries the recorded `Update` for a fresh token, or `NoUpdate` if
-the Moderator chose to consume the Credential. {{HTTP-TRANSPORT}} defines
-the carriage of these exchanges.
+the Moderator chose to consume the Credential.
 
 # Acknowledgments
 {:numbered="false"}
