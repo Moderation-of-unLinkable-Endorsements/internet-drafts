@@ -1358,9 +1358,7 @@ resources. The architecture states the required properties of Endorsements
 and Credentials but does not say how to build them. This document does.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">It defines two endorsement protocols and two credential protocols. Each is
 identified by a type value from a registry established in this document
-(<a href="#iana" class="auto internal xref">Section 9</a>). The HTTP carriage of challenges, requests, redemptions, and
-presentations is defined by <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. This document defines the
-messages and their processing rules.<a href="#section-1-2" class="pilcrow">¶</a></p>
+(<a href="#iana" class="auto internal xref">Section 9</a>). This document defines the messages and their processing rules.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">TODO: the protocols below reflect our current understanding of how MOLE
 may work, and showcase agility. They are not final. Some may be removed,
 others added.<a href="#section-1-3" class="pilcrow">¶</a></p>
@@ -1598,16 +1596,10 @@ Issue flow (<a href="#credential-protocols" class="auto internal xref">Section 5
 <a href="#name-endorsement-grant-and-redem" class="selfRef">Endorsement grant and redemption</a>
         </figcaption></figure>
 </div>
-<p id="section-4-3">Exchanges with the Anchor are HTTP POST requests carrying the type-specific
-grant messages directly, as specified in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. The endorsement
-type determines how many exchanges are needed and the message at each step.<a href="#section-4-3" class="pilcrow">¶</a></p>
-<p id="section-4-4">The Anchor returns 200 (OK) with the response media type only when it produced
-a complete grant response. A Client <span class="bcp14">MUST</span> reject a non-success status, an
-unexpected media type, a response whose type differs from its request, trailing
-bytes, or malformed type-specific content. Clients <span class="bcp14">MUST NOT</span> automatically
-redirect a grant POST carrying protocol state.<a href="#section-4-4" class="pilcrow">¶</a></p>
-<p id="section-4-5">Every endorsement protocol defines a <code>Redemption</code> structure, sent with the
-issuance request in Redeem &amp; Issue (<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-5" class="pilcrow">¶</a></p>
+<p id="section-4-3">The endorsement type determines how many exchanges are needed and the message
+at each step.<a href="#section-4-3" class="pilcrow">¶</a></p>
+<p id="section-4-4">Every endorsement protocol defines a <code>Redemption</code> structure, sent with the
+issuance request in Redeem &amp; Issue (<a href="#credential-protocols" class="auto internal xref">Section 5</a>).<a href="#section-4-4" class="pilcrow">¶</a></p>
 <div id="challenge-binding">
 <section id="section-4.1">
         <h3 id="name-redemption-challenge-bindin">
@@ -2083,7 +2075,7 @@ exchange.<a href="#section-5-1" class="pilcrow">¶</a></p>
 <p id="section-5-3">Redeem &amp; Issue carries a redemption and an issuance request. The Moderator
 runs the endorsement protocol's <code>FinalizeRedeem</code> before accepting issuance.
 Presentation carries <code>PresentationAndUpdate</code> and returns <code>Update</code> or a recorded
-<code>NoUpdate</code> decision. <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> carries these payloads directly.<a href="#section-5-3" class="pilcrow">¶</a></p>
+<code>NoUpdate</code> decision.<a href="#section-5-3" class="pilcrow">¶</a></p>
 <p id="section-5-4"><code>CredentialRequest</code> names the pair of Redeem &amp; Issue payloads: the
 endorsement type and its <code>Redemption</code>, and the credential type and its
 <code>IssuanceRequest</code>. HTTP carries them as two typed parameters.<a href="#section-5-4" class="pilcrow">¶</a></p>
@@ -2307,9 +2299,7 @@ HTTP request information needed to resend them to their original
 destination (<a href="#ec-act-missing-refund" class="auto internal xref">Section 5.2.5</a>). <code>ProcessPresentation</code> returns
 <code>ACCEPTED_WITH_UPDATE</code> with a refund, and <code>ACCEPTED_NO_UPDATE</code> when the
 Moderator declines to refund. For a retry answered from a record
-(<a href="#ec-act-missing-refund" class="auto internal xref">Section 5.2.5</a>), it returns the recorded result with <code>fresh</code> false.
-The EC-ACT response rules in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> define the HTTP status and
-<code>Mole-Credential</code> header for each outcome.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
+(<a href="#ec-act-missing-refund" class="auto internal xref">Section 5.2.5</a>), it returns the recorded result with <code>fresh</code> false.<a href="#section-5.2-7" class="pilcrow">¶</a></p>
 <div id="ec-act-configuration">
 <section id="section-5.2.1">
           <h4 id="name-configuration-3">
@@ -2453,7 +2443,7 @@ wants to lower balances challenges with <code>s &gt; 0</code> and returns <code>
 wants to raise them offers <code>a &gt; 0</code>. <code>credential_context</code> repeats the
 configured value, so that a Client can tell that its Credential has expired
 without refetching the configuration. It is the challenge field that
-partitions cached Credentials (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>).<a href="#section-5.2.3-3" class="pilcrow">¶</a></p>
+partitions cached Credentials.<a href="#section-5.2.3-3" class="pilcrow">¶</a></p>
 <div id="ec-act-challenge-binding">
 <section id="section-5.2.3.1">
             <h5 id="name-challenge-binding">
@@ -2572,7 +2562,7 @@ successfully recorded.<a href="#section-5.2.3.2-6.3.1" class="pilcrow">¶</a></p
 recorded credential result as an <code>Update</code>: the refund, or, for
 <code>NoUpdate</code>, an absent update, which leaves the Client without a
 replacement. The Moderator <span class="bcp14">MUST</span> include this result even when the
-protected operation fails (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>).<a href="#section-5.2.3.2-6.4.1" class="pilcrow">¶</a></p>
+protected operation fails.<a href="#section-5.2.3.2-6.4.1" class="pilcrow">¶</a></p>
 </li>
             </ol>
 <p id="section-5.2.3.2-7">Spending credits authorizes one attempt of the protected operation. A
@@ -2709,11 +2699,10 @@ Recovery remains available after the presentation's challenge expires:<a href="#
               <p id="section-5.2.5-3.2.1">For a recorded <code>NoUpdate</code>, the Moderator returns an absent update.<a href="#section-5.2.5-3.2.1" class="pilcrow">¶</a></p>
 </li>
           </ul>
-<p id="section-5.2.5-4">The recovery handle (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>) is
+<p id="section-5.2.5-4">The recovery handle is
 <code>key_id || SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate)</code>.<a href="#section-5.2.5-4" class="pilcrow">¶</a></p>
 <p id="section-5.2.5-5">The Moderator <span class="bcp14">MUST NOT</span> authorize another operation for a recorded nullifier,
-and <span class="bcp14">MUST NOT</span> change a recorded decision. HTTP status codes for recovery and
-retries are specified in <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>.<a href="#section-5.2.5-5" class="pilcrow">¶</a></p>
+and <span class="bcp14">MUST NOT</span> change a recorded decision.<a href="#section-5.2.5-5" class="pilcrow">¶</a></p>
 <p id="section-5.2.5-6">Once recovery ends, a retry is rejected, and the Client <span class="bcp14">MUST</span> discard the
 spend state. To continue, it runs Redeem &amp; Issue. The Moderator <span class="bcp14">MUST</span> retain
 the nullifier after deleting its result for as long as the key and
@@ -2856,7 +2845,7 @@ request. These requirements are the retry semantics of <span>[<a href="#REVERSE-
 <code>fresh</code> true. A loser returns the retained result with <code>fresh</code> false only if
 the recorded presentation digest matches. Otherwise it rejects the request.
 Once the result expires, the retained nonce still prevents another acceptance.<a href="#section-5.3.3-2" class="pilcrow">¶</a></p>
-<p id="section-5.3.3-3">The recovery handle (<span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>) is
+<p id="section-5.3.3-3">The recovery handle is
 <code>token.token_key_id || token.nonce || SHA-256(PresentationAndUpdate)</code>.<a href="#section-5.3.3-3" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -2983,6 +2972,8 @@ to different Clients partitions them (<span>[<a href="#ARCHITECTURE" class="cite
 <p id="section-6-8">The serialization, for instance JSON or CBOR, is to be defined with the
 configuration's authentication and consistency checks. In JSON, <code>bstr</code>
 values are unpadded base64url strings.<a href="#section-6-8" class="pilcrow">¶</a></p>
+<p id="section-6-9">TODO: define how a Client discovers the configuration URI, and the
+configuration media type, together with the serialization.<a href="#section-6-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy-considerations">
@@ -3087,8 +3078,7 @@ that replaces it.<a href="#section-7.1-2.8.1" class="pilcrow">¶</a></p>
       <h2 id="name-security-considerations">
 <a href="#section-8" class="section-number selfRef">8. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
       </h2>
-<p id="section-8-1">All exchanges defined in this document and <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> <span class="bcp14">MUST</span> be
-carried over HTTPS.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<p id="section-8-1">All exchanges defined in this document <span class="bcp14">MUST</span> be carried over HTTPS.<a href="#section-8-1" class="pilcrow">¶</a></p>
 <p id="section-8-2">TODO. The list to cover:<a href="#section-8-2" class="pilcrow">¶</a></p>
 <ol start="1" type="1" class="normal type-1" id="section-8-3">
 <li id="section-8-3.1">
@@ -3508,9 +3498,9 @@ random bytes (<a href="#greasing" class="auto internal xref">Section 3.2</a>).<a
         </table>
 </div>
 <p id="section-9.3-2">Both media types require a <code>type</code> parameter containing the four-digit
-hexadecimal endorsement type defined by <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span>. Bodies are the
-type-specific binary grant messages. Duplicate or mismatched type parameters
-are rejected. Neither type has optional parameters defined here.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
+hexadecimal endorsement type value (<a href="#iana" class="auto internal xref">Section 9</a>). Bodies
+are the type-specific binary grant messages. Duplicate or mismatched type
+parameters are rejected. Neither type has optional parameters defined here.<a href="#section-9.3-2" class="pilcrow">¶</a></p>
 <ul class="normal ulEmpty">
 <li class="normal ulEmpty" id="section-9.3-3.1">
             <p id="section-9.3-3.1.1"><strong>Editor note.</strong> The final registry names and expert-review instructions
@@ -3547,10 +3537,6 @@ remain to be specified.<a href="#section-9.3-3.1.1" class="pilcrow">¶</a></p>
 <dt id="EC-IHAT">[EC-IHAT]</dt>
         <dd>
 <span class="refTitle">"EC-IHAT: Issuer-Hiding Anonymous Tokens"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="HTTP-TRANSPORT">[HTTP-TRANSPORT]</dt>
-        <dd>
-<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE HTTP Transport"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-http-transport-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-http-transport-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="IANA">[IANA]</dt>
         <dd>
@@ -3706,8 +3692,7 @@ On a later request, it obtains a <code>CredentialChallenge</code> carrying the c
 Privacy Pass <code>TokenChallenge</code> and sends <code>PresentationAndUpdate</code>.<a href="#appendix-A-4" class="pilcrow">¶</a></p>
 <p id="appendix-A-5">A fresh acceptance authorizes one attempt of the protected operation. The
 response carries the recorded <code>Update</code> for a fresh token, or <code>NoUpdate</code> if
-the Moderator chose to consume the Credential. <span>[<a href="#HTTP-TRANSPORT" class="cite xref">HTTP-TRANSPORT</a>]</span> defines
-the carriage of these exchanges.<a href="#appendix-A-5" class="pilcrow">¶</a></p>
+the Moderator chose to consume the Credential.<a href="#appendix-A-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="acknowledgments">

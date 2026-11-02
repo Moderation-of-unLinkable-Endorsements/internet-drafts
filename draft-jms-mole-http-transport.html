@@ -1238,8 +1238,7 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
 <p id="section-1-1"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> defines the MOLE messages. This document carries them over
 HTTP. Challenges and presentations use the <code>Mole</code> authentication scheme
 <span>[<a href="#HTTP" class="cite xref">HTTP</a>]</span>. Credential material returns in the <code>Mole-Credential</code> response
-header. Grant exchanges with an Anchor are HTTP POST requests defined in
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+header. Grant exchanges with an Anchor are defined in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -1494,8 +1493,7 @@ WWW-Authenticate: Mole endorse-0002=""
 with the type-specific grant message as its body. The media type is
 <code>application/mole-endorsement-request</code> with a required <code>type</code> parameter using
 the same four-digit hexadecimal encoding. The response uses
-<code>application/mole-endorsement-response</code> with the same type. The Client <span class="bcp14">MUST</span>
-reject a mismatched type. There is no outer <code>EndorsementRequest</code> or
+<code>application/mole-endorsement-response</code> with the same type. There is no outer <code>EndorsementRequest</code> or
 <code>EndorsementResponse</code> wrapper. The first EC-IHAT request carries a
 <code>GrantRequest</code> naming the number of Endorsements the Client asks for
 (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>):<a href="#section-6.1-2" class="pilcrow">¶</a></p>
@@ -1505,6 +1503,11 @@ Content-Type: application/mole-endorsement-request; type=0002
 </pre><a href="#section-6.1-3" class="pilcrow">¶</a>
 </div>
 <p id="section-6.1-4">The criteria for granting are the Anchor's.<a href="#section-6.1-4" class="pilcrow">¶</a></p>
+<p id="section-6.1-5">The Anchor returns 200 (OK) with the response media type only when it produced
+a complete grant response. A Client <span class="bcp14">MUST</span> reject a non-success status, an
+unexpected media type, a response whose type differs from its request, trailing
+bytes, or malformed type-specific content. Clients <span class="bcp14">MUST NOT</span> automatically
+redirect a grant POST carrying protocol state.<a href="#section-6.1-5" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="redeem-issue">
@@ -1769,7 +1772,7 @@ in this document.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
 <dd class="break"></dd>
 <dt id="PROTOCOLS">[PROTOCOLS]</dt>
         <dd>
-<span class="refTitle">"MOLE Protocols"</span>, <span>n.d.</span>, <span>&lt;<a href="https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/">https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/</a>&gt;</span>. </dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>

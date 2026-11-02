@@ -134,10 +134,8 @@ Table of Contents
 
    It defines two endorsement protocols and two credential protocols.
    Each is identified by a type value from a registry established in
-   this document (Section 9).  The HTTP carriage of challenges,
-   requests, redemptions, and presentations is defined by
-   [HTTP-TRANSPORT].  This document defines the messages and their
-   processing rules.
+   this document (Section 9).  This document defines the messages and
+   their processing rules.
 
    TODO: the protocols below reflect our current understanding of how
    MOLE may work, and showcase agility.  They are not final.  Some may
@@ -308,17 +306,8 @@ Table of Contents
 
                  Figure 1: Endorsement grant and redemption
 
-   Exchanges with the Anchor are HTTP POST requests carrying the type-
-   specific grant messages directly, as specified in [HTTP-TRANSPORT].
    The endorsement type determines how many exchanges are needed and the
    message at each step.
-
-   The Anchor returns 200 (OK) with the response media type only when it
-   produced a complete grant response.  A Client MUST reject a non-
-   success status, an unexpected media type, a response whose type
-   differs from its request, trailing bytes, or malformed type-specific
-   content.  Clients MUST NOT automatically redirect a grant POST
-   carrying protocol state.
 
    Every endorsement protocol defines a Redemption structure, sent with
    the issuance request in Redeem & Issue (Section 5).
@@ -670,8 +659,7 @@ Table of Contents
    Redeem & Issue carries a redemption and an issuance request.  The
    Moderator runs the endorsement protocol's FinalizeRedeem before
    accepting issuance.  Presentation carries PresentationAndUpdate and
-   returns Update or a recorded NoUpdate decision.  [HTTP-TRANSPORT]
-   carries these payloads directly.
+   returns Update or a recorded NoUpdate decision.
 
    CredentialRequest names the pair of Redeem & Issue payloads: the
    endorsement type and its Redemption, and the credential type and its
@@ -829,8 +817,7 @@ FinalizeUpdate(presentation_state, update, configuration)
    returns ACCEPTED_WITH_UPDATE with a refund, and ACCEPTED_NO_UPDATE
    when the Moderator declines to refund.  For a retry answered from a
    record (Section 5.2.5), it returns the recorded result with fresh
-   false.  The EC-ACT response rules in [HTTP-TRANSPORT] define the HTTP
-   status and Mole-Credential header for each outcome.
+   false.
 
 5.2.1.  Configuration
 
@@ -944,7 +931,7 @@ FinalizeUpdate(presentation_state, update, configuration)
    credential_context repeats the configured value, so that a Client can
    tell that its Credential has expired without refetching the
    configuration.  It is the challenge field that partitions cached
-   Credentials ([HTTP-TRANSPORT]).
+   Credentials.
 
 5.2.3.1.  Challenge Binding
 
@@ -1048,7 +1035,7 @@ FinalizeUpdate(presentation_state, update, configuration)
        the recorded credential result as an Update: the refund, or, for
        NoUpdate, an absent update, which leaves the Client without a
        replacement.  The Moderator MUST include this result even when
-       the protected operation fails ([HTTP-TRANSPORT]).
+       the protected operation fails.
 
    Spending credits authorizes one attempt of the protected operation.
    A failure after step 3 can charge the Client without completing step
@@ -1125,12 +1112,11 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    *  For a recorded NoUpdate, the Moderator returns an absent update.
 
-   The recovery handle ([HTTP-TRANSPORT]) is key_id ||
-   SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate).
+   The recovery handle is key_id || SerializeScalar(spend.k) || SHA-
+   256(PresentationAndUpdate).
 
    The Moderator MUST NOT authorize another operation for a recorded
-   nullifier, and MUST NOT change a recorded decision.  HTTP status
-   codes for recovery and retries are specified in [HTTP-TRANSPORT].
+   nullifier, and MUST NOT change a recorded decision.
 
    Once recovery ends, a retry is rejected, and the Client MUST discard
    the spend state.  To continue, it runs Redeem & Issue.  The Moderator
@@ -1255,8 +1241,8 @@ FinalizeUpdate(presentation_state, update, configuration)
    rejects the request.  Once the result expires, the retained nonce
    still prevents another acceptance.
 
-   The recovery handle ([HTTP-TRANSPORT]) is token.token_key_id ||
-   token.nonce || SHA-256(PresentationAndUpdate).
+   The recovery handle is token.token_key_id || token.nonce || SHA-
+   256(PresentationAndUpdate).
 
 5.3.4.  Limitations
 
@@ -1372,6 +1358,9 @@ FinalizeUpdate(presentation_state, update, configuration)
    the configuration's authentication and consistency checks.  In JSON,
    bstr values are unpadded base64url strings.
 
+   TODO: define how a Client discovers the configuration URI, and the
+   configuration media type, together with the serialization.
+
 7.  Privacy Considerations
 
    TODO.  Follow [ARCHITECTURE] and cover:
@@ -1449,8 +1438,7 @@ FinalizeUpdate(presentation_state, update, configuration)
 
 8.  Security Considerations
 
-   All exchanges defined in this document and [HTTP-TRANSPORT] MUST be
-   carried over HTTPS.
+   All exchanges defined in this document MUST be carried over HTTPS.
 
    TODO.  The list to cover:
 
@@ -1689,9 +1677,9 @@ FinalizeUpdate(presentation_state, update, configuration)
                          Table 5: MOLE Media Types
 
    Both media types require a type parameter containing the four-digit
-   hexadecimal endorsement type defined by [HTTP-TRANSPORT].  Bodies are
-   the type-specific binary grant messages.  Duplicate or mismatched
-   type parameters are rejected.  Neither type has optional parameters
+   hexadecimal endorsement type value (Section 9).  Bodies are the type-
+   specific binary grant messages.  Duplicate or mismatched type
+   parameters are rejected.  Neither type has optional parameters
    defined here.
 
       *Editor note.* The final registry names and expert-review
@@ -1721,13 +1709,6 @@ FinalizeUpdate(presentation_state, update, configuration)
    [EC-IHAT]  "EC-IHAT: Issuer-Hiding Anonymous Tokens", n.d.,
               <https://moderation-of-unlinkable-endorsements.github.io/
               internet-drafts/draft-ladd-mole-ec-ihat.html>.
-
-   [HTTP-TRANSPORT]
-              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
-              Transport", Work in Progress, Internet-Draft, draft-jms-
-              mole-http-transport-00, 6 July 2026,
-              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
-              http-transport-00>.
 
    [IANA]     Cotton, M., Leiba, B., and T. Narten, "Guidelines for
               Writing an IANA Considerations Section in RFCs", BCP 26,
@@ -1835,7 +1816,6 @@ Appendix A.  Example
    A fresh acceptance authorizes one attempt of the protected operation.
    The response carries the recorded Update for a fresh token, or
    NoUpdate if the Moderator chose to consume the Credential.
-   [HTTP-TRANSPORT] defines the carriage of these exchanges.
 
 Acknowledgments
 

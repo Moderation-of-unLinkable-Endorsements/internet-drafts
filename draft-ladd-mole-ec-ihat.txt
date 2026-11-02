@@ -153,10 +153,6 @@ Table of Contents
       Endorsement reuse across Moderators without requiring a
       synchronized state between them.
 
-   [PROTOCOLS] maps the cryptographic algorithms to the MOLE grant and
-   redemption APIs.  It supplies the issuance and redemption contexts;
-   this document treats those contexts as opaque byte strings.
-
    The remainder of this document is organized as follows.  After
    defining conventions and cryptographic preliminaries (Section 3), we
    given an overview of issuance and specify some functionalities common
@@ -182,11 +178,10 @@ Table of Contents
 
    Unless otherwise specified, this document encodes protocol messages
    in TLS notation (Section 3 of [TLS13]).  Moreover, all constants are
-   in network byte order.  This document also uses the variable-size
-   vector convention <V> defined in [HTTP-TRANSPORT]: the length prefix
-   of such a vector is a variable-length integer in its minimum-size
-   encoding, so its width depends on the length of the contents it
-   carries.
+   in network byte order.  For variable-size vectors written <V>, the
+   length prefix is a variable-length integer (Section 16 of [QUIC]),
+   whose width depends on the length of the contents it carries.  The
+   minimum-size encoding is recommended.
 
    Algorithms are specified in Python and use the following functions,
    types, and notation.
@@ -346,8 +341,7 @@ Table of Contents
    names how many Endorsements it wants, receive the commitments in the
    response, send the challenges in a second request, and receive the
    responses in the reply to that.  Section 5.6 specifies the encoding
-   of the three messages; [PROTOCOLS] specifies how they are batched and
-   correlated.
+   of the three messages.
 
    Neither context is carried in these messages.  Both parties already
    hold the issuance context, having agreed on it out of band; the
@@ -362,8 +356,7 @@ Table of Contents
 
    A ciphersuite (Section 7) is identified by an ASCII string
    identifier.  Both parties MUST agree on the ciphersuite before
-   running the protocol; [PROTOCOLS] describes how this agreement is
-   reached.
+   running the protocol.
 
    The protocol context, written ctx_proto, is the domain separation tag
    that this document derives from that identifier:
@@ -524,8 +517,7 @@ Table of Contents
        seed = random(Nseed)
        return self.DeriveKeyPair(seed, b"GenerateKeyPair")
 
-   The Anchor publishes SerializeElement(pkA) in its configuration; see
-   [PROTOCOLS].
+   The Anchor publishes SerializeElement(pkA) in its configuration.
 
 4.5.  Context Binding
 
@@ -538,9 +530,7 @@ Table of Contents
    contexts are bound by deliberately different means, reflecting who is
    trusted to choose each.
 
-   [PROTOCOLS] specifies how MOLE obtains these contexts from
-   configuration.  The examples below illustrate their cryptographic
-   roles and do not define alternative context encodings.
+   The examples below illustrate their cryptographic roles.
 
    The issuance context, written ctx_iss, restricts when, and
    potentially where, an Endorsement may be redeemed; it might for
@@ -974,10 +964,12 @@ Table of Contents
    computed over a different list or order will not verify.
 
    challenge_digest binds the redemption to the challenge that triggered
-   it.  It is computed from the Moderator's challenge as specified in
-   [PROTOCOLS], and this document treats it as an opaque byte string.
-   Note that this challenge is the Moderator's, and has nothing to do
-   with the issuance challenge of Section 5.2.
+   it.  This document treats it as an opaque byte string.  The Moderator
+   SHOULD set it to a collision-resistant digest, such as SHA-256, of
+   the encoded challenge, so that a redemption produced for one
+   challenge does not verify under another.  Note that this challenge is
+   the Moderator's, and has nothing to do with the issuance challenge of
+   Section 5.2.
 
    In the remainder, let index denote the index of the issuing Anchor in
    anchor_set.
@@ -1802,8 +1794,7 @@ Table of Contents
    MUST record nf before granting anything on the strength of it.  A
    Moderator SHOULD scope its nullifier store to the issuance context,
    since an Endorsement issued under a different ctx_iss does not verify
-   anyway.  [PROTOCOLS] places these checks, and the check that ctx_iss
-   is current, at the Moderator.
+   anyway.
 
    An Anchor Set of one key gives a tree of depth zero: the redemption
    carries no commitment keys or openings, and the issuer-hiding proof
@@ -1812,8 +1803,8 @@ Table of Contents
 
 6.5.  Encodings
 
-   In [PROTOCOLS], a Client sends the encoded Redemption with the
-   issuance request in Redeem & Issue.
+   A Client sends the encoded Redemption to the Moderator in the Redeem
+   & Issue flow ([ARCH]).
 
    struct {
      Element rerandomized_key;
@@ -2027,13 +2018,13 @@ Table of Contents
       violating any cryptographic property of the construction.
 
    Session identifiers:  Any identifier the transport uses to correlate
-      the messages of Section 5.6, such as the per-batch session
-      identifier of [PROTOCOLS], is chosen by the Anchor and so is a
-      value the Anchor recognises.  It MUST be confined to the
-      transport: it is not an input to any algorithm of Section 5, nor
-      is it included in the challenge transcript.  Were it bound into
-      the Endorsement, the Anchor could recognise its own identifier at
-      redemption and link the redemption to the issuance session.
+      the messages of Section 5.6, such as a per-batch session
+      identifier, is chosen by the Anchor and so is a value the Anchor
+      recognises.  It MUST be confined to the transport: it is not an
+      input to any algorithm of Section 5, nor is it included in the
+      challenge transcript.  Were it bound into the Endorsement, the
+      Anchor could recognise its own identifier at redemption and link
+      the redemption to the issuance session.
 
    Anonymity sets:  The effective privacy a Client obtains also depends
       on deployment properties beyond this document, in particular the
@@ -2042,8 +2033,7 @@ Table of Contents
 
 9.  IANA Considerations
 
-   This document has no IANA actions.  The endorsement type for the
-   scheme specified here is registered by [PROTOCOLS].
+   This document has no IANA actions.
 
 10.  References
 
@@ -2061,13 +2051,6 @@ Table of Contents
               DOI 10.17487/RFC9380, August 2023,
               <https://www.rfc-editor.org/rfc/rfc9380>.
 
-   [HTTP-TRANSPORT]
-              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE HTTP
-              Transport", Work in Progress, Internet-Draft, draft-jms-
-              mole-http-transport-00, 6 July 2026,
-              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
-              http-transport-00>.
-
    [I2OSP]    Moriarty, K., Ed., Kaliski, B., Jonsson, J., and A. Rusch,
               "PKCS #1: RSA Cryptography Specifications Version 2.2",
               RFC 8017, DOI 10.17487/RFC8017, November 2016,
@@ -2083,12 +2066,10 @@ Table of Contents
               Prime-Order Groups", RFC 9497, DOI 10.17487/RFC9497,
               December 2023, <https://www.rfc-editor.org/rfc/rfc9497>.
 
-   [PROTOCOLS]
-              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
-              Protocols", Work in Progress, Internet-Draft, draft-jms-
-              mole-protocols-00, 6 July 2026,
-              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
-              protocols-00>.
+   [QUIC]     Iyengar, J., Ed. and M. Thomson, Ed., "QUIC: A UDP-Based
+              Multiplexed and Secure Transport", RFC 9000,
+              DOI 10.17487/RFC9000, May 2021,
+              <https://www.rfc-editor.org/rfc/rfc9000>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,

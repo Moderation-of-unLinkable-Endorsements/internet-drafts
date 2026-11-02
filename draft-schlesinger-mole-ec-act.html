@@ -1463,7 +1463,7 @@ that the deterministic hash-derived scalars or nonces are uniform.
 4.4 of <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>, with the EC-ACT group instance of <a href="#ec-act-config" class="auto internal xref">Section 4.1</a>. Both
 return <code>tuple[Scalar, Element]</code>; EC-ACT names the returned keys <code>(skM,
 pkM)</code> because the Moderator is the issuer. The Moderator publishes
-<code>G.SerializeElement(pkM)</code> in its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-3.4-1" class="pilcrow">¶</a></p>
+<code>G.SerializeElement(pkM)</code> in its configuration.<a href="#section-3.4-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -1504,8 +1504,8 @@ request/response exchange followed by a Client-local finalization.<a href="#sect
 <p id="section-4-5">For spending, both parties know <code>s</code>, the spend amount, <code>a</code>,
 the top-up allowance, and a <em>spend context</em>
         <code>ctx_spend</code> that binds the proof to the Moderator's challenge
-(<a href="#ec-act-spending" class="auto internal xref">Section 4.6</a>). <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> defines this context as the SHA-256
-digest of the encoded challenge.<a href="#section-4-5" class="pilcrow">¶</a></p>
+(<a href="#ec-act-spending" class="auto internal xref">Section 4.6</a>), typically a collision-resistant digest of the encoded
+challenge.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <span id="name-credential-issuance-and-spe"></span><div id="fig-ec-act">
 <figure id="figure-1">
         <div class="alignLeft art-text artwork" id="section-4-6.1">
@@ -1548,8 +1548,7 @@ digest of the encoded challenge.<a href="#section-4-5" class="pilcrow">¶</a></p
 <p id="section-4-7">The Moderator chooses the initial balance <code>c</code> and the return amount <code>t</code>
 according to its policy; both are outside the scope of this document, as is
 the nullifier store the Moderator keeps to reject a second spend of the same
-Credential. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> specifies both, together with the carriage of the
-four messages.<a href="#section-4-7" class="pilcrow">¶</a></p>
+Credential.<a href="#section-4-7" class="pilcrow">¶</a></p>
 <div id="ec-act-config">
 <section id="section-4.1">
         <h3 id="name-configuration">
@@ -1574,8 +1573,8 @@ amounts are integers in <code>[0, 2^L)</code>. <code>L</code> <span class="bcp14
 MAX_BIT_LENGTH</code>, where <code>MAX_BIT_LENGTH</code> is fixed by the ciphersuite. The size
 of a spend proof and the cost of producing and verifying it grow linearly in
 <code>L</code>, so a deployment <span class="bcp14">SHOULD</span> choose the smallest <code>L</code> that accommodates its
-largest balance. The Moderator publishes <code>L</code> together with its public key
-(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>); a Client <span class="bcp14">MUST</span> use the published value.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
+largest balance. The Moderator publishes <code>L</code> together with its public key;
+a Client <span class="bcp14">MUST</span> use the published value.<a href="#section-4.1-4" class="pilcrow">¶</a></p>
 <p id="section-4.1-5"><code>L</code> is fixed for the lifetime of a key and credential context.
 <a href="#ec-act-security" class="auto internal xref">Section 6</a> shows by induction over issuances and refunds that every
 balance the Moderator has signed lies below <code>2^L</code>, assuming one value of <code>L</code>
@@ -1616,7 +1615,7 @@ an implementation <span class="bcp14">MAY</span> verify this once when instantia
 <p id="section-4.1.2-1">A Moderator holds a key pair <code>(skM, pkM)</code>, generated with <code>G.GenerateKeyPair</code>
 of <a href="#keygen" class="auto internal xref">Section 3.4</a> under the protocol context of this section, or derived from a
 seed with <code>G.DeriveKeyPair</code>. The Moderator publishes <code>SerializeElement(pkM)</code> in
-its configuration (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>). The signing key <code>skM</code> is also the
+its configuration. The signing key <code>skM</code> is also the
 verification key: <code>VerifySpend</code> requires it.<a href="#section-4.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
@@ -1629,7 +1628,7 @@ verification key: <code>VerifySpend</code> requires it.<a href="#section-4.1.2-1
         </h3>
 <p id="section-4.2-1">Every Credential is bound at issuance to a <em>credential context</em> <code>ctx_cred</code>,
 an opaque byte string of at most <code>2^16 - 1</code> bytes chosen by the Moderator and
-agreed with the Client out of band; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> says how. It
+agreed with the Client out of band. It
 restricts <em>when</em>, or under which policy, a Credential may be spent, so that a
 Moderator can for instance expire all Credentials of an epoch at once without
 rotating its key.<a href="#section-4.2-1" class="pilcrow">¶</a></p>
@@ -2050,7 +2049,7 @@ given in <a href="#ec-act-wire" class="auto internal xref">Section 4.7</a>. It i
         </h3>
 <p id="section-4.6-1">Spending consumes a Credential with balance <code>c</code> and produces one with
 balance <code>c - s + t</code>. The amount <code>s</code> and the top-up allowance <code>a</code> are
-chosen by the Client to match the Moderator's challenge (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>);
+chosen by the Client to match the Moderator's challenge;
 the return amount <code>t</code>, with <code>0 &lt;= t &lt;= s + a</code>, is chosen by the
 Moderator. With <code>s = a = 0</code> a spend changes nothing but the nullifier and
 refreshes the Credential. Spending consists of four algorithms:<a href="#section-4.6-1" class="pilcrow">¶</a></p>
@@ -2065,9 +2064,10 @@ succeeds.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
 <p id="section-4.6-4">A spend is bound to a <em>spend context</em> <code>ctx_spend</code>, an opaque byte string
 of at most <code>2^16 - 1</code> bytes supplied by the verifier and known to the
 Client. The spend proof uses <code>Tag(b"Spend", [ctx_spend])</code>, with
-<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
-sets it to the SHA-256 digest of the challenge that triggered the
-presentation. The top-up allowance is bound by the relation: a proof
+<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). <code>ctx_spend</code> is
+typically a collision-resistant digest, such as SHA-256, of the challenge
+that triggered the presentation, so that a spend proof produced for one
+challenge does not verify under another. The top-up allowance is bound by the relation: a proof
 produced for one value of <code>a</code> does not verify under another, so a
 Moderator authorizes a top-up by verifying the proof with the value it
 accepts, and a Moderator that offers none <span class="bcp14">MUST</span> reject a spend with
@@ -2270,8 +2270,8 @@ Credential as spent, and <span class="bcp14">MUST</span> have stored <code>state
 the moment <code>proof</code> becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
 reveals the same nullifier (<a href="#ec-act-security" class="auto internal xref">Section 6</a>). <code>state</code> holds everything
-<code>FinalizeRefund</code> needs. <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> additionally requires retaining
-<code>proof</code> for refund recovery.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
+<code>FinalizeRefund</code> needs. The Client additionally retains <code>proof</code> for refund
+recovery.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ec-act-verify-spend">
@@ -2315,8 +2315,7 @@ verification (<a href="#ec-act-security" class="auto internal xref">Section 6</a
 <p id="section-4.6.3-4"><code>VerifySpend</code> does not check whether <code>k</code> has been seen before, nor whether
 the Moderator is willing to grant the top-up <code>a</code>. The Moderator <span class="bcp14">MUST</span> do
 both. It <span class="bcp14">MUST</span> record <code>k</code> atomically, failing if <code>k</code> is already recorded,
-and <span class="bcp14">MUST NOT</span> accept the spend or release a refund unless <code>k</code> was recorded
-(<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-4.6.3-4" class="pilcrow">¶</a></p>
+and <span class="bcp14">MUST NOT</span> accept the spend or release a refund unless <code>k</code> was recorded.<a href="#section-4.6.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ec-act-refund">
@@ -2413,7 +2412,7 @@ finalize one spend state against two refunds, since the two Credentials
 would share the nullifier <code>kstar</code>. The Client <span class="bcp14">MUST NOT</span> spend the consumed
 Credential again, whether or not the refund arrives. A Client that has
 sent a spend proof and not received a valid refund keeps <code>state</code> and <span class="bcp14">MAY</span>
-ask the Moderator for the refund again; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> describes how, and
+ask the Moderator for the refund again, and
 the Moderator recognizes the request by the recorded nullifier <code>k</code>. The
 Moderator can answer with the refund it issued, which requires storing
 it with the nullifier, or run <code>IssueRefund</code> again. The latter produces a
@@ -2642,7 +2641,7 @@ sum_i s_i &lt;= sum_j c_j + sum_i t_i
 </pre><a href="#section-6-4.2.2" class="pilcrow">¶</a>
 </div>
 <p id="section-6-4.2.3">except with negligible probability, for an adversary controlling every
-Client, provided the nullifier store of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> rejects a repeated
+Client, provided the nullifier store (see "Nullifier store" below) rejects a repeated
 nullifier. The right-hand side is under the Moderator's control. The
 property rests on the following:<a href="#section-6-4.2.3" class="pilcrow">¶</a></p>
 <ul class="normal">
@@ -2685,9 +2684,8 @@ collisions, and queries to secret derivation inputs (Section 4.2 of
 <span>[<a href="#EC-IHAT" class="cite xref">EC-IHAT</a>]</span>). Concrete bounds for this replacement and its
 composition with the proofs remain to be established. The public
 amounts <code>s</code>, <code>a</code>, and <code>t</code>, and the configuration, determine which
-Credentials could have produced a presentation; <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>
-constrains these amounts, and <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> states the anonymity-set
-requirements.<a href="#section-6-4.4.2" class="pilcrow">¶</a></p>
+Credentials could have produced a presentation; <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span> states the
+anonymity-set requirements.<a href="#section-6-4.4.2" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-6-4.5">Quantum adversaries:</dt>
@@ -2751,7 +2749,7 @@ rejection itself.<a href="#section-6-4.12.1" class="pilcrow">¶</a></p>
   spend is either fully processed or not at all.  Losing the record
   re-admits every Credential spent while it was in effect; the record
   covers at least the lifetime of the credential context it was
-  recorded under (<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>).<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
+  recorded under.<a href="#section-6-4.14.1" class="pilcrow">¶</a></p>
 </dd>
         <dd class="break"></dd>
 <dt id="section-6-4.15">Single use of Credentials and states:</dt>
@@ -2845,8 +2843,7 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
       <h2 id="name-iana-considerations">
 <a href="#section-7" class="section-number selfRef">7. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
       </h2>
-<p id="section-7-1">This document has no IANA actions. The EC-ACT credential type is registered by
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<p id="section-7-1">This document has no IANA actions.<a href="#section-7-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="sec-combined-references">
@@ -2871,10 +2868,6 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
 <dt id="FIAT-SHAMIR">[FIAT-SHAMIR]</dt>
         <dd>
 <span class="refAuthor">Orrù, M.</span>, <span class="refTitle">"Fiat-Shamir Transformation"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-irtf-cfrg-fiat-shamir-03</span>, <time datetime="2026-08-16" class="refDate">16 August 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03">https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-fiat-shamir-03</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="PROTOCOLS">[PROTOCOLS]</dt>
-        <dd>
-<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"MoLE Protocols"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-protocols-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-00</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="RFC2119">[RFC2119]</dt>
         <dd>

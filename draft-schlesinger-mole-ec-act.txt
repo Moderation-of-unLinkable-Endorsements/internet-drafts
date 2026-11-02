@@ -230,8 +230,7 @@ Table of Contents
    Section 4.4 of [EC-IHAT], with the EC-ACT group instance of
    Section 4.1.  Both return tuple[Scalar, Element]; EC-ACT names the
    returned keys (skM, pkM) because the Moderator is the issuer.  The
-   Moderator publishes G.SerializeElement(pkM) in its configuration
-   ([PROTOCOLS]).
+   Moderator publishes G.SerializeElement(pkM) in its configuration.
 
 4.  The Credential Scheme
 
@@ -270,8 +269,8 @@ Table of Contents
 
    For spending, both parties know s, the spend amount, a, the top-up
    allowance, and a _spend context_ ctx_spend that binds the proof to
-   the Moderator's challenge (Section 4.6).  [PROTOCOLS] defines this
-   context as the SHA-256 digest of the encoded challenge.
+   the Moderator's challenge (Section 4.6), typically a collision-
+   resistant digest of the encoded challenge.
 
       Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
     ------------------------------------------------------------------
@@ -308,8 +307,7 @@ Table of Contents
    The Moderator chooses the initial balance c and the return amount t
    according to its policy; both are outside the scope of this document,
    as is the nullifier store the Moderator keeps to reject a second
-   spend of the same Credential.  [PROTOCOLS] specifies both, together
-   with the carriage of the four messages.
+   spend of the same Credential.
 
 4.1.  Configuration
 
@@ -332,8 +330,7 @@ Table of Contents
    The size of a spend proof and the cost of producing and verifying it
    grow linearly in L, so a deployment SHOULD choose the smallest L that
    accommodates its largest balance.  The Moderator publishes L together
-   with its public key ([PROTOCOLS]); a Client MUST use the published
-   value.
+   with its public key; a Client MUST use the published value.
 
    L is fixed for the lifetime of a key and credential context.
    Section 6 shows by induction over issuances and refunds that every
@@ -369,18 +366,17 @@ Table of Contents
    A Moderator holds a key pair (skM, pkM), generated with
    G.GenerateKeyPair of Section 3.4 under the protocol context of this
    section, or derived from a seed with G.DeriveKeyPair.  The Moderator
-   publishes SerializeElement(pkM) in its configuration ([PROTOCOLS]).
-   The signing key skM is also the verification key: VerifySpend
-   requires it.
+   publishes SerializeElement(pkM) in its configuration.  The signing
+   key skM is also the verification key: VerifySpend requires it.
 
 4.2.  Credential Context
 
    Every Credential is bound at issuance to a _credential context_
    ctx_cred, an opaque byte string of at most 2^16 - 1 bytes chosen by
-   the Moderator and agreed with the Client out of band; [PROTOCOLS]
-   says how.  It restricts _when_, or under which policy, a Credential
-   may be spent, so that a Moderator can for instance expire all
-   Credentials of an epoch at once without rotating its key.
+   the Moderator and agreed with the Client out of band.  It restricts
+   _when_, or under which policy, a Credential may be spent, so that a
+   Moderator can for instance expire all Credentials of an epoch at once
+   without rotating its key.
 
    The context is bound as a signed attribute.  It is mapped to a scalar
    and carried under H4:
@@ -735,11 +731,10 @@ Table of Contents
 
    Spending consumes a Credential with balance c and produces one with
    balance c - s + t.  The amount s and the top-up allowance a are
-   chosen by the Client to match the Moderator's challenge
-   ([PROTOCOLS]); the return amount t, with 0 <= t <= s + a, is chosen
-   by the Moderator.  With s = a = 0 a spend changes nothing but the
-   nullifier and refreshes the Credential.  Spending consists of four
-   algorithms:
+   chosen by the Client to match the Moderator's challenge; the return
+   amount t, with 0 <= t <= s + a, is chosen by the Moderator.  With s =
+   a = 0 a spend changes nothing but the nullifier and refreshes the
+   Credential.  Spending consists of four algorithms:
 
      ProveSpend -> VerifySpend -> IssueRefund -> FinalizeRefund
 
@@ -750,13 +745,14 @@ Table of Contents
    A spend is bound to a _spend context_ ctx_spend, an opaque byte
    string of at most 2^16 - 1 bytes supplied by the verifier and known
    to the Client.  The spend proof uses Tag(b"Spend", [ctx_spend]), with
-   ctx_spend as its sole binding (Section 4.4.1).  [PROTOCOLS] sets it
-   to the SHA-256 digest of the challenge that triggered the
-   presentation.  The top-up allowance is bound by the relation: a proof
-   produced for one value of a does not verify under another, so a
-   Moderator authorizes a top-up by verifying the proof with the value
-   it accepts, and a Moderator that offers none MUST reject a spend with
-   a != 0.
+   ctx_spend as its sole binding (Section 4.4.1). ctx_spend is typically
+   a collision-resistant digest, such as SHA-256, of the challenge that
+   triggered the presentation, so that a spend proof produced for one
+   challenge does not verify under another.  The top-up allowance is
+   bound by the relation: a proof produced for one value of a does not
+   verify under another, so a Moderator authorizes a top-up by verifying
+   the proof with the value it accepts, and a Moderator that offers none
+   MUST reject a spend with a != 0.
 
    The Python records for spending are:
 
@@ -945,8 +941,8 @@ Table of Contents
    than the moment proof becomes observable outside the Client; the
    refund is unusable without the state, and a second proof from the
    same Credential reveals the same nullifier (Section 6). state holds
-   everything FinalizeRefund needs.  [PROTOCOLS] additionally requires
-   retaining proof for refund recovery.
+   everything FinalizeRefund needs.  The Client additionally retains
+   proof for refund recovery.
 
 4.6.3.  Spend Verification
 
@@ -986,7 +982,7 @@ Table of Contents
    whether the Moderator is willing to grant the top-up a.  The
    Moderator MUST do both.  It MUST record k atomically, failing if k is
    already recorded, and MUST NOT accept the spend or release a refund
-   unless k was recorded ([PROTOCOLS]).
+   unless k was recorded.
 
 4.6.4.  Refund Issuance
 
@@ -1072,13 +1068,13 @@ Table of Contents
    spend the consumed Credential again, whether or not the refund
    arrives.  A Client that has sent a spend proof and not received a
    valid refund keeps state and MAY ask the Moderator for the refund
-   again; [PROTOCOLS] describes how, and the Moderator recognizes the
-   request by the recorded nullifier k.  The Moderator can answer with
-   the refund it issued, which requires storing it with the nullifier,
-   or run IssueRefund again.  The latter produces a second signature
-   under a different exponent; this is harmless, because every refund of
-   one spend carries the nullifier kstar, so at most one of them can
-   ever be spent (Section 6).
+   again, and the Moderator recognizes the request by the recorded
+   nullifier k.  The Moderator can answer with the refund it issued,
+   which requires storing it with the nullifier, or run IssueRefund
+   again.  The latter produces a second signature under a different
+   exponent; this is harmless, because every refund of one spend carries
+   the nullifier kstar, so at most one of them can ever be spent
+   (Section 6).
 
 4.7.  Encodings
 
@@ -1267,9 +1263,9 @@ Table of Contents
       sum_i s_i <= sum_j c_j + sum_i t_i
 
       except with negligible probability, for an adversary controlling
-      every Client, provided the nullifier store of [PROTOCOLS] rejects
-      a repeated nullifier.  The right-hand side is under the
-      Moderator's control.  The property rests on the following:
+      every Client, provided the nullifier store (see "Nullifier store"
+      below) rejects a repeated nullifier.  The right-hand side is under
+      the Moderator's control.  The property rests on the following:
 
       *  an accepted spend proof yields, by special soundness, a
          signature under skM on (c, k, r, ctx);
@@ -1303,9 +1299,8 @@ Table of Contents
       of [EC-IHAT]).  Concrete bounds for this replacement and its
       composition with the proofs remain to be established.  The public
       amounts s, a, and t, and the configuration, determine which
-      Credentials could have produced a presentation; [PROTOCOLS]
-      constrains these amounts, and [ARCH] states the anonymity-set
-      requirements.
+      Credentials could have produced a presentation; [ARCH] states the
+      anonymity-set requirements.
 
    Quantum adversaries:  A quantum computer capable of solving discrete
       logarithms in G can recover skM from pkM and forge tokens.  The
@@ -1357,7 +1352,7 @@ Table of Contents
       that a spend is either fully processed or not at all.  Losing the
       record re-admits every Credential spent while it was in effect;
       the record covers at least the lifetime of the credential context
-      it was recorded under ([PROTOCOLS]).
+      it was recorded under.
 
    Single use of Credentials and states:  A Client MUST treat a
       Credential as spent, and MUST have stored the returned state
@@ -1429,8 +1424,7 @@ Table of Contents
 
 7.  IANA Considerations
 
-   This document has no IANA actions.  The EC-ACT credential type is
-   registered by [PROTOCOLS].
+   This document has no IANA actions.
 
 8.  References
 
@@ -1453,13 +1447,6 @@ Table of Contents
               Internet-Draft, draft-irtf-cfrg-fiat-shamir-03, 16 August
               2026, <https://datatracker.ietf.org/doc/html/draft-irtf-
               cfrg-fiat-shamir-03>.
-
-   [PROTOCOLS]
-              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
-              Protocols", Work in Progress, Internet-Draft, draft-jms-
-              mole-protocols-00, 6 July 2026,
-              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
-              protocols-00>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,
