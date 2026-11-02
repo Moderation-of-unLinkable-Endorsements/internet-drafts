@@ -1268,3 +1268,10 @@ This document has no IANA actions.
 {:numbered="false"}
 
 The use of `Keccak-p[800,12]` in this application was proposed by Bas Westerbaan.
+
+# Changelog
+{:numbered="false"}
+
+draft-authors-mole-vole-act-00
+
+* Initial version.

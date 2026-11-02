@@ -582,3 +582,12 @@ This document has no IANA actions.
 {:numbered="false"}
 
 TODO acknowledge.
+
+# Changelog
+{:numbered="false"}
+
+draft-jms-mole-architecture-01
+
+* Include presentation recovery in Moderator state requirements.
+* Show the Update in the overview diagram and clarify the flow diagrams.
+* Rename MoLE to MOLE.

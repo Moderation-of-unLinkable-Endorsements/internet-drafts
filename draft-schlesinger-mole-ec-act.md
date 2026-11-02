@@ -1859,3 +1859,10 @@ spend4.credential =
 The authors thank Watson Ladd for the single range proof construction,
 and Christopher Patton and Thibault Meunier for review and improvements
 to the protocol description.
+
+# Changelog
+{:numbered="false"}
+
+draft-schlesinger-mole-ec-act-00
+
+* Initial version.

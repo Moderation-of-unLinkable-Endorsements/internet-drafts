@@ -2345,3 +2345,10 @@ redeem1.nf =
 
 The authors thank Christopher Patton and Thibault Meunier for review and
 improvements to the protocol description.
+
+# Changelog
+{:numbered="false"}
+
+draft-ladd-mole-ec-ihat-00
+
+* Initial version.
