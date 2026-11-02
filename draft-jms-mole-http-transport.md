@@ -295,6 +295,7 @@ answers `404` without `Mole-Credential`, whether or not a record exists.
 
 A Client MAY send a `POST` with empty content to the Redeem & Issue endpoint it
 stored with the Credential:
+
 ~~~
 Authorization: Mole signoff-0001="<recovery-handle>"
 ~~~
