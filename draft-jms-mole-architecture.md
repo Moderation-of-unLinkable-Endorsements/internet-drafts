@@ -457,7 +457,24 @@ Moderators may also Update Client's Credentials, typically as part of the Presen
 
 # Anchor Feedback
 
-TODO: Discuss use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.
+MOLE depends on Anchor Endorsement scarcity. However, since Moderators do not
+learn which Anchors produce Endorsements, they cannot gauge the quality of
+Anchors. A malicious or compromised Anchor could grant excessive Endorsements
+to a single Client, effectively bypassing the protections that MOLE purports
+to provide. Moderation quality therefore depends on Anchor quality.
+
+While Moderators can change Anchor sets and measure observed behavior, e.g.,
+by removing a single Anchor and seeing if "abuse" reduces, this practice
+is undesirable. Stable and consistent Anchor sets, which are part of a Moderator
+configuration, are needed for Client privacy. Moreover, this behavior is
+effectively a way for Moderators to infer information about Clients (which
+Anchor did they use) through implicit signals.
+
+Moderators require an explicit mechanism for learning information about Anchor
+Endorsements in MOLE. The exact information to be learned, as well as the mechanism
+to produce this information, is under investigation.
+
+[[OPEN ISSUE: Design use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.]]
 
 # Deployment Considerations
 
@@ -483,7 +500,7 @@ Further, the use of Anchor-Blinding prevents this from being a privacy risk for 
 
 The Anchor / Endorsement mechanism means that parties that have user relationships and parties that provide access control can be distinct parties without compromising on user privacy. Without this mechanism, only parties which access to a scarce resource could also be effective Moderators, which would encourage centralization.
 
-MOLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MOLE enables lower-accuracy Anchors to be used than could otherwise be supported. The Feedback Mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
+MOLE allows each Moderator to make an independent decision about which anchors to trust rather than requiring shared Issuers to be established and coordinated. The dynamic rate limiting supported by MOLE enables lower-accuracy Anchors to be used than could otherwise be supported. A feedback mechanism also encourages experimentation with new Anchors by providing Moderators with insights into Anchor quality.
 
 However, there are residual risks. Moderators inherently benefit from scale which provides more insight into Client behavior and means that decisions to promote or restrict access are consequently more impactful. Sharing a rate limit across more sites means the amount of volumetric abuse that a attacker can inflict becomes smaller.
 
