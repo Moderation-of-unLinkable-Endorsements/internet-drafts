@@ -460,7 +460,7 @@ Moderators may also Update Client's Credentials, typically as part of the Presen
 MOLE depends on Anchor Endorsement scarcity. However, since Moderators do not
 learn which Anchors produce Endorsements, they cannot gauge the quality of
 Anchors. A malicious or compromised Anchor could grant excessive Endorsements
-to a single Client, effectively bypassing the protections that MOLE purports
+to a single Client, effectively bypassing the protections that MOLE aims
 to provide. Moderation quality therefore depends on Anchor quality.
 
 While Moderators can change Anchor sets and measure observed behavior, e.g.,
