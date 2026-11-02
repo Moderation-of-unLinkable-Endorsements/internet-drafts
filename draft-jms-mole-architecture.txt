@@ -660,9 +660,30 @@ Table of Contents
 
 8.  Anchor Feedback
 
-   TODO: Discuss use of DAP / PPM / Prio
+   MOLE depends on Anchor Endorsement scarcity.  However, since
+   Moderators do not learn which Anchors produce Endorsements, they
+   cannot gauge the quality of Anchors.  A malicious or compromised
+   Anchor could grant excessive Endorsements to a single Client,
+   effectively bypassing the protections that MOLE aims to provide.
+   Moderation quality therefore depends on Anchor quality.
+
+   While Moderators can change Anchor sets and measure observed
+   behavior, e.g., by removing a single Anchor and seeing if "abuse"
+   reduces, this practice is undesirable, and dependent on Client
+   implementation and deployments.  Stable and consistent Anchor sets,
+   which are part of a Moderator configuration, are needed for Client
+   privacy.  Moreover, this behavior is effectively a way for Moderators
+   to infer information about Clients (which Anchor did they use)
+   through implicit signals.
+
+   Moderators require an explicit mechanism for learning information
+   about Anchor Endorsements in MOLE.  The exact information to be
+   learned, as well as the mechanism to produce this information, is not
+   defined yet.
+
+   [[OPEN ISSUE: Design use of DAP / PPM / Prio
    (https://datatracker.ietf.org/group/ppm/about/) in Endorsements which
-   feeds into Credentials to measure per-anchor abuse rates.
+   feeds into Credentials to measure per-anchor abuse rates.]]
 
 9.  Deployment Considerations
 
@@ -731,7 +752,7 @@ Table of Contents
    which anchors to trust rather than requiring shared Issuers to be
    established and coordinated.  The dynamic rate limiting supported by
    MOLE enables lower-accuracy Anchors to be used than could otherwise
-   be supported.  The Feedback Mechanism also encourages experimentation
+   be supported.  A feedback mechanism also encourages experimentation
    with new Anchors by providing Moderators with insights into Anchor
    quality.
 
