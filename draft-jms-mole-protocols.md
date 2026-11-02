@@ -115,7 +115,10 @@ is the variable-length integer of {{Section 16 of QUIC}}, in its shortest
 encoding. A recipient MUST reject a non-shortest length or trailing bytes.
 All constants are in network byte order.
 
-This document uses the following terms for protocol actions:
+This document uses the following terms:
+
+Endorsement:
+: A cryptographic object granted by an Anchor to a Client ({{ARCHITECTURE}}).
 
 Grant:
 : An Anchor gives a Client an Endorsement.
