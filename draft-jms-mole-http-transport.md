@@ -52,8 +52,8 @@ an HTTP transport for the protocol flows defined by the architecture.
 
 This document defines the `Mole` HTTP authentication scheme, which carries
 challenges and presentations for the endorsement and credential flows, and
-the headers used to return credential material. It also defines the HTTP
-POST exchanges that carry the grant messages of {{PROTOCOLS}} to the Anchor.
+the headers used to return credential material. The grant exchanges with
+the Anchor are defined per protocol in {{PROTOCOLS}}.
 
 
 --- middle
@@ -63,8 +63,7 @@ POST exchanges that carry the grant messages of {{PROTOCOLS}} to the Anchor.
 {{PROTOCOLS}} defines the MOLE messages. This document carries them over
 HTTP. Challenges and presentations use the `Mole` authentication scheme
 {{HTTP}}. Credential material returns in the `Mole-Credential` response
-header. Grant exchanges with an Anchor are HTTP POST requests carrying the
-type-specific grant messages of {{PROTOCOLS}} ({{grant}}).
+header. Grant exchanges with an Anchor are defined in {{PROTOCOLS}}.
 
 # Conventions and Definitions
 

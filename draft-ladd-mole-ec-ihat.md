@@ -619,7 +619,7 @@ before the Endorsement exists; and an Endorsement cannot afterwards be re-bound
 to another value, so a Client that needs to redeem under several redemption
 contexts needs a separate Endorsement, and so a separate issuance, for each.
 Anchors bound how many Endorsements they grant a given Client in order to keep
-Endorsements scarce, so that budget is consumed per redemption
+Endorsements scarce ({{ARCH}}), so that budget is consumed per redemption
 context rather than per Client.
 
 The nullifier `nf` MUST be a fresh string of `Nn` uniformly random bytes,
@@ -1885,6 +1885,9 @@ the Anchor Set itself does; see {{security-considerations}}.
 
 ## Encodings {#redemption-wire}
 
+A Client sends the encoded `Redemption` to the Moderator in the Redeem & Issue
+flow ({{ARCH}}).
+
 ~~~ tls-presentation
 struct {
   Element rerandomized_key;
@@ -1990,7 +1993,7 @@ Blindness:
   session that produced it only by evaluating the hash function on one of the
   secret inputs from which the Client derives its blinding factors
   ({{derive-scalar}}). Endorsement grants and redemptions are therefore
-  unlinkable.
+  unlinkable, as {{ARCH}} requires.
 
 One-more unforgeability:
 : A Client that completes `k` issuance sessions under a given issuance context
@@ -2112,7 +2115,7 @@ Session identifiers:
 Anonymity sets:
 : The effective privacy a Client obtains also depends on deployment properties
   beyond this document, in particular the number of Clients an Anchor serves per
-  epoch and the size of a Moderator's Anchor Set.
+  epoch and the size of a Moderator's Anchor Set; see {{ARCH}}.
 
 # IANA Considerations {#iana}
 

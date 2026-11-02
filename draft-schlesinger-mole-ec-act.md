@@ -1367,7 +1367,8 @@ Unlinkability:
   {{EC-IHAT}}). Concrete bounds for this replacement and its
   composition with the proofs remain to be established. The public
   amounts `s`, `a`, and `t`, and the configuration, determine which
-  Credentials could have produced a presentation.
+  Credentials could have produced a presentation; {{ARCH}} states the
+  anonymity-set requirements.
 
 Quantum adversaries:
 : A quantum computer capable of solving discrete logarithms in `G` can
@@ -1489,7 +1490,7 @@ Balance width:
 System requirements:
 : The requirements on deployments are those of "Nullifier store", "Context
   granularity", and "Single use of Credentials and states" above, consistent
-  configuration across Clients, and the randomness requirements
+  configuration across Clients ({{ARCH}}), and the randomness requirements
   of {{randomness}}.
 
 # IANA Considerations {#iana}
