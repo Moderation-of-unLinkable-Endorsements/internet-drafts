@@ -1504,7 +1504,8 @@ request/response exchange followed by a Client-local finalization.<a href="#sect
 <p id="section-4-5">For spending, both parties know <code>s</code>, the spend amount, <code>a</code>,
 the top-up allowance, and a <em>spend context</em>
         <code>ctx_spend</code> that binds the proof to the Moderator's challenge
-(<a href="#ec-act-spending" class="auto internal xref">Section 4.6</a>), for example a hash of the encoded challenge.<a href="#section-4-5" class="pilcrow">¶</a></p>
+(<a href="#ec-act-spending" class="auto internal xref">Section 4.6</a>), typically a collision-resistant digest of the encoded
+challenge.<a href="#section-4-5" class="pilcrow">¶</a></p>
 <span id="name-credential-issuance-and-spe"></span><div id="fig-ec-act">
 <figure id="figure-1">
         <div class="alignLeft art-text artwork" id="section-4-6.1">
@@ -2063,10 +2064,10 @@ succeeds.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
 <p id="section-4.6-4">A spend is bound to a <em>spend context</em> <code>ctx_spend</code>, an opaque byte string
 of at most <code>2^16 - 1</code> bytes supplied by the verifier and known to the
 Client. The spend proof uses <code>Tag(b"Spend", [ctx_spend])</code>, with
-<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). A deployment might,
-for example, set it to a collision-resistant digest of the challenge that
-triggered the presentation.
-The top-up allowance is bound by the relation: a proof
+<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). The verifier <span class="bcp14">SHOULD</span> set
+<code>ctx_spend</code> to a collision-resistant digest, such as SHA-256, of the challenge
+that triggered the presentation, so that a spend proof produced for one
+challenge does not verify under another. The top-up allowance is bound by the relation: a proof
 produced for one value of <code>a</code> does not verify under another, so a
 Moderator authorizes a top-up by verifying the proof with the value it
 accepts, and a Moderator that offers none <span class="bcp14">MUST</span> reject a spend with

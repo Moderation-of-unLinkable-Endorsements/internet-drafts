@@ -1358,14 +1358,6 @@ FinalizeUpdate(presentation_state, update, configuration)
    the configuration's authentication and consistency checks.  In JSON,
    bstr values are unpadded base64url strings.
 
-   A Client fetches a configuration with an HTTP GET over HTTPS
-   ([HTTP]).  The server returns 200 (OK) with the configuration as
-   content.  A Client MUST reject a non-success status, an unexpected
-   media type, and malformed content, and MUST NOT use any part of a
-   rejected response.  A Client MUST NOT follow a redirect to another
-   origin.  HTTP caching applies to the response; a Client MUST refetch
-   once a cached configuration is stale.
-
    TODO: define how a Client discovers the configuration URI, and the
    configuration media type, together with the serialization.
 
@@ -1717,11 +1709,6 @@ FinalizeUpdate(presentation_state, update, configuration)
    [EC-IHAT]  "EC-IHAT: Issuer-Hiding Anonymous Tokens", n.d.,
               <https://moderation-of-unlinkable-endorsements.github.io/
               internet-drafts/draft-ladd-mole-ec-ihat.html>.
-
-   [HTTP]     Fielding, R., Ed., Nottingham, M., Ed., and J. Reschke,
-              Ed., "HTTP Semantics", STD 97, RFC 9110,
-              DOI 10.17487/RFC9110, June 2022,
-              <https://www.rfc-editor.org/rfc/rfc9110>.
 
    [IANA]     Cotton, M., Leiba, B., and T. Narten, "Guidelines for
               Writing an IANA Considerations Section in RFCs", BCP 26,

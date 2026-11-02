@@ -23,8 +23,8 @@ Abstract
    This document defines the Mole HTTP authentication scheme, which
    carries challenges and presentations for the endorsement and
    credential flows, and the headers used to return credential material.
-   The grant exchanges with the Anchor are defined per protocol in
-   [PROTOCOLS].
+   It also defines the HTTP POST exchanges that carry the grant messages
+   of [PROTOCOLS] to the Anchor.
 
 About This Document
 
@@ -100,7 +100,8 @@ Table of Contents
    over HTTP.  Challenges and presentations use the Mole authentication
    scheme [HTTP].  Credential material returns in the Mole-Credential
    response header.  Grant exchanges with an Anchor are HTTP POST
-   requests defined in [PROTOCOLS].
+   requests carrying the type-specific grant messages of [PROTOCOLS]
+   (Section 6.1).
 
 2.  Conventions and Definitions
 

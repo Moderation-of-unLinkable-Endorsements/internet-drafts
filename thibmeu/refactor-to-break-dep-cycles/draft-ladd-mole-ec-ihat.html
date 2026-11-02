@@ -1339,7 +1339,8 @@ encoding, and context-binding rules that both the Anchor and the Client follow.<
       <h2 id="name-introduction">
 <a href="#section-1" class="section-number selfRef">1. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-1-1">MOLE Endorsements must be unlinkable by the Anchor that issued them, they must be
+<p id="section-1-1">MOLE Endorsements have a number of constraints imposed by the architecture
+<span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
 not meet all of these needs. This document defines such a system, EC-IHAT,
@@ -2344,9 +2345,10 @@ parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
 parties <span class="bcp14">MUST</span> use the same list in the same order. A proof computed over a
 different list or order will not verify.<a href="#section-6-5" class="pilcrow">¶</a></p>
 <p id="section-6-6"><code>challenge_digest</code> binds the redemption to the challenge that triggered it.
-This document treats it as an opaque byte string; a deployment might, for
-example, set it to a collision-resistant digest of the encoded challenge. Note that this challenge is
-the Moderator's, and has nothing to do with the issuance challenge of
+This document treats it as an opaque byte string. The Moderator <span class="bcp14">SHOULD</span> set it
+to a collision-resistant digest, such as SHA-256, of the encoded challenge, so
+that a redemption produced for one challenge does not verify under another.
+Note that this challenge is the Moderator's, and has nothing to do with the issuance challenge of
 <a href="#challenge" class="auto internal xref">Section 5.2</a>.<a href="#section-6-6" class="pilcrow">¶</a></p>
 <p id="section-6-7">In the remainder, let <code>index</code> denote the index of the issuing Anchor in
 <code>anchor_set</code>.<a href="#section-6-7" class="pilcrow">¶</a></p>

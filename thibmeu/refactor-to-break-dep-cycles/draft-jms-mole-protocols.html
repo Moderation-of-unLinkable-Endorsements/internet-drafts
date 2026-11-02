@@ -2972,14 +2972,8 @@ to different Clients partitions them (<span>[<a href="#ARCHITECTURE" class="cite
 <p id="section-6-8">The serialization, for instance JSON or CBOR, is to be defined with the
 configuration's authentication and consistency checks. In JSON, <code>bstr</code>
 values are unpadded base64url strings.<a href="#section-6-8" class="pilcrow">¶</a></p>
-<p id="section-6-9">A Client fetches a configuration with an HTTP GET over HTTPS (<span>[<a href="#HTTP" class="cite xref">HTTP</a>]</span>). The
-server returns 200 (OK) with the configuration as content. A Client <span class="bcp14">MUST</span>
-reject a non-success status, an unexpected media type, and malformed content,
-and <span class="bcp14">MUST NOT</span> use any part of a rejected response. A Client <span class="bcp14">MUST NOT</span> follow a
-redirect to another origin. HTTP caching applies to the response; a Client
-<span class="bcp14">MUST</span> refetch once a cached configuration is stale.<a href="#section-6-9" class="pilcrow">¶</a></p>
-<p id="section-6-10">TODO: define how a Client discovers the configuration URI, and the
-configuration media type, together with the serialization.<a href="#section-6-10" class="pilcrow">¶</a></p>
+<p id="section-6-9">TODO: define how a Client discovers the configuration URI, and the
+configuration media type, together with the serialization.<a href="#section-6-9" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="privacy-considerations">
@@ -3543,10 +3537,6 @@ parameters are rejected. Neither type has optional parameters defined here.<a hr
 <dt id="EC-IHAT">[EC-IHAT]</dt>
         <dd>
 <span class="refTitle">"EC-IHAT: Issuer-Hiding Anonymous Tokens"</span>, <span>n.d.</span>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html</a>&gt;</span>. </dd>
-<dd class="break"></dd>
-<dt id="HTTP">[HTTP]</dt>
-        <dd>
-<span class="refAuthor">Fielding, R., Ed.</span>, <span class="refAuthor">Nottingham, M., Ed.</span>, and <span class="refAuthor">J. Reschke, Ed.</span>, <span class="refTitle">"HTTP Semantics"</span>, <span class="seriesInfo">STD 97</span>, <span class="seriesInfo">RFC 9110</span>, <span class="seriesInfo">DOI 10.17487/RFC9110</span>, <time datetime="2022-06" class="refDate">June 2022</time>, <span>&lt;<a href="https://www.rfc-editor.org/rfc/rfc9110">https://www.rfc-editor.org/rfc/rfc9110</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="IANA">[IANA]</dt>
         <dd>

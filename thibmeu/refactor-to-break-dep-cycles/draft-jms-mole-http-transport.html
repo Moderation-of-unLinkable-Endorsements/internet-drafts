@@ -13,8 +13,8 @@
 an HTTP transport for the protocol flows defined by the architecture. 
        This document defines the  Mole  HTTP authentication scheme, which carries
 challenges and presentations for the endorsement and credential flows, and
-the headers used to return credential material. The grant exchanges with
-the Anchor are defined per protocol in  . 
+the headers used to return credential material. It also defines the HTTP
+POST exchanges that carry the grant messages of   to the Anchor. 
     " name="description">
 <meta content="xml2rfc 3.34.1" name="generator">
 <meta content="moderation" name="keyword">
@@ -1098,8 +1098,8 @@ svg {
 an HTTP transport for the protocol flows defined by the architecture.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">This document defines the <code>Mole</code> HTTP authentication scheme, which carries
 challenges and presentations for the endorsement and credential flows, and
-the headers used to return credential material. The grant exchanges with
-the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+the headers used to return credential material. It also defines the HTTP
+POST exchanges that carry the grant messages of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> to the Anchor.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <section class="note rfcEditorRemove" id="section-note.1">
       <h2 id="name-about-this-document">
@@ -1238,8 +1238,8 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
 <p id="section-1-1"><span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> defines the MOLE messages. This document carries them over
 HTTP. Challenges and presentations use the <code>Mole</code> authentication scheme
 <span>[<a href="#HTTP" class="cite xref">HTTP</a>]</span>. Credential material returns in the <code>Mole-Credential</code> response
-header. Grant exchanges with an Anchor are HTTP POST requests defined in
-<span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span>.<a href="#section-1-1" class="pilcrow">¶</a></p>
+header. Grant exchanges with an Anchor are HTTP POST requests carrying the
+type-specific grant messages of <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> (<a href="#grant" class="auto internal xref">Section 6.1</a>).<a href="#section-1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="conventions-and-definitions">
