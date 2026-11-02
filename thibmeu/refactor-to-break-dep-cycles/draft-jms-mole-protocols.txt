@@ -115,6 +115,7 @@ Table of Contents
        9.2.1.  EC-ACT
        9.2.2.  Privacy Pass Reverse Flow
        9.2.3.  Greased Values
+     9.3.  Media Types
    10. References
      10.1.  Normative References
      10.2.  Informative References
@@ -1673,6 +1674,24 @@ FinalizeUpdate(presentation_state, update, configuration)
 
       *Editor note.* The final registry names and expert-review
       instructions remain to be specified.
+
+9.3.  Media Types
+
+           +=======================================+===========+
+           | Media Type                            | Reference |
+           +=======================================+===========+
+           | application/mole-endorsement-request  | Section 4 |
+           +---------------------------------------+-----------+
+           | application/mole-endorsement-response | Section 4 |
+           +---------------------------------------+-----------+
+
+                         Table 5: MOLE Media Types
+
+   Both media types require a type parameter containing the four-digit
+   hexadecimal endorsement type value (Section 9).  Bodies are the type-
+   specific binary grant messages.  Duplicate or mismatched type
+   parameters are rejected.  Neither type has optional parameters
+   defined here.
 
 10.  References
 

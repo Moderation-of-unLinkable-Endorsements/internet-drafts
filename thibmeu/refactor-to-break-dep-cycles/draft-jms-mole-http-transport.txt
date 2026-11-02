@@ -88,7 +88,6 @@ Table of Contents
    8.  IANA Considerations
      8.1.  Authentication Scheme
      8.2.  HTTP Field Names
-     8.3.  Media Types
    9.  References
      9.1.  Normative References
      9.2.  Informative References
@@ -412,24 +411,6 @@ Table of Contents
    Endorsement and credential type values are registered in [PROTOCOLS],
    not in this document.
 
-8.3.  Media Types
-
-          +=======================================+=============+
-          | Media Type                            | Reference   |
-          +=======================================+=============+
-          | application/mole-endorsement-request  | Section 6.1 |
-          +---------------------------------------+-------------+
-          | application/mole-endorsement-response | Section 6.1 |
-          +---------------------------------------+-------------+
-
-                         Table 5: MOLE Media Types
-
-   Both media types require a type parameter containing the four-digit
-   hexadecimal endorsement type defined in Section 3.  Bodies are the
-   type-specific binary grant messages.  Duplicate or mismatched type
-   parameters are rejected.  Neither type has optional parameters
-   defined here.
-
 9.  References
 
 9.1.  Normative References
@@ -440,9 +421,11 @@ Table of Contents
               <https://www.rfc-editor.org/rfc/rfc9110>.
 
    [PROTOCOLS]
-              "MOLE Protocols", n.d., <https://moderation-of-unlinkable-
-              endorsements.github.io/internet-drafts/draft-jms-mole-
-              protocols.html>.
+              Schlesinger, S., Jackson, D., and T. Meunier, "MoLE
+              Protocols", Work in Progress, Internet-Draft, draft-jms-
+              mole-protocols-00, 6 July 2026,
+              <https://datatracker.ietf.org/doc/html/draft-jms-mole-
+              protocols-00>.
 
    [RFC2119]  Bradner, S., "Key words for use in RFCs to Indicate
               Requirement Levels", BCP 14, RFC 2119,

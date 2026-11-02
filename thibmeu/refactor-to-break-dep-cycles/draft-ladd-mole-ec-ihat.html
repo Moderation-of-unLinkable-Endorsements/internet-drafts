@@ -2344,7 +2344,8 @@ parties input the two contexts.<a href="#section-6-3" class="pilcrow">¶</a></p>
 parties <span class="bcp14">MUST</span> use the same list in the same order. A proof computed over a
 different list or order will not verify.<a href="#section-6-5" class="pilcrow">¶</a></p>
 <p id="section-6-6"><code>challenge_digest</code> binds the redemption to the challenge that triggered it.
-This document treats it as an opaque byte string. Note that this challenge is
+This document treats it as an opaque byte string; a deployment might, for
+example, set it to a collision-resistant digest of the encoded challenge. Note that this challenge is
 the Moderator's, and has nothing to do with the issuance challenge of
 <a href="#challenge" class="auto internal xref">Section 5.2</a>.<a href="#section-6-6" class="pilcrow">¶</a></p>
 <p id="section-6-7">In the remainder, let <code>index</code> denote the index of the issuing Anchor in
@@ -3501,8 +3502,8 @@ property of the construction.<a href="#section-8-2.22.1" class="pilcrow">¶</a><
         <dd class="break"></dd>
 <dt id="section-8-2.23">Session identifiers:</dt>
         <dd style="margin-left: 1.5em" id="section-8-2.24">
-          <p id="section-8-2.24.1">Any identifier the transport uses to correlate the messages of <a href="#wire" class="auto internal xref">Section 5.6</a>
-is chosen by the Anchor and so is a value the Anchor recognises. It <span class="bcp14">MUST</span> be
+          <p id="section-8-2.24.1">Any identifier the transport uses to correlate the messages of <a href="#wire" class="auto internal xref">Section 5.6</a>,
+such as a per-batch session identifier, is chosen by the Anchor and so is a value the Anchor recognises. It <span class="bcp14">MUST</span> be
 confined to the transport: it is not an input to any algorithm of
 <a href="#issuance" class="auto internal xref">Section 5</a>, nor is it included in the challenge transcript. Were it bound
 into the Endorsement, the Anchor could recognise its own identifier at
