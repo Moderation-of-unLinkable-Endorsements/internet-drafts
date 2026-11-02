@@ -164,7 +164,8 @@ encoding, and context-binding rules that both the Anchor and the Client follow.
 
 # Introduction
 
-MOLE Endorsements must be unlinkable by the Anchor that issued them, they must be
+MOLE Endorsements have a number of constraints imposed by the architecture
+{{ARCH}}. They must be unlinkable by the Anchor that issued them, they must be
 publicly verifiable, and a redemption must hide which Anchor issued the
 Endorsement among the set of Anchors a Moderator accepts. Existing systems do
 not meet all of these needs. This document defines such a system, EC-IHAT,
@@ -1025,9 +1026,10 @@ parties MUST use the same list in the same order. A proof computed over a
 different list or order will not verify.
 
 `challenge_digest` binds the redemption to the challenge that triggered it.
-This document treats it as an opaque byte string; a deployment might, for
-example, set it to a collision-resistant digest of the encoded challenge. Note that this challenge is
-the Moderator's, and has nothing to do with the issuance challenge of
+This document treats it as an opaque byte string. The Moderator SHOULD set it
+to a collision-resistant digest, such as SHA-256, of the encoded challenge, so
+that a redemption produced for one challenge does not verify under another.
+Note that this challenge is the Moderator's, and has nothing to do with the issuance challenge of
 {{challenge}}.
 
 In the remainder, let `index` denote the index of the issuing Anchor in

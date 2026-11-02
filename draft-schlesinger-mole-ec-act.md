@@ -292,7 +292,8 @@ request/response exchange followed by a Client-local finalization.
 For spending, both parties know `s`, the spend amount, `a`,
 the top-up allowance, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
-({{ec-act-spending}}), for example a hash of the encoded challenge.
+({{ec-act-spending}}), typically a collision-resistant digest of the encoded
+challenge.
 
 ~~~
    Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
@@ -796,10 +797,10 @@ succeeds.
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
 Client. The spend proof uses `Tag(b"Spend", [ctx_spend])`, with
-`ctx_spend` as its sole binding ({{ec-act-tags}}). A deployment might,
-for example, set it to a collision-resistant digest of the challenge that
-triggered the presentation.
-The top-up allowance is bound by the relation: a proof
+`ctx_spend` as its sole binding ({{ec-act-tags}}). The verifier SHOULD set
+`ctx_spend` to a collision-resistant digest, such as SHA-256, of the challenge
+that triggered the presentation, so that a spend proof produced for one
+challenge does not verify under another. The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
 Moderator authorizes a top-up by verifying the proof with the value it
 accepts, and a Moderator that offers none MUST reject a spend with

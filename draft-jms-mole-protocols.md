@@ -45,7 +45,6 @@ normative:
   EC-IHAT:
     title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
     target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
-  HTTP: RFC9110
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk
   QUIC: RFC9000
@@ -1259,13 +1258,6 @@ to different Clients partitions them ({{ARCHITECTURE}}).
 The serialization, for instance JSON or CBOR, is to be defined with the
 configuration's authentication and consistency checks. In JSON, `bstr`
 values are unpadded base64url strings.
-
-A Client fetches a configuration with an HTTP GET over HTTPS ({{HTTP}}). The
-server returns 200 (OK) with the configuration as content. A Client MUST
-reject a non-success status, an unexpected media type, and malformed content,
-and MUST NOT use any part of a rejected response. A Client MUST NOT follow a
-redirect to another origin. HTTP caching applies to the response; a Client
-MUST refetch once a cached configuration is stale.
 
 TODO: define how a Client discovers the configuration URI, and the
 configuration media type, together with the serialization.
