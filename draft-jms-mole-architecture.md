@@ -472,7 +472,7 @@ Anchor did they use) through implicit signals.
 
 Moderators require an explicit mechanism for learning information about Anchor
 Endorsements in MOLE. The exact information to be learned, as well as the mechanism
-to produce this information, is under investigation.
+to produce this information, is not defined yet.
 
 [[OPEN ISSUE: Design use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.]]
 
