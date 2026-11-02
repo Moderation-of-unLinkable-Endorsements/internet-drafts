@@ -683,10 +683,10 @@ Credential type: 0x0001.
 
 An EC-ACT Credential, specified in {{EC-ACT}}, carries a hidden *balance* `c`, a
 number of credits. The Moderator issues a Credential with an initial
-balance of its choosing. A presentation *spends* a public amount `s`,
-proving that the balance covers it, and may accept a *top-up* of at most
-`a` that the challenge offers. In the same exchange the Moderator issues a *refund*
-message with a return amount `t` of its choosing, with `0 <= t <= s + a`.
+balance of its choosing. A presentation spends a public `spend_amount` (`s`),
+proving that the balance covers it, and may accept a top-up of at most
+`max_top_up` (`a`) that the challenge offers. In the same exchange the Moderator issues a *refund*
+message with a `return_amount` (`t`) of its choosing, with `0 <= t <= s + a`.
 The Client finalizes this message into a fresh Credential with balance
 `c - s + t`. The presentation reveals `s`, `a`, and a single-use nullifier;
 the balance is hidden beyond the public amounts and predicates
@@ -827,17 +827,17 @@ and the scope of the authorization it asks for:
 
 ~~~ tls-presentation
 struct {
-  uint64 s;
-  uint64 a;
+  uint64 spend_amount;
+  uint64 max_top_up;
   opaque credential_context<V>;
   opaque request_context<V>;
 } Challenge;
 ~~~
 
-`s` is the amount to spend and is the Predicate of {{ARCHITECTURE}}: a
-presentation succeeds only if the balance is at least `s`. `a` is the
-largest top-up the Moderator offers in this presentation, `0` if none. A
-challenge with `s = a = 0` asks for a refresh, which replaces the nullifier
+`spend_amount` is the Predicate of {{ARCHITECTURE}}: a
+presentation succeeds only if the balance is at least `spend_amount`.
+`max_top_up` is the largest top-up the Moderator offers in this presentation,
+`0` if none. A challenge with `s = a = 0` asks for a refresh, which replaces the nullifier
 and leaves the balance unchanged, since `t <= s + a = 0`. A Moderator that
 wants to lower balances challenges with `s > 0` and returns `t < s`; one that
 wants to raise them offers `a > 0`. `credential_context` repeats the
@@ -892,7 +892,8 @@ the message formats, and the nullifier rules are the same.
 
 A Client that holds no Usable Credential ({{ec-act-client-state}}) for this
 Moderator under the challenged `credential_context`, or whose Credential
-`ProveSpend` would reject for the challenged `s` and `a`, does not present.
+`ProveSpend` would reject for the challenged `spend_amount` and `max_top_up`,
+does not present.
 It runs Redeem & Issue, first obtaining an Endorsement if the Moderator
 requires one ({{endorsement-protocols}}).
 
@@ -929,8 +930,8 @@ result, and step 4 follows.
    an unrecorded nullifier proceeds to step 2.
 2. It determines the challenge ({{ec-act-challenge-binding}}), and checks
    that its `credential_context` is accepted for that key and that
-   `spend.s` and `spend.a` equal its `s` and `a`. It rejects the presentation
-   if any check fails.
+   `spend.s` and `spend.a` equal its `spend_amount` and `max_top_up`. It rejects
+   the presentation if any check fails.
 3. It runs `VerifySpend(skM, ctx_cred, ctx_spend, spend)`, decides under its
    policy whether to refund and, if so, the return amount `t`, and runs
    `IssueRefund(skM, ctx_cred, spend, t)` if it refunds. It then records the
@@ -1373,10 +1374,10 @@ Nullifier store:
 
 Amounts:
 : Step 2 of {{ec-act-spend}} requires `spend.s` and `spend.a` to equal the
-  challenge's `s` and `a`. Accepting another `s` would let the Client choose
-  its charge, and accepting a larger `a` would let it choose how far its
-  balance may rise. {{EC-ACT}} gives the range checks that credit conservation
-  needs.
+  challenge's `spend_amount` and `max_top_up`. Accepting another `s` would let
+  the Client choose its charge, and accepting a larger `a` would let it choose
+  how far its balance may rise. {{EC-ACT}} gives the range checks that credit
+  conservation needs.
 
 Credential sharing:
 : Copies of one Credential yield at most one fresh acceptance across all
