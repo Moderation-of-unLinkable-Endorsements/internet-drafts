@@ -822,7 +822,8 @@ FinalizeUpdate(presentation_state, update, configuration)
       P256-SHA256.
 
    Balance Width  L, fixed for the lifetime of the key and credential
-      context ([EC-ACT]).
+      context ([EC-ACT]).  Balances and amounts are integers in [0,
+      2^L).  For example, L = 8 permits values from 0 to 255.
 
    Credential Context  credential_context, an opaque byte string of at
       most 2^16 - 2 bytes that names the epoch or policy that
