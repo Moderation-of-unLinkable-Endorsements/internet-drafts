@@ -159,24 +159,10 @@ material is never sent to an Anchor by the Client.
 The value 0x0000 is reserved in both registries and MUST NOT appear on the
 wire. Endorsement type 0x0001 means that no Endorsement is required.
 
-These canonical Challenge encodings are hash inputs, not HTTP payload
-wrappers. Both parties reconstruct them from the selected type and decoded
-type-specific payload, preserving the cryptographic transcripts:
-
-~~~ tls-presentation
-struct {
-  uint16 endorsement_type;
-  opaque challenge<V>;      /* RedemptionChallenge */
-} ModeratorChallenge;
-
-struct {
-  uint16 credential_type;
-  opaque challenge<V>;      /* type-specific Challenge */
-} CredentialChallenge;
-~~~
-
-Hashes cover these bytes, never HTTP parameter names, quoting, or base64url
-text.
+A Moderator Challenge has no payload wrapper. The HTTP challenge parameter
+identifies the endorsement or credential type ({{HTTP-TRANSPORT}}), and the
+decoded payload is the type-specific Challenge. Hashes cover those decoded
+octets, never HTTP parameter names, quoting, or base64url text.
 
 ## Greasing {#greasing}
 
@@ -214,7 +200,7 @@ selected fields. Moderator Challenge and Context are therefore not
 interchangeable terms.
 
 Each credential protocol defines the contents of its type-specific
-`CredentialChallenge` body. Endorsement protocols use the common Challenge in
+Challenge. Endorsement protocols use the common Challenge in
 {{challenge-binding}}. For a new operation, a Moderator MUST be able to
 verify, from retained state or by recomputing the Challenge, that a response
 uses a Challenge it issued and that remains valid. A credential protocol can return an already accepted result after its
@@ -266,7 +252,7 @@ issuance request in Redeem & Issue ({{credential-protocols}}).
 
 ## Redemption Challenge Binding {#challenge-binding}
 
-The type-specific body of `ModeratorChallenge` is:
+The Moderator Challenge for a redemption is:
 
 ~~~ tls-presentation
 struct {
@@ -294,22 +280,22 @@ challenge_digest = SHA-256(moderator_challenge)
 
 The values are defined as follows:
 
-* `moderator_challenge` is the canonical `ModeratorChallenge` reconstructed
-  from the selected endorsement type and decoded challenge payload ({{common}}).
-  It is not required to contain an origin.
+* `moderator_challenge` is the encoded `RedemptionChallenge`, as decoded
+  from the Moderator Challenge payload ({{common}}). It is not required to
+  contain an origin.
 * `challenge_digest` is the 32-octet SHA-256 digest of
   `moderator_challenge`. It is not computed over a base64url or other textual
   encoding. SHA-256 is defined in {{SHA2}}.
 
 `challenge_digest` enters the Fiat-Shamir transcript in both EC-IHAT and
 Longfellow, but is not a Longfellow circuit public input. A redemption created
-for one `ModeratorChallenge` does not verify under another, so a Moderator
+for one `RedemptionChallenge` does not verify under another, so a Moderator
 that accepts only the `redemption_context` it constructs rejects a
 redemption made under another Moderator's challenge. This does not stop a
 Moderator that relays another Moderator's challenge to the Client.
 
 The `Challenge` algorithm and `ChallengeMessage` in EC-IHAT issuance are
-defined by {{EC-IHAT}} and are unrelated to a `ModeratorChallenge`.
+defined by {{EC-IHAT}} and are unrelated to a `RedemptionChallenge`.
 
 ## Abstract Endorsement API
 
@@ -593,14 +579,14 @@ exchange.
 | Client |                             | Moderator |
 +---+----+                             +-----+-----+
     |                                        |
-    |<--------- ModeratorChallenge ----------+
+    |<-------- RedemptionChallenge ----------+
     +--- Redemption + IssuanceRequest ------>|  HTTP request
     |<---------- IssuanceResponse -----------+
 Finalize                                    |
     |                                        |
    ...                                       |
     |                                        |
-    |<-------- CredentialChallenge ----------+
+    |<-------------- Challenge --------------+
     +-------- PresentationAndUpdate -------->|
     |<-------------- Update? ----------------+
 Finalize                                    |
@@ -865,10 +851,9 @@ The spend context of {{EC-ACT}} is
 ctx_spend = SHA-256(credential_challenge)
 ~~~
 
-where `credential_challenge` is the canonical encoding of the
-`CredentialChallenge` ({{common}}), reconstructed with its `credential_type`
-and the length-prefixed EC-ACT `Challenge`. The Client hashes those octets, not
-their base64url encoding. This digest is separate from the redemption digest
+where `credential_challenge` is the encoded EC-ACT `Challenge`, as decoded
+from the Moderator Challenge payload ({{common}}). The Client hashes those
+octets, not their base64url encoding. This digest is separate from the redemption digest
 of {{challenge-binding}}.
 
 The presentation does not carry the challenge. The Moderator determines the
@@ -1103,9 +1088,8 @@ A token is verified against the `TokenChallenge` of the key it was issued
 under. Initial issuance and replacements use the `TokenChallenge` of the
 issuance key.
 
-The type-specific body of `CredentialChallenge` is the issuance key's
-`TokenChallenge`. A Client MUST reject a `CredentialChallenge` whose
-`TokenChallenge` differs from it. The Client presents a token issued under
+The type-specific Challenge is the issuance key's `TokenChallenge`. A
+Client MUST reject a Challenge that differs from it. The Client presents a token issued under
 any accepted key, and builds `token_request` under the issuance key.
 
 `TokenChallenge` is fixed when the token is issued, before the operation in
@@ -1564,13 +1548,13 @@ Moderator.
     +-- GrantChallenges -->|                 |
     |<--- GrantResponses --+                 |
 Finalize                   |                 |
-    |<---------- ModeratorChallenge ---------+
+    |<--------- RedemptionChallenge ---------+
     |   Redemption + IssuanceRequest         |
     +--------------------------------------->|
     |<---------------------------------------+
     |   IssuanceResponse                     |
 Finalize                   |                 |
-    |<--------- CredentialChallenge ---------+
+    |<------------ TokenChallenge -----------+
     |   PresentationAndUpdate                |
     +--------------------------------------->|
     |<---------------------------------------+
@@ -1581,13 +1565,13 @@ Finalize                   |                 |
 
 The grant follows {{ec-ihat}}. The Client finalizes each `ResponseMessage`
 in the `GrantResponses` into an Endorsement. It uses one of them here: it
-obtains a `ModeratorChallenge`, computes its digest,
+obtains a `RedemptionChallenge`, computes its digest,
 and sends the EC-IHAT `Redemption` with a Privacy Pass `TokenRequest` to
 the Redeem & Issue endpoint.
 
 The Moderator verifies the redemption and atomically records its nullifier
 before returning a `TokenResponse`. The Client finalizes it into a Credential.
-On a later request, it obtains a `CredentialChallenge` carrying the configured
+On a later request, it obtains a Challenge carrying the configured
 Privacy Pass `TokenChallenge` and sends `PresentationAndUpdate`.
 
 A fresh acceptance authorizes one attempt of the protected operation. The
