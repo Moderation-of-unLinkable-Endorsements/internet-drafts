@@ -2064,8 +2064,8 @@ succeeds.<a href="#section-4.6-3" class="pilcrow">¶</a></p>
 <p id="section-4.6-4">A spend is bound to a <em>spend context</em> <code>ctx_spend</code>, an opaque byte string
 of at most <code>2^16 - 1</code> bytes supplied by the verifier and known to the
 Client. The spend proof uses <code>Tag(b"Spend", [ctx_spend])</code>, with
-<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). The verifier <span class="bcp14">SHOULD</span> set
-<code>ctx_spend</code> to a collision-resistant digest, such as SHA-256, of the challenge
+<code>ctx_spend</code> as its sole binding (<a href="#ec-act-tags" class="auto internal xref">Section 4.4.1</a>). <code>ctx_spend</code> is
+typically a collision-resistant digest, such as SHA-256, of the challenge
 that triggered the presentation, so that a spend proof produced for one
 challenge does not verify under another. The top-up allowance is bound by the relation: a proof
 produced for one value of <code>a</code> does not verify under another, so a
@@ -2270,7 +2270,8 @@ Credential as spent, and <span class="bcp14">MUST</span> have stored <code>state
 the moment <code>proof</code> becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
 reveals the same nullifier (<a href="#ec-act-security" class="auto internal xref">Section 6</a>). <code>state</code> holds everything
-<code>FinalizeRefund</code> needs.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
+<code>FinalizeRefund</code> needs. The Client additionally retains <code>proof</code> for refund
+recovery.<a href="#section-4.6.2-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ec-act-verify-spend">

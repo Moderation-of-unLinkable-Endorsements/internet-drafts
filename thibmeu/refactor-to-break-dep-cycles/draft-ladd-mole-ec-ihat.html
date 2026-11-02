@@ -1391,8 +1391,8 @@ are used as defined in <span>[<a href="#ARCH" class="cite xref">ARCH</a>]</span>
 <p id="section-2-3">Unless otherwise specified, this document encodes protocol messages in TLS
 notation (<span><a href="https://rfc-editor.org/rfc/rfc8446#section-3" class="relref">Section 3</a> of [<a href="#TLS13" class="cite xref">TLS13</a>]</span>). Moreover, all constants are in network byte
 order. For variable-size vectors written <code>&lt;V&gt;</code>, the length prefix is a
-variable-length integer (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>) in its minimum-size encoding,
-so its width depends on the length of the contents it carries.<a href="#section-2-3" class="pilcrow">¶</a></p>
+variable-length integer (<span><a href="https://rfc-editor.org/rfc/rfc9000#section-16" class="relref">Section 16</a> of [<a href="#QUIC" class="cite xref">QUIC</a>]</span>), whose width depends on the
+length of the contents it carries. The minimum-size encoding is recommended.<a href="#section-2-3" class="pilcrow">¶</a></p>
 <p id="section-2-4">Algorithms are specified in Python and use the following functions, types, and
 notation.<a href="#section-2-4" class="pilcrow">¶</a></p>
 <p id="section-2-5">Type <code>bytes</code> is used for byte strings, <code>int</code> for integers, and <code>Sequence</code> for a
