@@ -797,8 +797,8 @@ succeeds.
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
 Client. The spend proof uses `Tag(b"Spend", [ctx_spend])`, with
-`ctx_spend` as its sole binding ({{ec-act-tags}}). The verifier SHOULD set
-`ctx_spend` to a collision-resistant digest, such as SHA-256, of the challenge
+`ctx_spend` as its sole binding ({{ec-act-tags}}). `ctx_spend` is
+typically a collision-resistant digest, such as SHA-256, of the challenge
 that triggered the presentation, so that a spend proof produced for one
 challenge does not verify under another. The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
@@ -1001,7 +1001,8 @@ Credential as spent, and MUST have stored `state` durably, no later than
 the moment `proof` becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
 reveals the same nullifier ({{ec-act-security}}). `state` holds everything
-`FinalizeRefund` needs.
+`FinalizeRefund` needs. The Client additionally retains `proof` for refund
+recovery.
 
 ### Spend Verification {#ec-act-verify-spend}
 

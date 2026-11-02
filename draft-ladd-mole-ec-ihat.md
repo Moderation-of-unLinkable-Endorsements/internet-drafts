@@ -209,8 +209,8 @@ are used as defined in {{ARCH}}.
 Unless otherwise specified, this document encodes protocol messages in TLS
 notation ({{Section 3 of TLS13}}). Moreover, all constants are in network byte
 order. For variable-size vectors written `<V>`, the length prefix is a
-variable-length integer ({{Section 16 of QUIC}}) in its minimum-size encoding,
-so its width depends on the length of the contents it carries.
+variable-length integer ({{Section 16 of QUIC}}), whose width depends on the
+length of the contents it carries. The minimum-size encoding is recommended.
 
 Algorithms are specified in Python and use the following functions, types, and
 notation.

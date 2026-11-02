@@ -187,8 +187,7 @@ The grant endpoint comes from Anchor configuration. The Client sends a POST
 with the type-specific grant message as its body. The media type is
 `application/mole-endorsement-request` with a required `type` parameter using
 the same four-digit hexadecimal encoding. The response uses
-`application/mole-endorsement-response` with the same type. The Client MUST
-reject a mismatched type. There is no outer `EndorsementRequest` or
+`application/mole-endorsement-response` with the same type. There is no outer `EndorsementRequest` or
 `EndorsementResponse` wrapper. The first EC-IHAT request carries a
 `GrantRequest` naming the number of Endorsements the Client asks for
 ({{PROTOCOLS}}):

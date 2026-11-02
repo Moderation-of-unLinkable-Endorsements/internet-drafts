@@ -1517,9 +1517,6 @@ The registration template contains:
 These values MUST NOT be assigned. Message bodies carrying them contain
 random bytes ({{greasing}}).
 
-> **Editor note.** The final registry names and expert-review instructions
-> remain to be specified.
-
 ## Media Types
 
 | Media Type                            | Reference                 |
@@ -1532,6 +1529,9 @@ Both media types require a `type` parameter containing the four-digit
 hexadecimal endorsement type value ({{iana}}). Bodies
 are the type-specific binary grant messages. Duplicate or mismatched type
 parameters are rejected. Neither type has optional parameters defined here.
+
+> **Editor note.** The final registry names and expert-review instructions
+> remain to be specified.
 
 
 --- back
