@@ -5,20 +5,20 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                   J. Katz
 Intended status: Informational                                Google LLC
-Expires: 2 May 2027                                     A. Faz-Hernandez
+Expires: 6 May 2027                                     A. Faz-Hernandez
                                                         Cloudflare, Inc.
-                                                         29 October 2026
+                                                         2 November 2026
 
 
                     EC-ACT: Anonymous Credit Tokens
-                    draft-authors-mole-ec-act-latest
+                  draft-schlesinger-mole-ec-act-latest
 
 Abstract
 
    This document specifies EC-ACT, a keyed-verification anonymous
    credential scheme with a hidden credit balance.  A Client spends a
    public amount and receives a fresh Credential for the remaining
-   balance and a return amount chosen by the issuer.  The issuer
+   balance and a return amount chosen by the Moderator.  The Moderator
    verifies each spend without learning the balance or linking it to
    issuance or to other spends.
 
@@ -32,9 +32,10 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at https://moderation-
-   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-ec-act.html.  Status information for this document may be found
-   at https://datatracker.ietf.org/doc/draft-authors-mole-ec-act/.
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-
+   schlesinger-mole-ec-act.html.  Status information for this document
+   may be found at https://datatracker.ietf.org/doc/draft-schlesinger-
+   mole-ec-act/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -55,7 +56,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -160,7 +161,7 @@ Table of Contents
    This document contains executable Python code to specify much of the
    protocol.
 
-   EC-ACT uses three three dependencies:
+   EC-ACT uses three dependencies:
 
    Group:  A prime-order group implementing the interface in
       Section 3.1.  Section 5 gives concrete instances.
@@ -209,14 +210,19 @@ Table of Contents
    more than one derivation.  An algorithm derives all of its scalars
    with one call, under an info string that names it.  See Section 5.2.
 
-   The hash-to-scalar method reduces an Ns + 16-byte string modulo p.
-   For a uniformly random string of this length, the resulting scalar
-   has statistical distance at most 2^-128 from uniform over the nonzero
-   scalars, conditioned on the result being nonzero.  The 16-byte margin
-   follows the hash-to-field method for a 128-bit security target
-   (Section 5 of [HASH2CURVE]).  Section 6 describes the random-oracle
-   analysis needed to apply this sampling bound to the derived scalar
-   and nonce vectors.
+   For the P256-SHA256 ciphersuite, Ns = 32 bytes is the scalar encoding
+   length, while Nseed = 48 bytes is the seed length.  The group order p
+   is a 256-bit prime (2^255 < p < 2^256).  The hash-to-scalar method
+   reduces an Ns + 16 = 48-byte string modulo p.  If the input string is
+   uniform, the resulting scalar, conditioned on being nonzero, has
+   statistical distance at most 2^-128 from uniform over the nonzero
+   scalars.  The 16-byte margin follows the hash-to-field method for a
+   128-bit security target (Section 5 of [HASH2CURVE]).
+
+   This is a sampling bound for a uniform byte string.  It does not
+   establish that the deterministic hash-derived scalars or nonces are
+   uniform.  Section 6 describes their analysis and the remaining proof
+   gaps.
 
 3.4.  Key Generation
 
@@ -232,7 +238,7 @@ Table of Contents
    An Anonymous Credit Token is a keyed-verification anonymous
    credential [KVAC] over a privately verifiable, pairing-free BBS-style
    signature [BBS] [TZ23], whose hidden state is a _balance_ c: a
-   nonnegative integer number of credits.  An Moderator issues a
+   nonnegative integer number of credits.  A Moderator issues a
    Credential with an initial balance of its choosing, and the Client
    later _spends_ from it.  A spend reveals a public amount s and
    proves, in zero knowledge, that the Credential holds at least s
@@ -243,10 +249,11 @@ Table of Contents
    containing a signature, a public return amount t, and a proof of
    correct signing.  The Client combines this message with its saved
    spend state to finalize a fresh Credential with balance c - s + t.
-   Every spend declares a public _top-up allowance_ a.  When no top-up
-   is allowed, the spend sets a = 0.  The Moderator chooses t with 0 <=
-   t <= s + a, so the balance increases exactly when t > s, by at most
-   a.  With a = 0, the return amount is at most s.
+   Every spend declares a public _top-up allowance_ a, the maximum
+   permitted increase in the balance.  When no top-up is allowed, the
+   spend sets a = 0.  The Moderator chooses t with 0 <= t <= s + a, so
+   the balance increases exactly when t > s, by at most a.  With a = 0,
+   the return amount is at most s.
 
    A presentation hides its Credential's balance beyond the public
    amounts and the predicates they establish.  It is intended to be
@@ -255,15 +262,15 @@ Table of Contents
    set requirements of Section 6.
 
    The scheme is a two-party protocol between a Client and a Moderator.
-   The Moderator holds a key pair (skM, pkM) and is both the issuer and
-   the verifier: Credentials are not publicly verifiable, and only their
-   issuer can check a spend.  Each of the two flows, issuance and
+   The Moderator holds a key pair (skM, pkM) and both issues and
+   verifies Credentials: they are not publicly verifiable, and only the
+   Moderator can check a spend.  Each of the two flows, issuance and
    spending, is a single request/response exchange followed by a Client-
    local finalization.
 
-   For spending, both parties know s, the spend amount, a, the maximum
-   refund, and a _spend context_ ctx_spend that binds the proof to the
-   Moderator's challenge (Section 4.6).  [PROTOCOLS] defines this
+   For spending, both parties know s, the spend amount, a, the top-up
+   allowance, and a _spend context_ ctx_spend that binds the proof to
+   the Moderator's challenge (Section 4.6).  [PROTOCOLS] defines this
    context as the SHA-256 digest of the encoded challenge.
 
       Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
@@ -445,12 +452,13 @@ Table of Contents
    amount are needed to interpret this difference over the integers
    (Section 6).
 
-   The comparisons s <= c and c + a < 2^L in ProveSpend, the bound 2^L -
-   1 - (s + a) in ProveSpend and VerifySpend, t <= s + a in IssueRefund,
-   and t <= s + a and v1 + t < 2^L in FinalizeRefund are between
-   integers.  Each sum can reach 2^(L+1) - 2, which does not fit in a
-   uint64 when L = 64, and an implementation MUST compute them without
-   overflow.
+   The comparisons s <= c and c + a < 2^L in ProveSpend, s + a < 2^L in
+   VerifySpend, t <= s + a in IssueRefund, and t <= s + a and v1 + t <
+   2^L in FinalizeRefund are integer comparisons.  The condition s + a <
+   2^L is equivalent to 0 <= 2^L - 1 - (s + a); in ProveSpend it follows
+   from the first two comparisons rather than a separate check.  Each
+   sum can reach 2^(L+1) - 2, which does not fit in a uint64 when L =
+   64, and an implementation MUST compute them without overflow.
 
 4.4.  Zero-Knowledge Proofs
 
@@ -790,12 +798,12 @@ Table of Contents
 
    The lower bound shows that the Credential covers the spend, and the
    upper bound that the _topped-up balance_ c + a = s + v1 + a is below
-   2^L, so the refund may return up to s + a without the balance
-   exceeding 2^L - 1.  A single range proof over the bits of v1,
-   weighted by w = RangeWeights(m) (Section 4.3), shows both.  A spend
-   with s + a >= 2^L cannot satisfy them and is rejected with an
-   AmountError.  The number n = len(w) of bit commitments is the bit
-   length of m and is fixed by the public amounts.
+   2^L, so the Moderator may choose a return amount t <= s + a without
+   the resulting balance exceeding 2^L - 1.  A single range proof over
+   the bits of v1, weighted by w = RangeWeights(m) (Section 4.3), shows
+   both.  A spend with s + a >= 2^L cannot satisfy them and is rejected
+   with an AmountError.  The number n = len(w) of bit commitments is the
+   bit length of m and is fixed by the public amounts.
 
    A _refresh_, with s = a = 0, needs no range proof: the remainder is
    the balance c, whose range follows from issuance and prior refunds
@@ -1174,9 +1182,6 @@ Table of Contents
    a new ctx_proto; EC-ACTv1-P256-SHA256 then never denotes two
    transcript formats.
 
-      *TODO.* Revisit once [SIGMA] and [FIAT-SHAMIR] are stable, and
-      move the pin to -04 when it is published.
-
 5.1.  EC-ACT(P-256, SHA-256)
 
    This ciphersuite uses P-256 (secp256r1) for the group and SHA-256 for
@@ -1247,11 +1252,12 @@ Table of Contents
       exponents are programmed.  [BBDT16] covers the keyed-verification
       setting for the underlying MAC.
 
-      *TODO.* Write out the credit-conservation reduction and the
-      statistical unlinkability argument for the idealized scheme,
-      together with bounds for the concrete scalar and nonce derivations
-      in the random oracle model.  Analyze unlinkability against quantum
-      random-oracle queries.
+   The credit-conservation reduction and the statistical unlinkability
+   argument for the idealized scheme remain to be written out.  Bounds
+   for the concrete scalar and nonce derivations in the random oracle
+   model, and unlinkability against quantum random-oracle queries, also
+   remain open.  The arguments below describe the intended guarantees
+   and proof strategy.
 
    Credit conservation:  Fix a Moderator key, a credential context, and
       a balance width L.  For any sequence of presentations the
@@ -1436,11 +1442,11 @@ Table of Contents
               6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
               jms-mole-architecture-00>.
 
-   [EC-IHAT]  Schlesinger, S. and D. I. Mohan, "EC-IHAT: An Issuer-
-              Hiding Anonymous Token", Work in Progress, Internet-Draft,
-              draft-authors-mole-ec-ihat, 2026, <https://moderation-of-
-              unlinkable-endorsements.github.io/internet-drafts/draft-
-              authors-mole-ec-ihat.html>.
+   [EC-IHAT]  Schlesinger, S., Ladd, W., and D. I. Mohan, "EC-IHAT:
+              Issuer-Hiding Anonymous Tokens", Work in Progress,
+              Internet-Draft, draft-ladd-mole-ec-ihat, 2026,
+              <https://moderation-of-unlinkable-endorsements.github.io/
+              internet-drafts/draft-ladd-mole-ec-ihat.html>.
 
    [FIAT-SHAMIR]
               Orrù, M., "Fiat-Shamir Transformation", Work in Progress,
@@ -1840,7 +1846,9 @@ A.7.  Spend 4: spend with top-up (s = 3, a = 2)
 
 Acknowledgments
 
-   TODO acknowledge.
+   The authors thank Watson Ladd for the single range proof
+   construction, and Christopher Patton and Thibault Meunier for review
+   and improvements to the protocol description.
 
 Authors' Addresses
 

@@ -12,8 +12,8 @@
        This document specifies EC-ACT, a keyed-verification anonymous credential
 scheme with a hidden credit balance. A Client spends a
 public amount and receives a fresh Credential for the remaining balance and
-a return amount chosen by the issuer. The issuer verifies each spend without
-learning the balance or linking it to issuance or to other spends. 
+a return amount chosen by the Moderator. The Moderator verifies each spend
+without learning the balance or linking it to issuance or to other spends. 
        EC-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
 This document defines its cryptographic operations, encodings, and security
 requirements. The MOLE protocols use EC-ACT as a Credential scheme. 
@@ -24,7 +24,7 @@ requirements. The MOLE protocols use EC-ACT as a Credential scheme.
 <meta content="credits" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
-<meta content="draft-authors-mole-ec-act-latest" name="ietf.draft">
+<meta content="draft-schlesinger-mole-ec-act-latest" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.34.1
     Python 3.14.8
@@ -40,7 +40,7 @@ requirements. The MOLE protocols use EC-ACT as a Credential scheme.
     requests 2.33.1
     wcwidth 0.9.2
 -->
-<link href="draft-authors-mole-ec-act.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-schlesinger-mole-ec-act.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">@font-face {
   font-family: 'Lora';
@@ -1054,11 +1054,11 @@ svg {
 <thead><tr>
 <td class="left">Internet-Draft</td>
 <td class="center">EC-ACT</td>
-<td class="right">October 2026</td>
+<td class="right">November 2026</td>
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 2 May 2027</td>
+<td class="center">Expires 6 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,15 +1068,15 @@ svg {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">Network Working Group</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-authors-mole-ec-act-latest</dd>
+<dd class="internet-draft">draft-schlesinger-mole-ec-act-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-10-29" class="published">29 October 2026</time>
+<time datetime="2026-11-02" class="published">2 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-02">2 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-06">6 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1100,8 +1100,8 @@ svg {
 <p id="section-abstract-1">This document specifies EC-ACT, a keyed-verification anonymous credential
 scheme with a hidden credit balance. A Client spends a
 public amount and receives a fresh Credential for the remaining balance and
-a return amount chosen by the issuer. The issuer verifies each spend without
-learning the balance or linking it to issuance or to other spends.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+a return amount chosen by the Moderator. The Moderator verifies each spend
+without learning the balance or linking it to issuance or to other spends.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
 <p id="section-abstract-2">EC-ACT uses a pairing-free BBS-style signature and proofs over linear relations.
 This document defines its cryptographic operations, encodings, and security
 requirements. The MOLE protocols use EC-ACT as a Credential scheme.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
@@ -1112,8 +1112,8 @@ requirements. The MOLE protocols use EC-ACT as a Credential scheme.<a href="#sec
       </h2>
 <p id="section-note.1-1">This note is to be removed before publishing as an RFC.<a href="#section-note.1-1" class="pilcrow">¶</a></p>
 <p id="section-note.1-2">
-        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html</a></span>.
-        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-authors-mole-ec-act/">https://datatracker.ietf.org/doc/draft-authors-mole-ec-act/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
+        The latest revision of this draft can be found at <span><a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html</a></span>.
+        Status information for this document may be found at <span><a href="https://datatracker.ietf.org/doc/draft-schlesinger-mole-ec-act/">https://datatracker.ietf.org/doc/draft-schlesinger-mole-ec-act/</a></span>.<a href="#section-note.1-2" class="pilcrow">¶</a></p>
 <p id="section-note.1-3">Source for this draft and an issue tracker can be found at
         <span><a href="https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts">https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts</a></span>.<a href="#section-note.1-3" class="pilcrow">¶</a></p>
 </section>
@@ -1136,7 +1136,7 @@ requirements. The MOLE protocols use EC-ACT as a Credential scheme.<a href="#sec
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 2 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 6 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1373,7 +1373,7 @@ specified by the operation that uses them.<a href="#section-2-3" class="pilcrow"
       </h2>
 <p id="section-3-1">This document contains executable Python code to specify much of the
 protocol.<a href="#section-3-1" class="pilcrow">¶</a></p>
-<p id="section-3-2">EC-ACT uses three three dependencies:<a href="#section-3-2" class="pilcrow">¶</a></p>
+<p id="section-3-2">EC-ACT uses three dependencies:<a href="#section-3-2" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-3-3">
         <dt id="section-3-3.1">Group:</dt>
         <dd style="margin-left: 1.5em" id="section-3-3.2">
@@ -1441,14 +1441,17 @@ shared algorithm.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
 <p id="section-3.3-2"><code>rand</code> <span class="bcp14">MUST</span> be <code>Nseed</code> bytes of output of <code>random</code> and <span class="bcp14">MUST NOT</span> be used for
 more than one derivation. An algorithm derives all of its scalars with one
 call, under an <code>info</code> string that names it. See <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#section-3.3-2" class="pilcrow">¶</a></p>
-<p id="section-3.3-3">The hash-to-scalar method reduces an <code>Ns + 16</code>-byte string modulo <code>p</code>.
-For a uniformly random string of this length, the resulting scalar has
-statistical distance at most <code>2^-128</code> from uniform over the nonzero scalars,
-conditioned on the result being nonzero. The 16-byte margin follows the
-hash-to-field method for a 128-bit security target
-(<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5" class="relref">Section 5</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>). <a href="#ec-act-security" class="auto internal xref">Section 6</a> describes the random-oracle
-analysis needed to apply this sampling bound to the derived scalar and
-nonce vectors.<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-3">For the <code>P256-SHA256</code> ciphersuite, <code>Ns = 32</code> bytes is the scalar encoding
+length, while <code>Nseed = 48</code> bytes is the seed length. The group order <code>p</code> is
+a 256-bit prime (<code>2^255 &lt; p &lt; 2^256</code>). The hash-to-scalar method reduces an
+<code>Ns + 16 = 48</code>-byte string modulo <code>p</code>. If the input string is uniform, the
+resulting scalar, conditioned on being nonzero, has statistical distance at
+most <code>2^-128</code> from uniform over the nonzero scalars. The 16-byte margin
+follows the hash-to-field method for a 128-bit security target
+(<span><a href="https://rfc-editor.org/rfc/rfc9380#section-5" class="relref">Section 5</a> of [<a href="#HASH2CURVE" class="cite xref">HASH2CURVE</a>]</span>).<a href="#section-3.3-3" class="pilcrow">¶</a></p>
+<p id="section-3.3-4">This is a sampling bound for a uniform byte string. It does not establish
+that the deterministic hash-derived scalars or nonces are uniform.
+<a href="#ec-act-security" class="auto internal xref">Section 6</a> describes their analysis and the remaining proof gaps.<a href="#section-3.3-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="keygen">
@@ -1474,7 +1477,7 @@ pkM)</code> because the Moderator is the issuer. The Moderator publishes
 keyed-verification anonymous credential <span>[<a href="#KVAC" class="cite xref">KVAC</a>]</span> over a privately
 verifiable, pairing-free BBS-style signature <span>[<a href="#BBS" class="cite xref">BBS</a>]</span> <span>[<a href="#TZ23" class="cite xref">TZ23</a>]</span>, whose
 hidden state is a <em>balance</em> <code>c</code>: a nonnegative integer number of credits.
-An Moderator issues a Credential with an initial balance of its choosing,
+A Moderator issues a Credential with an initial balance of its choosing,
 and the Client later <em>spends</em> from it. A spend reveals a public amount <code>s</code>
 and proves, in zero knowledge, that the Credential holds at least <code>s</code>
 credits. It also reveals a nullifier, which the Moderator checks against
@@ -1483,7 +1486,8 @@ its record of accepted spends to enforce single use.<a href="#section-4-1" class
 a signature, a public return amount <code>t</code>, and a proof of correct signing.
 The Client combines this message with its saved spend state to finalize a
 fresh Credential with balance <code>c - s + t</code>. Every spend declares a public
-<em>top-up allowance</em> <code>a</code>. When no top-up is allowed, the spend sets <code>a = 0</code>.
+<em>top-up allowance</em> <code>a</code>, the maximum permitted increase in the balance.
+When no top-up is allowed, the spend sets <code>a = 0</code>.
 The Moderator chooses <code>t</code> with <code>0 &lt;= t &lt;= s + a</code>, so the balance increases
 exactly when <code>t &gt; s</code>, by at most <code>a</code>. With <code>a = 0</code>, the return amount is
 at most <code>s</code>.<a href="#section-4-2" class="pilcrow">¶</a></p>
@@ -1493,12 +1497,12 @@ issuance or refund that produced that Credential and to other
 presentations, subject to the assumptions and anonymity-set requirements
 of <a href="#ec-act-security" class="auto internal xref">Section 6</a>.<a href="#section-4-3" class="pilcrow">¶</a></p>
 <p id="section-4-4">The scheme is a two-party protocol between a Client and a Moderator. The
-Moderator holds a key pair <code>(skM, pkM)</code> and is both the issuer and the
-verifier: Credentials are not publicly verifiable, and only their issuer can
+Moderator holds a key pair <code>(skM, pkM)</code> and both issues and verifies
+Credentials: they are not publicly verifiable, and only the Moderator can
 check a spend. Each of the two flows, issuance and spending, is a single
 request/response exchange followed by a Client-local finalization.<a href="#section-4-4" class="pilcrow">¶</a></p>
 <p id="section-4-5">For spending, both parties know <code>s</code>, the spend amount, <code>a</code>,
-the maximum refund, and a <em>spend context</em>
+the top-up allowance, and a <em>spend context</em>
         <code>ctx_spend</code> that binds the proof to the Moderator's challenge
 (<a href="#ec-act-spending" class="auto internal xref">Section 4.6</a>). <span>[<a href="#PROTOCOLS" class="cite xref">PROTOCOLS</a>]</span> defines this context as the SHA-256
 digest of the encoded challenge.<a href="#section-4-5" class="pilcrow">¶</a></p>
@@ -1700,12 +1704,14 @@ depends only on <code>m</code>, which is public.<a href="#section-4.3-5" class="
 using it, and <span class="bcp14">MUST</span> raise an <code>AmountError</code> otherwise. The spend range proof
 bounds a difference of amounts. The bounds on each amount are needed to
 interpret this difference over the integers (<a href="#ec-act-security" class="auto internal xref">Section 6</a>).<a href="#section-4.3-6" class="pilcrow">¶</a></p>
-<p id="section-4.3-7">The comparisons <code>s &lt;= c</code> and <code>c + a &lt; 2^L</code> in <code>ProveSpend</code>, the bound
-<code>2^L - 1 - (s + a)</code> in <code>ProveSpend</code> and <code>VerifySpend</code>, <code>t &lt;= s + a</code>
-in <code>IssueRefund</code>, and <code>t &lt;= s + a</code> and <code>v1 + t &lt; 2^L</code> in <code>FinalizeRefund</code>
-are between integers. Each sum can reach <code>2^(L+1) - 2</code>, which does not fit
-in a <code>uint64</code> when <code>L = 64</code>, and an implementation <span class="bcp14">MUST</span> compute them
-without overflow.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
+<p id="section-4.3-7">The comparisons <code>s &lt;= c</code> and <code>c + a &lt; 2^L</code> in <code>ProveSpend</code>,
+<code>s + a &lt; 2^L</code> in <code>VerifySpend</code>, <code>t &lt;= s + a</code> in <code>IssueRefund</code>, and
+<code>t &lt;= s + a</code> and <code>v1 + t &lt; 2^L</code> in <code>FinalizeRefund</code> are integer
+comparisons. The condition <code>s + a &lt; 2^L</code> is equivalent to
+<code>0 &lt;= 2^L - 1 - (s + a)</code>; in <code>ProveSpend</code> it follows from the first two
+comparisons rather than a separate check. Each sum can reach
+<code>2^(L+1) - 2</code>, which does not fit in a <code>uint64</code> when <code>L = 64</code>, and an
+implementation <span class="bcp14">MUST</span> compute them without overflow.<a href="#section-4.3-7" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="ec-act-proofs">
@@ -2112,9 +2118,9 @@ satisfies<a href="#section-4.6.1-1" class="pilcrow">¶</a></p>
 </div>
 <p id="section-4.6.1-3">The lower bound shows that the Credential covers the spend, and the upper
 bound that the <em>topped-up balance</em> <code>c + a = s + v1 + a</code> is below <code>2^L</code>, so
-the refund may return up to <code>s + a</code> without the balance exceeding
-<code>2^L - 1</code>. A single range proof over the bits of <code>v1</code>, weighted by
-<code>w = RangeWeights(m)</code> (<a href="#ec-act-amounts" class="auto internal xref">Section 4.3</a>), shows both. A spend with
+the Moderator may choose a return amount <code>t &lt;= s + a</code> without the
+resulting balance exceeding <code>2^L - 1</code>. A single range proof over the bits
+of <code>v1</code>, weighted by <code>w = RangeWeights(m)</code> (<a href="#ec-act-amounts" class="auto internal xref">Section 4.3</a>), shows both. A spend with
 <code>s + a &gt;= 2^L</code> cannot satisfy them and is rejected with an <code>AmountError</code>.
 The number <code>n = len(w)</code> of bit commitments is the bit length of <code>m</code> and is
 fixed by the public amounts.<a href="#section-4.6.1-3" class="pilcrow">¶</a></p>
@@ -2534,12 +2540,6 @@ random input to every derivation, is <code>Nseed = 48</code> bytes.<a href="#sec
 derivation <span class="bcp14">MUST</span> be adopted under a new ciphersuite identifier, and so a new
 <code>ctx_proto</code>; <code>EC-ACTv1-P256-SHA256</code> then never denotes two transcript
 formats.<a href="#section-5-3" class="pilcrow">¶</a></p>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-5-4.1">
-          <p id="section-5-4.1.1"><strong>TODO.</strong> Revisit once <span>[<a href="#SIGMA" class="cite xref">SIGMA</a>]</span> and <span>[<a href="#FIAT-SHAMIR" class="cite xref">FIAT-SHAMIR</a>]</span> are stable, and
-move the pin to <code>-04</code> when it is published.<a href="#section-5-4.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
 <div id="ec-actp-256-sha-256">
 <section id="section-5.1">
         <h3 id="name-ec-actp-256-sha-256">
@@ -2624,14 +2624,12 @@ keyed-verification setting for the underlying MAC.<a href="#section-6-2.2.1" cla
 </dd>
       <dd class="break"></dd>
 </dl>
-<ul class="normal ulEmpty">
-<li class="normal ulEmpty" id="section-6-3.1">
-          <p id="section-6-3.1.1"><strong>TODO.</strong> Write out the credit-conservation reduction and the statistical
-unlinkability argument for the idealized scheme, together with bounds
-for the concrete scalar and nonce derivations in the random oracle model.
-Analyze unlinkability against quantum random-oracle queries.<a href="#section-6-3.1.1" class="pilcrow">¶</a></p>
-</li>
-      </ul>
+<p id="section-6-3">The credit-conservation reduction and the statistical unlinkability
+argument for the idealized scheme remain to be written out. Bounds for
+the concrete scalar and nonce derivations in the random oracle model,
+and unlinkability against quantum random-oracle queries, also remain
+open. The arguments below describe the intended guarantees and proof
+strategy.<a href="#section-6-3" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlParallel" id="section-6-4">
         <dt id="section-6-4.1">Credit conservation:</dt>
         <dd style="margin-left: 1.5em" id="section-6-4.2">
@@ -2868,7 +2866,7 @@ of <a href="#randomness" class="auto internal xref">Section 5.2</a>.<a href="#se
 <dd class="break"></dd>
 <dt id="EC-IHAT">[EC-IHAT]</dt>
         <dd>
-<span class="refAuthor">Schlesinger, S.</span> and <span class="refAuthor">D. I. Mohan</span>, <span class="refTitle">"EC-IHAT: An Issuer-Hiding Anonymous Token"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-authors-mole-ec-ihat</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html</a>&gt;</span>. </dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Ladd, W.</span>, and <span class="refAuthor">D. I. Mohan</span>, <span class="refTitle">"EC-IHAT: Issuer-Hiding Anonymous Tokens"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-ladd-mole-ec-ihat</span>, <time datetime="2026" class="refDate">2026</time>, <span>&lt;<a href="https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html">https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="FIAT-SHAMIR">[FIAT-SHAMIR]</dt>
         <dd>
@@ -3331,7 +3329,9 @@ spend4.credential =
       <h2 id="name-acknowledgments">
 <a href="#name-acknowledgments" class="section-name selfRef">Acknowledgments</a>
       </h2>
-<p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
+<p id="appendix-B-1">The authors thank Watson Ladd for the single range proof construction,
+and Christopher Patton and Thibault Meunier for review and improvements
+to the protocol description.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="authors-addresses">

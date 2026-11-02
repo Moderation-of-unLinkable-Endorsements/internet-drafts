@@ -5,14 +5,14 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                   W. Ladd
-Expires: 2 May 2027                                  Akamai Technologies
+Expires: 6 May 2027                                  Akamai Technologies
                                                              D. I. Mohan
                                          Georgia Institute of Technology
-                                                         29 October 2026
+                                                         2 November 2026
 
 
-               EC-IHAT: An Issuer-Hiding Anonymous Token
-                   draft-authors-mole-ec-ihat-latest
+                EC-IHAT: Issuer-Hiding Anonymous Tokens
+                     draft-ladd-mole-ec-ihat-latest
 
 Abstract
 
@@ -32,9 +32,9 @@ About This Document
    This note is to be removed before publishing as an RFC.
 
    The latest revision of this draft can be found at https://moderation-
-   of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-
-   mole-ec-ihat.html.  Status information for this document may be found
-   at https://datatracker.ietf.org/doc/draft-authors-mole-ec-ihat/.
+   of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-
+   ec-ihat.html.  Status information for this document may be found at
+   https://datatracker.ietf.org/doc/draft-ladd-mole-ec-ihat/.
 
    Source for this draft and an issue tracker can be found at
    https://github.com/Moderation-of-unLinkable-Endorsements/internet-
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 2 May 2027.
+   This Internet-Draft will expire on 6 May 2027.
 
 Copyright Notice
 
@@ -1928,10 +1928,10 @@ Table of Contents
       unforgeability to [TESSZHU], provided the issuer-hiding proof is
       straight-line extractable.
 
-         TODO Appendix C claims straight-line extractability for
-         [SIGMA], but not [STACKSIG].  Decide how to justify this gap.
-         Perhaps we expect a direct proof (rather than composition via
-         Theorem 1) to be possible.
+      Appendix C of [FFKLLS26] claims straight-line extractability for
+      [SIGMA], but does not establish it for the stacked proof used
+      here.  Applying Theorem 1 to this construction therefore remains
+      an open proof obligation.
 
    Issuer hiding:  Theorem 2 of [FFKLLS26] establishes issuer-hiding
       blindness from perfect blindness of issuance, strong key
@@ -2349,7 +2349,8 @@ A.7.  Redemption Against 1 Anchor
 
 Acknowledgments
 
-   TODO acknowledge.
+   The authors thank Christopher Patton and Thibault Meunier for review
+   and improvements to the protocol description.
 
 Authors' Addresses
 
