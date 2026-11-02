@@ -92,6 +92,7 @@ Table of Contents
      9.1.  Normative References
      9.2.  Informative References
    Acknowledgments
+   Changelog
    Authors' Addresses
 
 1.  Introduction
@@ -444,6 +445,26 @@ Table of Contents
 Acknowledgments
 
    TODO acknowledge.
+
+Changelog
+
+   draft-jms-mole-http-transport-01
+
+   *  Select protocol types in parameter names and carry type-specific
+      payloads directly, removing the outer message wrappers.
+
+   *  Separate endorsement redemption from credential issuance
+      parameters and send Redeem & Issue to the configured endpoint.
+
+   *  Add recovery by handle and define status codes for fresh
+      presentations, duplicates, and recovery.  Distinguish an empty
+      update from a missing response.
+
+   *  Specify parameter validation, canonical base64url, caching, and
+      CORS rules.
+
+   *  Support batched EC-IHAT grants and require a media type parameter
+      identifying the endorsement type.
 
 Authors' Addresses
 

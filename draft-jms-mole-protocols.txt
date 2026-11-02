@@ -121,6 +121,7 @@ Table of Contents
      10.2.  Informative References
    Appendix A.  Example
    Acknowledgments
+   Changelog
    Authors' Addresses
 
 1.  Introduction
@@ -838,13 +839,16 @@ FinalizeUpdate(presentation_state, update, configuration)
    ctx_cred = credential_context || I2OSP(L, 1)
 
    which includes L as [EC-ACT] recommends.  A Moderator expires every
-   outstanding Credential under a key by publishing a new
+   outstanding Credential under a key by retiring its
    credential_context, without changing the key.  A refund is issued
    under the context of the spent Credential, so balances do not carry
-   over to a new context.  A Moderator SHOULD announce the successor
-   context and a grace period before expiry.  Clients obtain Credentials
-   under the new context through Redeem & Issue; this document does not
-   specify balance migration.
+   over to a new context.  Moderators can accept old and new credential
+   contexts during a transition period to ensure a seamless transition
+   across clients.  Dropping support for an old credential context also
+   drops support for clients which have not discovered the new
+   credential context.  Clients obtain Credentials under the new context
+   through Redeem & Issue; this document does not specify balance
+   migration.
 
    A Moderator MAY have several active keys, for instance during a
    rotation.  It MUST ensure that no two active keys share a
@@ -1681,10 +1685,10 @@ FinalizeUpdate(presentation_state, update, configuration)
 
    [ARCHITECTURE]
               Schlesinger, S., Jackson, D., and T. Meunier, "Moderation
-              of unLinkable Endorsements (MoLE) Architecture", Work in
-              Progress, Internet-Draft, draft-jms-mole-architecture-00,
-              6 July 2026, <https://datatracker.ietf.org/doc/html/draft-
-              jms-mole-architecture-00>.
+              of unLinkable Endorsements (MOLE) Architecture", Work in
+              Progress, Internet-Draft, draft-jms-mole-architecture-01,
+              2 November 2026, <https://datatracker.ietf.org/doc/html/
+              draft-jms-mole-architecture-01>.
 
    [CDDL]     Birkholz, H., Vigano, C., and C. Bormann, "Concise Data
               Definition Language (CDDL): A Notational Convention to
@@ -1810,6 +1814,30 @@ Appendix A.  Example
 Acknowledgments
 
    TODO acknowledge.
+
+Changelog
+
+   draft-jms-mole-protocols-01
+
+   *  Move cryptographic constructions to separate EC-IHAT and EC-ACT
+      drafts.  Specify their protocol profiles, including batched EC-
+      IHAT grants.
+
+   *  Define endorsement and credential APIs, redemption challenge
+      binding, and the separation of Moderator Challenges from
+      cryptographic Contexts.
+
+   *  Carry type-specific payloads directly and make message encodings
+      independent of the HTTP transport draft.
+
+   *  Define atomic presentation processing, retained updates, and
+      recovery by handle without repeating the protected operation.
+
+   *  Add configuration schemas, key and context lifetimes, and replay
+      state requirements.
+
+   *  Remove Budget Privacy Pass and clarify the privacy and security
+      limitations of the remaining protocols.
 
 Authors' Addresses
 

@@ -1340,7 +1340,10 @@ establishes the registries that identify these protocols.<a href="#section-abstr
             <p id="section-toc.1-1.12.1"><a href="#appendix-B" class="auto internal xref"></a><a href="#name-acknowledgments" class="internal xref">Acknowledgments</a></p>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
-            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+            <p id="section-toc.1-1.13.1"><a href="#appendix-C" class="auto internal xref"></a><a href="#name-changelog" class="internal xref">Changelog</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#appendix-D" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
 </li>
         </ul>
 </nav>
@@ -2339,10 +2342,13 @@ ctx_cred = credential_context || I2OSP(L, 1)
 </pre><a href="#section-5.2.1-4" class="pilcrow">¶</a>
 </div>
 <p id="section-5.2.1-5">which includes <code>L</code> as <span>[<a href="#EC-ACT" class="cite xref">EC-ACT</a>]</span> recommends. A Moderator expires every
-outstanding Credential under a key by publishing a new <code>credential_context</code>,
+outstanding Credential under a key by retiring its <code>credential_context</code>,
 without changing the key. A refund is issued under the context of the spent
-Credential, so balances do not carry over to a new context. A Moderator
-<span class="bcp14">SHOULD</span> announce the successor context and a grace period before expiry.
+Credential, so balances do not carry over to a new context. Moderators can
+accept old and new credential contexts during a transition period to ensure
+a seamless transition across clients. Dropping support for an old credential
+context also drops support for clients which have not discovered the new
+credential context.
 Clients obtain Credentials under the new context through Redeem &amp; Issue;
 this document does not specify balance migration.<a href="#section-5.2.1-5" class="pilcrow">¶</a></p>
 <p id="section-5.2.1-6">A Moderator <span class="bcp14">MAY</span> have several active keys, for instance during a rotation. It
@@ -3516,7 +3522,7 @@ remain to be specified.<a href="#section-9.3-3.1.1" class="pilcrow">¶</a></p>
 <dl class="references">
 <dt id="ARCHITECTURE">[ARCHITECTURE]</dt>
         <dd>
-<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MoLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-00</span>, <time datetime="2026-07-06" class="refDate">6 July 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00</a>&gt;</span>. </dd>
+<span class="refAuthor">Schlesinger, S.</span>, <span class="refAuthor">Jackson, D.</span>, and <span class="refAuthor">T. Meunier</span>, <span class="refTitle">"Moderation of unLinkable Endorsements (MOLE) Architecture"</span>, <span class="refContent">Work in Progress</span>, <span class="seriesInfo">Internet-Draft, draft-jms-mole-architecture-01</span>, <time datetime="2026-11-02" class="refDate">2 November 2026</time>, <span>&lt;<a href="https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-01">https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-01</a>&gt;</span>. </dd>
 <dd class="break"></dd>
 <dt id="CDDL">[CDDL]</dt>
         <dd>
@@ -3695,8 +3701,42 @@ the Moderator chose to consume the Credential.<a href="#appendix-A-5" class="pil
 <p id="appendix-B-1">TODO acknowledge.<a href="#appendix-B-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="authors-addresses">
+<div id="changelog">
 <section id="appendix-C">
+      <h2 id="name-changelog">
+<a href="#name-changelog" class="section-name selfRef">Changelog</a>
+      </h2>
+<p id="appendix-C-1">draft-jms-mole-protocols-01<a href="#appendix-C-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="appendix-C-2.1">
+          <p id="appendix-C-2.1.1">Move cryptographic constructions to separate EC-IHAT and EC-ACT drafts.
+Specify their protocol profiles, including batched EC-IHAT grants.<a href="#appendix-C-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-2.2">
+          <p id="appendix-C-2.2.1">Define endorsement and credential APIs, redemption challenge binding, and
+the separation of Moderator Challenges from cryptographic Contexts.<a href="#appendix-C-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-2.3">
+          <p id="appendix-C-2.3.1">Carry type-specific payloads directly and make message encodings independent
+of the HTTP transport draft.<a href="#appendix-C-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-2.4">
+          <p id="appendix-C-2.4.1">Define atomic presentation processing, retained updates, and recovery by
+handle without repeating the protected operation.<a href="#appendix-C-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-2.5">
+          <p id="appendix-C-2.5.1">Add configuration schemas, key and context lifetimes, and replay state
+requirements.<a href="#appendix-C-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="appendix-C-2.6">
+          <p id="appendix-C-2.6.1">Remove Budget Privacy Pass and clarify the privacy and security limitations
+of the remaining protocols.<a href="#appendix-C-2.6.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-D">
       <h2 id="name-authors-addresses">
 <a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
       </h2>
