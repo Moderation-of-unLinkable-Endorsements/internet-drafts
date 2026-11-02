@@ -512,7 +512,7 @@ Endorsement (see {{anchor-policy}}). Losing this state means over-granting,
 but not a privacy loss.
 
 **Moderators** require state in order to prevent the double-spend of
-Endorsements and Credentials. State should be bounded to uphold {{privacy-properties}}.
+Endorsements and Credentials and support presentation recovery. State should be bounded to uphold {{privacy-properties}}.
 
 **Clients** store their tokens and MUST burn them once redeemed or presented (see
 {{concurrent-contexts}}). Ensuring that they do no replay state is their responsibility,
