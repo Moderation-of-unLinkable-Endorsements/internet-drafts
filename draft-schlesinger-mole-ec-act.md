@@ -52,7 +52,6 @@ normative:
       -
         ins: D. I. Mohan
   ARCH: I-D.draft-jms-mole-architecture
-  PROTOCOLS: I-D.draft-jms-mole-protocols
   SIGMA: I-D.irtf-cfrg-sigma-protocols-03
   FIAT-SHAMIR: I-D.irtf-cfrg-fiat-shamir-03
 
@@ -254,7 +253,7 @@ Use `G.DeriveKeyPair(seed, info)` and `G.GenerateKeyPair()` from Section
 4.4 of {{EC-IHAT}}, with the EC-ACT group instance of {{ec-act-config}}. Both
 return `tuple[Scalar, Element]`; EC-ACT names the returned keys `(skM,
 pkM)` because the Moderator is the issuer. The Moderator publishes
-`G.SerializeElement(pkM)` in its configuration ({{PROTOCOLS}}).
+`G.SerializeElement(pkM)` in its configuration.
 
 # The Credential Scheme {#credential-scheme}
 
@@ -293,8 +292,7 @@ request/response exchange followed by a Client-local finalization.
 For spending, both parties know `s`, the spend amount, `a`,
 the top-up allowance, and a *spend context*
 `ctx_spend` that binds the proof to the Moderator's challenge
-({{ec-act-spending}}). {{PROTOCOLS}} defines this context as the SHA-256
-digest of the encoded challenge.
+({{ec-act-spending}}), for example a hash of the encoded challenge.
 
 ~~~
    Client(pkM, ctx_cred)                     Moderator(skM, ctx_cred)
@@ -332,8 +330,7 @@ digest of the encoded challenge.
 The Moderator chooses the initial balance `c` and the return amount `t`
 according to its policy; both are outside the scope of this document, as is
 the nullifier store the Moderator keeps to reject a second spend of the same
-Credential. {{PROTOCOLS}} specifies both, together with the carriage of the
-four messages.
+Credential.
 
 ## Configuration {#ec-act-config}
 
@@ -357,8 +354,8 @@ amounts are integers in `[0, 2^L)`. `L` MUST satisfy `1 <= L <=
 MAX_BIT_LENGTH`, where `MAX_BIT_LENGTH` is fixed by the ciphersuite. The size
 of a spend proof and the cost of producing and verifying it grow linearly in
 `L`, so a deployment SHOULD choose the smallest `L` that accommodates its
-largest balance. The Moderator publishes `L` together with its public key
-({{PROTOCOLS}}); a Client MUST use the published value.
+largest balance. The Moderator publishes `L` together with its public key;
+a Client MUST use the published value.
 
 `L` is fixed for the lifetime of a key and credential context.
 {{ec-act-security}} shows by induction over issuances and refunds that every
@@ -395,14 +392,14 @@ an implementation MAY verify this once when instantiating a ciphersuite.
 A Moderator holds a key pair `(skM, pkM)`, generated with `G.GenerateKeyPair`
 of {{keygen}} under the protocol context of this section, or derived from a
 seed with `G.DeriveKeyPair`. The Moderator publishes `SerializeElement(pkM)` in
-its configuration ({{PROTOCOLS}}). The signing key `skM` is also the
+its configuration. The signing key `skM` is also the
 verification key: `VerifySpend` requires it.
 
 ## Credential Context {#ec-act-context}
 
 Every Credential is bound at issuance to a *credential context* `ctx_cred`,
 an opaque byte string of at most `2^16 - 1` bytes chosen by the Moderator and
-agreed with the Client out of band; {{PROTOCOLS}} says how. It
+agreed with the Client out of band. It
 restricts *when*, or under which policy, a Credential may be spent, so that a
 Moderator can for instance expire all Credentials of an epoch at once without
 rotating its key.
@@ -783,7 +780,7 @@ given in {{ec-act-wire}}. It is never sent. The Client also retains
 
 Spending consumes a Credential with balance `c` and produces one with
 balance `c - s + t`. The amount `s` and the top-up allowance `a` are
-chosen by the Client to match the Moderator's challenge ({{PROTOCOLS}});
+chosen by the Client to match the Moderator's challenge;
 the return amount `t`, with `0 <= t <= s + a`, is chosen by the
 Moderator. With `s = a = 0` a spend changes nothing but the nullifier and
 refreshes the Credential. Spending consists of four algorithms:
@@ -799,9 +796,10 @@ succeeds.
 A spend is bound to a *spend context* `ctx_spend`, an opaque byte string
 of at most `2^16 - 1` bytes supplied by the verifier and known to the
 Client. The spend proof uses `Tag(b"Spend", [ctx_spend])`, with
-`ctx_spend` as its sole binding ({{ec-act-tags}}). {{PROTOCOLS}}
-sets it to the SHA-256 digest of the challenge that triggered the
-presentation. The top-up allowance is bound by the relation: a proof
+`ctx_spend` as its sole binding ({{ec-act-tags}}). A deployment might,
+for example, set it to a collision-resistant digest of the challenge that
+triggered the presentation.
+The top-up allowance is bound by the relation: a proof
 produced for one value of `a` does not verify under another, so a
 Moderator authorizes a top-up by verifying the proof with the value it
 accepts, and a Moderator that offers none MUST reject a spend with
@@ -1002,8 +1000,7 @@ Credential as spent, and MUST have stored `state` durably, no later than
 the moment `proof` becomes observable outside the Client; the refund is
 unusable without the state, and a second proof from the same Credential
 reveals the same nullifier ({{ec-act-security}}). `state` holds everything
-`FinalizeRefund` needs. {{PROTOCOLS}} additionally requires retaining
-`proof` for refund recovery.
+`FinalizeRefund` needs.
 
 ### Spend Verification {#ec-act-verify-spend}
 
@@ -1044,8 +1041,7 @@ verification ({{ec-act-security}}).
 `VerifySpend` does not check whether `k` has been seen before, nor whether
 the Moderator is willing to grant the top-up `a`. The Moderator MUST do
 both. It MUST record `k` atomically, failing if `k` is already recorded,
-and MUST NOT accept the spend or release a refund unless `k` was recorded
-({{PROTOCOLS}}).
+and MUST NOT accept the spend or release a refund unless `k` was recorded.
 
 ### Refund Issuance {#ec-act-refund}
 
@@ -1134,7 +1130,7 @@ finalize one spend state against two refunds, since the two Credentials
 would share the nullifier `kstar`. The Client MUST NOT spend the consumed
 Credential again, whether or not the refund arrives. A Client that has
 sent a spend proof and not received a valid refund keeps `state` and MAY
-ask the Moderator for the refund again; {{PROTOCOLS}} describes how, and
+ask the Moderator for the refund again, and
 the Moderator recognizes the request by the recorded nullifier `k`. The
 Moderator can answer with the refund it issued, which requires storing
 it with the nullifier, or run `IssueRefund` again. The latter produces a
@@ -1337,7 +1333,7 @@ Credit conservation:
       sum_i s_i <= sum_j c_j + sum_i t_i
 
   except with negligible probability, for an adversary controlling every
-  Client, provided the nullifier store of {{PROTOCOLS}} rejects a repeated
+  Client, provided the nullifier store (see "Nullifier store" below) rejects a repeated
   nullifier. The right-hand side is under the Moderator's control. The
   property rests on the following:
 
@@ -1370,9 +1366,7 @@ Unlinkability:
   {{EC-IHAT}}). Concrete bounds for this replacement and its
   composition with the proofs remain to be established. The public
   amounts `s`, `a`, and `t`, and the configuration, determine which
-  Credentials could have produced a presentation; {{PROTOCOLS}}
-  constrains these amounts, and {{ARCH}} states the anonymity-set
-  requirements.
+  Credentials could have produced a presentation.
 
 Quantum adversaries:
 : A quantum computer capable of solving discrete logarithms in `G` can
@@ -1426,7 +1420,7 @@ Nullifier store:
   spend is either fully processed or not at all.  Losing the record
   re-admits every Credential spent while it was in effect; the record
   covers at least the lifetime of the credential context it was
-  recorded under ({{PROTOCOLS}}).
+  recorded under.
 
 Single use of Credentials and states:
 : A Client MUST treat a Credential as spent, and MUST have stored the
@@ -1494,13 +1488,12 @@ Balance width:
 System requirements:
 : The requirements on deployments are those of "Nullifier store", "Context
   granularity", and "Single use of Credentials and states" above, consistent
-  configuration across Clients ({{ARCH}}), and the randomness requirements
+  configuration across Clients, and the randomness requirements
   of {{randomness}}.
 
 # IANA Considerations {#iana}
 
-This document has no IANA actions. The EC-ACT credential type is registered by
-{{PROTOCOLS}}.
+This document has no IANA actions.
 
 --- back
 

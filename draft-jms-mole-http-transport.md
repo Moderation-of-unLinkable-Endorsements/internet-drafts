@@ -38,9 +38,7 @@ author:
 
 normative:
   HTTP: RFC9110
-  PROTOCOLS: #I-D.draft-jms-mole-protocols
-    title: MOLE Protocols
-    target: https://datatracker.ietf.org/doc/draft-jms-mole-protocols/00/
+  PROTOCOLS: I-D.draft-jms-mole-protocols
 
 informative:
   BASE64: RFC4648
@@ -201,6 +199,12 @@ Content-Type: application/mole-endorsement-request; type=0002
 ~~~
 
 The criteria for granting are the Anchor's.
+
+The Anchor returns 200 (OK) with the response media type only when it produced
+a complete grant response. A Client MUST reject a non-success status, an
+unexpected media type, a response whose type differs from its request, trailing
+bytes, or malformed type-specific content. Clients MUST NOT automatically
+redirect a grant POST carrying protocol state.
 
 ## Redeem & Issue {#redeem-issue}
 
