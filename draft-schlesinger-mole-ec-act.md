@@ -40,10 +40,10 @@ author:
 normative:
   EC-IHAT:
     title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
-    date: 2026
+    target: https://datatracker.ietf.org/doc/html/draft-ladd-mole-ec-ihat-00
+    date: 2026-11-02
     seriesinfo:
-      Internet-Draft: draft-ladd-mole-ec-ihat
+      Internet-Draft: draft-ladd-mole-ec-ihat-00
     author:
       -
         ins: S. Schlesinger
