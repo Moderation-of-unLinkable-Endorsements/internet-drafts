@@ -732,7 +732,7 @@ Ciphersuite
 
 Balance Width
 : `L`, fixed for the lifetime of the key and credential context ({{EC-ACT}}).
-  Balances and amounts are integers in `[0, 2^L)`; for example, `L = 8`
+  Balances and amounts are integers in `[0, 2^L)`. For example, `L = 8`
   permits values from 0 to 255.
 
 Credential Context
