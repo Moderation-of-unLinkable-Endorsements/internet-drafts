@@ -347,3 +347,18 @@ in this document.
 {:numbered="false"}
 
 TODO acknowledge.
+
+# Changelog
+{:numbered="false"}
+
+draft-jms-mole-http-transport-01
+
+* Select protocol types in parameter names and carry type-specific payloads
+  directly, removing the outer message wrappers.
+* Separate endorsement redemption from credential issuance parameters and
+  send Redeem & Issue to the configured endpoint.
+* Add recovery by handle and define status codes for fresh presentations,
+  duplicates, and recovery. Distinguish an empty update from a missing response.
+* Specify parameter validation, canonical base64url, caching, and CORS rules.
+* Support batched EC-IHAT grants and require a media type
+  parameter identifying the endorsement type.

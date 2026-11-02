@@ -755,3 +755,10 @@ This document has no IANA actions.
 The use of `Keccak-p[800,12]` in this application was proposed by Bas
 Westerbaan. Claude Opus 5 suggested the parity constraints for the redemption
 proof.
+
+# Changelog
+{:numbered="false"}
+
+draft-authors-mole-vole-ihat-00
+
+* Initial version.

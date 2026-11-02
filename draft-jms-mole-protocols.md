@@ -1577,3 +1577,21 @@ the Moderator chose to consume the Credential.
 {:numbered="false"}
 
 TODO acknowledge.
+
+# Changelog
+{:numbered="false"}
+
+draft-jms-mole-protocols-01
+
+* Move cryptographic constructions to separate EC-IHAT and EC-ACT drafts.
+  Specify their protocol profiles, including batched EC-IHAT grants.
+* Define endorsement and credential APIs, redemption challenge binding, and
+  the separation of Moderator Challenges from cryptographic Contexts.
+* Carry type-specific payloads directly and make message encodings independent
+  of the HTTP transport draft.
+* Define atomic presentation processing, retained updates, and recovery by
+  handle without repeating the protected operation.
+* Add configuration schemas, key and context lifetimes, and replay state
+  requirements.
+* Remove Budget Privacy Pass and clarify the privacy and security limitations
+  of the remaining protocols.
