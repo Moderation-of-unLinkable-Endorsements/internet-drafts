@@ -39,12 +39,12 @@ author:
 normative:
   EC-ACT:
     title: "EC-ACT: Anonymous Credit Tokens"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-act.html
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html
   ARCHITECTURE: I-D.draft-jms-mole-architecture
   CDDL: RFC8610
   EC-IHAT:
-    title: "EC-IHAT: An Issuer-Hiding Anonymous Token"
-    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-ec-ihat.html
+    title: "EC-IHAT: Issuer-Hiding Anonymous Tokens"
+    target: https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html
   HTTP-TRANSPORT: I-D.draft-jms-mole-http-transport
   IANA: RFC8126
   LONGFELLOW: I-D.draft-google-cfrg-libzk

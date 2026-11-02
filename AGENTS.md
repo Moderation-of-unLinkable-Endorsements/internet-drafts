@@ -1,8 +1,8 @@
 # Contributor Guidance
 
-Keep the Python snippets in `draft-authors-mole-ec-ihat.md` consistent with
+Keep the Python snippets in `draft-ladd-mole-ec-ihat.md` consistent with
 the reference implementation in `poc/src/ec_ihat/`. Apply the same rule to
-`draft-authors-mole-ec-act.md` and `poc/src/ec_act/`; shared derivation
+`draft-schlesinger-mole-ec-act.md` and `poc/src/ec_act/`; shared derivation
 methods live in `poc/src/ec_ihat/ciphersuite.py`, and `Seed` lives in
 `poc/src/ec_ihat/common.py`. When changing an algorithm, update
 both locations in the same change and preserve matching signatures, variable

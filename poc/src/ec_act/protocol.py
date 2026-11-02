@@ -1,4 +1,4 @@
-"""EC-ACT algorithms transcribed from draft-authors-mole-ec-act.md."""
+"""EC-ACT algorithms transcribed from draft-schlesinger-mole-ec-act.md."""
 
 from __future__ import annotations
 
