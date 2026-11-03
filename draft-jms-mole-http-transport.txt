@@ -5,10 +5,10 @@
 Network Working Group                                     S. Schlesinger
 Internet-Draft                                                Google LLC
 Intended status: Informational                                D. Jackson
-Expires: 6 May 2027                                              Mozilla
+Expires: 7 May 2027                                              Mozilla
                                                               T. Meunier
                                                               Cloudflare
-                                                         2 November 2026
+                                                         3 November 2026
 
 
                           MOLE HTTP Transport
@@ -55,7 +55,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 6 May 2027.
+   This Internet-Draft will expire on 7 May 2027.
 
 Copyright Notice
 
@@ -83,7 +83,8 @@ Table of Contents
      6.2.  Redeem & Issue
      6.3.  Presentation
      6.4.  Recovery
-     6.5.  Status Codes
+     6.5.  Signoff
+     6.6.  Status Codes
    7.  Security Considerations
    8.  IANA Considerations
      8.1.  Authentication Scheme
@@ -309,6 +310,17 @@ Table of Contents
    A Client that receives no Mole-Credential after sending a
    presentation keeps its pending state and MAY recover (Section 6.4).
 
+   A Moderator may indicate that it is holding the credential update for
+   future interactions.
+
+   Mole-Credential: held-for-update-0001="time"
+
+   A Client MAY submit a signoff request at any time before duration, or
+   a recovery request after.  A signoff request implies that the Client
+   expects a new challenge on interaction with the site, and will answer
+   it.  Clients SHOULD send a signoff request before time seconds from
+   receiving this response.
+
    Each credential type MUST define the challenge fields that partition
    cached Credentials, or state that its Credentials are not cacheable.
 
@@ -328,7 +340,20 @@ Table of Contents
    recorded NoUpdate.  Otherwise it answers 404 without Mole-Credential,
    whether or not a record exists.
 
-6.5.  Status Codes
+6.5.  Signoff
+
+   A Client MAY send a POST with empty content to the Redeem & Issue
+   endpoint it stored with the Credential:
+
+   Authorization: Mole signoff-0001="<recovery-handle>"
+
+   A MOLE Signoff is different from Recovery in that it implies a future
+   challenge will be honored with presentation.  Servers SHOULD send
+   back an updated credential summarizing the impact of behavior
+   observed based on whatever session mechanism they have, and
+   invalidate the clearence for that session.
+
+6.6.  Status Codes
 
    +===========================+====================+=================+
    | Outcome                   | Status             | Mole-Credential |

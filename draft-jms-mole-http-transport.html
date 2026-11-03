@@ -16,26 +16,26 @@ challenges and presentations for the endorsement and credential flows, and
 the headers used to return credential material. The grant exchanges with
 the Anchor are defined per protocol in  . 
     " name="description">
-<meta content="xml2rfc 3.34.1" name="generator">
+<meta content="xml2rfc 3.35.0" name="generator">
 <meta content="moderation" name="keyword">
 <meta content="endorsement" name="keyword">
 <meta content="unlinkability" name="keyword">
 <meta content="privacy" name="keyword">
 <meta content="draft-jms-mole-http-transport-latest" name="ietf.draft">
 <!-- Generator version information:
-  xml2rfc 3.34.1
-    Python 3.14.8
-    ConfigArgParse 1.8.0
+  xml2rfc 3.35.0
+    Python 3.14.10
+    ConfigArgParse 1.9.0
     google-i18n-address 3.1.1
     intervaltree 3.2.1
     Jinja2 3.1.6
     lxml 6.1.1
     natsort 8.4.0
-    platformdirs 4.13.4
+    platformdirs 4.14.3
     pycountry 24.6.1
     PyYAML 6.0.3
     requests 2.33.1
-    wcwidth 0.9.2
+    wcwidth 0.9.4
 -->
 <link href="draft-jms-mole-http-transport.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
@@ -1055,7 +1055,7 @@ svg {
 </tr></thead>
 <tfoot><tr>
 <td class="left">Schlesinger, et al.</td>
-<td class="center">Expires 6 May 2027</td>
+<td class="center">Expires 7 May 2027</td>
 <td class="right">[Page]</td>
 </tr></tfoot>
 </table>
@@ -1068,12 +1068,12 @@ svg {
 <dd class="internet-draft">draft-jms-mole-http-transport-latest</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
-<time datetime="2026-11-02" class="published">2 November 2026</time>
+<time datetime="2026-11-03" class="published">3 November 2026</time>
     </dd>
 <dt class="label-intended-status">Intended Status:</dt>
 <dd class="intended-status">Informational</dd>
 <dt class="label-expires">Expires:</dt>
-<dd class="expires"><time datetime="2027-05-06">6 May 2027</time></dd>
+<dd class="expires"><time datetime="2027-05-07">7 May 2027</time></dd>
 <dt class="label-authors">Authors:</dt>
 <dd class="authors">
 <div class="author">
@@ -1131,7 +1131,7 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
         time. It is inappropriate to use Internet-Drafts as reference
         material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
 <p id="section-boilerplate.1-4">
-        This Internet-Draft will expire on 6 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+        This Internet-Draft will expire on 7 May 2027.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="copyright">
@@ -1191,7 +1191,10 @@ the Anchor are defined per protocol in <span>[<a href="#PROTOCOLS" class="cite x
                 <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-recovery" class="internal xref">Recovery</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
-                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-status-codes" class="internal xref">Status Codes</a></p>
+                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-signoff" class="internal xref">Signoff</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.6">
+                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-status-codes" class="internal xref">Status Codes</a></p>
 </li>
             </ul>
 </li>
@@ -1575,8 +1578,20 @@ returns its status. For a result that is not fresh, it <span class="bcp14">MUST<
 A rejected presentation <span class="bcp14">MUST NOT</span> carry <code>Mole-Credential</code>.<a href="#section-6.3-8" class="pilcrow">¶</a></p>
 <p id="section-6.3-9">A Client that receives no <code>Mole-Credential</code> after sending a presentation
 keeps its pending state and <span class="bcp14">MAY</span> recover (<a href="#recovery" class="auto internal xref">Section 6.4</a>).<a href="#section-6.3-9" class="pilcrow">¶</a></p>
-<p id="section-6.3-10">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
-Credentials, or state that its Credentials are not cacheable.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
+<p id="section-6.3-10">A Moderator may indicate that it is holding the credential update for future
+interactions.<a href="#section-6.3-10" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.3-11">
+<pre>
+Mole-Credential: held-for-update-0001="time"
+</pre><a href="#section-6.3-11" class="pilcrow">¶</a>
+</div>
+<p id="section-6.3-12">A Client <span class="bcp14">MAY</span> submit a signoff request at any time before duration, or
+a recovery request after. A signoff request implies that the Client
+expects a new challenge on interaction with the site, and will answer
+it. Clients <span class="bcp14">SHOULD</span> send a signoff request before time seconds from
+receiving this response.<a href="#section-6.3-12" class="pilcrow">¶</a></p>
+<p id="section-6.3-13">Each credential type <span class="bcp14">MUST</span> define the challenge fields that partition cached
+Credentials, or state that its Credentials are not cacheable.<a href="#section-6.3-13" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="recovery">
@@ -1599,10 +1614,29 @@ operation. If a result is still retained, it answers <code>200</code> with the r
 answers <code>404</code> without <code>Mole-Credential</code>, whether or not a record exists.<a href="#section-6.4-3" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="status-codes">
+<div id="signoff">
 <section id="section-6.5">
+        <h3 id="name-signoff">
+<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-signoff" class="section-name selfRef">Signoff</a>
+        </h3>
+<p id="section-6.5-1">A Client <span class="bcp14">MAY</span> send a <code>POST</code> with empty content to the Redeem &amp; Issue endpoint it
+stored with the Credential:<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+<div class="alignLeft art-text artwork" id="section-6.5-2">
+<pre>
+Authorization: Mole signoff-0001="&lt;recovery-handle&gt;"
+</pre><a href="#section-6.5-2" class="pilcrow">¶</a>
+</div>
+<p id="section-6.5-3">A MOLE Signoff is different from Recovery in that it implies a future
+challenge will be honored with presentation. Servers <span class="bcp14">SHOULD</span> send back
+an updated credential summarizing the impact of behavior observed
+based on whatever session mechanism they have, and invalidate the
+clearence for that session.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="status-codes">
+<section id="section-6.6">
         <h3 id="name-status-codes">
-<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-status-codes" class="section-name selfRef">Status Codes</a>
+<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-status-codes" class="section-name selfRef">Status Codes</a>
         </h3>
 <span id="name-mole-responses"></span><div id="tab-status">
 <table class="center" id="table-4">
@@ -1683,12 +1717,12 @@ answers <code>404</code> without <code>Mole-Credential</code>, whether or not a 
           </tbody>
         </table>
 </div>
-<p id="section-6.5-2">The Moderator <span class="bcp14">MUST</span> use these rules for every credential type. A <code>401</code>
+<p id="section-6.6-2">The Moderator <span class="bcp14">MUST</span> use these rules for every credential type. A <code>401</code>
 response <span class="bcp14">MUST</span> carry a <code>Mole</code> challenge for the required exchange. A <code>403</code>
 returned by the protected operation after a fresh acceptance is that
-operation's status, and carries the update.<a href="#section-6.5-2" class="pilcrow">¶</a></p>
-<p id="section-6.5-3">A Client <span class="bcp14">MUST NOT</span> infer chain termination from any status without the
-recorded empty update.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+operation's status, and carries the update.<a href="#section-6.6-2" class="pilcrow">¶</a></p>
+<p id="section-6.6-3">A Client <span class="bcp14">MUST NOT</span> infer chain termination from any status without the
+recorded empty update.<a href="#section-6.6-3" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
