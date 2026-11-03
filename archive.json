@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-01T05:03:17.740918+00:00",
+  "timestamp": "2026-11-03T05:51:30.426703+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1259,6 +1259,136 @@
           "updatedAt": "2026-10-31T17:31:22Z"
         }
       ]
+    },
+    {
+      "number": 161,
+      "id": "I_kwDOSX6krs8AAAABb4BdJQ",
+      "title": "Moderator challenges and configurations",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/161",
+      "state": "OPEN",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Moderator challenges currently express information about the cost and context. There is no identifier for the moderator or its policy. This makes it difficult for moderators to work with multiple policies, and it also makes it difficult for clients to handle such challenges. Let's say there is an agent that gets a presentation challenge -- how does it know what credential to use? Privacy Pass handled this by including a public key as a parameter in the challenge header. Presumably we need something similar here.",
+      "createdAt": "2026-11-02T15:33:08Z",
+      "updatedAt": "2026-11-02T15:33:08Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 162,
+      "id": "I_kwDOSX6krs8AAAABb4FE1A",
+      "title": "Naming: s, a, t",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/162",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "I appreciate the desire to use abbreviated terms for predicate clarity, but (s, a, t) are really obtuse, and their meaning is buried in prose. I don't feel strongly about the names beyond the fact that they should not require explanation. Maybe `cost`, `possible_refund`, and `refund`? (These are terrible, but a good bike shed starts with a bad suggestion!)",
+      "createdAt": "2026-11-02T15:36:34Z",
+      "updatedAt": "2026-11-02T16:04:59Z",
+      "closedAt": "2026-11-02T16:04:59Z",
+      "comments": []
+    },
+    {
+      "number": 163,
+      "id": "I_kwDOSX6krs8AAAABb4PiGw",
+      "title": "protocols: We need to define Endorsement. (Section 2)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/163",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**Comment** \u00b7 draft-jms-mole-protocols, Section 2 ([rendered](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-2))\n\n> This document uses the following terms for protocol actions:\u00b6 Grant: An Anchor gives a Client an Endorsement.\u00b6 Redeem: A Client proves possession of an Endorsement to a Moderator. The endorsement protocol defines the redemption scope and consequences of reuse. A Client SHOULD NOT redeem the same Endorsement at a second Moderator because reuse can make its activity linkable.\u00b6 Issue: A Moderator gives a Client a Credential in return for a redemption.\u00b6 Present: A Client shows a Credential to a Moderator. Each Credential can be accepted once within the Moderator's configured replay protection scope, with or without replacement.\u00b6 Update: The Moderator's adjustment to a presented Credential, returned in the same exchange.\u00b6 Finalize: The Client-local step that turns a protocol response into a stored Endorsement or Credential.\n\nWe need to define Endorsement.",
+      "createdAt": "2026-11-02T15:46:28Z",
+      "updatedAt": "2026-11-02T16:05:17Z",
+      "closedAt": "2026-11-02T16:05:17Z",
+      "comments": []
+    },
+    {
+      "number": 167,
+      "id": "I_kwDOSX6krs8AAAABb4da2w",
+      "title": "protocols: We should add an example here, and probably avoid converge on a term... (Section 5.2.1)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/167",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**Comment** \u00b7 draft-jms-mole-protocols, Section 5.2.1, paragraph 2 ([rendered](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-5.2.1-2))\n\n`draft-jms-mole-protocols.md` lines 742\u2013743 ([source](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blob/main/draft-jms-mole-protocols.md#L742-L743)):\n\n```markdown\nBalance Width\n: `L`, fixed for the lifetime of the key and credential context ({{EC-ACT}}).\n```\n\nWe should add an example here, and probably avoid converge on a term other than balance that aligns with the term(s) used to describe the client state. This depends on #158.",
+      "createdAt": "2026-11-02T15:59:30Z",
+      "updatedAt": "2026-11-02T17:28:51Z",
+      "closedAt": "2026-11-02T17:28:51Z",
+      "comments": []
+    },
+    {
+      "number": 168,
+      "id": "I_kwDOSX6krs8AAAABb4dm-A",
+      "title": "protocols: This should probably say that moderators should accept overlap in con... (Section 5.2.1)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/168",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**Comment** \u00b7 draft-jms-mole-protocols, Section 5.2.1, paragraph 5 ([rendered](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-5.2.1-5))\n\n`draft-jms-mole-protocols.md` lines 764\u2013765 ([source](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blob/main/draft-jms-mole-protocols.md#L764-L765)):\n\n```markdown\nCredential, so balances do not carry over to a new context. A Moderator\nSHOULD announce the successor context and a grace period before expiry.\n```\n\nThis should probably say that moderators should accept overlap in configurations, rather than suggest some way of announcing overlap. We don't have such a mechanism so this isn't really helpful text.",
+      "createdAt": "2026-11-02T15:59:40Z",
+      "updatedAt": "2026-11-02T21:13:16Z",
+      "closedAt": "2026-11-02T21:13:16Z",
+      "comments": []
+    },
+    {
+      "number": 169,
+      "id": "I_kwDOSX6krs8AAAABb4mN7Q",
+      "title": "protocols: This is new state on par with double spend. Let's promote it to the a... (Section 5.2.5)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/169",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**Comment** \u00b7 draft-jms-mole-protocols, Section 5.2.5, paragraph 2 ([rendered](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-5.2.5-2))\n\n`draft-jms-mole-protocols.md` lines 1010\u20131012 ([source](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blob/main/draft-jms-mole-protocols.md#L1010-L1012)):\n\n```markdown\nA Moderator MUST keep each result until the earlier of the end of its\npublished result retention period ({{ec-act-configuration}}), counted from\nthe recording in step 3, and retirement of the key or credential context.\n```\n\nThis is new state on par with double spend. Let's promote it to the architecture document, which currently focuses primarily on double spend as the state:\n\n```Moderators require state in order to prevent the double-spend of Endorsements and Credentials. State should be bounded to uphold Section 5.```",
+      "createdAt": "2026-11-02T16:07:56Z",
+      "updatedAt": "2026-11-02T17:07:41Z",
+      "closedAt": "2026-11-02T17:07:41Z",
+      "comments": []
+    },
+    {
+      "number": 173,
+      "id": "I_kwDOSX6krs8AAAABb4wvWA",
+      "title": "protocols: I don't think this should reach into the SpendMessage to get the null... (Section 5.2.5)",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/173",
+      "state": "OPEN",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "**Comment** \u00b7 draft-jms-mole-protocols, Section 5.2.5, paragraph 4 ([rendered](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html#section-5.2.5-4))\n\n`draft-jms-mole-protocols.md` lines 1022\u20131023 ([source](https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/blob/main/draft-jms-mole-protocols.md#L1022-L1023)):\n\n```markdown\nThe recovery handle ({{HTTP-TRANSPORT}}) is\n`key_id || SerializeScalar(spend.k) || SHA-256(PresentationAndUpdate)`.\n```\n\nI don't think this should reach into the SpendMessage to get the nullifier in this way. We should define a way to have a \"fingerprint\" of the SpendMessage that is specific to each type of SpendMessage (EC-ACT and VOLE-ACT will differ here).",
+      "createdAt": "2026-11-02T16:18:23Z",
+      "updatedAt": "2026-11-02T16:18:23Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 178,
+      "id": "I_kwDOSX6krs8AAAABb9UWYw",
+      "title": "Set metadata on all drafts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/178",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "If and when there is a group, we should set the metadata on all drafts:\n1. mailing list\n2. group\n3. type",
+      "createdAt": "2026-11-02T21:20:52Z",
+      "updatedAt": "2026-11-02T21:20:52Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -5628,7 +5758,7 @@
       ],
       "body": "Port the Ratatouille write-up into the draft skeleton in kramdown-rfc format: introduction, conventions, the full protocol specification (key generation, commitment/tag, issuance, and spend-and-reissue), the two commitment instantiations (Keccak-p[800,12] and the BFMRSV25a MQ commitment), and performance numbers. Reference links and internal section references are converted to {{...}} citations and cross-refs.",
       "createdAt": "2026-08-12T20:37:04Z",
-      "updatedAt": "2026-08-14T21:57:42Z",
+      "updatedAt": "2026-11-02T16:06:26Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "a0e44bfbad87f9999d10648a7f4ddbfbdb595381",
@@ -6215,7 +6345,7 @@
             "abbreviatedOid": "f9ecdf5"
           },
           "author": "github-actions",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2026-08-13T16:28:50Z",
@@ -6495,7 +6625,7 @@
             "abbreviatedOid": "d6826fe"
           },
           "author": "github-actions",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2026-08-14T21:42:32Z",
@@ -8014,7 +8144,7 @@
       ],
       "body": "Still work to do: this doesn't handle randomness in the same way because I couldn't figure it out, but I say merge and we can hack away. There may also be references to things that are made wrong by shrinking things, and we'll have to handle zero length vectors in the encoding.",
       "createdAt": "2026-09-03T22:01:35Z",
-      "updatedAt": "2026-09-08T19:12:30Z",
+      "updatedAt": "2026-11-02T16:06:27Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "abebd9b682b7c8a5324202024066441aa2e39d5a",
@@ -8035,7 +8165,7 @@
             "abbreviatedOid": "ec6fca4"
           },
           "author": "github-actions",
-          "authorAssociation": "NONE",
+          "authorAssociation": "CONTRIBUTOR",
           "state": "COMMENTED",
           "body": "",
           "createdAt": "2026-09-03T22:02:19Z",
@@ -8223,7 +8353,7 @@
       ],
       "body": "Map IHAT redemption to the existing cryptographic API and make the HTTP Moderator challenge carry the common RedemptionChallenge. Remove stale interface and context notes, and correct the draft URL and TLS reference.\r\n\r\nPrepping for adding ACTs.",
       "createdAt": "2026-09-09T00:55:05Z",
-      "updatedAt": "2026-09-09T03:09:51Z",
+      "updatedAt": "2026-11-02T16:06:27Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "1ab15412cb251eddcff74d6e43ade8d1f703de3a",
@@ -9877,7 +10007,7 @@
       "labels": [],
       "body": "The only remaining bit is to enable the comprehensive end to end tests.",
       "createdAt": "2026-09-23T23:52:53Z",
-      "updatedAt": "2026-09-25T22:25:47Z",
+      "updatedAt": "2026-11-02T16:06:28Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "96f857913ff1546024f686f9941378c8ad557e90",
@@ -10075,7 +10205,7 @@
       "labels": [],
       "body": "Re-lands #67 against `main`. #67 was approved by @dennisjackson and @cjpatton but targeted `samuelschlesinger/act-draft-split` (the IHAT split, since merged as #70), so its squash landed on that side branch instead of `main`.\n\nThis branch is that squash commit (`a898ddb`) rebased onto `main` after #70. Its tree is byte-identical to the approved tree, so the diff here is exactly what was reviewed in #67. No content changes.\n\nThe unresolved nits from #67 (`Credential` capitalization, \"(ACTs)\", and moving `py.typed` up a level) are deliberately left for a follow-up so this stays identical to what was approved.",
       "createdAt": "2026-09-25T03:13:34Z",
-      "updatedAt": "2026-09-25T05:40:31Z",
+      "updatedAt": "2026-11-02T16:06:28Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "4857fb3f3d2a42145a29cf328aeb7497534b9433",
@@ -10125,7 +10255,7 @@
       "labels": [],
       "body": "Some follow up fixes from #67.",
       "createdAt": "2026-09-25T05:49:20Z",
-      "updatedAt": "2026-09-25T19:32:54Z",
+      "updatedAt": "2026-11-02T16:06:28Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "96f857913ff1546024f686f9941378c8ad557e90",
@@ -10194,7 +10324,7 @@
       "labels": [],
       "body": "Two commits, best reviewed in order.\n\n**1. Specify the vector commitment and the permutation.** The spec alignment promised after #74. The partially binding vector commitment and the cycle-walking Feistel permutation `P` are now in the draft, and `ProveIssuer` and `Redeem` match the code. The security considerations are rewritten for the current commitment (the old text argued about `G0` and `CompressValue`, which no longer exist).\n\nOne design reversal, flagged for @wbl: #74 chained every value of the redemption proof from a single seed through HKDF, which would have made issuer hiding computational and contradicted the draft's rule that each scalar gets its own seed. This commit keeps the draft's rule instead: `ProveIssuer` takes `(2q + 1) * Nseed` bytes, one seed per value, so issuer hiding stays statistical and holds against unbounded computation as blindness does. The cost is under a kilobyte of randomness per redemption. The rest of the code changes are what the spec needed: group methods instead of the duplicated free functions, typed procedures, `except DeserializeError`. The snippet test now covers every redemption procedure.\n\n**2. Derive the issuer proof's nonce from the witness.** Adds `G.DeriveNonce`, which derives a scalar from a secret, a public statement, and fresh randomness, so a repeated random source cannot repeat the Schnorr nonce across distinct statements (which would reveal `delta` and the Anchor). ACT uses the same method for its prover nonces and signing exponents.",
       "createdAt": "2026-09-25T19:32:28Z",
-      "updatedAt": "2026-09-26T00:07:06Z",
+      "updatedAt": "2026-11-02T16:06:29Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "c098e9662434f7c4e8e4c87f971eb04ee0db209a",
@@ -10251,7 +10381,7 @@
       "labels": [],
       "body": "Adds ACTs and a reference implementation in python.",
       "createdAt": "2026-09-26T02:23:57Z",
-      "updatedAt": "2026-09-28T05:25:06Z",
+      "updatedAt": "2026-11-02T16:06:30Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "9fe1ee2b041dca8b45a8b2a6374b8569a7ad160c",
@@ -10293,7 +10423,7 @@
       "labels": [],
       "body": "Various fixes following up on the original ACT PR. The test vector changes come from the client state ergonomics improvements.",
       "createdAt": "2026-09-28T06:09:37Z",
-      "updatedAt": "2026-09-28T15:34:57Z",
+      "updatedAt": "2026-11-02T16:06:31Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "a658b2b0c43cc76f59ceae2552a2eebd4633e55e",
@@ -10335,7 +10465,7 @@
       "labels": [],
       "body": "commitment key generation currently calls `Pinv` only when binding left. always calling it would still expose which edge was walked through the iteration count.\r\n\r\nthis walks backwards from `P(Q)` for left binding and forwards from `Q` for right binding, evaluating both one-step byte permutations on every iteration and selecting with the binding bit. for a fixed public `Q`, both orientations have the same validity results and operation schedule. final point decoding happens in the public order `(Q, P(Q))`.\r\n\r\nthe draft and reference code agree, including an exception-free encoding-validity test. the draft explains the timing argument and required constant-time primitives, and replaces the conflicting ciphersuite permutation description with a reference to the specified algorithm. keys, randomness consumption, proof transcripts, and wire encodings are preserved.",
       "createdAt": "2026-09-28T18:24:25Z",
-      "updatedAt": "2026-09-28T20:41:00Z",
+      "updatedAt": "2026-11-02T16:06:31Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "74444bc13679514c8168b6c5f524b795762f0182",
@@ -10385,7 +10515,7 @@
       "labels": [],
       "body": "This gets Rollatini, the construction we used to call IHAT, to a complete first draft.\n\n- Fixes from a review pass: identity-element handling, message encodings, and more tests\n- A new scalar derivation: derived scalars are statistically uniform again, and a failing random source can't make a proof reuse a nonce. This also changes ACT and its test vectors\n- Test vectors for Rollatini\n- Rename: IHAT now names the property, and Rollatini is our P-256 scheme\n- Plainer wording in both drafts\n\nact-rs has been updated to the new ACT derivation and matches the vectors.\n\nCloses #71, closes #73.\n",
       "createdAt": "2026-09-29T01:28:41Z",
-      "updatedAt": "2026-09-29T11:03:43Z",
+      "updatedAt": "2026-11-02T16:06:32Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "12a0578faf91e9697f6dad7a0fdfa7824f489db7",
@@ -10518,7 +10648,7 @@
       "labels": [],
       "body": "Stacked on #81.\r\n\r\nThis writes out the ACT credential profile in PROTOCOLS:\r\n\r\n- Configuration, key ids, and the credential context (`ctx_cred = credential_context || I2OSP(L, 1)`)\r\n- How the abstract credential API maps onto ACT, using ACT's encodings\r\n- Challenge binding (`ctx_spend = SHA-256(CredentialChallenge)`), with policy-scoped and request-bound profiles\r\n- Spending with an atomic nullifier store, and recovery of lost refunds\r\n- ACT privacy and security considerations\r\n\r\nIt also drops ACT's \"profile not written yet\" TODO and PROTOCOLS' \"mapping undefined\" editor note. In HTTP-TRANSPORT, the example challenge structures give way to ACT's typed challenge. That answers #33 for ACT, with `request_context` built by the Moderator and opaque to the Client, and leaves the general question open.\r\n",
       "createdAt": "2026-09-29T04:10:11Z",
-      "updatedAt": "2026-09-29T18:11:34Z",
+      "updatedAt": "2026-11-02T16:06:37Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "e70a20dbbb74e6a6a19151bdcae4706c5f2a6f32",
@@ -10579,7 +10709,7 @@
       "labels": [],
       "body": "The ACT draft gives a scalar-reduction bias bound without explaining the sampling margin. Cite RFC 9380's 128-bit target and distinguish that bound from the analysis of the derived scalar and nonce vectors. State the intended statistical unlinkability model explicitly, with unbounded computation and bounded classical random-oracle queries; retain the open proof bounds and quantum analysis.\r\n\r\nMake the zero top-up refund bound explicit, adopt the simpler credential-context wording, and use the existing generator-alias definition without repeating it beside the signature relation. These are prose changes; the algorithms and encodings are unchanged.",
       "createdAt": "2026-09-29T18:34:45Z",
-      "updatedAt": "2026-09-29T20:25:28Z",
+      "updatedAt": "2026-11-02T16:06:38Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "6f726ba28bddee5666ee0f3a328f8c2620575403",
@@ -10623,7 +10753,7 @@
       ],
       "body": "the MQ maps had linear terms but no constants, so `r = 0` remained a fixed point. because UOV is homogeneous quadratic, one valid one-credit token could be scaled into 255 valid token witnesses with distinct nullifiers, worth 32,640 credits in total.\n\nthis adds a constant coefficient to every `Q_i`, drawing it from the existing `\"m1\"` SHAKE stream after the quadratic and linear coefficients. the resulting nonzero `G(0)` blocks that scaling orbit.\n\nthis also documents the forgery and clarifies that the patch fixes this specific attack, not the still-open end-to-end security proof for the MQ/UOV/VOLEitH composition.\n\nvalidated with the draft build, 110 reference tests, mypy, pyflakes, pylint, and `git diff --check`.\n",
       "createdAt": "2026-10-06T02:03:59Z",
-      "updatedAt": "2026-10-08T18:59:55Z",
+      "updatedAt": "2026-11-02T16:06:39Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "8bfdf4996f73e4e605d5bb9b31b33f72aceac566",
@@ -11255,7 +11385,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-10-07T21:13:27Z",
-      "updatedAt": "2026-10-07T21:36:51Z",
+      "updatedAt": "2026-11-02T16:06:39Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "6c1132d87a3e5504e5394fadd17cb752b4a30aaa",
@@ -11319,7 +11449,7 @@
       ],
       "body": "Fixes Issue #97",
       "createdAt": "2026-10-07T21:32:37Z",
-      "updatedAt": "2026-10-07T21:41:29Z",
+      "updatedAt": "2026-11-02T16:06:39Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "6c1132d87a3e5504e5394fadd17cb752b4a30aaa",
@@ -11632,7 +11762,7 @@
       ],
       "body": "In Moussaka, the challenge digest is bound to the VOLEitH proof alongside the encoding of the instance, analogously to how FAEST binds signature to be signed. Whereas in Figure 8.2, Line 1 of {{FAEST}} we have\r\n\r\n```\r\nmu := H_2^0(pk || msg)\r\n```\r\n\r\nin our more general framework we will instead do\r\n\r\n```\r\nmu := H_2^0(R.encodeInstance(X) || msg || R.DST)\r\n```\r\n\r\nwhere `R.DST` is a domain separator defined by the relation. Accordingly, define the domain separator and instance encoding for each relation in both Moussaka and Ratatouille.\r\n\r\nThis entails the document specifying the maximum number of anchors in the anchor set, which our implementation includes in the encoding of the redemption instance.\r\n\r\nWhile at it, update the endianness of `<x>_L` to match what's used internally by VOLEitH.",
       "createdAt": "2026-10-09T20:24:52Z",
-      "updatedAt": "2026-10-13T01:04:06Z",
+      "updatedAt": "2026-11-02T16:06:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "dbf8dbf3ba1b08796811a45eb5bbb95c720b9181",
@@ -11843,7 +11973,7 @@
       ],
       "body": "Add a runtime check to `ProveSpend()` to enforce that the updated state can be encoded. While we're nit-picking Ratatouille, rename `pf_init` to `pf_iss` to match Moussaka.",
       "createdAt": "2026-10-09T21:29:06Z",
-      "updatedAt": "2026-10-13T01:04:07Z",
+      "updatedAt": "2026-11-02T16:06:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-2",
       "baseRefOid": "3cc17a8b57291da3ba9266359902ba23a259a7e5",
@@ -11887,7 +12017,7 @@
       ],
       "body": "1. Say that Moussaka and Ratatouille are instances of types (IHAT and ACT respectively).\r\n2. Prefix each crypto draft with its token type. (We still need a name for EC-ACT!)",
       "createdAt": "2026-10-09T22:22:44Z",
-      "updatedAt": "2026-10-13T01:04:08Z",
+      "updatedAt": "2026-11-02T16:06:41Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-3",
       "baseRefOid": "ce0b7817db06f4fce8ed0ef533ce6a33ea9773a5",
@@ -11971,7 +12101,7 @@
       ],
       "body": "We will soon open source an implementation of Ratatouille. This change aligns some conventions with that implementation:\n\n1. Align function names. The spend flow now mirrors the issuance flow: `SpendRequest()`, `SpendResponse()`, and `FinalizeSpend()` mirror the corresponding calls in issuance.\n\n2. Make double spend protection the caller's responsibility. This separates this deployment consideration from the crypto. It also aligns with {{ACT}}.\n\n3. Change the pending state so that the caller doesn't have to recompute the commitment.\n\n4. Add additional input validation checks.",
       "createdAt": "2026-10-09T22:46:29Z",
-      "updatedAt": "2026-10-13T01:04:09Z",
+      "updatedAt": "2026-11-02T16:06:42Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-4",
       "baseRefOid": "7364b92a41cbc7c7a0737da9489b7c4479d5e7fc",
@@ -12048,7 +12178,7 @@
       ],
       "body": "1. Add reference for Keccak-p[800,12]\n\n2. Update framing on one-more unforgeability and how to get around this assumption. Note that it's relatively cheap to do for Ratattouille: just add a salt to the `Tag()`.\n\n3. Note that nothing ties token issuance to a particular issuer. It might be worthwhile to add the issuer public key to the encoding of the witness. (Both protocols.)",
       "createdAt": "2026-10-09T23:31:07Z",
-      "updatedAt": "2026-10-13T01:04:10Z",
+      "updatedAt": "2026-11-02T16:06:44Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-5",
       "baseRefOid": "de7f5cc562b2ead1c9af84e6d9d720b5f9cfeb00",
@@ -12092,7 +12222,7 @@
       ],
       "body": "In the UOV signing procedure, the preimage is not actually random, but instead derived from the secret key seed. This ensures that a secret key derives one and only one preimage per target. We would do the same thing here.",
       "createdAt": "2026-10-12T16:39:51Z",
-      "updatedAt": "2026-10-13T01:04:12Z",
+      "updatedAt": "2026-11-02T16:06:10Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-6",
       "baseRefOid": "e572a6d2e9bf8196434778ba62fcd74765bc0e1e",
@@ -12136,7 +12266,7 @@
       ],
       "body": "Replace the two range proofs of the spend, one showing c - s >= 0 and one showing c + a < 2^L, with one proof that 0 <= c - s <= m, where m = 2^L - 1 - (s + a). The remainder is decomposed into bits weighted by the powers of two below the leading power of m, with the top weight replaced by m - 2^(n-1) + 1 so that all bits set sum to exactly m.\n\nThe spend message now has a single shape: n = bit_length(m) bit commitments, with Com_c and Com2 removed, and is 129 * n + 403 bytes. VerifySpend and DecodeSpend reject s + a >= 2^L. The amount-validation argument no longer needs the balance bound from earlier refunds.\n\nUpdate the reference implementation, tests, and test vectors to match.\n\nThis was made via copilot. There is some oddness from SIGMA rejecting the identity which I am told they will fix.",
       "createdAt": "2026-10-12T18:49:14Z",
-      "updatedAt": "2026-10-15T16:44:06Z",
+      "updatedAt": "2026-11-02T16:06:40Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "67934d8903da4de08101c1ea8261ec5283501c6d",
@@ -12268,7 +12398,7 @@
       ],
       "body": "1. Overview: Add challenge_digest to ladder diagram\n2. Overview: Say where `index` comes from",
       "createdAt": "2026-10-12T20:49:32Z",
-      "updatedAt": "2026-10-13T16:43:23Z",
+      "updatedAt": "2026-11-02T16:06:11Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "70c7839be7f74072a9f4a6fb804c26efa06e1c5c",
@@ -12325,7 +12455,7 @@
       ],
       "body": "For example, use `proof_challenge` in prose instead of `c`.",
       "createdAt": "2026-10-12T22:52:54Z",
-      "updatedAt": "2026-10-13T16:43:24Z",
+      "updatedAt": "2026-11-02T16:06:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/ihat-11",
       "baseRefOid": "a53c531a0947ce1f0c29fa1964279174600c2a1b",
@@ -12369,7 +12499,7 @@
       ],
       "body": "",
       "createdAt": "2026-10-12T23:38:13Z",
-      "updatedAt": "2026-10-13T16:43:25Z",
+      "updatedAt": "2026-11-02T16:06:12Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/ihat-12",
       "baseRefOid": "9166650c90dff1fe5c80e59a6bc160b4a6a913b7",
@@ -12420,7 +12550,7 @@
       ],
       "body": "This is derived internally from the ciphersuite identifier.",
       "createdAt": "2026-10-13T00:13:22Z",
-      "updatedAt": "2026-10-13T16:43:26Z",
+      "updatedAt": "2026-11-02T16:06:13Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/ihat-13",
       "baseRefOid": "db922663692a74a6c35f6e2fde4fe6f54e193d2e",
@@ -12464,7 +12594,7 @@
       ],
       "body": "1. We don't need to claim concrete bounds in the draft. In fact, arguably, this should be left for a theorem in a paper once the spec stabilizes. It's easier for stuff like this to bit rot. \"Statistically close\" or \"negligible\" is sufficient.\n\n2. \"Derived first move\" / \"Derived blind factors\": These are arguments about defense-in-depth in case per-issuance or -redemption randomness goes bad. We don't need this much detail: it's good enough to state the requirement that the randomness needs to be high quality. Lots of IETF documents do the same.\n\n3. I'm a bit nervous about making claims about ROM versus QROM.\n\n4. \"Challenge binding\": The analysis here seems irrelevant to what the challenge_digest is intended to do. Perhaps just leave this to {{PROTOCOLS}}. If we say anything here, we should just concisely say what the challenging binding achieves: if the Client redeems with a MOLE challenge other than what the Moderator expects, then redemption will fail.\n\n5. There is some discussion about how \"coarse grained\" the context strings are. This is useful, but the MOST NOT here is not enforceable. Just remove it.\n\nSome discussions I think are irrelevant:\n\n1. There is some text about how to choose `P`. Since we specify `P`, the risks discussed here are irrelevant.\n\n2. There is a large paragraph about proof size and runtime, which is not relevant at all.\n\n3. \"Nullifier reuse\": Nullifier generation is internal, so this is already implied by using good randomness.\n\nRedundancies: There are two sections on the anonymity set.",
       "createdAt": "2026-10-13T00:56:58Z",
-      "updatedAt": "2026-10-13T16:43:27Z",
+      "updatedAt": "2026-11-02T16:06:13Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/ihat-14",
       "baseRefOid": "72201f495a75f802080a0170d3aa1e744e195831",
@@ -12521,7 +12651,7 @@
       ],
       "body": "In VOLEitH, the prover commits to each bit of the witness rather than bytes. The circuit constraints sometimes operate on GF(2); other times they're lifted to extensions of GF(2).",
       "createdAt": "2026-10-13T16:44:48Z",
-      "updatedAt": "2026-10-21T18:21:14Z",
+      "updatedAt": "2026-11-02T16:06:16Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "b8de1ab171e36e85c11c132a84243d612d5a556a",
@@ -12565,7 +12695,7 @@
       ],
       "body": "While at it, fix some build warnings related to Keccak.",
       "createdAt": "2026-10-13T17:52:32Z",
-      "updatedAt": "2026-10-21T18:21:15Z",
+      "updatedAt": "2026-11-02T16:06:17Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-8",
       "baseRefOid": "5270ee834c2da639036c0ddf1541792370fdeb0e",
@@ -12662,7 +12792,7 @@
       ],
       "body": "Moussaka and Ratatouille are implemented here:\n<https://github.com/cloudflareresearch/vole-mole>\n\nThe specs are still incomplete. Ultimately the goal is to align the specs with vole-mole completely, but we're not yet sure where the boundary will be between these documents and the UOV and FAEST specs. IN the meantime, provide a reference for early adopters interested in the details.",
       "createdAt": "2026-10-13T18:00:50Z",
-      "updatedAt": "2026-10-21T18:21:16Z",
+      "updatedAt": "2026-11-02T16:06:18Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "cjpatton/vole-9",
       "baseRefOid": "8be4b6b44cdf2d0a030e2f7a6cf55ed21f7098a3",
@@ -12979,7 +13109,7 @@
       "labels": [],
       "body": "After #120, the protocols draft still quoted 8.7 KB for combined spends and top-ups. Correct the L=32 maximum to 4,531 bytes and state the 468-byte refresh size.\r\n\r\nClarify that the demo's four flows use the retained refresh path (`Com_c`) or a single range proof, remove the obsolete `s2` reference, and update the credit-conservation wording. Refreshes still rely on the balance invariant from issuance and prior refunds. Algorithms and encodings are unchanged.",
       "createdAt": "2026-10-15T16:47:52Z",
-      "updatedAt": "2026-10-19T13:18:40Z",
+      "updatedAt": "2026-11-02T16:06:15Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "d9d91b3b52786e62302356d76859391c828b1838",
@@ -13053,7 +13183,7 @@
       "labels": [],
       "body": "",
       "createdAt": "2026-10-15T22:25:04Z",
-      "updatedAt": "2026-10-15T23:01:11Z",
+      "updatedAt": "2026-11-02T16:06:14Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "a49e4743a4e1a5bcfe01f13845e74315432433c1",
@@ -13095,7 +13225,7 @@
       "labels": [],
       "body": "This swaps out the working names across the drafts and reference code:\n\n- Rollatini -> EC-IHAT\n- ACT -> EC-ACT\n- Ratatouille -> VOLE-ACT\n- Moussaka -> VOLE-IHAT\n\nIt also updates the filenames, cross-references, registry labels, Python package names, protocol context strings, and test vectors so everything uses the new names together.\n",
       "createdAt": "2026-10-19T15:42:28Z",
-      "updatedAt": "2026-10-19T16:18:12Z",
+      "updatedAt": "2026-11-02T16:06:15Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "78b673d7550650793a9d6656e43b1b809188eab2",
@@ -13152,7 +13282,7 @@
       ],
       "body": "Also, hoist the session ID out of the EC-IHAT draft into the protocols draft. Two notable design choices:\n\n1. The Client request a number of tokens, but the Anchor decides how many to grant.\n\n2. If issuance fails for any token in the batch, then the Client and Anchor abort issuance for the entire batch.",
       "createdAt": "2026-10-19T17:25:44Z",
-      "updatedAt": "2026-10-19T20:09:58Z",
+      "updatedAt": "2026-11-02T16:06:16Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "0af2a67a83ffdeaee9739709cb38b962c937a709",
@@ -13268,18 +13398,40 @@
       "labels": [],
       "body": "List the EC-IHAT and EC-ACT with parallel constructions.",
       "createdAt": "2026-10-27T18:12:52Z",
-      "updatedAt": "2026-10-27T21:34:41Z",
+      "updatedAt": "2026-11-02T21:37:40Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
-      "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
+      "baseRefOid": "651abfd546ccf4506e9dda9987a1ca6128090589",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl-patch-1",
-      "headRefOid": "dbfd1ebc57d169cc0052f5071a0aab85686bd2c7",
+      "headRefOid": "a9e80a76bd7aa054913d81ba163805408b250afb",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
-      "comments": [],
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Should we merge this pre publication?",
+          "createdAt": "2026-11-02T15:11:54Z",
+          "updatedAt": "2026-11-02T15:11:54Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm looking into it @SamuelSchlesinger ",
+          "createdAt": "2026-11-02T15:13:39Z",
+          "updatedAt": "2026-11-02T15:13:39Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "regenerated based on the latest MOLE drafts state. poke @SamuelSchlesinger to I don't (completely) self-approve",
+          "createdAt": "2026-11-02T15:23:14Z",
+          "updatedAt": "2026-11-02T15:23:14Z"
+        }
+      ],
       "reviews": [
         {
           "id": "PRR_kwDOSX6krs8AAAABUj0CQg",
@@ -13300,6 +13452,19 @@
               "updatedAt": "2026-10-27T21:34:41Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlpOag",
+          "commit": {
+            "abbreviatedOid": "a9e80a7"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T21:37:40Z",
+          "updatedAt": "2026-11-02T21:37:40Z",
+          "comments": []
         }
       ]
     },
@@ -13315,13 +13480,13 @@
       "labels": [],
       "body": "This is part of the discussion of session semantics. Note there's a bit of a challenge with moderators being first party or third party with origin while cookies do their own thing, but I do appreciate this might be an us (and some other vendor) problem, though solutions appreciated.",
       "createdAt": "2026-10-28T17:52:21Z",
-      "updatedAt": "2026-10-29T18:22:12Z",
+      "updatedAt": "2026-11-02T18:55:04Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/signoff-path",
-      "headRefOid": "376eede347498fa93288bf55fcd8fa9eda9b9ea6",
+      "headRefOid": "60aca7d75047595a52a49a847da9ea83b7d1bb49",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
@@ -13340,9 +13505,277 @@
           "body": "@ekovac Yeah, that's the idea, which might need a sentence or two. In applications where MOLE has to coexist with an existing bunch of signals and clearence mechanisms this is pretty useful, or when there's an already existing session cookie for some reason.",
           "createdAt": "2026-10-29T18:22:12Z",
           "updatedAt": "2026-10-29T18:22:12Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I have no idea why rendering is breaking. Help appreciated.",
+          "createdAt": "2026-11-02T15:10:41Z",
+          "updatedAt": "2026-11-02T15:10:41Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@wbl not sure why I knew, but the fact you did not have a new line before the codeblock made `<recovery-handle>` be interpreted as XML, which broken rendering (which is also XML)",
+          "createdAt": "2026-11-02T15:29:44Z",
+          "updatedAt": "2026-11-02T15:29:44Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Thank you!",
+          "createdAt": "2026-11-02T15:35:36Z",
+          "updatedAt": "2026-11-02T15:35:36Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhL39Q",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T15:35:23Z",
+          "updatedAt": "2026-11-02T15:41:00Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "is `time` meant to be a placefolder for how long the moderator will hold the credential?\n\nif so, does it have to be dynamic rather than set by the moderator's configuration? i suspect we could have something along the line\n\n```\n\"recovery_time_seconds\": 300\n\nthe moderator will hold recovery for 5min. a client may use `Mole-Credential: update=<nullifier>` to retrieve it \n```",
+              "createdAt": "2026-11-02T15:35:23Z",
+              "updatedAt": "2026-11-02T15:41:01Z"
+            },
+            {
+              "originalPosition": 30,
+              "body": "given nullifier will be shared (to be seen how thhat fits the various protocols), i think there's something to do with setting the recovery handle to said nullifier rather than something generated by the moderator",
+              "createdAt": "2026-11-02T15:41:00Z",
+              "updatedAt": "2026-11-02T15:41:00Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhm4Iw",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:06:19Z",
+          "updatedAt": "2026-11-02T16:06:20Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "Nullifier shared between what and what? The new credential and the old one? Or between the spend and recovery attempt proofs?",
+              "createdAt": "2026-11-02T16:06:20Z",
+              "updatedAt": "2026-11-02T16:06:20Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhnkOA",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:07:10Z",
+          "updatedAt": "2026-11-02T16:07:10Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "It's more a placeholder for how long the session will likely be trusted for. ",
+              "createdAt": "2026-11-02T16:07:10Z",
+              "updatedAt": "2026-11-02T16:07:10Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhw3Ng",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:18:46Z",
+          "updatedAt": "2026-11-02T16:18:47Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "We'll need both a maximum *and* a minimum. The server will likely not want to return the update for some minimum amount of time to enforce rate-limiting. I agree with @thibmeu that it should probably be part of the precommitment or configuration, though.",
+              "createdAt": "2026-11-02T16:18:46Z",
+              "updatedAt": "2026-11-02T16:18:47Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVh15Wg",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:24:54Z",
+          "updatedAt": "2026-11-02T16:24:54Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I understood this to be invitational not forcing on both sides. That said the underlying rate limited resource is still protected, it's just the crypto operation and resources hit by returning. I do however think that the shutting down client case makes a minimum hard.",
+              "createdAt": "2026-11-02T16:24:54Z",
+              "updatedAt": "2026-11-02T16:24:55Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVh4uOg",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:28:23Z",
+          "updatedAt": "2026-11-02T16:28:24Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I think it means the minimum will need to be carefully selected; probably on the order of seconds rather than minutes. Even setting it to 5 seconds or something would have a substantial benefit, since it would prevent an attacker from just shuffling the credential around to different clients to hammer a resource protected by a moderator.",
+              "createdAt": "2026-11-02T16:28:23Z",
+              "updatedAt": "2026-11-02T16:28:24Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViE_Uw",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T16:43:12Z",
+          "updatedAt": "2026-11-02T16:43:12Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "Basically: short (but not zero) minimum, as-long-as-technically-feasible-for-the-moderator maximum ",
+              "createdAt": "2026-11-02T16:43:12Z",
+              "updatedAt": "2026-11-02T16:43:13Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVjVkZg",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:22:21Z",
+          "updatedAt": "2026-11-02T18:22:22Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "I believe Thibault meant that it will be shared to the Moderator upon redemption",
+              "createdAt": "2026-11-02T18:22:21Z",
+              "updatedAt": "2026-11-02T18:22:22Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVjd6aQ",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:33:02Z",
+          "updatedAt": "2026-11-02T18:33:02Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I don't think we need a minimum, the server can choose that dynamically and use JavaScript to orchestrate that.",
+              "createdAt": "2026-11-02T18:33:02Z",
+              "updatedAt": "2026-11-02T18:33:03Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVjedOw",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:33:49Z",
+          "updatedAt": "2026-11-02T18:33:51Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "How exactly would Javascript orchestrate that?",
+              "createdAt": "2026-11-02T18:33:50Z",
+              "updatedAt": "2026-11-02T18:33:51Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVjo-7A",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:47:37Z",
+          "updatedAt": "2026-11-02T18:47:38Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "On further reflection, the minimum isn't strictly necessary since the server can always enforce that by not returning the credential when the client issues a request to terminate the session; the client will need to handle that case anyway.",
+              "createdAt": "2026-11-02T18:47:37Z",
+              "updatedAt": "2026-11-02T18:47:38Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVju5lQ",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:55:03Z",
+          "updatedAt": "2026-11-02T18:55:04Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "To return to the original point: I agree that maximum session length can/should be part of the configuration, we don't need to specify it per session.",
+              "createdAt": "2026-11-02T18:55:03Z",
+              "updatedAt": "2026-11-02T18:55:04Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 156,
@@ -13427,7 +13860,7 @@
       "id": "PR_kwDOSX6krs8AAAABL3ksGA",
       "title": "EC-IHAT: Add a salt to the permutation",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/157",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "cjpatton",
       "authorAssociation": "COLLABORATOR",
       "assignees": [],
@@ -13437,14 +13870,14 @@
       ],
       "body": "The bound of Theorem 1 of {{DS15}} for indifferentiability of `P()` from a random permutation is quite loose, at $7400448 \\cdot q^8 / 2^n$, where $q$ is the number of `P()` queries made by the adversary and $n$ is the size of each half in the Feistel network. In our case, $n\\in{128,129}$, so the bound becomes vacuous at $q \\approx 2^15$ queries. A direct proof modeling the Feistel round function as a random oracle might yield a better bound, but in lieu of such a proof, to be on the safe side, we should contain the blast radius of an attack as much as possible.\r\n\r\nAdd a salt, bound to the redemption proof and challenge, to each round of Fesiteling. This ensures whatever computation the attacker does to exploit differentiability of `P()` is applicable to a single run of the protocol.",
       "createdAt": "2026-10-30T21:46:03Z",
-      "updatedAt": "2026-10-31T02:44:15Z",
+      "updatedAt": "2026-11-02T20:25:43Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "b663bea8b2d93e01094177b015125cfb2046e101",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "cjpatton/ihat-perm-salt",
       "headRefOid": "8a370b6f7633ba7720bb8d5f5761f4be481f3c19",
-      "closedAt": null,
+      "closedAt": "2026-11-02T20:25:43Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -13455,6 +13888,13 @@
           "body": "Moved to draft, I wanna think about this a bit more.",
           "createdAt": "2026-10-31T02:44:15Z",
           "updatedAt": "2026-10-31T02:44:15Z"
+        },
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "> Not reviewing the cryptography but practicality: how much does this constraint performance given that permutation that the client has to perform now depends on having a moderator challenge?\r\n> \r\n> note that this diverges from the latest main\r\n\r\nThis doesn't impact performance at all. You already need the moderator challenge before you can generate a proof.",
+          "createdAt": "2026-11-02T20:25:39Z",
+          "updatedAt": "2026-11-02T20:25:39Z"
         }
       ],
       "reviews": [
@@ -13537,8 +13977,847 @@
               "updatedAt": "2026-10-30T22:08:09Z"
             }
           ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVgmLcA",
+          "commit": {
+            "abbreviatedOid": "8a370b6"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "Not reviewing the cryptography but practicality: how much does this constraint performance given that permutation that the client has to perform now depends on having a moderator challenge?\r\n\r\nnote that this diverges from the latest main",
+          "createdAt": "2026-11-02T14:54:12Z",
+          "updatedAt": "2026-11-02T15:00:28Z",
+          "comments": []
         }
       ]
+    },
+    {
+      "number": 159,
+      "id": "PR_kwDOSX6krs8AAAABMJtfCg",
+      "title": "act: clarify sampling and amount bounds after Jon's review",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/159",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Follow up on Jon Katz's EC-ACT review. Distinguish 32-byte scalar encodings from 48-byte seeds, state that the group order is 256 bits, and scope the statistical-distance bound to reduction of a uniform byte string. The analysis of the concrete scalar and nonce derivations remains open.\n\nUse Moderator consistently, call `a` the top-up allowance, and clarify the integer amount checks and return bound `t <= s + a`.\n\nThis changes prose only: all 38 fenced blocks, algorithms, message encodings, and test vectors are unchanged. Validation: 180 tests, mypy, pyflakes, and pylint pass locally; the [draft builds](https://github.com/SamuelSchlesinger/internet-drafts/actions/runs/41263430200) and [reference CI](https://github.com/SamuelSchlesinger/internet-drafts/actions/runs/41263430197) pass at `b76ee87`.\n",
+      "createdAt": "2026-11-01T18:48:51Z",
+      "updatedAt": "2026-11-02T01:03:01Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b663bea8b2d93e01094177b015125cfb2046e101",
+      "headRepository": "SamuelSchlesinger/internet-drafts",
+      "headRefName": "fix/ec-act-katz-review",
+      "headRefOid": "c450b6f6045a4dcd0ab762173b263d44ec87b399",
+      "closedAt": "2026-11-02T00:53:05Z",
+      "mergedAt": "2026-11-02T00:53:05Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "7d37aaed84f0883db9b83a52c56854e01e782273"
+      },
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Deadline is today if anyone can approve :)",
+          "createdAt": "2026-11-01T18:49:30Z",
+          "updatedAt": "2026-11-01T18:49:30Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@thibmeu I'm going to add some more changes needed before publication to this PR, forewarning",
+          "createdAt": "2026-11-01T19:13:15Z",
+          "updatedAt": "2026-11-01T19:13:15Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Thanks for the feedback, I will rejigger this a bit when I get home, hopping on a train back from New York",
+          "createdAt": "2026-11-01T19:13:37Z",
+          "updatedAt": "2026-11-01T19:13:37Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@SamuelSchlesinger as long as you tag i get an email. happy to take a new look later today EU time, or tomorrow morning. we need one of the author to approve publication though, so i guess you'll have to be online",
+          "createdAt": "2026-11-01T19:15:59Z",
+          "updatedAt": "2026-11-01T19:15:59Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Ah nice, deadline is tomorrow evening. I'm going to wait cause I'm realizing they'll all publish together.",
+          "createdAt": "2026-11-02T00:53:32Z",
+          "updatedAt": "2026-11-02T00:53:32Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "The datatracker tends to be slow (the confirmation email) on Monday and there are some chained dependencies. So better not wait for the evening",
+          "createdAt": "2026-11-02T01:03:01Z",
+          "updatedAt": "2026-11-02T01:03:01Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVYVRPw",
+          "commit": {
+            "abbreviatedOid": "b76ee87"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "looks good. mostly nits and interrogation on words",
+          "createdAt": "2026-11-01T19:03:09Z",
+          "updatedAt": "2026-11-01T19:08:58Z",
+          "comments": [
+            {
+              "originalPosition": 6,
+              "body": "side: makes me think we could still simply have MOLE as a regular and two reverse flow",
+              "createdAt": "2026-11-01T19:03:09Z",
+              "updatedAt": "2026-11-01T19:08:58Z"
+            },
+            {
+              "originalPosition": 41,
+              "body": "nits: i tend to not be a fan of `;`. this could be a `.` for istance.",
+              "createdAt": "2026-11-01T19:04:49Z",
+              "updatedAt": "2026-11-01T19:08:58Z"
+            },
+            {
+              "originalPosition": 69,
+              "body": "bikeshedding: curious if `top-up allowance` comes from somewhere else. below it's classified as `returned amount`.\n\n`max refund` makes sense to me, but i understand it does not capture that the refund can be bigger than the committed amount.",
+              "createdAt": "2026-11-01T19:06:23Z",
+              "updatedAt": "2026-11-01T19:08:58Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVYW5UQ",
+          "commit": {
+            "abbreviatedOid": "b76ee87"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-01T19:11:13Z",
+          "updatedAt": "2026-11-01T19:11:13Z",
+          "comments": [
+            {
+              "originalPosition": 69,
+              "body": "actually, re-reading, top-up is distinct from returned amount",
+              "createdAt": "2026-11-01T19:11:13Z",
+              "updatedAt": "2026-11-01T19:11:13Z"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "number": 160,
+      "id": "PR_kwDOSX6krs8AAAABMTFgGw",
+      "title": "refactor: break draft dependency cycles",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/160",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "The current way the dependencies are ordered make it impossible to publish smoothly. This commit aims to kill circular dependencies\n\n1. the architecture is the root\n2. crypto drafts depend on the architecture (and EC-ACT depends on EC-IHAT)\n3. protocols depends on the architecture and the crypto drafts\n4. http transport depends on the protocol",
+      "createdAt": "2026-11-02T12:26:32Z",
+      "updatedAt": "2026-11-02T15:13:17Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "7d37aaed84f0883db9b83a52c56854e01e782273",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "thibmeu/refactor-to-break-dep-cycles",
+      "headRefOid": "b997aa1687ffea17c108d41771d9acc86636f499",
+      "closedAt": "2026-11-02T15:13:12Z",
+      "mergedAt": "2026-11-02T15:13:12Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "651abfd546ccf4506e9dda9987a1ca6128090589"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVg0SDg",
+          "commit": {
+            "abbreviatedOid": "b997aa1"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T15:10:04Z",
+          "updatedAt": "2026-11-02T15:10:04Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVg1njQ",
+          "commit": {
+            "abbreviatedOid": "b997aa1"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "Thanks!",
+          "createdAt": "2026-11-02T15:11:26Z",
+          "updatedAt": "2026-11-02T15:11:26Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 164,
+      "id": "PR_kwDOSX6krs8AAAABMV2GdQ",
+      "title": "protocols: remove ModeratorChallenge and CredentialChallenge wrappers",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/164",
+      "state": "MERGED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "The HTTP challenge parameter already identifies the endorsement or credential type, so the canonical wrapper structs duplicated it. Hash inputs are now the decoded type-specific Challenge payload: the RedemptionChallenge for redemptions and the EC-ACT Challenge or Privacy Pass TokenChallenge for presentations.",
+      "createdAt": "2026-11-02T15:51:08Z",
+      "updatedAt": "2026-11-02T16:04:39Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "651abfd546ccf4506e9dda9987a1ca6128090589",
+      "headRepository": "chris-wood/internet-drafts",
+      "headRefName": "remove-challenge-wrappers",
+      "headRefOid": "90b94404c2af8d8187f9011b293c892577a92d92",
+      "closedAt": "2026-11-02T16:04:39Z",
+      "mergedAt": "2026-11-02T16:04:39Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "661bc8a31a2c7161076d576ac974ca105e59287a"
+      },
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "closes #147 ",
+          "createdAt": "2026-11-02T15:57:36Z",
+          "updatedAt": "2026-11-02T15:57:36Z"
+        }
+      ],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhlOGQ",
+          "commit": {
+            "abbreviatedOid": "90b9440"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T16:04:30Z",
+          "updatedAt": "2026-11-02T16:04:30Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 165,
+      "id": "PR_kwDOSX6krs8AAAABMV6cmQ",
+      "title": "docs(protocols): define endorsement",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/165",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Reuse the architecture\u2019s Endorsement definition in the protocols terminology.\r\n\r\nFixes #163 @chris-wood\r\n\r\nChecked: make draft-jms-mole-protocols.html; git diff --check.",
+      "createdAt": "2026-11-02T15:55:52Z",
+      "updatedAt": "2026-11-02T16:05:37Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "651abfd546ccf4506e9dda9987a1ca6128090589",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/163-define-endorsement",
+      "headRefOid": "74b43a69d991bd93d5bd46167ceb6b49c6fad3e4",
+      "closedAt": "2026-11-02T16:05:14Z",
+      "mergedAt": "2026-11-02T16:05:14Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "fe1fe26a37718555c57386d2810980ac059fed8c"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhklrQ",
+          "commit": {
+            "abbreviatedOid": "74b43a6"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T16:03:45Z",
+          "updatedAt": "2026-11-02T16:03:45Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 166,
+      "id": "PR_kwDOSX6krs8AAAABMV6crQ",
+      "title": "docs(protocols): name challenge amounts descriptively",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/166",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Use spend_amount and max_top_up in the EC-ACT Challenge. Name the return amount and retain s, a, and t for EC-ACT notation. No encoding or algorithm changes.\r\n\r\nFixes #162 @chris-wood\r\n\r\nChecked: make draft-jms-mole-protocols.html; git diff --check.",
+      "createdAt": "2026-11-02T15:55:52Z",
+      "updatedAt": "2026-11-02T16:05:03Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "651abfd546ccf4506e9dda9987a1ca6128090589",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/162-descriptive-challenge-amounts",
+      "headRefOid": "1eeb2b69585f606e4b2bac0dc523cfb38e72952d",
+      "closedAt": "2026-11-02T16:04:58Z",
+      "mergedAt": "2026-11-02T16:04:58Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "032f1dab79cfb0749005c2ba16832f92ea31e5ae"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVhlFPQ",
+          "commit": {
+            "abbreviatedOid": "1eeb2b6"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T16:04:20Z",
+          "updatedAt": "2026-11-02T16:04:20Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 170,
+      "id": "PR_kwDOSX6krs8AAAABMWH84w",
+      "title": "docs(protocols): recommend overlapping credential contexts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/170",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Recommend accepting old and successor contexts during a transition instead of an unspecified announcement mechanism. Retirement, not publication of a successor, expires the old Credentials.\n\nFixes #168.\n\n@chris-wood\n\nChecked: make draft-jms-mole-protocols.html; git diff --check.",
+      "createdAt": "2026-11-02T16:11:13Z",
+      "updatedAt": "2026-11-02T21:13:18Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe1fe26a37718555c57386d2810980ac059fed8c",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/168-overlapping-contexts",
+      "headRefOid": "5c35e811b2a08254aa34b9b09df13f064af9dab8",
+      "closedAt": "2026-11-02T21:13:14Z",
+      "mergedAt": "2026-11-02T21:13:14Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "8ca9c63fdf0d253c7b85d2d1194fc14d1ecd0c21"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVipRFQ",
+          "commit": {
+            "abbreviatedOid": "1de17e0"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T17:27:22Z",
+          "updatedAt": "2026-11-02T17:27:29Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "SHOULD or MAY here? Feels like it is dependent on the deployment right? If we say SHOULD, we should explain why.",
+              "createdAt": "2026-11-02T17:27:23Z",
+              "updatedAt": "2026-11-02T17:27:29Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVirgxw",
+          "commit": {
+            "abbreviatedOid": "1de17e0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T17:30:14Z",
+          "updatedAt": "2026-11-02T17:30:14Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "i feel that's more a sentiment. to me it's a SHOULD as a client that had an old credential can get a new one when the moderator changes window/epoch. MAY would likely lead to provisioning ahead of time, and a different choice\r\n\r\nis there a particular reason you'd like explained?",
+              "createdAt": "2026-11-02T17:30:14Z",
+              "updatedAt": "2026-11-02T17:30:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVjUDyQ",
+          "commit": {
+            "abbreviatedOid": "1de17e0"
+          },
+          "author": "chris-wood",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T18:20:40Z",
+          "updatedAt": "2026-11-02T18:20:40Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "I might just say something like \"Moderators can accept old and new credential contexts during a transition period to ensure a seamless transition across clients. Dropping support for an old credential context also drops support for clients which have not discovered the new credential context.\" Deployments can then choose what to do with that info.",
+              "createdAt": "2026-11-02T18:20:40Z",
+              "updatedAt": "2026-11-02T18:20:40Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlQ5bA",
+          "commit": {
+            "abbreviatedOid": "1de17e0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T21:04:55Z",
+          "updatedAt": "2026-11-02T21:04:56Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "updated",
+              "createdAt": "2026-11-02T21:04:56Z",
+              "updatedAt": "2026-11-02T21:04:56Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlU4vA",
+          "commit": {
+            "abbreviatedOid": "5c35e81"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T21:10:15Z",
+          "updatedAt": "2026-11-02T21:10:15Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 171,
+      "id": "PR_kwDOSX6krs8AAAABMWH87Q",
+      "title": "docs(protocols): illustrate balance width",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/171",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Add the integer range and an 8-bit example, reusing EC-ACT terminology. Naming remains pending #158.\n\nAddresses #167.\n\n@chris-wood\n\nChecked: make draft-jms-mole-protocols.html; git diff --check.",
+      "createdAt": "2026-11-02T16:11:13Z",
+      "updatedAt": "2026-11-02T17:28:47Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe1fe26a37718555c57386d2810980ac059fed8c",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/167-balance-width-example",
+      "headRefOid": "92283f2ee202978a42e176602f8252709beddc67",
+      "closedAt": "2026-11-02T17:28:44Z",
+      "mergedAt": "2026-11-02T17:28:43Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "b3334bc8fba38b230a8e06210b6f26af8d146eba"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViphHw",
+          "commit": {
+            "abbreviatedOid": "92283f2"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T17:27:42Z",
+          "updatedAt": "2026-11-02T17:27:42Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 172,
+      "id": "PR_kwDOSX6krs8AAAABMWJCGw",
+      "title": "docs(architecture): include presentation recovery state",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/172",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Extend the existing Moderator-state sentence; retain the existing bound.\n\nFixes #169.\n\n@chris-wood\n\nChecked: make draft-jms-mole-architecture.html; git diff --check.",
+      "createdAt": "2026-11-02T16:12:28Z",
+      "updatedAt": "2026-11-02T17:07:46Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "fe1fe26a37718555c57386d2810980ac059fed8c",
+      "headRepository": "thibmeu/mole-internet-drafts",
+      "headRefName": "thibmeu/169-recovery-state",
+      "headRefOid": "63516878ed00a21c3c79093a7cd2680c9fb38937",
+      "closedAt": "2026-11-02T17:07:40Z",
+      "mergedAt": "2026-11-02T17:07:40Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "e73922bdade46e7e1a2f969c1d615e0322fbf94e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViYk5Q",
+          "commit": {
+            "abbreviatedOid": "6351687"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T17:07:23Z",
+          "updatedAt": "2026-11-02T17:07:23Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 174,
+      "id": "PR_kwDOSX6krs8AAAABMXMg0A",
+      "title": "Fill out feedback motivation",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/174",
+      "state": "MERGED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-11-02T17:31:23Z",
+      "updatedAt": "2026-11-02T17:39:22Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b3334bc8fba38b230a8e06210b6f26af8d146eba",
+      "headRepository": "chris-wood/internet-drafts",
+      "headRefName": "caw/feedback",
+      "headRefOid": "136f42731c6724435a816322182e9f9d8e266714",
+      "closedAt": "2026-11-02T17:39:22Z",
+      "mergedAt": "2026-11-02T17:39:22Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "187bc00d8ce5b7ad0310eaedbda61d441810fac1"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVivWAQ",
+          "commit": {
+            "abbreviatedOid": "f4467b0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T17:35:14Z",
+          "updatedAt": "2026-11-02T17:35:15Z",
+          "comments": [
+            {
+              "originalPosition": 9,
+              "body": "```suggestion\nto a single Client, effectively bypassing the protections that MOLE aims\nto provide. Moderation quality therefore depends on Anchor quality.\n```\n\nan alternative is just state `provide`. `purports` feels too uncertain",
+              "createdAt": "2026-11-02T17:35:14Z",
+              "updatedAt": "2026-11-02T17:35:14Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViv0Vw",
+          "commit": {
+            "abbreviatedOid": "f4467b0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T17:35:53Z",
+          "updatedAt": "2026-11-02T17:35:53Z",
+          "comments": [
+            {
+              "originalPosition": 13,
+              "body": "```suggestion\nis undesirable, and dependent on Client implementation and deployments. Stable and consistent Anchor sets, which are part of a Moderator\n```",
+              "createdAt": "2026-11-02T17:35:53Z",
+              "updatedAt": "2026-11-02T17:35:53Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViwYYw",
+          "commit": {
+            "abbreviatedOid": "f4467b0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T17:36:39Z",
+          "updatedAt": "2026-11-02T17:36:39Z",
+          "comments": [
+            {
+              "originalPosition": 20,
+              "body": "```suggestion\nto produce this information, is not defined yet.\n```",
+              "createdAt": "2026-11-02T17:36:39Z",
+              "updatedAt": "2026-11-02T17:36:39Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViwx6Q",
+          "commit": {
+            "abbreviatedOid": "f4467b0"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "overall moves in the right direction. some nits",
+          "createdAt": "2026-11-02T17:37:12Z",
+          "updatedAt": "2026-11-02T17:37:12Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABViyOfg",
+          "commit": {
+            "abbreviatedOid": "136f427"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T17:39:14Z",
+          "updatedAt": "2026-11-02T17:39:14Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 175,
+      "id": "PR_kwDOSX6krs8AAAABMXSwIA",
+      "title": "docs: add changelogs to MOLE drafts",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/175",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "Start populating changelogs in various draft. This is small now, but will be handy down the line",
+      "createdAt": "2026-11-02T17:38:58Z",
+      "updatedAt": "2026-11-02T17:43:12Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "b3334bc8fba38b230a8e06210b6f26af8d146eba",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "docs/draft-changelogs",
+      "headRefOid": "c2999b477c65bb0a07e37d9a9721800bd7d824e2",
+      "closedAt": "2026-11-02T17:43:00Z",
+      "mergedAt": "2026-11-02T17:43:00Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "6736ebe9ee6d5bf584a726877c543b43fefd138e"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVi0DRg",
+          "commit": {
+            "abbreviatedOid": "c2999b4"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T17:41:37Z",
+          "updatedAt": "2026-11-02T17:41:37Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 176,
+      "id": "PR_kwDOSX6krs8AAAABMZ8tSA",
+      "title": "Pin EC-ACT's IHAT reference to -00",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/176",
+      "state": "MERGED",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Pin the normative IHAT reference to draft-ladd-mole-ec-ihat-00, including its Datatracker URL and date. Both crypto drafts build; 180 tests, mypy, pyflakes, and pylint pass locally.",
+      "createdAt": "2026-11-02T21:10:43Z",
+      "updatedAt": "2026-11-02T21:28:46Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "6736ebe9ee6d5bf584a726877c543b43fefd138e",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "release/ec-act-00",
+      "headRefOid": "48ade1d49a444c122a30169a48a86083168266d4",
+      "closedAt": "2026-11-02T21:28:46Z",
+      "mergedAt": "2026-11-02T21:28:46Z",
+      "mergedBy": "SamuelSchlesinger",
+      "mergeCommit": {
+        "oid": "2789337242cd7d1b0e6853a967fba272b8a10748"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlV3mQ",
+          "commit": {
+            "abbreviatedOid": "48ade1d"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-02T21:11:32Z",
+          "updatedAt": "2026-11-02T21:11:33Z",
+          "comments": [
+            {
+              "originalPosition": 10,
+              "body": "```suggestion\n  EC-IHAT: I-D.draft-ladd-mole-ec-ihat\n```",
+              "createdAt": "2026-11-02T21:11:32Z",
+              "updatedAt": "2026-11-02T21:11:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlbpQQ",
+          "commit": {
+            "abbreviatedOid": "48ade1d"
+          },
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "beyond that change, seems ok",
+          "createdAt": "2026-11-02T21:19:31Z",
+          "updatedAt": "2026-11-02T21:19:31Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 177,
+      "id": "PR_kwDOSX6krs8AAAABMaBJAw",
+      "title": "reference to ec-ihat and ec-act for mole",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/177",
+      "state": "MERGED",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [
+        "thibmeu"
+      ],
+      "labels": [
+        "enhancement"
+      ],
+      "body": "",
+      "createdAt": "2026-11-02T21:16:32Z",
+      "updatedAt": "2026-11-02T21:17:54Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8ca9c63fdf0d253c7b85d2d1194fc14d1ecd0c21",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "thibmeu/references-ec",
+      "headRefOid": "3f40875ec0243c0b4381b55d6cf96c4204002d1f",
+      "closedAt": "2026-11-02T21:17:45Z",
+      "mergedAt": "2026-11-02T21:17:45Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "423da51afcae88cb6591f92e1cb543502c6bda68"
+      },
+      "comments": [],
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABVlZorg",
+          "commit": {
+            "abbreviatedOid": "3f40875"
+          },
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "APPROVED",
+          "body": "",
+          "createdAt": "2026-11-02T21:16:57Z",
+          "updatedAt": "2026-11-02T21:16:57Z",
+          "comments": []
+        }
+      ]
+    },
+    {
+      "number": 179,
+      "id": "PR_kwDOSX6krs8AAAABMaPtcw",
+      "title": "added datatracker links to readme",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/179",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "well, I added datatracker links to readme",
+      "createdAt": "2026-11-02T21:35:13Z",
+      "updatedAt": "2026-11-02T21:38:07Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "2789337242cd7d1b0e6853a967fba272b8a10748",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "samschles/datatracker-readme",
+      "headRefOid": "96c4a67725c5faf14a6bf49e0115085d1c66f175",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "can you rebase on https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/153 so that we have both the name update AND the datatracker?",
+          "createdAt": "2026-11-02T21:38:06Z",
+          "updatedAt": "2026-11-02T21:38:06Z"
+        }
+      ],
+      "reviews": []
     }
   ]
 }
