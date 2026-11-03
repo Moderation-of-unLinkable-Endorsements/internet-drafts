@@ -7,8 +7,10 @@ This is the working area for MOLE IETF drafts. The current items are as follow
 1. [Architecture](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-architecture.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-architecture/))
 2. [HTTP Transport](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-http-transport.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-http-transport/))
 3. [Protocols](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-jms-mole-protocols.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-jms-mole-protocols/))
-4. [EC-IHAT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html) - Issuer-Hiding Anonymous Token
-5. [EC-ACT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html) - Anonymous Credit Token
+4. [EC-IHAT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-ladd-mole-ec-ihat.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-ladd-mole-ec-ihat/)) - Issuer-Hiding Anonymous Token using elliptic curves
+5. [EC-ACT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-schlesinger-mole-ec-act.html) ([Datatracker](https://datatracker.ietf.org/doc/draft-schlesinger-mole-ec-act/)) - Anonymous Credit Token using elliptic curves
+6. [VOLE-IHAT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-ihat.html) - Issuer-Hiding Anonymous Token using VOLE
+7. [VOLE-ACT](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/draft-authors-mole-vole-act.html) - Anonymous Credit Token using VOLE
 
 You can find all drafts and diff on [GitHub Pages](https://moderation-of-unlinkable-endorsements.github.io/internet-drafts/).
 
