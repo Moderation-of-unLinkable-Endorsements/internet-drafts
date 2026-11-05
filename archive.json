@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-03T05:51:30.426703+00:00",
+  "timestamp": "2026-11-05T05:46:21.541870+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1177,7 +1177,7 @@
       ],
       "body": "As defined, the HTTP transport follows a request/response pattern. This is to preserve unlinkability between requests. This is highlighted in [\"Presentation and Request\" diagram](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-7.3)\n\nThis is a restriction over the [privacy goals of the Architecture](https://datatracker.ietf.org/doc/html/draft-jms-mole-architecture-00#section-5-2.1.1), which state:\n\n> Endorsement Grants and Redemptions are Unlinkable - During an interaction in which a Moderator issues a new Credential on the basis of an Endorsement obtained from an Anchor, neither the Moderator nor the Anchor can link the **session** in which the Endorsement was granted to the **session** in which it was redeemed.\n\nThere are useful use of sessions. In particular, they would allow for the presentation and the update to be decoupled, on the wire, and through time.\n\nOn the wire, this enables to have credential presentation be sent as a POST request for instance so that it's not constrained by HTTP header size limitation seen in deployment (see issue #34).\n\nThrough time, this would allow a moderator to limit the number of presentation through a session, and consider more data point before providing an associated refund. This is a motivation listed in #151.\n\nThis is an issue that is present as part of the HTTP transport, but will be true of all other mechanism that will be developped.\n\nI believe we should consider:\n1. gather a clear list of use cases where a session is required\n2. having a definition for session\n3. adding some protocol (architecture?) consideration about the privacy vs utility tradeoff to guide both transport mechanism and deployments\n\nNone of this would prevent a session mechanism to be defined by future deployments/protocols that build on mole. The question is how core such a design is to the system.",
       "createdAt": "2026-10-26T12:32:53Z",
-      "updatedAt": "2026-10-28T20:25:36Z",
+      "updatedAt": "2026-11-04T19:26:18Z",
       "closedAt": null,
       "comments": [
         {
@@ -1200,6 +1200,13 @@
           "body": "Trying to summarize all the points from today's meeting on this issue:\n\n1.  @SamuelSchlesinger is pretty sure that we need delayed updates in a lot of realistic scenarios, and that means some sort of session relation between handing the token out and getting it back. Some others are less sure including @wbl \n2. Everyone who deals with browsers thinks touching cookies is a bad idea, linking two messy complicated things together.\n3.  Headers might not be a good transport given size constraints, and if a side-request is needed there has to be a way to link to original request. There are some positive benefits of having things in headers due to interactions with other things.\n4. Cookies alone don't work for recovery because of the atomicity requirements.\n5. Cookies are liftable, more easily than a token that's already locked on the server.\n6. It's possible to work with JS over origin processing changes by designating certain paths. Some deployments might have a harder time (opening another issue about it)\n7. There's a bit of drift between the explainer and the choices made in ACT crypto as a result of point 1 and possibly others.\n8. The degree of concurrency with site interactions interacts with the number of tokens required from an endorser in exchange for an anchor token.\n9. Not all deployments will need this functionality, and there is utility even without it. We still need to decide if the origin trial includes it.\n\nPersonally I think this is very messy, and if we can at all punt until after the origin trial we should.",
           "createdAt": "2026-10-28T20:25:36Z",
           "updatedAt": "2026-10-28T20:25:36Z"
+        },
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "Discussion during today's sync pushed us more towards implicit deferred/delayed update and less explicit management, since some privacy-implied invariants (only one Credential in active use for a given unique (moderator, site_origin) tuple, for instance,) mean that the client will always know the correct recovery/session-end action to take.",
+          "createdAt": "2026-11-04T19:26:17Z",
+          "updatedAt": "2026-11-04T19:26:17Z"
         }
       ]
     },
@@ -1248,7 +1255,7 @@
       "labels": [],
       "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
       "createdAt": "2026-10-31T15:18:35Z",
-      "updatedAt": "2026-10-31T17:31:22Z",
+      "updatedAt": "2026-11-04T16:16:49Z",
       "closedAt": null,
       "comments": [
         {
@@ -1257,6 +1264,27 @@
           "body": "I like pot for the conciseness and brevity. In my mind, I associated it with a container rather than an object in itself.\n\nI would suggest Card. A card is something people can obtain when visiting places. They hold it, they carry it. It may contains varying amount of information, either printed, encoded in the chip, or something you can perform an operation on. Sometimes, cards might be fully in paper and represent a capacity (could be a punched card). If a card is expired, voided, or lost, you can request a new one. Overall, card tend to convey information.\n\nIn any case, I agree we should move away from the generic term.",
           "createdAt": "2026-10-31T17:31:22Z",
           "updatedAt": "2026-10-31T17:31:22Z"
+        },
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "+1 to \"card\", I've been quite fond the punched card analogy.",
+          "createdAt": "2026-11-04T03:33:28Z",
+          "updatedAt": "2026-11-04T03:33:28Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "An interesting thing with \"Card\" or \"Capacity\" is that we can rename ACT \"Anonymous Card Token\" or \"Anonymous Capacity Token\". @SamuelSchlesinger would have the final word on any rename for ACT if we go this way",
+          "createdAt": "2026-11-04T08:52:18Z",
+          "updatedAt": "2026-11-04T08:52:18Z"
+        },
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "These are all horrible :)",
+          "createdAt": "2026-11-04T16:16:49Z",
+          "updatedAt": "2026-11-04T16:16:49Z"
         }
       ]
     },
@@ -1387,6 +1415,50 @@
       "body": "If and when there is a group, we should set the metadata on all drafts:\n1. mailing list\n2. group\n3. type",
       "createdAt": "2026-11-02T21:20:52Z",
       "updatedAt": "2026-11-02T21:20:52Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 180,
+      "id": "I_kwDOSX6krs8AAAABcfMdnQ",
+      "title": "VOLE: Use weaker assumption about UOV",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/180",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "VOLE-IHAT /  VOLE-ACT rely on a stronger-than-usual assumption about UOV, namely one-more-forgery resistance as defined in the PoMFRIT paper. We can modify both protocols to reduce to the plain UOV assumption, at the cost of evaluating an additional hash in the redemption / spend circuits. This costs something like ~3.5KB of additional proof.\n\nNote that one-more-UOV is analogous to the one-more-style assumptions we rely on for other schemes, including BlindRSA. The gap here matters, as illustrated recently for 1024 bit RSA: https://github.com/ucsd-hacc/NSNFSSSFSFN. In particular, we might consider going for NIST Level 3 parameters instead of Level 1.\n\nWe might want to wait for cryptanalysis to catch up before relying on this assumption in a deployment. However (1) a break here allows a forgery of a token, but doesn't break privacy, and (2) we should expect UOV / MAYO parameters to increase slightly in any case before the standards are complete.\n\ncc @SamuelSchlesinger ",
+      "createdAt": "2026-11-04T16:18:21Z",
+      "updatedAt": "2026-11-04T18:32:47Z",
+      "closedAt": null,
+      "comments": [
+        {
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "body": "My take: I think there's a good chance we will have to change parameters anyway. Since we're risking forgeries but not privacy, I would be comfortable shipping the schemes as they are and upgrading when we have more information.",
+          "createdAt": "2026-11-04T16:19:03Z",
+          "updatedAt": "2026-11-04T18:32:47Z"
+        }
+      ]
+    },
+    {
+      "number": 181,
+      "id": "I_kwDOSX6krs8AAAABcfSabA",
+      "title": "Specify late binding VOLE-IHAT",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/181",
+      "state": "OPEN",
+      "author": "cjpatton",
+      "authorAssociation": "COLLABORATOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "As discussed in https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45.\n\nThis is implemented here:\nhttps://github.com/cloudflareresearch/vole-mole/blob/main/examples/unbound_ihat.cpp",
+      "createdAt": "2026-11-04T16:24:08Z",
+      "updatedAt": "2026-11-04T16:24:40Z",
       "closedAt": null,
       "comments": []
     }
@@ -13357,21 +13429,21 @@
       "id": "PR_kwDOSX6krs8AAAABKFbxLQ",
       "title": "Add session continuation to HTTP transport draft.",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/151",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "ekovac",
       "authorAssociation": "NONE",
       "assignees": [],
       "labels": [],
       "body": "\r\n# Motivation\r\nA purely synchronous credential presentation process will be insufficient to allow a moderator to make decisions about whether to refund/credit/revoke a given credential. As a sequence of presentations of synchronously updated credentials are not linkable with one another (except perhaps incidentally through other, potentially unreliable signals like cookies, IP address, etc,) it's necessary for the moderator to be able to \"hold\" a credential temporarily while observing the behavior of a particular client to determine if it's sending excessive traffic or engaging in unusual access patterns.\r\n\r\nThree useful side effects of this type of session:\r\n* The majority of traffic will not need to involve a new presentation roundtrip and computation.\r\n* Depending on the moderator's configuration, tracking the session's resource consumption and behavior may only require partially- or eventually- consistent global state\r\n* A moderator that needs to \"raise shields,\" as it were, under periods of excess traffic can choose to be more strict about requiring a MoLE presentation + session in order to service requests without fear of drastically increasing the load on their nullifier database.\r\n\r\n# Alternatives considered: \r\n## TLS Session Resumption/Preshared Key ([RFC 9846 2.2](http://rfc-editor.org/info/rfc9846/#name-resumption-and-pre-shared-k))\r\nRelying on the TLS Preshared key and session resumption mechanisms means that the moderator implementation will be tightly coupled with the TLS layer in a way that will make implementation more difficult and will potentially limit future use of MoLE if subsequent versions of TLS change the semantics of session resumption.\r\n\r\n## Moderator-defined, OR Specification-defined, but using cookies\r\n\r\nThe options for the moderator doing its own implementation-defined session management are limited. Off the top of my head, the moderator could use TLS Session Resumption/PSK (see above,) IP address, Cookies, or more complex browser fingerprinting signals to achieve the same ends. Using IP address means that this system becomes ineffective for roaming connections, CGNAT, multiple clients within a household, etc. Using complex browser fingerprinting signals also risks collisions, so you'll still need some unique identifier per session anyway. This leaves cookies.\r\n\r\nReusing cookies poses risks. If the Moderator and Site are only loosely integrated, such as a CDN acting as Moderator and sitting in front of a naively-configured Site, then the Site's application logic may inadvertently collide with whatever cookie name we use, or send headers such as `Clear-Site-Data: \"cookies\"` that would break the current session (barring specialized logic in the user agent to defer this for the session cookie and triggering the termination/update request instead.) This would leave the CDN in the position of needing to modify response headers from the underlying service in order to maintain the integrity of the moderator session in a way that might interfere with the underlying application's functionality.\r\n\r\nLeaving the session management entirely moderator defined will only allow us to eliminate *some* of these signalling mechanisms. Ultimately, a user agent of any kind will need to be able to reliably determine when, eg, to attempt a credential recovery, and to know how to signal to a moderator when it expects it won't be connecting again (such as the end of a commandline tool's task, or the last browser tab for a given origin closing.)\r\n\r\n# Privacy Considerations\r\n\r\nProbably needs to be expanded on somewhat, but to be clear: In order avoid creating a new way to link clients, this needs to be partitioned by origin to not provide a new vector to identify when the same client is connected to two different sites that use the same moderator. While in most cases IP address will already provide that signal, there are configurations where that concern is mitigated and so this would reintroduce that signal.",
       "createdAt": "2026-10-22T17:52:56Z",
-      "updatedAt": "2026-10-26T12:33:12Z",
+      "updatedAt": "2026-11-04T19:23:25Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "ekovac/mole-session-continuation",
       "headRefOid": "324c136cae38e9f14b70f7f83b562a02b88b78aa",
-      "closedAt": null,
+      "closedAt": "2026-11-04T19:23:25Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -13382,6 +13454,13 @@
           "body": "moved the discussion on sessions to #152 ",
           "createdAt": "2026-10-26T12:33:12Z",
           "updatedAt": "2026-10-26T12:33:12Z"
+        },
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "Closing out this PR since most of the changes aren't really applicable with the implicit deferred-update mechanism we discussed in the meeting today. Going to create a new PR that does some of the cleanup I was referring to and also make the transport rely less on large header values.",
+          "createdAt": "2026-11-04T19:23:19Z",
+          "updatedAt": "2026-11-04T19:23:19Z"
         }
       ],
       "reviews": []
@@ -13391,24 +13470,26 @@
       "id": "PR_kwDOSX6krs8AAAABLFdwQw",
       "title": "Parallelism in README.md",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/153",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "List the EC-IHAT and EC-ACT with parallel constructions.",
       "createdAt": "2026-10-27T18:12:52Z",
-      "updatedAt": "2026-11-02T21:37:40Z",
+      "updatedAt": "2026-11-03T09:10:33Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "651abfd546ccf4506e9dda9987a1ca6128090589",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl-patch-1",
-      "headRefOid": "a9e80a76bd7aa054913d81ba163805408b250afb",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "headRefOid": "79b125af6797d80a4cd131f9c6f1bf53d0d1c4ce",
+      "closedAt": "2026-11-03T09:10:30Z",
+      "mergedAt": "2026-11-03T09:10:30Z",
+      "mergedBy": "thibmeu",
+      "mergeCommit": {
+        "oid": "b7f349a9afa70e22320871094ee3c87208e61417"
+      },
       "comments": [
         {
           "author": "SamuelSchlesinger",
@@ -13430,6 +13511,13 @@
           "body": "regenerated based on the latest MOLE drafts state. poke @SamuelSchlesinger to I don't (completely) self-approve",
           "createdAt": "2026-11-02T15:23:14Z",
           "updatedAt": "2026-11-02T15:23:14Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Included the datatracker links from #179 which would have conflicted otherwise. Kept @SamuelSchlesinger as a co-author there",
+          "createdAt": "2026-11-03T09:10:23Z",
+          "updatedAt": "2026-11-03T09:10:23Z"
         }
       ],
       "reviews": [
@@ -13473,24 +13561,26 @@
       "id": "PR_kwDOSX6krs8AAAABLU-Zsw",
       "title": "transport: add signoff to hint at end of session",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/154",
-      "state": "OPEN",
+      "state": "MERGED",
       "author": "wbl",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "This is part of the discussion of session semantics. Note there's a bit of a challenge with moderators being first party or third party with origin while cookies do their own thing, but I do appreciate this might be an us (and some other vendor) problem, though solutions appreciated.",
       "createdAt": "2026-10-28T17:52:21Z",
-      "updatedAt": "2026-11-02T18:55:04Z",
+      "updatedAt": "2026-11-03T22:23:30Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "wbl/signoff-path",
       "headRefOid": "60aca7d75047595a52a49a847da9ea83b7d1bb49",
-      "closedAt": null,
-      "mergedAt": null,
-      "mergedBy": null,
-      "mergeCommit": null,
+      "closedAt": "2026-11-03T22:00:23Z",
+      "mergedAt": "2026-11-03T22:00:23Z",
+      "mergedBy": "wbl",
+      "mergeCommit": {
+        "oid": "8869b7255d8f595da79ab4e2edddb364c830978d"
+      },
       "comments": [
         {
           "author": "ekovac",
@@ -13772,6 +13862,59 @@
               "body": "To return to the original point: I agree that maximum session length can/should be part of the configuration, we don't need to specify it per session.",
               "createdAt": "2026-11-02T18:55:03Z",
               "updatedAt": "2026-11-02T18:55:04Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABV00tdw",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-03T21:21:16Z",
+          "updatedAt": "2026-11-03T21:21:16Z",
+          "comments": [
+            {
+              "originalPosition": 30,
+              "body": "In the current text, the recovery handle is defined by the credential type, which seems appropriate given that the way invalidation is handled may differ for a credential type other than ACT (there may be no \"nullifier\" or equivalent.)",
+              "createdAt": "2026-11-03T21:21:16Z",
+              "updatedAt": "2026-11-03T21:21:43Z"
+            }
+          ]
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABV1Ol3Q",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "state": "APPROVED",
+          "body": "I think we should merge this as a starting point for explicit session management; there are definitely some points that need further discussion but this moves the draft in the correct direction, I think.",
+          "createdAt": "2026-11-03T21:58:36Z",
+          "updatedAt": "2026-11-03T21:58:36Z",
+          "comments": []
+        },
+        {
+          "id": "PRR_kwDOSX6krs8AAAABV1fATQ",
+          "commit": {
+            "abbreviatedOid": "60aca7d"
+          },
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "state": "COMMENTED",
+          "body": "",
+          "createdAt": "2026-11-03T22:23:30Z",
+          "updatedAt": "2026-11-03T22:23:30Z",
+          "comments": [
+            {
+              "originalPosition": 8,
+              "body": "I'm not sure why the maximum session length would not depend on client characteristics. It may depend on things like network characteristics.",
+              "createdAt": "2026-11-03T22:23:30Z",
+              "updatedAt": "2026-11-03T22:23:30Z"
             }
           ]
         }
@@ -14689,7 +14832,7 @@
       "labels": [],
       "body": "Pin the normative IHAT reference to draft-ladd-mole-ec-ihat-00, including its Datatracker URL and date. Both crypto drafts build; 180 tests, mypy, pyflakes, and pylint pass locally.",
       "createdAt": "2026-11-02T21:10:43Z",
-      "updatedAt": "2026-11-02T21:28:46Z",
+      "updatedAt": "2026-11-03T09:11:13Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "6736ebe9ee6d5bf584a726877c543b43fefd138e",
@@ -14790,21 +14933,21 @@
       "id": "PR_kwDOSX6krs8AAAABMaPtcw",
       "title": "added datatracker links to readme",
       "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/179",
-      "state": "OPEN",
+      "state": "CLOSED",
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
       "labels": [],
       "body": "well, I added datatracker links to readme",
       "createdAt": "2026-11-02T21:35:13Z",
-      "updatedAt": "2026-11-02T21:38:07Z",
+      "updatedAt": "2026-11-03T09:11:03Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "2789337242cd7d1b0e6853a967fba272b8a10748",
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "samschles/datatracker-readme",
       "headRefOid": "96c4a67725c5faf14a6bf49e0115085d1c66f175",
-      "closedAt": null,
+      "closedAt": "2026-11-03T09:10:45Z",
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
@@ -14815,6 +14958,13 @@
           "body": "can you rebase on https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/153 so that we have both the name update AND the datatracker?",
           "createdAt": "2026-11-02T21:38:06Z",
           "updatedAt": "2026-11-02T21:38:06Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "done in #153 ",
+          "createdAt": "2026-11-03T09:10:45Z",
+          "updatedAt": "2026-11-03T09:10:45Z"
         }
       ],
       "reviews": []
