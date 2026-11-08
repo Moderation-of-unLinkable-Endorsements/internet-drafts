@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-05T05:46:21.541870+00:00",
+  "timestamp": "2026-11-08T05:09:21.819057+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1459,6 +1459,75 @@
       "body": "As discussed in https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/45.\n\nThis is implemented here:\nhttps://github.com/cloudflareresearch/vole-mole/blob/main/examples/unbound_ihat.cpp",
       "createdAt": "2026-11-04T16:24:08Z",
       "updatedAt": "2026-11-04T16:24:40Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 182,
+      "id": "I_kwDOSX6krs8AAAABcxvDIg",
+      "title": "Specify early/late binding in the protocols",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/182",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "crypto",
+        "protocols"
+      ],
+      "body": "At the moment, the client-provided redemption context is a fixed string. For instance, EC-IHAT uses MOLE-EC-IHAT-ctx_red-v1 per [section 4.4 of the draft](https://datatracker.ietf.org/doc/html/draft-jms-mole-protocols-01#section-4.4.1).\n\nHaving one global redemption context seems limiting. A malicious client can redeem the same endorsement at multiple moderators. Each moderator can detect reuse locally, but without coordinating (which is undesirable), they cannot enforce global single use. The same nullifier also allows moderators to link these redemptions.\n\nTherefore, we would like the endorsement to be bound to a moderator context. Think the moderator domain for instance. The goal would be to allow a specific number of redemptions per moderator, without coordination or cross-moderator linkability.\n\nThere are two options to do this:\n\n1. If the client knows the moderator domain ahead of time, it can add it at endorsement grant time. This is an **early binding**.\n2. If the client does not yet know the moderator (because that's something that happens later in the flow), it can add it at redemption time. This is a **late binding**.\n\nEarly binding is ill-fitted for the architecture, as it creates an assumption that the client knows the moderator ahead of time. It may work for a stable and limited number of moderators known in advance (think PST with [3 issuers](https://github.com/GoogleChrome/private-tokens/blob/main/pst-issuers.json)). If the anchor wanted to grant enough endorsements for each moderator, it would need to know that number somehow, and a malicious client could still get all its endorsements for one moderator.\n\nLate binding is what we should aim for I think. It allows an anchor to issue a specific number of endorsements per client, and provide each moderator a guarantee about the number of redemptions that client can make there. This requires a moderator-specific nullifier derived from an endorsement-bound secret, with a proof that the derivation is correct. This could be a moderator domain for instance. Each moderator can then detect reuse independently.\n\nSimilar to [ARC](https://datatracker.ietf.org/doc/draft-ietf-privacypass-arc-protocol/), there are ways we could use that so each moderator defines a presentation limit, but that's fancier. Longfellow provides late binding, and VOLE-IHAT could be extended to provide it (#181). EC-IHAT does not support it as currently specified.\n\nWe should specify these binding options in the protocols, how the moderator context is constructed, and the guarantees each protocol provides.\n\nRelates to #45 #181",
+      "createdAt": "2026-11-05T15:24:53Z",
+      "updatedAt": "2026-11-06T10:27:23Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 183,
+      "id": "I_kwDOSX6krs8AAAABc4ZFpQ",
+      "title": "endianness in EC-ACT",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/183",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "make endianness consistent in ACTs",
+      "createdAt": "2026-11-05T22:56:12Z",
+      "updatedAt": "2026-11-05T22:56:12Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 184,
+      "id": "I_kwDOSX6krs8AAAABc4ZqrA",
+      "title": "SHA256 for everything?",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/184",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "currently we rely on both SHA2 and SHA3. we should probably just rely on SHA2 for everything. this requires a sigma update for a new ciphersuite, that shouldn't be a big deal, it is a cfrg dependency but it is the same cfrg dependency we already have.",
+      "createdAt": "2026-11-05T22:56:59Z",
+      "updatedAt": "2026-11-05T22:56:59Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 185,
+      "id": "I_kwDOSX6krs8AAAABdAhxtg",
+      "title": "htttp-transport: Problem-Details HTTP header field",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/185",
+      "state": "OPEN",
+      "author": "thibmeu",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "question"
+      ],
+      "body": "Putting this one as a consideration to pass more information on error\n\nhttps://datatracker.ietf.org/doc/draft-nottingham-problem-header/",
+      "createdAt": "2026-11-06T11:16:43Z",
+      "updatedAt": "2026-11-06T11:16:43Z",
       "closedAt": null,
       "comments": []
     }
@@ -13568,7 +13637,7 @@
       "labels": [],
       "body": "This is part of the discussion of session semantics. Note there's a bit of a challenge with moderators being first party or third party with origin while cookies do their own thing, but I do appreciate this might be an us (and some other vendor) problem, though solutions appreciated.",
       "createdAt": "2026-10-28T17:52:21Z",
-      "updatedAt": "2026-11-03T22:23:30Z",
+      "updatedAt": "2026-11-06T09:06:32Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "106b8ab9ae65145dd8483dbd00d4b21111b11ea1",
@@ -13616,6 +13685,13 @@
           "body": "Thank you!",
           "createdAt": "2026-11-02T15:35:36Z",
           "updatedAt": "2026-11-02T15:35:36Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "seeing this has been merged, and i just generally disagree with the approach. we need a lot more thinking there.\r\n\r\nWhile there _might_ be something like `signoff-NNNN`, I'm really not sure having `held-for-update-NNNN` is the right direction. I'll comment on the mailing",
+          "createdAt": "2026-11-06T09:06:32Z",
+          "updatedAt": "2026-11-06T09:06:32Z"
         }
       ],
       "reviews": [
