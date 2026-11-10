@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-08T05:09:21.819057+00:00",
+  "timestamp": "2026-11-10T06:33:10.961929+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1528,6 +1528,40 @@
       "body": "Putting this one as a consideration to pass more information on error\n\nhttps://datatracker.ietf.org/doc/draft-nottingham-problem-header/",
       "createdAt": "2026-11-06T11:16:43Z",
       "updatedAt": "2026-11-06T11:16:43Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 186,
+      "id": "I_kwDOSX6krs8AAAABdtkDCQ",
+      "title": "Distinguished authorization header",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/186",
+      "state": "OPEN",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "MOLE currently reuses the `Authorization` header to convey information to the moderator. This is fine in isolation, but it does not compose well with other uses of Authorization. Specifically, consider [WAG](https://datatracker.ietf.org/doc/html/draft-carleton-workload-authz-grant-02). When a workload gets a WAG, it exchanges that for an access token at a resource server, and then presents that token as a bearer token in `Authorization`. That means it's not possible for an agent to present both a MOLE credential and access token simultaneously, which might be desirable if an origin wishes to both restrict access to authorized workloads _and_ moderate or rate limit that access based on the entity (user, tenant, whatever) behind the workload.\n\nIt might make sense to carve out a new, distinguished header for MOLE that does not collide. We could use that opportunity to adopt structured fields, too (for better encoding/parsing of protocol wire format messages like `IssuanceRequest `, `PresentationAndUpdate`, etc).",
+      "createdAt": "2026-11-09T15:18:42Z",
+      "updatedAt": "2026-11-09T15:18:42Z",
+      "closedAt": null,
+      "comments": []
+    },
+    {
+      "number": 187,
+      "id": "I_kwDOSX6krs8AAAABdzyfTQ",
+      "title": "EC-ACT with small bits and refunds",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/187",
+      "state": "OPEN",
+      "author": "wbl",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [
+        "crypto"
+      ],
+      "body": "So in thinking about EC-ACT I realized we have the following problem, which might be more general:\n\nCurrently we have a bound 2^L on the balance of a credential. a credential c that gets topped up by a must have c+a < 2^L. Because we do the proof on initiating the session, the client has to show this property holds at the start, even if they never spend it. Clients will also either average spending down a token (the wickeder the faster) or increasing balances (the saintlier). But when a client gets to the point that c>2^L-a, they can't use that token even in interactions that would spend it down. Worse, they have no way to stop a token getting there without rendering it useless, since the refunds are not refuseable. \n\nFor L=8 this can happen really quickly: if we hand out 64 passes for some very good interaction, suddenly getting 3 of those becomes a problem. If L=16, then this takes a lot longer, but it will eventually happen if the average rate at which a client accumulates things is positive.\n\nSome workarounds include moderators being smarter about when they want to refund, upfront.  Or we can make crypto changes that force a refund to do a proof of applying a state update. We could also allow clients to decrease the maximum refund they will accept unilaterally.",
+      "createdAt": "2026-11-09T21:50:36Z",
+      "updatedAt": "2026-11-09T21:50:36Z",
       "closedAt": null,
       "comments": []
     }
