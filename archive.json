@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-10T06:33:10.961929+00:00",
+  "timestamp": "2026-11-12T06:23:20.041726+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1255,7 +1255,7 @@
       "labels": [],
       "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
       "createdAt": "2026-10-31T15:18:35Z",
-      "updatedAt": "2026-11-04T16:16:49Z",
+      "updatedAt": "2026-11-11T17:35:22Z",
       "closedAt": null,
       "comments": [
         {
@@ -1285,6 +1285,20 @@
           "body": "These are all horrible :)",
           "createdAt": "2026-11-04T16:16:49Z",
           "updatedAt": "2026-11-04T16:16:49Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "How about \"Anonymous Card Transactions\"?",
+          "createdAt": "2026-11-11T16:56:03Z",
+          "updatedAt": "2026-11-11T16:56:03Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I'm still down with cards, so works for me. Let's brainstorm over the course of next week, maybe that'll help",
+          "createdAt": "2026-11-11T17:35:22Z",
+          "updatedAt": "2026-11-11T17:35:22Z"
         }
       ]
     },
@@ -1561,9 +1575,38 @@
       ],
       "body": "So in thinking about EC-ACT I realized we have the following problem, which might be more general:\n\nCurrently we have a bound 2^L on the balance of a credential. a credential c that gets topped up by a must have c+a < 2^L. Because we do the proof on initiating the session, the client has to show this property holds at the start, even if they never spend it. Clients will also either average spending down a token (the wickeder the faster) or increasing balances (the saintlier). But when a client gets to the point that c>2^L-a, they can't use that token even in interactions that would spend it down. Worse, they have no way to stop a token getting there without rendering it useless, since the refunds are not refuseable. \n\nFor L=8 this can happen really quickly: if we hand out 64 passes for some very good interaction, suddenly getting 3 of those becomes a problem. If L=16, then this takes a lot longer, but it will eventually happen if the average rate at which a client accumulates things is positive.\n\nSome workarounds include moderators being smarter about when they want to refund, upfront.  Or we can make crypto changes that force a refund to do a proof of applying a state update. We could also allow clients to decrease the maximum refund they will accept unilaterally.",
       "createdAt": "2026-11-09T21:50:36Z",
-      "updatedAt": "2026-11-09T21:50:36Z",
+      "updatedAt": "2026-11-11T08:35:07Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "ekovac",
+          "authorAssociation": "NONE",
+          "body": "Is there any obvious downside to decreasing the maximum refund they will accept? How would that need to work?",
+          "createdAt": "2026-11-10T17:59:06Z",
+          "updatedAt": "2026-11-10T17:59:06Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "Reveals hidden information about the state of the token. It can work by sending back the a used in the proof, and then using that a for the existing proof mechanics, and the prover compares to the a it wants.",
+          "createdAt": "2026-11-10T22:35:44Z",
+          "updatedAt": "2026-11-10T22:35:44Z"
+        },
+        {
+          "author": "martinthomson",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I take it that saturating addition is infeasible in this context.\n\nOr, would it be possible to have a refund always present two choices?  One with a full refund (which could blow any 2^L cap) and one with no refund.  The client would then choose which to use, burning the other.  I'm sure that this is a bad idea (more work, more round trips, maybe even abuse amplification) but I wanted it on record.",
+          "createdAt": "2026-11-10T23:31:26Z",
+          "updatedAt": "2026-11-10T23:31:26Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "With oblivious transfer we can make the refund vs. no refund idea work! There are no additional round trips if we have the client send the OT key along with the credential, and they know if they are in this position here, so can make the bit selection required.\n\nSaturated addition is going to require the client to contribute some secret knowledge after knowing the refund amount, which means another trip. Given the saturation limit is a power of 2 we can pretty efficiently implement it by throwing in an extra bit, and then checking that the result is what we want signed if it's not set or substitute the saturation limit if it is. It can't be done unilaterally by the server.",
+          "createdAt": "2026-11-11T08:35:06Z",
+          "updatedAt": "2026-11-11T08:35:06Z"
+        }
+      ]
     }
   ],
   "pulls": [
