@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-12T06:23:20.041726+00:00",
+  "timestamp": "2026-11-15T05:30:48.108007+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -351,7 +351,7 @@
       ],
       "body": "> Discuss use of [DAP / PPM / Prio](https://datatracker.ietf.org/group/ppm/about/) in Endorsements which feeds into Credentials to measure per-anchor abuse rates.\n\nThere has been discussion in https://github.com/antifraudcg/pact/issues/5",
       "createdAt": "2026-07-08T07:41:09Z",
-      "updatedAt": "2026-07-17T23:37:12Z",
+      "updatedAt": "2026-11-12T19:18:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -360,6 +360,13 @@
           "body": "So if we can embed the anchor ID into the credential somehow, and then prove when a query is made that the client also provided valid shares of the anchor ID, we have what we need. Unfortunately the actual doing of this, particularly given our PQ constraints is hard. The anchor to credential is easyish but breaks the nice separation of concerns, we can link them through a commitment easily enough, but then you have to make sure the commitment can be used on both sides. Valid shares encrypted to the right parties for Prio is a tougher statement to prove, and probably requires looking at the encryption scheme a bunch to make it work nicely with what can be proved in credentials.\n\nIf we have heavy hammers like circuit proofs that we're willing to use everywhere this can be done, but I think there are some technicalities to get this to be fast. There's also an issue of multiple counting of good behavior if we are getting fresh shares from the same underlying endorsement multiple times, and doing something to say we have recorded it expands the number of bits the server sees to two, and lets a bad anchor collaborating with bad parties know they won't be observed again doing bad (or at least it will be canceled out).",
           "createdAt": "2026-07-17T23:37:12Z",
           "updatedAt": "2026-07-17T23:37:12Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I think the problem statement, informally, is how can a moderator learn aggregate quality about anchors without learning which anchors provided an endorsement. I think @wbl's musings are along the right line here, but to try and sharpen them, here's what I think we need:\n\n1. A way to bind an endorsement to an anchor and then the resulting issued credential.\n2. A way to preserve that anchor binding through credential use (across presentations and updates).\n3. A way to bind a DAP report to the same anchor as the credential in such a way that both moderator and aggregators can verify validity (or maybe only the moderators need to verify?).\n\nThis ensures that the anchor which granted an endorsement is the same one that's being aggregated for the label-based histogram. Moderators could assign arbitrary labels or buckets for anchors, like a \"good\" or \"bad\" bucket, and then contribute the DAP report to the corresponding bucket depending on how they assign the label. For instance, if they determine that a credential is \"good,\" they contribute the corresponding DAP report to the \"good\" bucket.\n\nAs you say, maybe (1) and (2) are more straightforward to do. For example, we might have anchors identified by an index in the moderator's set (list). We might then just treat that index as a private scalar attribute in the credential, proving that the index is valid (in the list range) and that a commitment to it opens to that same index, or something? From a PQ perspective, this seems workable? Having a general purpose proof system like Longfellow for IHAT and ACT would probably help proving that relation.\n\n(3) seems difficult, since the validity circuit of the current [VDAFs for histograms](https://datatracker.ietf.org/doc/html/draft-irtf-cfrg-vdaf-22#name-prio3histogram) just proves that the vector is one-hot, not that the bit actually corresponds to anything meaningful. If we had something like a \"commitment-bound histogram VDAF,\" whose validity checks that (a) the vector is still one-hot but also (b) the hot bit spot matches an accompanying commitment (and DAP would probably just carry that commitment in an extension), that might work. The moderator would corroborate presentations against the DAP report, and aggregators would check reports against that extension as well. We'd need to think through the threat model though, as you might just conclude that protecting against malicious clients misreporting anchors is not really needed.\n\n(@martinthomson's [comment](https://github.com/antifraudcg/pact/issues/5#issuecomment-4071447126) is more or less the same as this, but writing this down helped me think through it.)",
+          "createdAt": "2026-11-12T19:18:06Z",
+          "updatedAt": "2026-11-12T19:18:06Z"
         }
       ]
     },
@@ -1255,7 +1262,7 @@
       "labels": [],
       "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
       "createdAt": "2026-10-31T15:18:35Z",
-      "updatedAt": "2026-11-11T17:35:22Z",
+      "updatedAt": "2026-11-14T10:36:14Z",
       "closedAt": null,
       "comments": [
         {
@@ -1299,6 +1306,13 @@
           "body": "I'm still down with cards, so works for me. Let's brainstorm over the course of next week, maybe that'll help",
           "createdAt": "2026-11-11T17:35:22Z",
           "updatedAt": "2026-11-11T17:35:22Z"
+        },
+        {
+          "author": "chris-wood",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "What do folks think about \"allowance\" being the load bearing noun? I realize it's close to something like credit, but I think it works quite well with the operational model here. Specifically, moderators give out _allowances_ to clients, and then literally use that allowance to allow (or not) actions. Moderators _charge_ for an action and clients then _draw_ on their allowance to do the action. Moderators update allowance with a _remainder_.  Moderators can also _withhold_ an allowance (`NoUpdate`) if they choose to do so, or _hold_ it while they make a determination about what to do.",
+          "createdAt": "2026-11-14T10:36:14Z",
+          "updatedAt": "2026-11-14T10:36:14Z"
         }
       ]
     },
@@ -1575,7 +1589,7 @@
       ],
       "body": "So in thinking about EC-ACT I realized we have the following problem, which might be more general:\n\nCurrently we have a bound 2^L on the balance of a credential. a credential c that gets topped up by a must have c+a < 2^L. Because we do the proof on initiating the session, the client has to show this property holds at the start, even if they never spend it. Clients will also either average spending down a token (the wickeder the faster) or increasing balances (the saintlier). But when a client gets to the point that c>2^L-a, they can't use that token even in interactions that would spend it down. Worse, they have no way to stop a token getting there without rendering it useless, since the refunds are not refuseable. \n\nFor L=8 this can happen really quickly: if we hand out 64 passes for some very good interaction, suddenly getting 3 of those becomes a problem. If L=16, then this takes a lot longer, but it will eventually happen if the average rate at which a client accumulates things is positive.\n\nSome workarounds include moderators being smarter about when they want to refund, upfront.  Or we can make crypto changes that force a refund to do a proof of applying a state update. We could also allow clients to decrease the maximum refund they will accept unilaterally.",
       "createdAt": "2026-11-09T21:50:36Z",
-      "updatedAt": "2026-11-11T08:35:07Z",
+      "updatedAt": "2026-11-14T00:19:36Z",
       "closedAt": null,
       "comments": [
         {
@@ -1605,6 +1619,13 @@
           "body": "With oblivious transfer we can make the refund vs. no refund idea work! There are no additional round trips if we have the client send the OT key along with the credential, and they know if they are in this position here, so can make the bit selection required.\n\nSaturated addition is going to require the client to contribute some secret knowledge after knowing the refund amount, which means another trip. Given the saturation limit is a power of 2 we can pretty efficiently implement it by throwing in an extra bit, and then checking that the result is what we want signed if it's not set or substitute the saturation limit if it is. It can't be done unilaterally by the server.",
           "createdAt": "2026-11-11T08:35:06Z",
           "updatedAt": "2026-11-11T08:35:06Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@SamuelSchlesinger @cjpatton  I'm sure you have some thoughts on this",
+          "createdAt": "2026-11-14T00:19:36Z",
+          "updatedAt": "2026-11-14T00:19:36Z"
         }
       ]
     }
