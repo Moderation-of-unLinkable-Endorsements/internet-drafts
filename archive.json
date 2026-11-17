@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-15T05:30:48.108007+00:00",
+  "timestamp": "2026-11-17T07:08:13.744280+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1262,7 +1262,7 @@
       "labels": [],
       "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
       "createdAt": "2026-10-31T15:18:35Z",
-      "updatedAt": "2026-11-14T10:36:14Z",
+      "updatedAt": "2026-11-15T23:55:59Z",
       "closedAt": null,
       "comments": [
         {
@@ -1313,6 +1313,20 @@
           "body": "What do folks think about \"allowance\" being the load bearing noun? I realize it's close to something like credit, but I think it works quite well with the operational model here. Specifically, moderators give out _allowances_ to clients, and then literally use that allowance to allow (or not) actions. Moderators _charge_ for an action and clients then _draw_ on their allowance to do the action. Moderators update allowance with a _remainder_.  Moderators can also _withhold_ an allowance (`NoUpdate`) if they choose to do so, or _hold_ it while they make a determination about what to do.",
           "createdAt": "2026-11-14T10:36:14Z",
           "updatedAt": "2026-11-14T10:36:14Z"
+        },
+        {
+          "author": "wbl",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "From the keep the acronyms the same department: Clearance, Credibility. Could also change ACT to Allowance Changing Transactions for allowance. Amity could also work: Amity token, but ACT I haven't seen as easy a way to modify.",
+          "createdAt": "2026-11-15T23:51:42Z",
+          "updatedAt": "2026-11-15T23:51:42Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "I like allowance, agree it's close to the credit we want to move away.\n\nFor a name starting with C, card still has my preference.",
+          "createdAt": "2026-11-15T23:55:59Z",
+          "updatedAt": "2026-11-15T23:55:59Z"
         }
       ]
     },
@@ -1571,9 +1585,17 @@
       "labels": [],
       "body": "MOLE currently reuses the `Authorization` header to convey information to the moderator. This is fine in isolation, but it does not compose well with other uses of Authorization. Specifically, consider [WAG](https://datatracker.ietf.org/doc/html/draft-carleton-workload-authz-grant-02). When a workload gets a WAG, it exchanges that for an access token at a resource server, and then presents that token as a bearer token in `Authorization`. That means it's not possible for an agent to present both a MOLE credential and access token simultaneously, which might be desirable if an origin wishes to both restrict access to authorized workloads _and_ moderate or rate limit that access based on the entity (user, tenant, whatever) behind the workload.\n\nIt might make sense to carve out a new, distinguished header for MOLE that does not collide. We could use that opportunity to adopt structured fields, too (for better encoding/parsing of protocol wire format messages like `IssuanceRequest `, `PresentationAndUpdate`, etc).",
       "createdAt": "2026-11-09T15:18:42Z",
-      "updatedAt": "2026-11-09T15:18:42Z",
+      "updatedAt": "2026-11-16T23:24:40Z",
       "closedAt": null,
-      "comments": []
+      "comments": [
+        {
+          "author": "chris-wood",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@tfpauly for \ud83d\udc40 this would impact the composition of a `PrivateToken` authorization header and WAG token, which is not a mode we considered back in the day for Privacy Pass. ",
+          "createdAt": "2026-11-16T23:24:40Z",
+          "updatedAt": "2026-11-16T23:24:40Z"
+        }
+      ]
     },
     {
       "number": 187,
