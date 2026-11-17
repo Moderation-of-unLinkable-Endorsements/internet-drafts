@@ -54,3 +54,20 @@ arithmetic, as well as constant-time handling of the rest of the issuer path.
 
 See [vendor/README.md](vendor/README.md) for the pinned upstream revision.
 Upstream code is imported unchanged and is not part of our lint targets.
+
+The experimental Anchor-bound quality proof and group check are in
+`src/ec_ihat/bound.py`, `src/ec_act/feedback.py`, and `src/ec_act/quality.py`.
+The latter uses the separate Prio3 circuit in the VDAF reference repository.
+With that repository checked out beside `mole-drafts`, run the cross-protocol
+reference test from this directory:
+
+```sh
+PYTHONPATH=../../draft-irtf-cfrg-vdaf/poc uv run --extra test pytest tests/test_quality_flow.py tests/test_quality_binding.py
+```
+
+This test binds a redeemed Anchor to an issued and presented credential,
+verifies Prio3 and P-256 commitment points in the Leader-request/Helper-response
+order, and recovers only the histogram. It uses a schematic report digest
+over reference share encodings; it does not implement DAP's HPKE ciphertexts,
+wire extensions, authenticated Helper assertion, or a DAP network service.
+The reference check models honest aggregators and uses Field128 with one proof.
