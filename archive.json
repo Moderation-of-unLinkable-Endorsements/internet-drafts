@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-17T07:08:13.744280+00:00",
+  "timestamp": "2026-11-19T06:34:38.219240+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1585,7 +1585,7 @@
       "labels": [],
       "body": "MOLE currently reuses the `Authorization` header to convey information to the moderator. This is fine in isolation, but it does not compose well with other uses of Authorization. Specifically, consider [WAG](https://datatracker.ietf.org/doc/html/draft-carleton-workload-authz-grant-02). When a workload gets a WAG, it exchanges that for an access token at a resource server, and then presents that token as a bearer token in `Authorization`. That means it's not possible for an agent to present both a MOLE credential and access token simultaneously, which might be desirable if an origin wishes to both restrict access to authorized workloads _and_ moderate or rate limit that access based on the entity (user, tenant, whatever) behind the workload.\n\nIt might make sense to carve out a new, distinguished header for MOLE that does not collide. We could use that opportunity to adopt structured fields, too (for better encoding/parsing of protocol wire format messages like `IssuanceRequest `, `PresentationAndUpdate`, etc).",
       "createdAt": "2026-11-09T15:18:42Z",
-      "updatedAt": "2026-11-16T23:24:40Z",
+      "updatedAt": "2026-11-17T18:24:48Z",
       "closedAt": null,
       "comments": [
         {
@@ -1594,6 +1594,13 @@
           "body": "@tfpauly for \ud83d\udc40 this would impact the composition of a `PrivateToken` authorization header and WAG token, which is not a mode we considered back in the day for Privacy Pass. ",
           "createdAt": "2026-11-16T23:24:40Z",
           "updatedAt": "2026-11-16T23:24:40Z"
+        },
+        {
+          "author": "thibmeu",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "one thing worth nothing: while work towards multiple authorisation responses within `Authorization` header would be generally useful, the shape of the `Mole` auth scheme is likely to change (esp with delayed update or pq consideratoins)",
+          "createdAt": "2026-11-17T18:24:48Z",
+          "updatedAt": "2026-11-17T18:24:48Z"
         }
       ]
     },
@@ -1650,6 +1657,22 @@
           "updatedAt": "2026-11-14T00:19:36Z"
         }
       ]
+    },
+    {
+      "number": 188,
+      "id": "I_kwDOSX6krs8AAAABgJrYGQ",
+      "title": "Split moderation and redemption",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/issues/188",
+      "state": "OPEN",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "MOLE currently collapses the moderator and origin of a site into one role, which I find confusing. Not only does it complicate the deployment story (who runs the moderator, and what is the relationship between them and the origin?), but from a protocol perspective, it means that trying to force the header-based solution for authorization reaches its limits. How do you express delayed updates and client-initiated termination via headers alone? How do you deal with header size limitations as we move closer to PQ credentials?\n\nI think the crux of this issue is that MOLE currently conflates moderation with redemption. If we split this out, we can address a number of issues:\n- We can use the existing PrivateToken redemption between client and origin, easing adoption.\n- We can implement a proper protocol between client and moderator for dealing with credential state management, including delayed updates, without having to awkwardly build a three-party protocol out of two-party protocol mechanics (cookies). \n- Build explicit delegation mechanisms that allows origins and moderators to work with one another, allowing for clear delineation of responsibilities.\n\nThis issue explores a way to split moderation and redemption to achieve these goals. It\u2019s just a strawman to get the conversation going.\n\nAt a high level, the split works as follows. Thanks to Claude for the sequence diagrams. Clients and origins interact using the standard PrivateToken-based redemption protocol managed with the [existing registry](https://www.iana.org/assignments/privacy-pass). When a client visits an origin, they receive a MOLE challenge (expressed as a token challenge). Similar to the existing token challenges, this carries information about how to obtain a token, which in this case is information about the moderator to interact with, as well as details about the cost details. (This assumes that the origin is responsible for choosing the spend amount and top-up values.) For example, this might list the name of the moderator (moderator.example), and then the moderator protocol defines a way to obtain a moderator configuration from this name, as Privacy Pass does. This configuration would list the API endpoints that all parties use for interacting with this moderator.\n\n<img width=\"1568\" height=\"1112\" alt=\"mole-01-challenge\" src=\"https://github.com/user-attachments/assets/91cb3e3d-7252-4cdf-ab6a-de1d0fabd311\" />\n\nThe client then uses this challenge to interact with the moderator. Specifically, there is a \u201cbegin moderation\u201d API that the client invokes using the challenge. This is equivalent to the current presentation flow. The moderator can apply the update immediately (if the origin\u2019s challenge says so), or it can return a handle for the moderation session that the client then uses for subsequent updates. \n\n<img width=\"1446\" height=\"1932\" alt=\"mole-02-begin-moderation\" src=\"https://github.com/user-attachments/assets/c6cc561a-fa20-4a5e-a277-dcad17fdef60\" />\n\nIf the client gets a handle, the client continues interacting with the origin as needed. It is expected to include the handle on its requests (in a designated header) between itself and the origin. If the origin then decides to close a moderation session, it indicates as such in a response to the client (via a similar designated header). The client then invokes an explicit close API with the moderator to get its update. \n\n<img width=\"1568\" height=\"1208\" alt=\"mole-03-pending-interaction\" src=\"https://github.com/user-attachments/assets/fbbbe807-03dc-4211-8120-7d9086485e67\" />\n\nThe client can also opportunistically invoke the close API without an origin signal, and the moderator can ask the origin for the origin\u2019s finalization decision on this result. \n\n<img width=\"1568\" height=\"1666\" alt=\"mole-04-close-moderation\" src=\"https://github.com/user-attachments/assets/8f1dac3c-bccc-4026-ac14-0c2ad8542a25\" />\n\nOnce the client gets an update, it then presents this back to the origin in a PrivateToken token, and the origin asks the moderator to verify it. \n\n<img width=\"1568\" height=\"918\" alt=\"mole-05-final-redemption\" src=\"https://github.com/user-attachments/assets/c329be82-56f0-4a97-a3ea-0986e8977463\" />\n",
+      "createdAt": "2026-11-17T19:37:49Z",
+      "updatedAt": "2026-11-17T19:37:49Z",
+      "closedAt": null,
+      "comments": []
     }
   ],
   "pulls": [
@@ -15163,6 +15186,32 @@
           "updatedAt": "2026-11-03T09:10:45Z"
         }
       ],
+      "reviews": []
+    },
+    {
+      "number": 189,
+      "id": "PR_kwDOSX6krs8AAAABP9xiOQ",
+      "title": "Add anchor-bound quality report spec",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/189",
+      "state": "CLOSED",
+      "author": "chris-wood",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "",
+      "createdAt": "2026-11-17T22:47:43Z",
+      "updatedAt": "2026-11-17T22:47:49Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8869b7255d8f595da79ab4e2edddb364c830978d",
+      "headRepository": "chris-wood/internet-drafts",
+      "headRefName": "feat/mole-anchor-reporting",
+      "headRefOid": "0ad6be76d818daaec719b324d4fa2ef9330b7e71",
+      "closedAt": "2026-11-17T22:47:49Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
       "reviews": []
     }
   ]
