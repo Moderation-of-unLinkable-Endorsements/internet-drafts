@@ -435,19 +435,48 @@ UOV map `P : F_q^{n_uov} -> F_q^{m_uov}` using the procedure in {{UOV}},
 Figure 2. Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of
 the secret key into the trapdoor `td` for `P`.
 
-We write `s := UOV.DerivePreimage(td, t)` to denote deriving the preimage of
-target `t` under `P`, i.e., an `s` for which `P(s) = t`. Similar to the UOV signing
-procedure (Figure 2 of {{UOV}}), the preimage is derived deterministically by
-hashing the target together with the secret key seed.
+We write `s := UOV.DerivePreimage(td, t)` to denote deriving a preimage `s` in
+`F_q^{n_uov}` of target `t` in `F_q^{m_uov}` under `P` (i.e., `P(s) = t`), or
+`INVALID` if no preimage is found within `256` attempts. Let
+`td = (seed_sk, O, {P_i^{(1)}, S_i}_{i in [m_uov]})` be the expanded trapdoor
+returned by `UOV.ExpandSK(csk)` ({{UOV}}, Figure 2), and let
+`v_len = n_uov - m_uov`. `UOV.DerivePreimage(td, t)` follows `UOV.Sign`
+({{UOV}}, Figure 2) directly on caller-supplied target `t`, deriving each
+candidate vinegar vector deterministically via `SHAKE256` {{FIPS202}} with
+domain separation string `"pqov-derive-preimage"`:
 
-> TODO(cjpatton) Define preimage sampling precisely. In UOV, the target is:
-> t := Hash(mu || salt)
->
-> To compute the preimage, we start by computing a vector v by:
-> v := Expand_v(mu || salt || seed_sk || ctr)
->
-> We instead would compute v as:
-> v := Expand_v(t || seed_sk || ctr)
+~~~~pseudocode
+UOV.DerivePreimage(td, t):
+  Input:
+    - td: expanded secret key (seed_sk, O, {P_i^{(1)}, S_i})
+    - t: target vector, in F_q^{m_uov}
+  Output:
+    - s: preimage in F_q^{n_uov}, or INVALID
+
+  Steps:
+    1. for ctr in [256]:
+    2.   v := SHAKE256(t || seed_sk || "pqov-derive-preimage" || <ctr>_1)
+              truncated to v_len bytes
+    3.   L := 0^{m_uov x m_uov}
+    4.   for i in [m_uov]:
+    5.     L[i] := v^T * S_i
+    6.   if L is invertible:
+    7.     for i in [m_uov]:
+    8.       y[i] := v^T * P_i^{(1)} * v
+    9.     solve L * x = t - y for x in F_q^{m_uov}
+    10.    s := (v + O * x) || x
+    11.    return s
+    12. return INVALID
+~~~~
+
+For a uniform target `t`, each `m_uov`-by-`m_uov` matrix `L` over `F_256` fails
+to be invertible with probability less than `2^{-7}`, so returning `INVALID`
+after `256` attempts occurs with negligible probability (`< 2^{-2000}`). A key
+pair used with `UOV.DerivePreimage()` MUST NOT also be used with `UOV.Sign()`:
+a preimage of `Hash(mu || salt)` is immediately a valid `UOV.Sign()` signature
+on `mu` (and the `"pqov-derive-preimage"` label additionally prevents sharing a
+vinegar vector across `UOV.Sign()` and `UOV.DerivePreimage()` on distinct
+targets, which would leak an oil vector).
 
 We write `PKDigest(P)` to denote the 32-byte SHAKE256 {{FIPS202}} digest of the
 compact public key `cpk` from which `P` was expanded, i.e., `SHAKE256(cpk)`
@@ -848,8 +877,9 @@ SpendResponse(P, td, request, ctx_iss, x'):
        )
     5. if v = 0: return INVALID
     6. s' := UOV.DerivePreimage(td, Tag(c', x'))
-    7. response := (x', s')
-    8. return (response, nf, d)
+    7. if s' = INVALID: return INVALID
+    8. response := (x', s')
+    9. return (response, nf, d)
 ~~~~
 
 It is the caller's responsibility to enforce double spend protection. The caller
@@ -902,41 +932,49 @@ is the same as in TurboSHAKE. `Keccak-p[800,12]` is the permutation underlying
 MiniSHAKE {{MiniSHAKE}}, a family of Keccak instances defined by the designers
 of Keccak for applications that hash many very short messages.
 
-`Com()` reserves at least `128` bits of the initial state as constants, namely
-the domain separation tag and the zero padding. (Likewise for `Tag()`.) This
-ensures the following attack on binding is not feasible. The attacker's goal is
-to find a second opening of a commitment `c`, for example, a different
-nullifier for the same commitment, which would allow a token to be spent twice.
-Recall that `c` is the first 32 bytes of the final state, i.e., the output of
-the permutation; the remaining 68 bytes of the final state are discarded. The
-attacker sets the first 32 bytes of the final state to `c`, chooses the
-remaining 68 bytes arbitrarily, and applies the inverse of the permutation. The
-result is an initial state that maps to `c`, but it is an opening of `c` only
-if its reserved bits match the expected constants.
+`Com()` fixes `36` bytes (`288` bits) of its 100-byte initial state as
+constants, namely the 7-byte domain separation tag and `29` bytes of zero
+padding. This prevents the following permutation-inversion attack on binding.
+The attacker's goal is to find a second opening of a commitment `c`, for
+example, a different nullifier or credit value for the same commitment, which
+would allow a token to be spent twice or inflated. Recall that `c` is the first
+32 bytes of the final state, i.e., the output of the permutation; the remaining
+68 bytes of the final state are discarded. The attacker sets the first 32 bytes
+of the final state to `c`, chooses the remaining 68 bytes arbitrarily, and
+applies the inverse of the permutation. The result is an initial state that
+maps to `c`, but it is a valid opening of `c` only if all `B = 288` reserved
+constant bits match their expected values. Finding such a preimage requires
+roughly `2^B = 2^288` classical or `2^(B/2) = 2^144` quantum (Grover)
+evaluations of `KP800^{-1}` (and even if successful, yields only an opening for
+that commitment rather than any information about the Issuer's UOV secret key).
 
-> TODO(cjpatton) We may want to reserve more bits of the initial state as
-> constants, perhaps `>= 256`.
-
-The same reasoning applies to `Tag()`, whose output is the first `m_uov` bytes
-of the final state. There, the attacker's goal is to find a commitment and
-refund `(c', x') != (c, x)` for which `Tag(c', x') = Tag(c, x)`, so that the
-Issuer's signature over one also certifies the other.
+The same reasoning applies to `Tag()`, whose output is the first `m_uov = 45`
+bytes of the final state and whose initial state fixes `60` bytes (`480` bits)
+as constants (`~2^480` classical or `~2^240` quantum evaluations of
+`KP800^{-1}`). There, the attacker's goal is to find a commitment and refund
+`(c', x') != (c, x)` for which `Tag(c', x') = Tag(c, x)`, so that the Issuer's
+signature over one also certifies the other.
 
 ## Proof status {#proof-status}
 
-A proof of unlinkability would need to reduce to the zero-knowledge property of
-the VOLEitH proof system and the hiding property of the commitment. A proof of
-one-more-unforgeability would need to use witness-extractability of VOLEitH,
-binding of the commitment, and a suitable unforgeability property of UOV. This
-document does not provide either reduction.
+Modeling `Com()` and `Tag()` as random oracles, a proof of unlinkability
+reduces to the zero-knowledge property of VOLEitH and the hiding property of
+`Com()`, and a proof of credit soundness (one-more-unforgeability) reduces to
+straight-line witness-extractability of VOLEitH, collision resistance of
+`Com()` and `Tag()`, and the random-target one-more-UOV assumption
+({{PoMFRIT}}, Definition 8). Because `OneMore-UOV` requires preimages at
+distinct random-oracle query slots rather than distinct target values,
+Issuer-chosen refunds `x'` in `Tag(c', x')` do not introduce guessing loss in
+the random-oracle reduction. This document does not include full written
+reductions.
 
-> NOTE A few observations we've made so far:
->
-> 1. One-more-UOV reduction likely treats `Com()` and `Tag()` as random
->    oracles.
->
-> 2. If we add a randomizer to `Tag()`, then we might even be able to reduce to
->    standard UOV rather than one-more-UOV.
+> NOTE Both VOLE-ACT and VOLE-IHAT can avoid the stronger one-more-UOV
+> assumption and reduce instead to the standard UOV problem ({{UOV}},
+> Definition 2) by adding an Issuer-chosen random salt to `Tag()` and signing
+> via `salt-UOV` ({{UOV}}, Appendix A): sampling a fresh random vinegar vector
+> `v` per issuance or spend and resampling `salt` until the linear system in
+> `Tag(c, x, salt)` is solvable, rather than retrying a deterministic counter
+> on a fixed target. This adds only the salt bytes to the spend witness.
 
 # IANA Considerations
 
