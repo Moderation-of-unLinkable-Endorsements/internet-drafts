@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-19T06:34:38.219240+00:00",
+  "timestamp": "2026-11-22T05:46:05.545550+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -1262,7 +1262,7 @@
       "labels": [],
       "body": "It's not wrong, but it is super, super generic.\n\nIn recent changes to the charter, we identified that the moderator would exchange a thing with the client that holds a \"capacity\" rather than other, uglier words (\"reputation\" and \"credit\" in particular, which imply a currency).\n\nSo, I suggest we use the word \"pot\".  Short for potential if you like.  Or just a pot.  It's a type of vessel that has some capacity.  It's usually opaque and brittle, so you can drop it, which would break it.  And so on.  I've found it growing on me, much like the plant that you would put in the pot.\n\nAny further thoughts on the topic?  I know it's a bike shed.  I'd like to get past \"credential\" as quickly as possible.",
       "createdAt": "2026-10-31T15:18:35Z",
-      "updatedAt": "2026-11-15T23:55:59Z",
+      "updatedAt": "2026-11-19T23:03:06Z",
       "closedAt": null,
       "comments": [
         {
@@ -1327,6 +1327,13 @@
           "body": "I like allowance, agree it's close to the credit we want to move away.\n\nFor a name starting with C, card still has my preference.",
           "createdAt": "2026-11-15T23:55:59Z",
           "updatedAt": "2026-11-15T23:55:59Z"
+        },
+        {
+          "author": "OR13",
+          "authorAssociation": "NONE",
+          "body": "just add verifiable in front, that solves everything.\n\nless snarky ideas: capacity share, option, etc... I think something that is more \"cost / market / Affinity Modeling\" oriented and less \"identity\" oriented could be a good direction.",
+          "createdAt": "2026-11-19T22:58:27Z",
+          "updatedAt": "2026-11-19T23:03:06Z"
         }
       ]
     },
@@ -15208,6 +15215,66 @@
       "headRefName": "feat/mole-anchor-reporting",
       "headRefOid": "0ad6be76d818daaec719b324d4fa2ef9330b7e71",
       "closedAt": "2026-11-17T22:47:49Z",
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 190,
+      "id": "PR_kwDOSX6krs8AAAABRAClzw",
+      "title": "vole-act: remove VOLE-ACT-MQ and collapse VOLE-ACT-KP800 into VOLE-ACT",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/190",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Remove the `VOLE-ACT-MQ` variant and fold `VOLE-ACT-KP800`'s parameters (`uov-Ip` and `Keccak-p[800,12]`), `Com()`, and `Tag()` directly into `VOLE-ACT`'s protocol specification, matching `VOLE-IHAT` and the `vole-mole` implementation.\n\n- Inline `VOLE-ACT` parameters (`L = 8`, `nf_len = 24`, `ctx_len = 16`, `r_len = 16`, `n_uov = 119`, `m_uov = 45`) and the `Keccak-p[800,12]` `Com()` / `Tag()` definitions under `# Protocol Specification`, removing `# Instantiations`.\n- Remove MQ-only helpers (`SHAKE128` stream notation), bibliography entries (`BFMRSV25`, `CryptEst`), and MQ-specific security discussion.",
+      "createdAt": "2026-11-22T04:44:59Z",
+      "updatedAt": "2026-11-22T05:10:06Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8869b7255d8f595da79ab4e2edddb364c830978d",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "remove-vole-act-mq",
+      "headRefOid": "6f9bdac6a1d64ee8a24e9b9a13e8bb7a10e94142",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [
+        {
+          "author": "SamuelSchlesinger",
+          "authorAssociation": "CONTRIBUTOR",
+          "body": "@cjpatton I just think we should remove this at this stage, wondering what you think.",
+          "createdAt": "2026-11-22T05:10:06Z",
+          "updatedAt": "2026-11-22T05:10:06Z"
+        }
+      ],
+      "reviews": []
+    },
+    {
+      "number": 191,
+      "id": "PR_kwDOSX6krs8AAAABRANyCg",
+      "title": "vole: specify UOV.DerivePreimage and tighten security considerations",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/191",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "Stacked on #190. Specify `UOV.DerivePreimage()` normatively and tighten the security considerations in `VOLE-ACT` and `VOLE-IHAT`:\n\n- **`UOV.DerivePreimage(td, t)` (`draft-authors-mole-vole-act.md`):** Replace the `#Preliminaries` TODO with explicit 256-attempt pseudocode matching `UOV` Figure 2 and `vole-mole`'s `ov_derive_preimage` (`SHAKE256(t || seed_sk || \"pqov-derive-preimage\" || <ctr>_1)`), propagate `INVALID` in `SpendResponse`, and mandate single-purpose key separation from `UOV.Sign()`.\n- **`Keccak-p[800,12]` constant-bit bounds (both drafts):** State both classical (`2^B`) and quantum Grover (`2^(B/2)`) permutation-inversion costs for the reserved constant bits (`288` bits in `VOLE-ACT` `Com()`, `480` bits in `VOLE-ACT` `Tag()`, and `224` bits in `VOLE-IHAT` `Com()`), removing the stale `>= 256` TODO.\n- **`VOLE-IHAT` Anchor-Set trust and reduction sketch (`draft-authors-mole-vole-ihat.md`):** Clarify that unforgeability requires every public key in `P[0..N-1]` to be honestly generated and uncompromised (while privacy holds against malicious Moderators and co-Anchors), add the `Com()`-collision branch to the reduction sketch, and record the factor-`N` (`N <= 64`) multi-anchor reduction loss.\n- **Salted signatures (both drafts):** Clarify that avoiding the one-more-UOV assumption via a random salt requires `salt-UOV` signing (`UOV`, Appendix A: fresh random vinegar per attempt with salt resampling when singular) rather than deterministic counter retry on a fixed target.",
+      "createdAt": "2026-11-22T05:16:20Z",
+      "updatedAt": "2026-11-22T05:16:20Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "remove-vole-act-mq",
+      "baseRefOid": "6f9bdac6a1d64ee8a24e9b9a13e8bb7a10e94142",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "vole-security-and-preimage",
+      "headRefOid": "fca935b1607a33d2a104349984166568ee4e3cb2",
+      "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
       "mergeCommit": null,
