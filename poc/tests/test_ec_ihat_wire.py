@@ -54,9 +54,16 @@ def test_message_sizes():
 def test_redemption_round_trip(size):
     anchor_set, redemption, encoded = _redemption(size)
     q = protocol.Depth(size)
-    headers = len(wire.EncodeLength(q * G.Ne)) + len(wire.EncodeLength(q * G.Ns))
+    headers = len(wire.EncodeLength(q * G.Ne)) + len(
+        wire.EncodeLength(2 * q * G.Ns)
+    )
     assert len(encoded) == (
-        G.Ne + 4 * G.Ns + protocol.Nn + 2 * G.Ns + headers + q * (G.Ne + G.Ns)
+        G.Ne
+        + 4 * G.Ns
+        + protocol.Nn
+        + 2 * G.Ns
+        + headers
+        + q * (G.Ne + 2 * G.Ns)
     )
     decoded = wire.DecodeRedemption(encoded, size)
     assert decoded == redemption

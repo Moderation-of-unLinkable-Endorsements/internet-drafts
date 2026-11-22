@@ -231,24 +231,37 @@ def Statements(
     return [X_hat - pkA for pkA in anchor_set]
 
 
+def CreateStackBase() -> Element:
+    return G.HashToGroup(b"StackBase")
+
+
+G0 = CreateStackBase()
+
+
+def StepBases(Q: Element) -> tuple[Element, Element]:
+    return (G0 + Q, G0 - Q)
+
+
 def CommitStep(
     Q: Element,
     left: bytes,
     right: bytes,
-    randomness: Scalar,
+    opening: Sequence[Scalar],
 ) -> bytes:
-    C = (
-        randomness * B
-        + G.HashToScalar(left) * Q
-        + G.HashToScalar(right) * G.P(Q)
-    )
-    return G.SerializeElement(C)
+    (base_left, base_right) = StepBases(Q)
+    (r_left, r_right) = opening
+    C_left = r_left * B + G.HashToScalar(left) * base_left
+    C_right = r_right * B + G.HashToScalar(right) * base_right
+    return G.SerializeElement(C_left) + G.SerializeElement(C_right)
 
 
 def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
-    T = secret * B
-    (Q, _) = G.PermutationPair(T, bind_left)
-    return Q
+    if not isinstance(bind_left, bool):
+        raise ValueError("bind_left must be a boolean")
+    E = secret * B
+    if bind_left:
+        return G0 - E
+    return E - G0
 
 
 def EquivocateStep(
@@ -271,14 +284,14 @@ def VecCommit(
     for i in range(len(V) // 2):
         V_prime.append(
             CommitStep(
-                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0:2]
             )
         )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
+    return VecCommit(V_prime, commitment_keys[1:], openings[2:])
 
 
 def Depth(n: int) -> int:
@@ -386,12 +399,11 @@ def VecEquivocate(
     if len(old) == 1:
         return []
 
-    if index == len(old) - 1 and len(old) % 2 == 1:
-        opening = openings[0]
-    else:
+    opening = list(openings[0:2])
+    if not (index == len(old) - 1 and len(old) % 2 == 1):
         partner = index - 1 if index % 2 == 1 else index + 1
-        opening = EquivocateStep(
-            old[partner], new[partner], openings[0], trapdoors[0]
+        opening[partner % 2] = EquivocateStep(
+            old[partner], new[partner], opening[partner % 2], trapdoors[0]
         )
 
     old_prime = []
@@ -399,7 +411,7 @@ def VecEquivocate(
     for i in range(len(old) // 2):
         Q = commitment_keys[0]
         old_prime.append(
-            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0:2])
         )
         new_prime.append(
             CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
@@ -411,12 +423,12 @@ def VecEquivocate(
     rest = VecEquivocate(
         commitment_keys[1:],
         trapdoors[1:],
-        openings[1:],
+        openings[2:],
         old_prime,
         new_prime,
         index // 2,
     )
-    return [opening] + rest
+    return opening + rest
 
 
 def VecEquivocateFromZero(
@@ -464,7 +476,7 @@ def ProveIssuer(
         b"ProveIssuer",
         instance,
         rand,
-        2 * q + 1,
+        3 * q + 1,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
@@ -525,7 +537,7 @@ def VerifyIssuer(
     q = Depth(n)
     if len(commitment_keys) != q:
         return False
-    if len(openings) != q:
+    if len(openings) != 2 * q:
         return False
 
     V = []
@@ -535,7 +547,10 @@ def VerifyIssuer(
             return False
         V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(V, commitment_keys, openings)
+    try:
+        root = VecCommit(V, commitment_keys, openings)
+    except ValueError:
+        return False
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,

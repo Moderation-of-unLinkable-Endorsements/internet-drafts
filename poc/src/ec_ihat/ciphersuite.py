@@ -104,53 +104,6 @@ def PadToBlock(value: bytes) -> bytes:
     return value + bytes(-len(value) % s_in_bytes)
 
 
-def PermuteBytes(buf: bytearray) -> bytearray:
-    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
-    for i in range(4):
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
-        left[0] = left[0] & 0x01
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-    return left + right
-
-
-def UnpermuteBytes(buf: bytearray) -> bytearray:
-    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
-    for i in reversed(range(4)):
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
-        left[0] = left[0] & 0x01
-    return left + right
-
-
-def SelectBytes(
-    left: bytearray, right: bytearray, choose_right: bool
-) -> bytearray:
-    mask = -int(choose_right)
-    return bytearray(
-        (a & ~mask) | (b & mask)
-        for a, b in zip(left, right, strict=True)
-    )
-
-
-def IsValidPermutationEncoding(buf: bytearray) -> bool:
-    if len(buf) != 33:
-        return False
-    x = int.from_bytes(buf[1:], "big")
-    rhs = (
-        pow(x, 3, FIELD_MODULUS) + CURVE_A * x + CURVE_B
-    ) % FIELD_MODULUS
-    y = pow(rhs, (FIELD_MODULUS + 1) // 4, FIELD_MODULUS)
-    return (
-        ((buf[0] == 0) | (buf[0] == 1))
-        & (x < FIELD_MODULUS)
-        & (y * y % FIELD_MODULUS == rhs)
-    )
-
-
 def expand_message_xmd(msg: bytes, dst: bytes, length: int) -> bytes:
     """RFC 9380 expand_message_xmd instantiated with SHA-256."""
 
@@ -358,55 +311,6 @@ class P256Group(PrimeOrderGroup[P256SHA256]):
         if scalar >= ORDER:
             raise DeserializeError("P-256 scalar is out of range")
         return P256Scalar(scalar)
-
-    def P(self, element: P256Element) -> P256Element:
-        buf = bytearray(self.SerializeElement(element))
-        buf[0] = buf[0] - 0x02
-        while True:
-            buf = PermuteBytes(buf)
-            try:
-                return self.DeserializeElement(
-                    bytes([buf[0] + 0x02]) + bytes(buf[1:])
-                )
-            except DeserializeError:
-                continue
-
-    def Pinv(self, element: P256Element) -> P256Element:
-        buf = bytearray(self.SerializeElement(element))
-        buf[0] = buf[0] - 0x02
-        while True:
-            buf = UnpermuteBytes(buf)
-            try:
-                return self.DeserializeElement(
-                    bytes([buf[0] + 0x02]) + bytes(buf[1:])
-                )
-            except DeserializeError:
-                continue
-
-    def PermutationPair(
-        self, element: P256Element, bind_left: bool
-    ) -> tuple[P256Element, P256Element]:
-        if not isinstance(bind_left, bool):
-            raise ValueError("bind_left must be a boolean")
-        start = bytearray(self.SerializeElement(element))
-        start[0] -= 0x02
-        buf = start
-        while True:
-            forward = PermuteBytes(buf)
-            backward = UnpermuteBytes(buf)
-            buf = SelectBytes(forward, backward, bind_left)
-            if IsValidPermutationEncoding(buf):
-                break
-
-        left = SelectBytes(start, buf, bind_left)
-        right = SelectBytes(buf, start, bind_left)
-        Q = self.DeserializeElement(
-            bytes([left[0] + 0x02]) + bytes(left[1:])
-        )
-        PQ = self.DeserializeElement(
-            bytes([right[0] + 0x02]) + bytes(right[1:])
-        )
-        return (Q, PQ)
 
     @staticmethod
     def _map_to_curve_simple_swu(u: int) -> tuple[int, int]:

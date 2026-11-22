@@ -68,6 +68,7 @@ def _render(source: Source) -> str:
     G = ec_ihat.G
     out = "## Ciphersuite {#ec-ihat-tv-suite}\n\n" + block(
         entry("suite.identifier", b"P256-SHA256")
+        + entry("suite.G0", G.SerializeElement(ec_ihat.G0))
     )
 
     scalars = G.DeriveScalars(source(ec_ihat.Nseed), DERIVE_INFO, 3)
@@ -85,7 +86,6 @@ def _render(source: Source) -> str:
         entry("key.rand", source.rand())
         + entry("key.skA", G.SerializeScalar(skA))
         + entry("key.pkA", G.SerializeElement(pkA))
-        + entry("key.P_pkA", G.SerializeElement(G.P(pkA)))
     )
 
     entries = entry("issue.ctx_iss", CTX_ISS)
