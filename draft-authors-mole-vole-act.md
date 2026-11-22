@@ -199,52 +199,6 @@ informative:
         ins: M. Fischlin
         name: Marc Fischlin
 
-  BFMRSV25:
-    title: "Multivariate Commitments and Signatures with Efficient Protocols"
-    target: https://eprint.iacr.org/2025/2035
-    date: 2025
-    seriesinfo:
-      "Cryptology ePrint Archive": "Paper 2025/2035"
-    author:
-      -
-        ins: C. Bouillaguet
-        name: Charles Bouillaguet
-      -
-        ins: T. Feneuil
-        name: Thibauld Feneuil
-      -
-        ins: J. Maire
-        name: Jules Maire
-      -
-        ins: M. Rivain
-        name: Matthieu Rivain
-      -
-        ins: J. Sauvage
-        name: Julia Sauvage
-      -
-        ins: D. Vergnaud
-        name: Damien Vergnaud
-
-  CryptEst:
-    title: "CryptographicEstimators: A Software Library for Cryptographic Hardness Estimation"
-    target: https://eprint.iacr.org/2023/589
-    date: 2023
-    seriesinfo:
-      "Cryptology ePrint Archive": "Paper 2023/589"
-    author:
-      -
-        ins: A. Esser
-        name: Andre Esser
-      -
-        ins: J. Verbel
-        name: Javier Verbel
-      -
-        ins: F. Zweydinger
-        name: Floyd Zweydinger
-      -
-        ins: E. Bellini
-        name: Emanuele Bellini
-
   BNPS03:
     title: "The One-More-RSA-Inversion Problems and the Security of Chaum's Blind Signature Scheme"
     target: https://eprint.iacr.org/2001/002
@@ -274,9 +228,7 @@ Token (ACT). VOLE-ACT is based on the UOV digital signature scheme and the
 VOLE-in-the-Head proof system (a component of the FAEST signature scheme). The
 moderator issues a token by signing a commitment to the client's state; to
 present a token, the client proves knowledge of this signature and the opening
-of the commitment. Two variants of the protocol are specified, one in which the
-commitment is instantiated with `Keccak-p[800,12]` and another in which a
-UOV-friendly commitment scheme is used instead.
+of the commitment. The commitment is instantiated with `Keccak-p[800,12]`.
 
 --- middle
 
@@ -320,34 +272,19 @@ credits, and each presentation additionally proves that the spend was
 subtracted correctly and the balance stays in range, with the Issuer re-signing
 the updated commitment so that every spend chains into the next token.
 
-VOLE-ACT uses {{UOV}} as its signature scheme. Two instantiations of the
-commitment are defined, one based on the Keccak permutation {{FIPS202}} and
-another based on the Multivariate Quadratic (MQ) problem {{BFMRSV25}}. The
-latter composes more naturally with UOV, is much simpler to evaluate in zero
-knowledge, and, with its current parameterization, has significantly lower
-communication cost than the hash-based variant.
-
-> WARNING Adopters should not implement the MQ variant just yet. MQ commitments
-> are understudied, and we don't know if the parameters we've chosen are
-> sufficient for either unlinkability or unforgeability. Our goal for this
-> variant is to give researchers a sense of the parameter regime for which MQ
-> commitments are useful in our application. In particular, if communication
-> cost is at or below hash-based commitments, then their relative simplicity
-> makes them a good choice.
-
-Both variants of VOLE-ACT have higher bandwidth cost than {{EC-ACT}}:
+VOLE-ACT uses {{UOV}} as its signature scheme and a commitment scheme based on
+the Keccak permutation {{FIPS202}}. VOLE-ACT has higher bandwidth cost than
+{{EC-ACT}}:
 
 1. the Issuer's public key is 45.5 KB, which corresponds to the uov-Ip
-   parameter set for UOV (the MQ instantiation has a larger public key in
-   order to accommodate the commitment parameters);
+   parameter set for UOV;
 
-1. the Client uploads 6.9 KB during initial issuance (4.3 KB for the MQ
-   variant); and
+1. the Client uploads 6.9 KB during initial issuance; and
 
-1. the Client uploads 17.0 KB during a spend (9.0 KB for the MQ variant).
+1. the Client uploads 17.0 KB during a spend.
 
 In both the initial issuance and a spend, the Issuer's reply is a single UOV
-signature, which is below a couple of hundred bytes for both instantiations.
+signature, which is below a couple of hundred bytes.
 
 Unlike {{EC-ACT}}, VOLE-ACT tokens are publicly verifiable, meaning they can be
 presented to any party with the Issuer's public key. Of course, this has
@@ -359,10 +296,8 @@ defines some conventions and notation. {{overview}} provides a high-level
 overview of the protocol. {{preliminaries}} defines the relevant interfaces for
 the signature scheme, commitment scheme, and proof system used by VOLE-ACT,
 and provides normative references for their specifications. {{protocol}}
-specifies the protocol in terms of a generic commitment scheme;
-{{instantiations}} gives our two instantiations of the commitment. Finally,
-{{security}} enumerates some security considerations for implementers and
-adopters.
+specifies the protocol in full detail. Finally, {{security}} enumerates some
+security considerations for implementers and adopters.
 
 # Conventions and Definitions {#conventions}
 
@@ -411,9 +346,7 @@ VOLE-ACT makes use of three cryptographic primitives:
 1. The VOLE-in-the-Head (VOLEitH) zero-knowledge proof system, a component of
    the FAEST digital signature scheme {{FAEST}}.
 
-1. A commitment scheme, instantiated either with the Keccak permutation
-   {{FIPS202}} or with the Multivariate Quadratic (MQ) commitment of
-   {{BFMRSV25}}.
+1. A commitment scheme based on the Keccak permutation {{FIPS202}}.
 
 A UOV public key is a map `P` from `F_q^n` to `F_q^m`. A UOV signature is a
 solution `s` to an equation `P(s) = y`, where `y` is called the target and is
@@ -473,14 +406,12 @@ effective balance `t + x`:
 1. The Client finalizes the spend by checking that `P(s') = Tag(c', x')`. Its
    new token is `(nf', t', r', x', s')`.
 
-The commitment `Com()` and tag `Tag()` are instantiated in one of two ways.
-
-In the hash-based variant of VOLE-ACT ({{hash-commitment}}), both are
-instantiated with a single evaluation of the `Keccak-p[800,12]` permutation
-{{FIPS202}}. Similar to TurboSHAKE {{!RFC9861}}, this parameterization of
-Keccak uses half as many rounds as SHA-3. However, its state is also half the
-size of the state used by either SHA-3 or TurboSHAKE. This helps reduce the
-size of the VOLEitH proof. See {{security}} for justification.
+Both the commitment `Com()` and tag `Tag()` are instantiated with a single
+evaluation of the `Keccak-p[800,12]` permutation {{FIPS202}}. Similar to
+TurboSHAKE {{!RFC9861}}, this parameterization of Keccak uses half as many
+rounds as SHA-3. However, its state is also half the size of the state used by
+either SHA-3 or TurboSHAKE. This helps reduce the size of the VOLEitH proof.
+See {{security}} for justification.
 
 > NOTE The size of the spend proof is dominated by Keccak evaluations, of which
 > there are three: one `Tag()` and two `Com()`s. If we can forego the refund
@@ -488,19 +419,7 @@ size of the VOLEitH proof. See {{security}} for justification.
 > the protocol level by having the Client and Issuer negotiate the requested
 > spend so that it accounts for the refund.
 
-The MQ-based variant of VOLE-ACT ({{mq-commitment}}) uses the MQ commitment
-of {{BFMRSV25}} to instantiate `Com()`. The tag function `Tag()` updates the
-commitment homomorphically with the refund.
-
-> TODO Determine if this homomorphic trick is sound. See {{security}} for
-> discussion.
-
 # Preliminaries {#preliminaries}
-
-We write `stream := SHAKE128(msg)` to denote the absorb phase of the SHAKE128
-eXtendable Output Function (XOF) on input `msg` {{FIPS202}}. The `stream`
-object denotes the XOF state. We write `out := stream.next(n)` to denote
-squeezing out the next `n` bytes and assigning them to `out` in `F_256^n`.
 
 Define `KP800(state)` as the output of applying `Keccak-p[800,12]`
 {{FIPS202}} to `state` in `F_q^100`. Note that this is a non-standard size for
@@ -512,9 +431,9 @@ and `csk` is the secret key. The input parameters are omitted and are instead
 hard-coded to the uov-Ip parameter set (see {{UOV}}, Table 4).
 
 We write `P := UOV.ExpandPK(cpk)` to denote expansion of the public key into the
-UOV map `P : F_q^n -> F_q^m` using the procedure in {{UOV}}, Figure 2.
-Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of the secret
-key into the trapdoor `td` for `P`.
+UOV map `P : F_q^{n_uov} -> F_q^{m_uov}` using the procedure in {{UOV}},
+Figure 2. Likewise, we write `td := UOV.ExpandSK(csk)` to denote expansion of
+the secret key into the trapdoor `td` for `P`.
 
 We write `s := UOV.DerivePreimage(td, t)` to denote deriving the preimage of
 target `t` under `P`, i.e., an `s` for which `P(s) = t`. Similar to the UOV signing
@@ -586,46 +505,55 @@ committed value is in `F_2`. A variable in `F_q^k` is therefore committed as
 > would generate as input. This will make it easier to generate test vectors.
 > We'll also need to plumb this through VOLEitH proving and UOV signing.
 
-This section specifies VOLE-ACT in terms of a generic configuration:
-{{parameters}} defines the various parameters and functions that are determined
-by a concrete configuration, and {{instantiations}} specifies two concrete
-configurations, called VOLE-ACT-KP800 and VOLE-ACT-MQ. A deployment MUST
-fix its configuration for the lifetime of an Issuer key.
-
 A global constant `VERSION` in `F_q` is defined. Its value SHALL be `0`. This
 constant is used for domain separation and is meant to be kept in sync with
 revisions to this document. The overall template for domain separation is as
-follows: the first four bytes of each permutation input identify the protocol;
-the next byte is the document version (`VERSION`); the next byte indicates the
-usage (commit, tag, or MQ map derivation); and the last byte indicates the
-configuration (KP800 or MQ).
+follows: the first four bytes of each tag identify the protocol; the next byte
+is the document version (`VERSION`); the next byte indicates the usage (commit,
+tag, or relation); and the last byte is an index.
 
-The rest of this section is organized as follows: {{key-generation}} specifies
-Issuer key generation; {{issuance}} specifies initial token issuance; and
-{{spending}} specifies token spending.
+The rest of this section is organized as follows: {{parameters}} specifies the
+protocol parameters, commitment, and tagging functions; {{key-generation}}
+specifies Issuer key generation; {{issuance}} specifies initial token issuance;
+and {{spending}} specifies token spending.
 
 ## Parameters {#parameters}
 
-A VOLE-ACT configuration specifies the following constants:
+VOLE-ACT uses the uov-Ip parameter set (NIST Level 1) from {{UOV}} and
+`Keccak-p[800, 12]` {{FIPS202}}. Its parameters are listed in
+{{vole-act-parameters}}:
 
 - `L`: The credit length in bytes. It determines the largest credit value or
-  refund the configuration can carry, i.e., `t, x` in `[2^(8*L)]`.
+  refund a token can carry, i.e., `t, x` in `[2^(8*L)]`.
 
 - `nf_len`: The nullifier length in bytes.
 
-- `r_len`: The commitment randomness length in bytes.
-
 - `ctx_len`: The issuance context length in bytes.
 
+- `r_len`: The commitment randomness length in bytes.
+
 - `n_uov, m_uov`: The UOV signature and target lengths. The Issuer's public key
-  is a map `P: F_q^{n_uov} -> F_q^{m_uov}`. VOLE-ACT-KP800 uses the uov-Ip
-  parameter set (NIST Level 1) from {{UOV}}. VOLE-ACT-MQ uses larger
-  parameters in order to accommodate MQ commitments.
+  is a map `P: F_q^{n_uov} -> F_q^{m_uov}`.
+
+| Parameter                    | Value                   |
+|:-----------------------------|:------------------------|
+| `L` credit length            | `8`                     |
+| `nf_len` nullifier length    | `24`                    |
+| `ctx_len` context length     | `16`                    |
+| `r_len` opening length       | `16`                    |
+| `n_uov` UOV signature length | `119` ({{UOV}}, uov-Ip) |
+| `m_uov` UOV target length    | `45` ({{UOV}}, uov-Ip)  |
+{: #vole-act-parameters title="VOLE-ACT Parameters" }
+
+> TODO Expand `Com()` and `Tag()` into sets of polynomial constraints for the
+> issuance ({{issuance}}) and spend ({{spending}}) relations. An optimization
+> that will be important for practice is to commit intermediate states of the
+> Keccak evaluation to the witness. We need to define precisely how this works.
 
 ### Commitment {#commitment}
 
-A VOLE-ACT configuration specifies a function `Com()` that commits the Client
-to a nullifier, the issuance context, and a credit value:
+Function `Com()` commits the Client to a nullifier, the issuance context, and a
+credit value:
 
 ~~~~pseudocode
 Com(nf, ctx_iss, t, r):
@@ -635,26 +563,37 @@ Com(nf, ctx_iss, t, r):
     - t: credit value, in [2^(8*L)]
     - r: commitment opening, in F_q^r_len
   Output:
-    - c: commitment
+    - c: commitment, in F_q^32
+
+  Steps:
+    1. state := "rata" || VERSION || "c0" || r || 0^(25 - r_len) ||
+                ctx_iss || <t>_L || nf || 0^(68 - nf_len - ctx_len - L)
+    2. c := KP800(state)[0..32]
+    3. return c
 ~~~~
 
-The commitment must be (computationally) hiding, meaning that for a random
-opening `r`, no (efficient) attacker can distinguish commitments to different
-values. It must also be (computationally) binding, meaning that no (efficient)
+The commitment is designed to be computationally hiding, meaning that for a
+random opening `r`, no efficient attacker can distinguish commitments to
+different values, and computationally binding, meaning that no efficient
 attacker can open a commitment to two distinct values.
 
 ### Tag {#tag}
 
-A VOLE-ACT configuration specifies a tagging function `Tag()` that binds a
-commitment to a refund and returns a UOV target:
+Function `Tag()` binds a commitment to a refund and returns a UOV target:
 
 ~~~~pseudocode
 Tag(c, x):
   Input:
-    - c: commitment
+    - c: commitment, in F_q^32
     - x: refund, in [2^(8*L)]
   Output:
     - y: UOV target, in F_q^{m_uov}
+
+  Steps:
+    1. state := "rata" || VERSION || "t0" || 0^25 ||
+                c || <x>_L || 0^(36 - L)
+    2. y := KP800(state)[0..m_uov]
+    3. return y
 ~~~~
 
 The Issuer signs `Tag(c, x)` with its UOV trapdoor, so a single signature binds
@@ -679,10 +618,6 @@ KeyGen():
     4. return (P, td)
 ~~~~
 
-> TODO(cjpatton) `n_uov` and `m_uov` are meant to be determined by the
-> VOLE-ACT configuration ({{parameters}}), but the UOV parameters are fixed
-> in {{preliminaries}}. This is only relevant for VOLE-ACT-MQ.
-
 ## Initial Issuance {#issuance}
 
 Issuance mints a fresh token carrying an initial credit balance `T_init in
@@ -694,7 +629,7 @@ It also sends along a zero-knowledge proof of the following relation:
 ~~~
 Relation IssueRelation(c, T_init, ctx_iss):
   Instance:
-    - c: commitment
+    - c: commitment, in F_q^32
     - T_init: agreed initial credit balance, in [1..2^(8*L)]
     - ctx_iss: issuance context, in F_q^ctx_len
 
@@ -814,7 +749,7 @@ Relation SpendRelation(P, nf, d, c', ctx_iss):
     - P: Issuer public key
     - nf: nullifier of the current state, in F_q^nf_len
     - d: credits to spend, in [2^(8*L)]
-    - c': commitment to the updated state
+    - c': commitment to the updated state, in F_q^32
     - ctx_iss: issuance context, in F_q^ctx_len
 
   Witness:
@@ -948,242 +883,7 @@ FinalizeSpend(P, pending_spend, response):
     6. return token
 ~~~~
 
-# Instantiations {#instantiations}
-
-This section specifies two concrete configurations of VOLE-ACT
-({{parameters}}): VOLE-ACT-KP800 ({{hash-commitment}}) and VOLE-ACT-MQ
-({{mq-commitment}}).
-
-## VOLE-ACT-KP800 {#hash-commitment}
-
-| Parameter                    | Value                   |
-|:-----------------------------|:------------------------|
-| `L` credit length            | `8`                     |
-| `nf_len` nullifier length    | `24`                    |
-| `ctx_len` context length     | `16`                    |
-| `r_len` opening length       | `16`                    |
-| `n_uov` UOV signature length | `119` ({{UOV}}, uov-Ip) |
-| `m_uov` UOV target length    | `45` ({{UOV}}, uov-Ip)  |
-{: #vole-act-kp800-parameters title="VOLE-ACT-KP800 Parameters" }
-
-VOLE-ACT-KP800 uses the uov-Ip parameter set for UOV and a reduced-round and
-state-size variant of Keccak, `Keccak-p[800, 12]` {{FIPS202}}. Its parameters
-are listed in {{vole-act-kp800-parameters}}.
-
-> TODO Expand `Com()` and `Tag()` into sets of polynomial constraints for the
-> issuance ({{issuance}}) and spend ({{spending}}) relations. An optimization
-> that will be important for practice is to commit intermediate states of the
-> Keccak evaluation to the witness. We need to define precisely how this works.
-
-### Commitment {#kp800-commitment}
-
-~~~~pseudocode
-Com(nf, ctx_iss, t, r):
-  Input:
-    - nf: nullifier, in F_q^nf_len
-    - ctx_iss: issuance context, in F_q^ctx_len
-    - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_q^r_len
-  Output:
-    - c: commitment, in F_q^32
-
-  Steps:
-    1. state := "rata" || VERSION || "c0" || r || 0^(25 - r_len) ||
-                ctx_iss || <t>_L || nf || 0^(68 - nf_len - ctx_len - L)
-    2. c := KP800(state)[0..32]
-    3. return c
-~~~~
-
-### Tag {#kp800-tag}
-
-~~~~pseudocode
-Tag(c, x):
-  Input:
-    - c: commitment, in F_q^32
-    - x: refund, in [2^(8*L)]
-  Output:
-    - y: UOV target, in F_q^{m_uov}
-
-  Steps:
-    1. state := "rata" || VERSION || "t0" || 0^25 ||
-                c || <x>_L || 0^(36 - L)
-    2. y := KP800(state)[0..m_uov]
-    3. return y
-~~~~
-
-## VOLE-ACT-MQ {#mq-commitment}
-
-| Parameter                    | Value                               |
-|:-----------------------------|:------------------------------------|
-| `L` credit length            | `2`                                 |
-| `nf_len` nullifier length    | `16`                                |
-| `ctx_len` context length     | `12`                                |
-| `r_len` opening length       | `83` (determined by MQ parameters)  |
-| `n_uov` UOV signature length | `275` (determined by `m_uov`)       |
-| `m_uov` UOV target length    | `131` (determined by MQ parameters) |
-{: #vole-act-mq-parameters title="VOLE-ACT-MQ Parameters" }
-
-VOLE-ACT-MQ is based on the Multivariate Quadratic (MQ) commitment of
-{{BFMRSV25}} over `F_q`. Its parameters are listed in
-{{vole-act-mq-parameters}}.
-
-Just like the UOV signatures, MQ commitment evaluations can be expressed as
-degree-2 constraints, which makes the issuance and spend proofs more efficient
-than VOLE-ACT-KP800 ({{hash-commitment}}). The commitment involves two
-inhomogeneous quadratic maps `F: F_q^{n_com} -> F_q^k` and `G:
-F_q^{n_com} -> F_q^{m_uov-k}`. To commit to a token state, we encode the
-state as `msg` in `F_q^k`, generate an opening `r <- F_q^{n_com}`, and
-compute `c := (F(r) + msg) || G(r)`.
-
-The tag is an affine, homomorphic operation on the commitment. To tag `c`, we
-encode the refund as `refund` in `F_q^{m_com}` and compute `y := refund + c` as
-the target to be signed by the Issuer. Thus, the UOV parameters are chosen so
-that the UOV target is the same length as the MQ commitment, i.e., `m_uov =
-m_com`.
-
-We start with the most aggressive parameters of {{BFMRSV25}} (Table 3): `k =
-32`, `n_com = 83`, and `m_com = 131`. This determines the UOV target length.
-Because this is larger than the standard parameters {{UOV}}, we must adjust the
-signature length accordingly. The UOV signature length is set to `n_uov = 275`,
-which is the minimum passing a 128-bit check under the CryptographicEstimators
-`UOVEstimator` ({{CryptEst}}, which implements the {{UOV}} Section 4 attacks).
-
-The public commitment maps `F`, `G` are derived deterministically in a
-nothing-up-my-sleeve manner so that no trusted setup is required.
-
-Let `bytesIntoUpper(b)` denote the upper-triangular, `n_com`-by-`n_com` matrix
-over `F_q` obtained by reading bytes from `b` in row-major order.
-
-~~~~pseudocode
-GenerateParameters():
-  Output:
-    - F: F_q^{n_com} -> F_q^k,
-    - G: F_q^{n_com} -> F_q^{m_uov-k}
-
-  Steps:
-    1.  u_com := n_com * (n_com + 1) / 2
-    2.  stream := SHAKE128("rata" || VERSION || "m1")
-    3.  for i in [m_uov]:
-    4.    // quadratic part
-    5.    M_i := bytesIntoUpper(stream.next(u_com))
-    6.    // linear part
-    7.    l_i := stream.next(n_com)
-    8.    // constant part
-    9.    a_i := stream.next(1)[0]
-    10.   // affine quadratic map F_q^{n_com} -> F_q
-    11.   Q_i(x) := x^T*M_i*x + l_i*x + a_i
-    12. F := (Q_0, ..., Q_{k-1})
-    13. G := (Q_k, ..., Q_{m_uov-1})
-    14. return (F, G)
-~~~~
-
-Each quadratic map has quadratic, linear, and constant components. The
-coefficients are sampled sequentially from a `SHAKE128` stream. The
-linear terms prevent generic scaling of nonzero openings. The constant terms
-remove the shared zero fixed point: for the specified derivation, `G(0)` is
-nonzero. Without the constant terms, a malicious Client can choose `r = 0`
-and exploit the homogeneity of the UOV public map to forge tokens, as described
-in {{mq-zero-opening-forgery}}.
-
-### Commitment {#mq-com}
-
-~~~~pseudocode
-Com(nf, ctx_iss, t, r):
-  Input:
-    - nf: nullifier, in F_q^nf_len
-    - ctx_iss: issuance context, in F_q^ctx_len
-    - t: credit value, in [2^(8*L)]
-    - r: commitment opening, in F_q^r_len
-
-  Output:
-    - c: commitment, in F_q^{m_uov}
-
-  Steps:
-    1. (F, G) := GenerateParameters()
-    2. msg := EmbedState(nf, ctx_iss, t)
-    3. c := (F(r) + msg) || G(r)
-    4. return c
-~~~~
-
-The parameters of VOLE-ACT-MQ are set so that `k = nf_len + ctx_len + 2*L`.
-Function `EmbedState(nf, ctx_iss, t)` encodes the token state as
-`msg = nf || ctx_iss || <t>_L || 0^L`. Note that the last `L` elements are set
-to `0` as these are reserved for the refund.
-
-> TODO(cjpatton) Figure out if we can safely bind the issuance context to `F,
-> G` derivation. This would save some bytes in the commitment, which would
-> allow us to bump nullifier length match VOLE-ACT-KP800. (Likewise for the
-> credit length.)
-
-### Tag {#mq-tag}
-
-An MQ commitment is constant-additively homomorphic, which means adding a
-public vector to `c` shifts the committed message without touching the binding
-block `G(r)` and without knowledge of `r` {{BFMRSV25}}. The tagging function
-uses this to write the issuer-granted refund `x` into the (zero) refund
-coordinate:
-
-~~~~pseudocode
-Tag(c, x):
-  Input:
-    - c: commitment, in F_q^{m_uov}
-    - x: refund, in [2^(8*L)]
-
-  Output:
-    - y: UOV target, in F_q^{m_uov}
-
-  Steps:
-    1. refund := EmbedRefund(x)
-    2. y := c + refund
-    3. return y
-~~~~
-
-Function `EmbedRefund(x)` returns a vector `e` in `F_q^{m_uov}` that is zero
-everywhere except the refund slot: its `L` elements starting at `off_refund =
-nf_len + ctx_len + L` hold the refund encoding `<x>_L`.
-
 # Security Considerations {#security}
-
-## MQ zero-opening scaling forgery {#mq-zero-opening-forgery}
-
-An earlier version of VOLE-ACT-MQ omitted the constant coefficients `a_i`
-from `Q_i`. The linear coefficients prevent scaling at a generic opening, but
-they do not help at the Client-controlled opening `r = 0`, where the earlier
-maps had `F(0) = G(0) = 0`.
-
-For example, take an all-zero issuance context and an initial balance of one.
-A malicious Client can choose a nonzero `nf` and `r = 0`, obtaining `s` such
-that
-
-~~~
-P(s) = Tag(Com(nf, 0, 1, 0), 0).
-~~~
-
-The UOV public map is homogeneous quadratic, so `P(alpha*s) =
-alpha^2*P(s)`. For any nonzero `beta` in `F_256`, there is a unique `alpha`
-such that `alpha^2 = beta`. In the construction without constant
-coefficients, fieldwise scaling gives
-
-~~~
-P(alpha*s) = Tag(Com(beta*nf, 0, beta, 0), 0).
-~~~
-
-Here `beta` in the balance position denotes its natural byte value, so its
-two-byte encoding is `beta || 0`. The nullifiers `beta*nf` are distinct. The
-Client therefore knows a true witness for each forged token and can construct
-valid spend proofs without breaking VOLEitH, commitment binding, or UOV
-inversion. One issued one-credit token yields 255 token witnesses whose
-balances sum to 32640.
-
-The constant coefficients prevent this scaling orbit. In particular, the
-binding block at `r = 0` is the nonzero vector `G(0) = (a_k, ...,
-a_{m_uov-1})`. A scaled UOV signature could match another zero-opening token
-only if `beta*G(0) = G(0)`, which forces `beta = 1`.
-
-This correction addresses this specific forgery only. Adding public constants
-is an output translation, so it does not establish the hiding or binding of the
-MQ commitment, the security of the selected parameters, or the security of the
-composition with UOV and VOLEitH.
 
 ## Choice of `Keccak-p[800,12]` {#kp800-choice}
 
@@ -1230,32 +930,13 @@ one-more-unforgeability would need to use witness-extractability of VOLEitH,
 binding of the commitment, and a suitable unforgeability property of UOV. This
 document does not provide either reduction.
 
-In particular, the one-more-preimage assumption in {{PoMFRIT}} is stated for
-random challenge targets. VOLE-ACT-MQ instead asks the UOV trapdoor to
-invert structured, attacker-influenced targets of the form `Tag(Com(...), x)`.
-Applying the PoMFRIT result therefore requires an additional argument that is
-not given here. Assuming hardness directly for this structured target family
-would be a new, protocol-specific assumption.
-
 > NOTE A few observations we've made so far:
 >
 > 1. One-more-UOV reduction likely treats `Com()` and `Tag()` as random
->    oracles. This is reasonable for VOLE-ACT-KP800, but we would need to
->    figure out something else for VOLE-ACT-MQ. It seems to be me (cjpatton)
->    that we probably need a proper hash for `Tag()` at least.
+>    oracles.
 >
-> 2. If we add a randomizer to `Tag()` and instantiate it with Keccak, then we
->    might even be able to reduce to standard UOV rather than one-more-UOV.
->
-> 3. For VOLE-ACT-MQ, figure out if the homomorphic tagging trick for the MQ
->    variant is sound. We likely need the commitment to be pseudorandom, in
->    which case allowing the attacker to select the tag probably incurs a
->    security loss multiplicative in the number of bits of the refund.
-
-The parameters of the MQ commitment in {{mq-commitment}} were chosen from a
-regime for which security is only heuristically justified based on the best
-known attacks. Further cryptanalysis is required to determine if these
-parameters are safe {{BFMRSV25}}.
+> 2. If we add a randomizer to `Tag()`, then we might even be able to reduce to
+>    standard UOV rather than one-more-UOV.
 
 # IANA Considerations
 
