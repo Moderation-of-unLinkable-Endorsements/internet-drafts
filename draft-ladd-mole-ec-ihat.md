@@ -79,17 +79,6 @@ informative:
       -
         ins: B. Schoenmakers
         name: Berry Schoenmakers
-  DS15:
-    title: "Indifferentiability of 8-Round Feistel Networks"
-    target: https://eprint.iacr.org/2015/1069
-    date: 2015
-    author:
-      -
-        ins: Y. Dai
-        name: Yuanxi Dai
-      -
-        ins: J. Steinberger
-        name: John Steinberger
   FFKLLS26:
     title: "Issuer-Hiding Anonymous Tokens and Credentials from Key-Randomizable Signatures"
     target: https://eprint.iacr.org/2026/870
@@ -220,8 +209,7 @@ read-only sequence.
 
 For any byte string `x`, `len(x)` denotes its length in bytes.
 
-For two byte strings `x` and `y`, `x + y` denotes their concatenation, and,
-if they are of equal length, `_xor(x, y)` denotes their bytewise exclusive or.
+For two byte strings `x` and `y`, `x + y` denotes their concatenation.
 
 For a byte string `x`, `x[i:j]` denotes the substring of `x` that begins at
 its byte with index `i` and ends just before its byte with index `j`, where
@@ -411,8 +399,7 @@ issuance and redemption contexts of {{context-binding}}: those are inputs to
 the protocol, chosen by its participants, whereas `ctx_proto` is fixed by the
 ciphersuite.
 
-Every hash this document computes, other than the round functions of the
-permutation `P` ({{permutation}}), is domain-separated by `ctx_proto`, which
+Every hash this document computes is domain-separated by `ctx_proto`, which
 appears in its DST. `HashToGroup` and `HashToScalar` are so parameterized
 ({{ciphersuites}}), as are `G.DeriveScalars` and `G.ExpandScalars`
 ({{derive-scalar}}) and `G.DeriveNonces` ({{derive-nonce}}). Every algorithm
@@ -1156,50 +1143,78 @@ branch at the binding position uses the actual witness and a commitment fixed
 before the challenge; the index of the branch remains hidden by the commitment
 key.
 
-This document uses the commitment of the appendix of {{STACKSIG}} over pairs,
-and then assembles them into a tree. The inputs to the commitments are arbitrary
-strings of bytes, and the outputs are compressed group elements.
+This document uses the commitment of Section 5.2 of {{STACKSIG}} over pairs,
+and then assembles them into a tree as in Section 5.3 of {{STACKSIG}}. The
+inputs to the commitments are arbitrary strings of bytes, and the commitment
+to a pair is the concatenated encodings of two group elements.
 
-The commitment to a pair uses a permutation `P` on group elements. The
-inverse of this permutation is denoted `Pinv` ({{permutation}}).  The
-two values are hashed to scalars and committed under the bases `Q` and
-`P(Q)`:
+The commitment uses one further group element, fixed by the ciphersuite,
+whose discrete logarithm with respect to `B` is known to no party:
+
+~~~python
+def CreateStackBase() -> Element:
+    return G.HashToGroup(b"StackBase")
+~~~
+
+Throughout this document, `G0` denotes `CreateStackBase()`. `CreateContextBase`
+({{context-binding}}) never passes this input to `HashToGroup`, since each of
+its inputs ends with the label `ContextBase`, so `G0` is derived independently
+of every context base.
+
+A commitment key is a single group element `Q`. It determines the two bases
+under which the two values of a pair are committed:
+
+~~~python
+def StepBases(Q: Element) -> tuple[Element, Element]:
+    return (G0 + Q, G0 - Q)
+~~~
+
+The bases always sum to `G0 + G0`, so a party that knew the discrete
+logarithm of both would know that of `G0`. The two values are hashed to
+scalars, and each is committed in a Pedersen commitment of its own, under
+its own base and with its own opening:
 
 ~~~python
 def CommitStep(
     Q: Element,
     left: bytes,
     right: bytes,
-    randomness: Scalar,
+    opening: Sequence[Scalar],
 ) -> bytes:
-    C = (
-        randomness * B
-        + G.HashToScalar(left) * Q
-        + G.HashToScalar(right) * G.P(Q)
-    )
-    return G.SerializeElement(C)
+    (base_left, base_right) = StepBases(Q)
+    (r_left, r_right) = opening
+    C_left = r_left * B + G.HashToScalar(left) * base_left
+    C_right = r_right * B + G.HashToScalar(right) * base_right
+    return G.SerializeElement(C_left) + G.SerializeElement(C_right)
 ~~~
+
+`opening` holds the opening of the left position and then that of the right.
 
 The committer knows the discrete logarithm of one base, and that is the
 position it can later open to another value. A key that binds the `left`
-position is one whose `P(Q)` has the known logarithm, and vice versa:
+position is one whose right base has the known logarithm, and vice versa:
 
 ~~~python
 def GenerateStep(bind_left: bool, secret: Scalar) -> Element:
-    T = secret * B
-    (Q, _) = G.PermutationPair(T, bind_left)
-    return Q
+    if not isinstance(bind_left, bool):
+        raise ValueError("bind_left must be a boolean")
+    E = secret * B
+    if bind_left:
+        return G0 - E
+    return E - G0
 ~~~
 
 `bind_left` is a secret boolean: true binds the left position and false
-binds the right. `G.PermutationPair` ({{permutation-pair}}) returns `(Q, P(Q))`,
-with `T = P(Q)` when binding left and `T = Q` when binding right. It walks
-the same permutation edge in either case, hiding which endpoint has the
-known logarithm. Its second output can be cached for use in `CommitStep`.
+binds the right. The base of the other position is `secret * B`. The two
+possible keys are negations of each other, and each is uniformly distributed
+when `secret * B` is, so a key does not reveal which position it binds.
+Implementations MUST choose between them without a branch or a memory access
+that depends on `bind_left`, for instance with a constant-time conditional
+negation; the Python above does not provide this.
 
 The `secret` is the trapdoor: replacing the equivocal value shifts the
-opening by the difference of the hashes times the trapdoor, and the
-commitment is unchanged:
+opening of its position by the difference of the hashes times the trapdoor,
+and the commitment is unchanged:
 
 ~~~python
 def EquivocateStep(
@@ -1210,9 +1225,12 @@ def EquivocateStep(
     return randomness + (old - new) * secret
 ~~~
 
+The opening of the binding position is not shifted, and cannot be: moving it
+would require the discrete logarithm of its base.
+
 A vector `V[0], ..., V[n-1]` of byte strings is committed by pairing
-neighbours level by level. Each level has its own key and its own opening;
-a vector of odd length carries its last element up unchanged.
+neighbours level by level. Each level has its own key and its own two
+openings; a vector of odd length carries its last element up unchanged.
 
 ~~~python
 def VecCommit(
@@ -1227,18 +1245,18 @@ def VecCommit(
     for i in range(len(V) // 2):
         V_prime.append(
             CommitStep(
-                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0]
+                commitment_keys[0], V[2 * i], V[2 * i + 1], openings[0:2]
             )
         )
 
     if len(V) % 2 == 1:
         V_prime.append(V[-1])
 
-    return VecCommit(V_prime, commitment_keys[1:], openings[1:])
+    return VecCommit(V_prime, commitment_keys[1:], openings[2:])
 ~~~
 
-A vector of `n` values has `Depth(n)` levels, each with one key and one
-opening:
+A vector of `n` values has `Depth(n)` levels, each with one key and two
+openings:
 
 ~~~python
 def Depth(n: int) -> int:
@@ -1264,7 +1282,7 @@ def GenerateVecBind(
 ~~~
 
 The first move commits the value at `index` with every other leaf empty,
-under one opening per level:
+under two openings per level:
 
 ~~~python
 def CommitValAtPlace(
@@ -1279,10 +1297,11 @@ def CommitValAtPlace(
     return VecCommit(V, commitment_keys, openings)
 ~~~
 
-Once the other leaves are known, each level's opening is shifted so that the
-sibling of the binding path takes its new value and the node above is
-unchanged. An odd last element on the binding path has no sibling and keeps
-its opening.
+Once the other leaves are known, each level's opening for the position of the
+binding path's sibling is shifted, so that the sibling takes its new value
+and the node above is unchanged. The level's other opening is kept. An odd
+last element on the binding path has no sibling, and both openings of its
+level are kept.
 
 ~~~python
 def VecEquivocate(
@@ -1300,12 +1319,11 @@ def VecEquivocate(
     if len(old) == 1:
         return []
 
-    if index == len(old) - 1 and len(old) % 2 == 1:
-        opening = openings[0]
-    else:
+    opening = list(openings[0:2])
+    if not (index == len(old) - 1 and len(old) % 2 == 1):
         partner = index - 1 if index % 2 == 1 else index + 1
-        opening = EquivocateStep(
-            old[partner], new[partner], openings[0], trapdoors[0]
+        opening[partner % 2] = EquivocateStep(
+            old[partner], new[partner], opening[partner % 2], trapdoors[0]
         )
 
     old_prime = []
@@ -1313,7 +1331,7 @@ def VecEquivocate(
     for i in range(len(old) // 2):
         Q = commitment_keys[0]
         old_prime.append(
-            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0])
+            CommitStep(Q, old[2 * i], old[2 * i + 1], openings[0:2])
         )
         new_prime.append(
             CommitStep(Q, new[2 * i], new[2 * i + 1], opening)
@@ -1325,12 +1343,12 @@ def VecEquivocate(
     rest = VecEquivocate(
         commitment_keys[1:],
         trapdoors[1:],
-        openings[1:],
+        openings[2:],
         old_prime,
         new_prime,
         index // 2,
     )
-    return [opening] + rest
+    return opening + rest
 
 
 def VecEquivocateFromZero(
@@ -1346,185 +1364,6 @@ def VecEquivocateFromZero(
         commitment_keys, trapdoors, openings, V, new, index
     )
 ~~~
-
-### The Permutation {#permutation}
-
-`P` is a permutation on the elements of `G`, computed on their compressed
-encodings by cycle walking: a permutation of the encoding space is applied
-until the result decodes to an element, and `Pinv` walks the same cycle
-backwards. Since a permutation partitions its domain into cycles, the two
-are inverse to each other.
-
-The following direct implementations define the permutation and its
-inverse for the P-256 group. Other ciphersuites MUST
-define the permutation to be used. They MAY be used on public points,
-including the commitment keys in `CommitStep`. Key generation instead
-uses `G.PermutationPair` ({{permutation-pair}}), which is designed to
-be side-channel resistant. In particular, its execution does not
-distinguish the two binding directions when its outputs are fixed.
-
-~~~python
-def P(self, element: Element) -> Element:
-    buf = bytearray(self.SerializeElement(element))
-    buf[0] = buf[0] - 0x02
-    while True:
-        buf = PermuteBytes(buf)
-        try:
-            return self.DeserializeElement(
-                bytes([buf[0] + 0x02]) + bytes(buf[1:])
-            )
-        except DeserializeError:
-            continue
-
-def Pinv(self, element: Element) -> Element:
-    buf = bytearray(self.SerializeElement(element))
-    buf[0] = buf[0] - 0x02
-    while True:
-        buf = UnpermuteBytes(buf)
-        try:
-            return self.DeserializeElement(
-                bytes([buf[0] + 0x02]) + bytes(buf[1:])
-            )
-        except DeserializeError:
-            continue
-~~~
-
-The permutation of the encoding space is an eight-round Feistel network over
-33-byte strings whose first byte is `0x02` or `0x03`, carried as its low
-bit. Each iteration of the loop below computes two rounds, one per half:
-
-~~~python
-def PermuteBytes(buf: bytearray) -> bytearray:
-    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
-    for i in range(4):
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
-        left[0] = left[0] & 0x01
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-    return left + right
-
-def UnpermuteBytes(buf: bytearray) -> bytearray:
-    left, right = bytearray(buf[0:17]), bytearray(buf[17:33])
-    for i in reversed(range(4)):
-        label = f"right round {i}".encode()
-        right = bytearray(_xor(right, _sha256(left + label)[0:16]))
-        label = f"left round {i}".encode()
-        left = bytearray(_xor(left, _sha256(right + label)[0:17]))
-        left[0] = left[0] & 0x01
-    return left + right
-~~~
-
-The binding argument of {{security-considerations}} models `P` as a random
-permutation. An eight-round balanced Feistel network with independent random
-round functions is indifferentiable from a random permutation {{DS15}}. Here
-the round functions are SHA-256 separated by label, over halves of 129 and
-128 bits, an imbalance {{DS15}} does not cover.
-
-#### Walking a Permutation Edge {#permutation-pair}
-
-`G.PermutationPair(T, bind_left)` returns `(Q, P(Q))`. If `bind_left` is true,
-it walks backwards from `T = P(Q)` to `Q`. Otherwise it walks forwards from
-`T = Q` to `P(Q)`. At each iteration it computes both one-step byte
-permutations, selects the next encoding using the secret bit, and tests
-whether that encoding is valid. It selects the order of the endpoints before
-decoding them, so both final decodings operate on the same public values
-`Q` and `P(Q)`, in that order.
-
-~~~python
-def PermutationPair(
-    self, element: Element, bind_left: bool
-) -> tuple[Element, Element]:
-    if not isinstance(bind_left, bool):
-        raise ValueError("bind_left must be a boolean")
-    start = bytearray(self.SerializeElement(element))
-    start[0] -= 0x02
-    buf = start
-    while True:
-        forward = PermuteBytes(buf)
-        backward = UnpermuteBytes(buf)
-        buf = SelectBytes(forward, backward, bind_left)
-        if IsValidPermutationEncoding(buf):
-            break
-
-    left = SelectBytes(start, buf, bind_left)
-    right = SelectBytes(buf, start, bind_left)
-    Q = self.DeserializeElement(
-        bytes([left[0] + 0x02]) + bytes(left[1:])
-    )
-    PQ = self.DeserializeElement(
-        bytes([right[0] + 0x02]) + bytes(right[1:])
-    )
-    return (Q, PQ)
-
-
-def SelectBytes(
-    left: bytearray, right: bytearray, choose_right: bool
-) -> bytearray:
-    mask = -int(choose_right)
-    return bytearray(
-        (a & ~mask) | (b & mask)
-        for a, b in zip(left, right, strict=True)
-    )
-~~~
-
-`SelectBytes` takes equal-length inputs and selects `right` if its boolean
-argument is true, or `left` otherwise. Implementations MUST perform this
-selection without secret-dependent branches or memory accesses.
-
-For P-256, encoding validity can be tested without attempting a point
-decoding or raising exceptions. Here `FIELD_MODULUS`, `CURVE_A`, and
-`CURVE_B` are the P-256 field modulus and Weierstrass coefficients from
-{{NISTCurves}}. Since the field modulus is 3 modulo 4, the fixed exponent
-below computes a square-root candidate; squaring it tests whether a root
-exists. P-256 has prime, odd order, so an affine point with `y = 0` cannot
-occur. Each valid `x` therefore supports both sign bits. The identity has
-no affine encoding.
-
-~~~python
-def IsValidPermutationEncoding(buf: bytearray) -> bool:
-    if len(buf) != 33:
-        return False
-    x = int.from_bytes(buf[1:], "big")
-    rhs = (
-        pow(x, 3, FIELD_MODULUS) + CURVE_A * x + CURVE_B
-    ) % FIELD_MODULUS
-    y = pow(rhs, (FIELD_MODULUS + 1) // 4, FIELD_MODULUS)
-    return (
-        ((buf[0] == 0) | (buf[0] == 1))
-        & (x < FIELD_MODULUS)
-        & (y * y % FIELD_MODULUS == rhs)
-    )
-~~~
-
-The validity test MUST execute in constant time for all 33-byte candidates,
-including those with an out-of-range coordinate or no square root. Every
-condition is evaluated, so neither an exception-based decoder nor
-short-circuit evaluation may be used. The byte permutations, selections, initial
-serialization of `T`, and computation of `T = secret * B` MUST likewise
-have no secret-dependent timing or memory access patterns. The Python
-snippets specify the computation and operation schedule; Python integer
-arithmetic and the reference implementation's group operations do not
-provide these constant-time guarantees.
-
-To see why the loop may stop at the first valid encoding, fix the public
-output `Q`. Let `k` be the number of applications of `PermuteBytes` needed
-to reach `P(Q)` from `Q`. None of the `k - 1` intermediate encodings is
-valid. Walking backwards from `P(Q)` therefore reaches `Q` after exactly
-`k` applications of `UnpermuteBytes`, with the same sequence of validity
-results: `k - 1` failures followed by one success. Each orientation executes
-one forward permutation, one inverse permutation, one selection, and one
-validity test per iteration. Thus the observable operation schedule depends
-only on `Q`, which is included in the proof, and can be reproduced from it.
-This argument also covers fixed points and does not assume that `P` is
-random.
-
-Implementations MUST NOT optimize away the unused permutation direction.
-Calling `Pinv(T)` only for left binding leaks the direction directly.
-Computing `Pinv(T)` for both directions and selecting an endpoint afterwards
-also leaks: for a fixed public `Q`, its walk length describes the edge
-leaving `Q` in one case and the edge entering `Q` in the other. Both one-step
-permutations MUST be computed on each iteration of the selected walk.
 
 ### Challenge Computation {#proof-challenge}
 
@@ -1636,7 +1475,7 @@ def ProveIssuer(
         b"ProveIssuer",
         instance,
         rand,
-        2 * q + 1,
+        3 * q + 1,
     )
     r = derived[0]
     trapdoors = derived[1 : q + 1]
@@ -1678,7 +1517,7 @@ def ProveIssuer(
 ~~~
 
 `ProveIssuer` derives the nonce `r`, the trapdoors of the `q` commitment
-keys, and the `q` openings of its first move with one call to
+keys, and the `2 * q` openings of its first move with one call to
 `G.DeriveNonces` ({{derive-nonce}}), with `delta` and `index` as the secret
 and the proof statement as the instance.
 
@@ -1714,7 +1553,7 @@ def VerifyIssuer(
     q = Depth(n)
     if len(commitment_keys) != q:
         return False
-    if len(openings) != q:
+    if len(openings) != 2 * q:
         return False
 
     V = []
@@ -1724,7 +1563,10 @@ def VerifyIssuer(
             return False
         V.append(G.SerializeElement(commitment))
 
-    root = VecCommit(V, commitment_keys, openings)
+    try:
+        root = VecCommit(V, commitment_keys, openings)
+    except ValueError:
+        return False
 
     return proof_challenge == ComputeProofChallenge(
         anchor_set,
@@ -1749,10 +1591,11 @@ over. Neither the branch commitments nor the interior nodes are transmitted.
 empty Anchor Set means the Moderator is misconfigured. It also
 rejects a branch commitment equal to the identity element, which
 `SerializeElement` cannot encode and which a Client can produce on its own
-branch by answering `response = -proof_challenge * delta`. An interior node
-is the identity only for a Client that knows a discrete logarithm relation
-among `B`, `Q`, and `P(Q)` for the key `Q` of its level, which the binding
-property of {{pbvc}} rules out, so `VecCommit` does not check for it.
+branch by answering `response = -proof_challenge * delta`. A node commitment
+can be the identity as well: a Client that knows the trapdoor of a level's
+equivocal base can choose that position's opening to cancel the value
+committed there. `CommitStep` then raises the `ValueError` of
+`SerializeElement` ({{group}}), and `VerifyIssuer` rejects the proof.
 
 A proof produced by `ProveIssuer` is accepted by `VerifyIssuer`. On branch
 `index`,
@@ -1906,8 +1749,9 @@ Endorsement the Client stored, which the Client MUST NOT send.
 
 A Moderator deserializes a `Redemption` against its Anchor Set of `n` keys, as
 in {{wire}}. It MUST raise a `DeserializeError` unless `commitment_keys` is
-`Depth(n) * Ne` bytes long and `openings` is `Depth(n) * Ns` bytes long
-({{pbvc}}).
+`Depth(n) * Ne` bytes long and `openings` is `2 * Depth(n) * Ns` bytes long
+({{pbvc}}). Both vectors are ordered from the leaves to the root, and the
+two openings of a level are adjacent, the left one first.
 
 # Ciphersuites {#ciphersuites}
 
@@ -1966,14 +1810,6 @@ DeserializeScalar(buf):
   {{SEC1}}. Raise a `DeserializeError` if the result is not in
   `[0, Order()-1]`.
 
-P:
-: The SHA-256 Feistel permutation and cycle walk in {{permutation}}.
-  Compressed SEC1 prefixes are `0x02` and `0x03`; subtracting `0x02` gives
-  the one-bit prefix used by the byte permutation. `Pinv` reverses the
-  walk. `PermutationPair` ({{permutation-pair}}) is used during commitment
-  key generation. For a random encoding permutation, the walk takes about
-  two iterations on average.
-
 # Security Considerations {#security-considerations}
 
 The security of EC-IHAT is studied in {{FFKLLS26}}. The underlying blind
@@ -2026,21 +1862,29 @@ Issuer hiding:
   key is distributed independently of that position, and an opening
   independently of whether the value it opens to was committed or
   equivocated. The stacked composition is therefore witness indistinguishable
-  (appendix and Section 7 of {{STACKSIG}}).
+  (Section 7 of {{STACKSIG}}).
 
 Partially binding commitments:
 : The soundness of the issuer-hiding proof rests on two things: the
   commitment of {{pbvc}} binding one position of each node, and the
   collision resistance of `HashToScalar` on the leaf and node encodings,
   without which a position could be opened to a colliding value and no
-  discrete logarithm would be extractable. Binding is computational. A
-  Client that opens the value under base `Q` two ways knows the discrete
-  logarithm of `Q`, and one that opens the value under `P(Q)` two ways knows
-  that of `P(Q)`; the key generation gives it one of the two. Opening both
-  positions would require both logarithms. That a `Q` with both known is as
-  hard to find as a discrete logarithm when `P` is modelled as a random
-  permutation ({{permutation}}) is the assumption under which the pair
-  commitment of the appendix of {{STACKSIG}} binds.
+  discrete logarithm would be extractable. Binding is computational and
+  reduces tightly to the discrete logarithm problem (Section 5.2 of
+  {{STACKSIG}}). A Client that opens one position of a node two ways knows
+  the discrete logarithm of that position's base, and one that does so at
+  both positions knows that of `G0`, since the two bases sum to `G0 + G0`.
+  This holds for every commitment key, however the Client chose it. `G0`
+  MUST therefore be the `HashToGroup` output of {{pbvc}} and MUST NOT be
+  chosen, negotiated, or supplied by any party: a Client that knew its
+  discrete logarithm could reopen both positions of every node and produce
+  accepting redemptions while holding no Endorsement.
+
+: The same reduction is why a node commits its two values in two separate
+  Pedersen commitments. With a single commitment over both bases, reopening
+  both positions yields one relation among `B`, `Q`, and `G0`, not a
+  discrete logarithm, and a Client could choose `Q = u * G0 + v * B` so
+  that it knows such a relation.
 
 Constant-time proving:
 : `ProveIssuer` treats one leaf, and one side of each node on the path to it,
@@ -2056,11 +1900,10 @@ Constant-time proving:
   computes each only once MUST compute the same number at every level for
   every `index`.
 
-: Commitment key generation uses the balanced walk of {{permutation-pair}}.
-  Its iteration count is determined by the published commitment key, and
-  both binding directions execute the same operation schedule for that key.
-  This addresses the permutation walk only: secret-index selection,
-  scalar arithmetic, and the rest of the proving algorithm still require
+: Commitment key generation chooses between two keys by a bit of `index`
+  ({{pbvc}}). The two keys are negations of each other, so a constant-time
+  conditional negation makes the choice. Secret-index selection, scalar
+  arithmetic, and the rest of the proving algorithm likewise require
   constant-time implementations.
 
 Single-use sessions:
@@ -2126,8 +1969,8 @@ This document has no IANA actions.
 
 # Test Vectors {#test-vectors}
 
-The vectors below cover the ciphersuite of {{ciphersuites}}: `G.DeriveScalars`,
-the permutation `P`, a key pair, one issuance, and redemptions of the
+The vectors below cover the ciphersuite of {{ciphersuites}}: the stack base
+`G0`, `G.DeriveScalars`, a key pair, one issuance, and redemptions of the
 resulting Endorsement against Anchor Sets of two keys, of five, and of
 one. Byte strings are in hexadecimal, wrapped at 64 digits with the
 continuation lines indented; integers are decimal.
@@ -2147,8 +1990,8 @@ issuer-hiding proof. The `commit.state` entry is the
 `SerializeScalar(a) + SerializeScalar(y) + SerializeScalar(t)`, and the
 `challenge.state` entry is `nf + SerializeScalar(r1) + SerializeScalar(r2)`
 followed by `SerializeScalar(gamma1) + SerializeScalar(gamma2) +
-SerializeScalar(c)`. `issue.Z` is `CreateContextBase(ctx_iss)`, and
-`key.P_pkA` is `P(pkA)`. Every message and `endorsement` entry is an encoding
+SerializeScalar(c)`. `suite.G0` is `CreateStackBase()`, and `issue.Z` is
+`CreateContextBase(ctx_iss)`. Every message and `endorsement` entry is an encoding
 of {{wire}} or {{redemption-wire}}. The keys of each Anchor Set other than
 `key.pkA` were generated for the vectors. Every redemption presents the same
 Endorsement, which a Moderator would accept only once; each `nf` entry is the
@@ -2158,6 +2001,9 @@ output of `VerifyRedemption`.
 
 ~~~
 suite.identifier = 503235362d534841323536
+suite.G0 =
+    020d4264d4e3ab83fd43bff74c19f644d36ffa9cf73253e4a8b0f37093461db2
+    7c
 ~~~
 
 ## Scalar Derivation {#ec-ihat-tv-derive}
@@ -2184,9 +2030,6 @@ key.skA =
 key.pkA =
     024d804bd96c34e6b1708374c9da148db973cc69e4920f9f6d32d3cdeec53758
     3f
-key.P_pkA =
-    0275d05750b95cb2dc26b3a961ce6eb7e90b19f31388dfdb5654bc504541b1d8
-    b7
 ~~~
 
 ## Issuance {#ec-ihat-tv-issue}
@@ -2261,11 +2104,12 @@ redeem2.message =
     192718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
     c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
     951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
-    d9dcdb1bf2752d262faa01e23f63177aab005ca60ef098b466ba32c4c09b13c5
-    5f68ce1afdfbc9550f9e4f6aca1b57cd42e9607f199b96f3835d986364aec9b2
-    4021026202ce942dc5798ae14695d4ca00e2955493c40a0dbce1c068e8ad3e73
-    345128206ff15e6c7ae1ad15f0e8419c98b5f3d8608f7997489f1aa2d3fd7e01
-    6b9365c8
+    d98f976a2119a207c76c48c7756067b5dbae77704dcfc009a0a493e59b3d8b86
+    ef73b21e8975bb8444bae737e807e9f0b993fd3e31b87dc56e4691631c62073c
+    a62103f9a402ffc9708622a786d4aeca4ee37e374c2b348973e248cf41a04fab
+    fd496440401e5c1fc3ed5c2d1b727ccb91d555e5b5a46557a70d0afef35374f8
+    f32fb069dc6e8ba5b9ccc93aa3c7690f56ad222d693d1bcc3eac00f584bac9ca
+    8bbab4c4a6
 redeem2.nf =
     1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
@@ -2297,15 +2141,18 @@ redeem5.message =
     662718a87ea08bc1c93febf220569485c963a24ef239a16f816cf6f3119b8575
     c1c966ac47b7faf614ac00a21a8f1d96fbf2688d96bb91c048141790f7937214
     951e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915e
-    d950529d143f3c4f71f4270f4d7f84b9c3d2b1d1c5daa4c0caf8ee1d338885f1
-    a4691136fa0520c546bbff2a00faf6a012faf8c281ee8385c0d6a8116e85a2c8
-    704063038d292aa5b69f1dea681c1f753f5d53f9d10b45bb399cee7b1fc6531d
-    72b908c1027b75353c0b05b768798410106bb01a761634cc29423c8b45e96b3a
-    f1441349bb037610019efbae269ac174e983ecae9ffa9c73e225e8ba54b706d7
-    c164e4392e1540609574c0a33b601e403d4fd5bbf057fd6e5d05f11fb9168629
-    9a16416ae73880abd3d3ddef893007f0933b35454109117b243e8ff280c6435e
-    dcf1087b97724a42a805bd91e9545402352ca0200f3bdcd0117ad57684009761
-    b065ee322027e03f
+    d9b2d6ccb175b35af37f7d09621aeaf1f278044dfe6409e7ff0fc9eaf9682f06
+    26254911e5a58c2133e55d38936ca053361fe84338252de3ec7dee65f5556b59
+    e740630270d44d14ceb7bc04d5d115a35f23f3fa358c025034dea2072716e51e
+    1163f52c02600c272fa893bbc3ba7af615f19e8e3563157e2b3d3027a7a302f4
+    180a5df02f029ca01781ca43e4b9e144d8da2f8aab3074b5bc9bd1d924090f89
+    f57185def3d440c0c33e75baedfda958ccda69dc3aa4b8675ebecfc585fc1fda
+    7ad48f4ddad766ae6ad9502b74c66aa189a15cb719ecc03c8ed01b09c2482b0e
+    fb6198d63dbb6fc7344a4b33b14aa2cf8612f81333eadaef0419763da625b54c
+    95e64ebd2aae356ced4eeae352daf4491f5dfcb4d1b745c2254f4151a58bf982
+    4778a24fb649dd3887a76a1d934fb8f45271f92336e1cbac46c561626df33833
+    20199c7b20f90b52a5696cf1e65a8766eafc73535d9f8460329e36bb91a9b422
+    aefb111940c0e735
 redeem5.nf =
     1e431d9d3344384352c666d070c4c56c55ccb150b6765addbdb264c0c3915ed9
 ~~~
@@ -2348,6 +2195,13 @@ improvements to the protocol description.
 
 # Changelog
 {:numbered="false"}
+
+draft-ladd-mole-ec-ihat-01
+
+* Return to the pair commitment of Section 5.2 of {{STACKSIG}}: two
+  Pedersen commitments and two openings per level, under bases that sum to
+  a fixed element. The permutation `P` is removed. The `Redemption`
+  encoding and the test vectors change.
 
 draft-ladd-mole-ec-ihat-00
 

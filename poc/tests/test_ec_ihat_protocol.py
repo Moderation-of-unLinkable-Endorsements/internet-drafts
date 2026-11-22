@@ -71,22 +71,72 @@ def test_respond_rejects_zero_challenge():
 
 
 # TODO: Remove these smoke tests once end-to-end tests exercise these functions.
-def test_commit_step_runs_without_raising(monkeypatch):
-    monkeypatch.setattr(protocol.G, "P", lambda point: point)
-    protocol.CommitStep(
+def test_commit_step_runs_without_raising():
+    node = protocol.CommitStep(
         protocol.G.Generator(),
         bytes(protocol.Nseed),
         bytes([1]) * protocol.Nseed,
-        protocol.Scalar(1),
+        [protocol.Scalar(1), protocol.Scalar(2)],
     )
+    assert len(node) == 2 * protocol.G.Ne
+
+
+def test_stack_base_is_fixed_and_distinct_from_a_context_base():
+    assert protocol.G0 == protocol.CreateStackBase()
+    assert protocol.G0 == protocol.G.HashToGroup(b"StackBase")
+    assert protocol.G0 != protocol.CreateContextBase(b"")
+    assert protocol.G0 != protocol.B
+
+
+def test_step_bases_sum_to_twice_the_stack_base():
+    # Knowing the discrete logarithm of both bases gives that of G0.
+    for Q in (protocol.B, protocol.Scalar(7) * protocol.B, protocol.G0):
+        (base_left, base_right) = protocol.StepBases(Q)
+        assert base_left + base_right == protocol.G0 + protocol.G0
 
 
 @pytest.mark.parametrize("bind_left", [False, True])
-def test_generate_step_preserves_key_and_trapdoor(bind_left):
+def test_generate_step_puts_the_trapdoor_under_the_equivocal_base(bind_left):
     secret = protocol.Scalar(12345)
-    T = secret * protocol.B
-    expected = protocol.G.Pinv(T) if bind_left else T
-    assert protocol.GenerateStep(bind_left, secret) == expected
+    Q = protocol.GenerateStep(bind_left, secret)
+    (base_left, base_right) = protocol.StepBases(Q)
+    equivocal = base_right if bind_left else base_left
+    assert equivocal == secret * protocol.B
+
+
+def test_generate_step_keys_are_negations_of_each_other():
+    secret = protocol.Scalar(12345)
+    left = protocol.GenerateStep(True, secret)
+    right = protocol.GenerateStep(False, secret)
+    assert (left + right).isIdentity()
+
+
+@pytest.mark.parametrize("bind_left", [False, True])
+def test_only_the_equivocal_position_of_a_step_can_be_reopened(bind_left):
+    secret = protocol.Scalar(12345)
+    Q = protocol.GenerateStep(bind_left, secret)
+    opening = [protocol.Scalar(3), protocol.Scalar(4)]
+    node = protocol.CommitStep(Q, b"left", b"right", opening)
+    equivocal = 1 if bind_left else 0
+    old = (b"left", b"right")[equivocal]
+
+    shifted = list(opening)
+    shifted[equivocal] = protocol.EquivocateStep(
+        old, b"new", opening[equivocal], secret
+    )
+    values = [b"left", b"right"]
+    values[equivocal] = b"new"
+    assert protocol.CommitStep(Q, *values, shifted) == node
+
+    # The same shift at the binding position does not reopen it.
+    binding = 1 - equivocal
+    shifted = list(opening)
+    shifted[binding] = protocol.EquivocateStep(
+        (b"left", b"right")[binding], b"new", opening[binding], secret
+    )
+    values = [b"left", b"right"]
+    values[binding] = b"new"
+    assert protocol.CommitStep(Q, *values, shifted) != node
 
 
 @pytest.mark.parametrize("bind_left", ["left", "right", None, 0, 1])
@@ -104,11 +154,11 @@ def test_equivocate_step_runs_without_raising():
     )
 
 
-def test_vec_commit_runs_without_raising(monkeypatch):
+def test_vec_commit_runs_without_raising():
     protocol.VecCommit(
         [bytes(protocol.Nseed), bytes([1]) * protocol.Nseed],
         [protocol.G.Generator()],
-        [protocol.Scalar(1)],
+        [protocol.Scalar(1), protocol.Scalar(2)],
     )
 
 
@@ -158,7 +208,7 @@ def test_verify_issuer_runs_without_raising(monkeypatch):
         protocol.Scalar(1),
         protocol.Scalar(2),
         [protocol.G.Generator()],
-        [protocol.Scalar(3)],
+        [protocol.Scalar(3), protocol.Scalar(4)],
     )
 
 
@@ -173,7 +223,7 @@ def test_redeem_runs_without_raising(monkeypatch):
             protocol.Scalar(1),
             protocol.Scalar(2),
             [protocol.G.Generator()],
-            [protocol.Scalar(3)],
+            [protocol.Scalar(3), protocol.Scalar(4)],
         ),
     )
 
@@ -205,7 +255,7 @@ def test_verify_redemption_runs_without_raising(monkeypatch):
         protocol.Scalar(1),
         protocol.Scalar(2),
         [protocol.G.Generator()],
-        [protocol.Scalar(3)],
+        [protocol.Scalar(3), protocol.Scalar(4)],
     )
 
     monkeypatch.setattr(protocol, "VerifyIssuer", lambda *args: True)
@@ -274,7 +324,7 @@ def test_vector_commitment_comprehensive():
             q += 1
         for j in range(0, i):
             trapdoor = protocol.G.DeriveScalars(random(48), b"test", q)
-            opening = protocol.G.DeriveScalars(random(48), b"test", q)
+            opening = protocol.G.DeriveScalars(random(48), b"test", 2 * q)
             keys = GenerateVecBind(j, trapdoor)
             comm = CommitValAtPlace(keys, i, j, b"Bob", opening)
             V = [random(32) for i in range(0, i)]
@@ -305,17 +355,13 @@ def test_verify_end_to_end():
 
 
 @pytest.mark.parametrize("size", [2, 3, 8])
-def test_redemption_matches_previous_key_generation(monkeypatch, size):
+def test_redemption_draws_two_seeds_at_every_index(monkeypatch, size):
     _, pkA, endorsement = _issue()
     calls = []
 
     def fixed_random(length):
         calls.append(length)
         return bytes(i % 256 for i in range(length))
-
-    def previous_generate_step(bind_left, secret):
-        T = secret * protocol.B
-        return protocol.G.Pinv(T) if bind_left else T
 
     monkeypatch.setattr(protocol, "random", fixed_random)
     for index in range(size):
@@ -327,10 +373,10 @@ def test_redemption_matches_previous_key_generation(monkeypatch, size):
         args = (anchor_set, index, endorsement, b"epoch-1", b"moderator-1", b"digest")
         calls.clear()
         redemption = protocol.Redeem(*args)
-        with monkeypatch.context() as previous:
-            previous.setattr(protocol, "GenerateStep", previous_generate_step)
-            assert redemption == protocol.Redeem(*args)
-        assert calls == [2 * protocol.Nseed] * 2
+        assert calls == [2 * protocol.Nseed]
+        q = protocol.Depth(size)
+        assert len(redemption.commitment_keys) == q
+        assert len(redemption.openings) == 2 * q
         assert protocol.VerifyRedemption(
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"digest"
         ) == endorsement.nf
@@ -372,9 +418,17 @@ def _tampered_redemptions(anchor_set, index, redemption):
         swapped = keys[:j] + [keys[j] + G.Generator()] + keys[j + 1 :]
         yield f"key {j}", anchor_set, redemption._replace(
             commitment_keys=swapped), ok
+    for j in range(len(openings)):
         shifted = openings[:j] + [openings[j] + one] + openings[j + 1 :]
         yield f"opening {j}", anchor_set, redemption._replace(
             openings=shifted), ok
+    if openings:
+        yield "opening dropped", anchor_set, redemption._replace(
+            openings=openings[1:]), ok
+        yield "openings of a level swapped", anchor_set, redemption._replace(
+            openings=[openings[1], openings[0]] + openings[2:]), ok
+    yield "opening added", anchor_set, redemption._replace(
+        openings=openings + [one]), ok
     if len(keys) > 1:
         yield "keys reversed", anchor_set, redemption._replace(
             commitment_keys=keys[::-1]), ok
@@ -419,7 +473,7 @@ def test_verify_rejects_identity_commitment():
     anchor_set = [G.ScalarMultGen(protocol.Scalar(i)) for i in (2, 3)]
     redemption = protocol.Redemption(
         x * protocol.B, shown, protocol.Scalar(1), protocol.Scalar(1),
-        [anchor_set[0]], [protocol.Scalar(1)],
+        [anchor_set[0]], [protocol.Scalar(1), protocol.Scalar(1)],
     )
     with pytest.raises(VerifyError):
         protocol.VerifyRedemption(
@@ -436,16 +490,43 @@ def test_verify_issuer_rejects_identity_branch_commitment():
     assert Verify(pkA, endorsement, b"epoch-1", b"moderator-1")
     assert not protocol.VerifyIssuer(
         *args, protocol.Scalar(1), protocol.Scalar(0),
-        [pkA], [protocol.Scalar(1)],
+        [pkA], [protocol.Scalar(1), protocol.Scalar(1)],
     )
     redemption = protocol.Redemption(
         pkA, endorsement, protocol.Scalar(1), protocol.Scalar(0),
-        [pkA], [protocol.Scalar(1)],
+        [pkA], [protocol.Scalar(1), protocol.Scalar(1)],
     )
     with pytest.raises(VerifyError):
         protocol.VerifyRedemption(
             anchor_set, redemption, b"epoch-1", b"moderator-1", b"d"
         )
+
+
+@pytest.mark.parametrize("bind_left", [False, True])
+def test_verify_issuer_rejects_identity_node_commitment(bind_left):
+    # A Client that knows the trapdoor of the equivocal base can choose that
+    # position's opening so that its commitment is the identity, which has
+    # no encoding. VerifyIssuer rejects the proof instead of raising.
+    G = protocol.G
+    _, pkA, endorsement = _issue()
+    anchor_set = [pkA, G.ScalarMultGen(protocol.Scalar(2))]
+    X_hat = pkA + protocol.Scalar(3) * protocol.B
+    proof_challenge, response = protocol.Scalar(5), protocol.Scalar(7)
+    secret = protocol.Scalar(12345)
+    Q = protocol.GenerateStep(bind_left, secret)
+    equivocal = 1 if bind_left else 0
+
+    Y = protocol.Statements(anchor_set, X_hat)
+    leaf = G.SerializeElement(
+        protocol.BranchCommitment(proof_challenge, response, Y[equivocal])
+    )
+    openings = [protocol.Scalar(1), protocol.Scalar(1)]
+    openings[equivocal] = G.scalar(0) - G.HashToScalar(leaf) * secret
+
+    args = (anchor_set, X_hat, endorsement, b"epoch-1", b"moderator-1", b"d")
+    assert not protocol.VerifyIssuer(
+        *args, proof_challenge, response, [Q], openings
+    )
 
 
 def test_partly_repeated_randomness_gives_a_fresh_first_move():

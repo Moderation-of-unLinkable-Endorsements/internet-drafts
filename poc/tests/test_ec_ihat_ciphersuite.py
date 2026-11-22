@@ -91,43 +91,6 @@ def test_scalar_arithmetic_reduces_modulo_order():
     assert difference_result == Scalar(ORDER - 1)
     assert product_result == Scalar(ORDER - 2)
 
-def test_p_not_identity():
-    group = P256Group(b"test")
-    for i in range(1, 100):
-        elt = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt)
-        res = elt - elt2
-        assert not res.isIdentity()
-
-def test_p_invertable():
-    group = P256Group(b"test")
-    for i in range(1, 100):
-        elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt1)
-        elt3 = group.Pinv(elt2)
-        res = elt1 - elt3
-        assert res.isIdentity()
-
-def test_p_not_involution():
-    group = P256Group(b"test")
-    for i in range(1, 100):
-        elt1 = group.HashToGroup(f"test iteration {i}".encode("ascii"),  DST=b"separation")
-        elt2 = group.P(elt1)
-        elt3 = group.P(elt2)
-        res = elt1 - elt3
-        assert not res.isIdentity()
-
-
-def test_permute_bytes_is_a_permutation():
-    from ec_ihat.ciphersuite import PermuteBytes, UnpermuteBytes
-
-    for i in range(32):
-        buf = bytearray([i & 1]) + bytearray(range(i, i + 32))
-        out = PermuteBytes(buf)
-        assert len(out) == 33 and out[0] in (0, 1)
-        assert UnpermuteBytes(out) == buf
-
-
 def test_derive_nonces_binds_every_input():
     from ec_ihat import common
 

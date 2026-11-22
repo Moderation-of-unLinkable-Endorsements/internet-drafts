@@ -160,7 +160,7 @@ def DecodeRedemption(data: bytes, n: int) -> Redemption:
     reader.finish()
 
     q = Depth(n)
-    if len(keys) != q * G.Ne or len(openings) != q * G.Ns:
+    if len(keys) != q * G.Ne or len(openings) != 2 * q * G.Ns:
         raise DeserializeError("vector lengths do not match the Anchor Set")
     keys_reader = Reader(keys)
     openings_reader = Reader(openings)
@@ -170,5 +170,5 @@ def DecodeRedemption(data: bytes, n: int) -> Redemption:
         proof_challenge,
         response,
         [keys_reader.element() for _ in range(q)],
-        [openings_reader.scalar() for _ in range(q)],
+        [openings_reader.scalar() for _ in range(2 * q)],
     )
