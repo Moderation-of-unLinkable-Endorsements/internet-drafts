@@ -679,38 +679,60 @@ FinalizeRedeem(P, request, ctx_iss, ctx_red, challenge_digest):
 
 Issuer-hiding and post-issuance unlinkability of VOLE-IHAT reduce to the
 zero-knowledge property of the VOLEitH proof system and the hiding property of
-our commitment. One-more-unforgeability reduces to witness-extractability of
-VOLEitH, binding of the commitment, and the one-more-UOV assumption
-({{PoMFRIT}}, Definition 8). The one-more-UOV assumption is a stronger
-assumption than standard UOV ({{UOV}}, Definition 2) that requires some
-scrutiny before we rely on it too heavily.
+our commitment. Both privacy properties hold even against malicious Moderators
+and malicious or colluding Anchors (within the anonymity set formed by the
+remaining honest Anchors in `P`).
+
+By contrast, one-more-unforgeability requires **every** public key in the
+Moderator's Anchor Set `P[0..N-1]` to be honestly generated and uncompromised:
+because `RedeemRelation` hides which Anchor certified a redeemed token, a
+single rogue or compromised key in `P` allows its holder to mint arbitrarily
+many valid tokens without attribution. When all `N` Anchors in `P` are honest,
+one-more-unforgeability in the random-oracle model for `Com()` reduces to
+straight-line witness-extractability of VOLEitH, collision resistance (binding)
+of `Com()`, and the random-target one-more-UOV assumption ({{PoMFRIT}},
+Definition 8), with a factor-`N` (`N <= MAX_ANCHORS = 64`, at most `6` bits)
+reduction loss on the one-more-UOV term. The one-more-UOV assumption is a
+stronger assumption than standard UOV ({{UOV}}, Definition 2) that requires
+some scrutiny before we rely on it too heavily.
 
 > NOTE Here's a sketch of the reduction to one-more-UOV. The same idea seems to
 > apply to {{VOLE-ACT}} as well.
 >
-> We consider a simplified version of the protocol, basically a blind signature
-> built in the same framework. During redemption, the Client proves knowledge of
-> `s, r` for which `P(s) = c` and `c = Com(nf, r)`.
+> We first consider the single-Anchor case (`N = 1`), basically a blind
+> signature built in the same framework. During redemption, the Client proves
+> knowledge of `s, r` for which `P(s) = c` and `c = Com(nf, r)`.
 >
-> Our goal is to transform a one-more-redemption forger `B` into a one-more-UOV
-> forger `A`. We simulate `B`'s RO queries using the random targets we got as
-> input to our one-more-UOV instance; when `B` requests issuance, we forward
-> the target to our own `DerivePreimage` oracle.
+> Our goal is to transform a one-more-redemption forger `B` making at most
+> `Q_ro` random-oracle queries and `K` issuance queries into either a collision
+> finder for `Com()` or a one-more-UOV forger `A` on `Q >= Q_ro + K + 1`
+> random challenge targets. On input `P, t[0], ..., t[Q-1]` and with oracle
+> `DerivePreimage`, run `B` with `P` as the Anchor public key and respond to
+> its queries as follows:
 >
-> On input `P, t[0], ..., t[Q-1]` and with oracle `DerivePreimage`: Run `B` with
-> `P` as the issuer public key and respond to its queries as follows:
->
-> * When `B` asks `Com(nf, r)`: for the `i`-th such query, counting from zero,
->   respond with `c = t[i]`.
+> * When `B` asks `Com(nf, r)` on a fresh input `(nf, r)`: for the `i`-th
+>   distinct query, counting from zero, record and return `c = t[i]`.
 >
 > * When `B` requests issuance for `c`: respond with `s = DerivePreimage(c)`.
 >
-> * When `B` requests redemption for `nf, pf`: extract the witness `s, r` for
->   `pf` and let `c = Com(nf, r)`. (If this fails, then witness extractability
->   of VOLEitH implies the Moderator will reject.) If we didn't issue `s` for
->   `c`, then `B` has successfully one-more-forged. Furthermore, `c = t[i]` for
->   some `i` in `[Q]`, hence `s` is a solution to our one-more-UOV
->   instance.
+> * When `B` redeems `K + 1` distinct nullifiers `(nf_j, pf_j)`: extract each
+>   witness `(s_j, r_j)` (if extraction fails on an accepted proof, VOLEitH
+>   soundness is broken) and evaluate `c_j = Com(nf_j, r_j)` via the same lazy
+>   table, assigning fresh slots `t[i]` to any `(nf_j, r_j)` not previously
+>   queried. Because the `K + 1` nullifiers `nf_j` are distinct, either two
+>   pairs `(nf_j, r_j) != (nf_k, r_k)` collide to the same `c_j = c_k`
+>   (breaking `Com()` binding), or the `K + 1` commitments `c_j` occupy `K + 1`
+>   distinct challenge slots `t[i_j]`, yielding `K + 1` valid UOV preimages
+>   after at most `K` calls to `DerivePreimage`.
+>
+> For an Anchor Set of `N <= 64` honest Anchors, the reduction plants its
+> challenge public key `P` at a uniformly chosen index `u* <- [N]` and samples
+> `(P[u], td[u]) <- KeyGen()` for `u != u*` to answer their issuance queries
+> directly. Because `RedeemRelation`'s prefix-orthogonality constraints force
+> each extracted selector `b` to pick a unique index `u in [N]`, any run with
+> no `Com()` collision in which total redemptions exceed total issuances across
+> all `N` Anchors must overload at least one Anchor `u`, which equals `u*` with
+> probability at least `1/N` (and does not affect UOV key-recovery security).
 
 > NOTE We previously looked at an alternative to the outer commitment in which
 > `c` was "tagged" with issuance context `x` via either `c || x` or `c XOR x`. A
@@ -722,9 +744,11 @@ scrutiny before we rely on it too heavily.
 > image.
 
 > NOTE Both VOLE-IHAT and VOLE-ACT can avoid the stronger one-more-UOV
-> assumption by having the Anchor (resp. Issuer) produce a proper UOV signature
-> by sampling a signing salt and using `Keccak-p[800,12]` to hash the input and
-> the salt.
+> assumption by having the Anchor (resp. Issuer) produce a `salt-UOV` signature
+> ({{UOV}}, Appendix A): sampling a fresh random vinegar vector per issuance,
+> hashing the commitment together with a random signing salt via
+> `Keccak-p[800,12]`, and resampling the salt if the linear system is singular
+> (rather than retrying a deterministic counter on a fixed target).
 >
 > For VOLE-IHAT, the cost of this would be an additional hash evaluation in the
 > circuit. For VOLE-ACT, we would just need to add a salt to `Tag()`, which
@@ -737,10 +761,15 @@ scrutiny before we rely on it too heavily.
 ## Choice of `Keccak-p[800,12]`
 
 The commitment `Com()` uses `Keccak-p[800,12]` for the same reasons as the
-commitment of VOLE-ACT, namely to reduce the size of the VOLEitH
-proofs. See {{VOLE-ACT}} for discussion. Likewise, `Com()` reserves at least
-`128` bits of the initial state as constants in order to prevent the inversion
-attack described in {{VOLE-ACT}}.
+commitment of VOLE-ACT, namely to reduce the size of the VOLEitH proofs; see
+{{VOLE-ACT}} for discussion. In VOLE-IHAT, `Com()` fixes `28` bytes (`224`
+bits) of its 100-byte initial state as constants (the 7-byte domain separation
+tag and `21` bytes of zero padding), so finding a second opening of a given
+commitment by inverting `Keccak-p[800,12]` requires roughly `2^224` classical
+or `2^112` quantum (Grover) evaluations of `KP800^{-1}` (and `20` bytes = `160`
+bits, i.e., `~2^80` quantum evaluations per forged single-use token, if
+`nf_len` were increased to `32` bytes per {{commitment}}), without exposing any
+Anchor secret key.
 
 # IANA Considerations
 
