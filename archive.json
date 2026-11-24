@@ -1,6 +1,6 @@
 {
   "magic": "E!vIA5L86J2I",
-  "timestamp": "2026-11-22T05:46:05.545550+00:00",
+  "timestamp": "2026-11-24T09:00:29.598572+00:00",
   "repo": "Moderation-of-unLinkable-Endorsements/internet-drafts",
   "labels": [
     {
@@ -15230,10 +15230,12 @@
       "author": "SamuelSchlesinger",
       "authorAssociation": "CONTRIBUTOR",
       "assignees": [],
-      "labels": [],
+      "labels": [
+        "crypto"
+      ],
       "body": "Remove the `VOLE-ACT-MQ` variant and fold `VOLE-ACT-KP800`'s parameters (`uov-Ip` and `Keccak-p[800,12]`), `Com()`, and `Tag()` directly into `VOLE-ACT`'s protocol specification, matching `VOLE-IHAT` and the `vole-mole` implementation.\n\n- Inline `VOLE-ACT` parameters (`L = 8`, `nf_len = 24`, `ctx_len = 16`, `r_len = 16`, `n_uov = 119`, `m_uov = 45`) and the `Keccak-p[800,12]` `Com()` / `Tag()` definitions under `# Protocol Specification`, removing `# Instantiations`.\n- Remove MQ-only helpers (`SHAKE128` stream notation), bibliography entries (`BFMRSV25`, `CryptEst`), and MQ-specific security discussion.",
       "createdAt": "2026-11-22T04:44:59Z",
-      "updatedAt": "2026-11-22T05:10:06Z",
+      "updatedAt": "2026-11-24T03:05:15Z",
       "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "baseRefName": "main",
       "baseRefOid": "8869b7255d8f595da79ab4e2edddb364c830978d",
@@ -15253,7 +15255,28 @@
           "updatedAt": "2026-11-22T05:10:06Z"
         }
       ],
-      "reviews": []
+      "reviews": [
+        {
+          "id": "PRR_kwDOSX6krs8AAAABZ0S7Fg",
+          "commit": {
+            "abbreviatedOid": "6f9bdac"
+          },
+          "author": "cjpatton",
+          "authorAssociation": "COLLABORATOR",
+          "state": "APPROVED",
+          "body": "No objection, one nit. Before merging let's get @tnyuzg's feedback.",
+          "createdAt": "2026-11-23T18:50:36Z",
+          "updatedAt": "2026-11-24T03:03:34Z",
+          "comments": [
+            {
+              "originalPosition": 179,
+              "body": "Can't we use this notation, now that we don't have multiple MQ maps anymore?\n```suggestion\nUOV map `P : F_q^n -> F_q^m` using the procedure in {{UOV}},\n```",
+              "createdAt": "2026-11-23T18:50:36Z",
+              "updatedAt": "2026-11-24T03:03:34Z"
+            }
+          ]
+        }
+      ]
     },
     {
       "number": 191,
@@ -15274,6 +15297,32 @@
       "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
       "headRefName": "vole-security-and-preimage",
       "headRefOid": "fca935b1607a33d2a104349984166568ee4e3cb2",
+      "closedAt": null,
+      "mergedAt": null,
+      "mergedBy": null,
+      "mergeCommit": null,
+      "comments": [],
+      "reviews": []
+    },
+    {
+      "number": 192,
+      "id": "PR_kwDOSX6krs8AAAABRBASPQ",
+      "title": "ec-ihat: return to the two-commitment pair commitment",
+      "url": "https://github.com/Moderation-of-unLinkable-Endorsements/internet-drafts/pull/192",
+      "state": "OPEN",
+      "author": "SamuelSchlesinger",
+      "authorAssociation": "CONTRIBUTOR",
+      "assignees": [],
+      "labels": [],
+      "body": "## Summary\n\n- Commit the two values of a node in two Pedersen commitments, under the bases `G0 + Q` and `G0 - Q` with `G0 = HashToGroup(\"StackBase\")`. This is the commitment the draft used before #65.\n- Remove the permutation `P`: the Feistel network, the cycle walk, `PermutationPair`, and their constant-time rules.\n- Carry two openings per level instead of one. The reference code, its tests, and the test vectors are updated to match.\n\n## Why\n\n- **The current binding argument has a gap.** `r*B + h(left)*Q + h(right)*P(Q)` binds only if no one can find scalars `q` and `t` with `P(q*B) = t*B`. The draft models `P` as a random permutation, but [DS15] does not cover our 129/128-bit Feistel network, and its bound is vacuous at about 2^15 queries (#157).\n- **A break would be total.** One such pair, used as the top-level key, lets a Client open the root to anything, against every Moderator. It could then redeem an Endorsement signed under a key of its own.\n- **The two-commitment form needs no such assumption.** The bases sum to `G0 + G0`, so a Client that reopens both positions of a node knows the discrete logarithm of `G0`, whatever key it chose. Binding reduces tightly to the discrete logarithm problem.\n- **Issuer hiding is unchanged.** A key is `E - G0` or `G0 - E`, and is uniform either way.\n- **The specification gets simpler.** About 300 fewer lines across the draft, the code, and the tests. Key generation becomes a conditional negation.\n\n## Cost\n\nThis gives back the scalar per level that #65 saved, 32 bytes:\n\n| Anchors | Redemption before | Redemption after |\n|---|---|---|\n| 2 | 324 | 357 |\n| 5 | 456 | 552 |\n| 10 | 521 | 649 |\n| 64 | 651 | 843 |\n\nSizes are in bytes. The `Redemption` encoding and the test vectors change, so this is not wire-compatible with -00.\n\n## Notes for review\n\n- The two values stay in separate commitments on purpose. With a single commitment over both bases, a Client can choose `Q = u*G0 + v*B` and reopen both positions together. The text before #65 made the same point, and the security considerations say so again.\n- `VerifyIssuer` now rejects a node commitment equal to the identity, which a Client can produce at the equivocal position.\n- The [STACKSIG] section numbers (5.2 and 5.3) are restored from the text before #65. I have not rechecked them against the paper.\n- #157 proposed a per-redemption salt to contain a break of `P`. This removes the assumption instead.\n- Implementations of -00 need the matching change. None is included here.\n",
+      "createdAt": "2026-11-22T07:26:21Z",
+      "updatedAt": "2026-11-22T07:26:21Z",
+      "baseRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "baseRefName": "main",
+      "baseRefOid": "8869b7255d8f595da79ab4e2edddb364c830978d",
+      "headRepository": "Moderation-of-unLinkable-Endorsements/internet-drafts",
+      "headRefName": "ec-ihat-revert-pair-commitment",
+      "headRefOid": "040b08efe2ddfef716d4822195ef570fddd38ff3",
       "closedAt": null,
       "mergedAt": null,
       "mergedBy": null,
